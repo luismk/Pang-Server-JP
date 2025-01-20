@@ -1,7 +1,7 @@
 ﻿using System;
 using _smp = PangyaAPI.Utilities.Log;
 using PangyaAPI.Utilities;
-using PangyaAPI.TCP.PangyaPacket;
+using PangyaAPI.Network.PangyaPacket;
 using GameServer.Session;
 using System.Collections.Generic;
 using GameServer.PangType;

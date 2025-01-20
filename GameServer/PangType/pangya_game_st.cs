@@ -1,10 +1,10 @@
-﻿using PangyaAPI.TCP.Pangya_St;
-using PangyaAPI.TCP.Util;
+﻿using PangyaAPI.Network.Pangya_St;
+using PangyaAPI.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;     
-using BlockFlag = PangyaAPI.TCP.Pangya_St.BlockFlag; 
+using BlockFlag = PangyaAPI.Network.Pangya_St.BlockFlag; 
 namespace GameServer.PangType
 {          
     /// <summary>

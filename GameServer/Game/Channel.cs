@@ -2,7 +2,7 @@
 using PangyaAPI.Utilities;
 using System.Collections.Generic;
 using System.Linq;
-using packet = PangyaAPI.TCP.PangyaPacket.Packet;
+using packet = PangyaAPI.Network.PangyaPacket.Packet;
 using packet_func = GameServer.PacketFunc.packet_func;
 using static GameServer.PangType._Define;
 using System;

@@ -128,13 +128,13 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\PangyaAPI\PangyaAPI.Network\PangyaAPI.Network.csproj">
+      <Project>{fe218d80-0679-47e0-bed2-284bba6fe8aa}</Project>
+      <Name>PangyaAPI.Network</Name>
+    </ProjectReference>
     <ProjectReference Include="..\PangyaAPI\PangyaAPI.SQL\PangyaAPI.SQL.csproj">
       <Project>{a3fe3da6-5099-4a65-8734-d43513e23ffb}</Project>
       <Name>PangyaAPI.SQL</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\PangyaAPI\PangyaAPI.TCP\PangyaAPI.TCP.csproj">
-      <Project>{952c14b1-2965-4224-ac37-c6216dd9704c}</Project>
-      <Name>PangyaAPI.TCP</Name>
     </ProjectReference>
     <ProjectReference Include="..\PangyaAPI\PangyaAPI.Utilities\PangyaAPI.Utilities.csproj">
       <Project>{1e2be994-1794-47ce-b66b-65f02d42570c}</Project>

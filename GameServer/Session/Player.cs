@@ -1,5 +1,5 @@
 ﻿using GameServer.PangType;
-using PangyaAPI.TCP.Session;   
+using PangyaAPI.Network.PangyaSession;
 namespace GameServer.Session
 {
     public class Player : SessionBase

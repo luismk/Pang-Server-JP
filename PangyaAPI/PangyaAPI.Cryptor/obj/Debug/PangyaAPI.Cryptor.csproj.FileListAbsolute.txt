@@ -1,9 +1,0 @@
-C:\Users\LENOVO\Desktop\Pang-Server\PangyaAPI\PangyaAPI.Cryptor\bin\Debug\PangyaAPI.Cryptor.dll
-C:\Users\LENOVO\Desktop\Pang-Server\PangyaAPI\PangyaAPI.Cryptor\bin\Debug\PangyaAPI.Cryptor.pdb
-C:\Users\LENOVO\Desktop\Pang-Server\PangyaAPI\PangyaAPI.Cryptor\bin\Debug\PangyaAPI.Utilities.dll
-C:\Users\LENOVO\Desktop\Pang-Server\PangyaAPI\PangyaAPI.Cryptor\bin\Debug\PangyaAPI.Utilities.pdb
-C:\Users\LENOVO\Desktop\Pang-Server\PangyaAPI\PangyaAPI.Cryptor\obj\Debug\PangyaAPI.Cryptor.csproj.AssemblyReference.cache
-C:\Users\LENOVO\Desktop\Pang-Server\PangyaAPI\PangyaAPI.Cryptor\obj\Debug\PangyaAPI.Cryptor.csproj.CoreCompileInputs.cache
-C:\Users\LENOVO\Desktop\Pang-Server\PangyaAPI\PangyaAPI.Cryptor\obj\Debug\PangyaAPI.Cryptor.csproj.CopyComplete
-C:\Users\LENOVO\Desktop\Pang-Server\PangyaAPI\PangyaAPI.Cryptor\obj\Debug\PangyaAPI.Cryptor.dll
-C:\Users\LENOVO\Desktop\Pang-Server\PangyaAPI\PangyaAPI.Cryptor\obj\Debug\PangyaAPI.Cryptor.pdb

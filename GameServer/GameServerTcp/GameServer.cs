@@ -2,16 +2,17 @@
 using _smp = PangyaAPI.Utilities.Log;
 using PangyaAPI.Utilities.Log;
 using PangyaAPI.Utilities;
-using PangyaAPI.TCP.Session;
-using PangyaAPI.TCP.PangyaPacket;
-using PangyaAPI.TCP.PangyaServer;
+using PangyaAPI.Network.PangyaSession;
+using PangyaAPI.Network.PangyaPacket;
+using PangyaAPI.Network.PangyaServer;
 using GameServer.Session;
 using System.Collections.Generic;
 using PangyaAPI.SQL;
-using PangyaAPI.TCP.Cmd;
+using PangyaAPI.Network.Cmd;
 using GameServer.PangType;
 using GameServer.Game;
 using GameServer.PacketFunc;
+using PangyaAPI.Utilities.BinaryModels;
 
 namespace GameServer.GameServerTcp
 {
@@ -171,7 +172,7 @@ namespace GameServer.GameServerTcp
             try
             {
                 // Server ainda não está totalmente iniciado
-                if (this.m_state != ServerState.Good)
+                if (!this._isRunning)
                     return;
 
                 // Tirei o list IP/MAC block daqui e coloquei no monitor no gs, por que agora eles são da classe gs
@@ -312,10 +313,10 @@ namespace GameServer.GameServerTcp
         public virtual void init_systems() { }
         public virtual void init_Packets()
         {
-            this.addPacketCall(0x02, packet_func.packet002);
-            this.addPacketCall(0x03, packet_func.packet003);
-            this.addPacketCall(0x04, packet_func.packet004);
-            this.addPacketCall(0x81, packet_func.packet081);
+            this.funcs.addPacketCall(0x02, packet_func.packet002);
+            this.funcs.addPacketCall(0x03, packet_func.packet003);
+            this.funcs.addPacketCall(0x04, packet_func.packet004);
+            this.funcs.addPacketCall(0x81, packet_func.packet081);
         }
         public virtual void init_load_channels()
         {
@@ -368,11 +369,12 @@ namespace GameServer.GameServerTcp
             try
             {
                 var Packet = new Packet();
-                Packet.Write(new byte[] { 0x00, 0x06, 0x00, 0x00, 0x3F, 0x00 });
-                Packet.WriteByte(1);	// OPTION 1
-                Packet.WriteByte(1);	// OPTION 2
-                Packet.WriteByte(_session.m_key);	// Key
-                _session.SendResponse(Packet.GetBytes(), true);
+                _session.Response = new PangyaBinaryWriter();
+                //Gera Packet com chave de criptografia (posisão 8)
+                _session.Response.Write(new byte[] { 0x00, 0x06, 0x00, 0x00, 0x3f, 0x00, 0x01, 0x01 });
+                _session.Response.WriteByte(_session.m_key);
+                _session.SendBytes(_session.Response.GetBytes);
+                _session.Response.Clear();
             }
             catch (Exception ex)
             {

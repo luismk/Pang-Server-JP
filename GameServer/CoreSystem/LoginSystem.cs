@@ -2,9 +2,9 @@
 using GameServer.PacketFunc;
 using GameServer.PangType;
 using GameServer.Session;
-using PangyaAPI.TCP.Cmd;
-using PangyaAPI.TCP.Pangya_St;
-using PangyaAPI.TCP.PangyaPacket;
+using PangyaAPI.Network.Cmd;
+using PangyaAPI.Network.Pangya_St;
+using PangyaAPI.Network.PangyaPacket;
 using PangyaAPI.Utilities;
 using _smp = PangyaAPI.Utilities.Log;
 using snmdb = PangyaAPI.SQL.Manager;
@@ -248,7 +248,7 @@ namespace GameServer.PangSystem
 
                     ////	if (!DisconnectSession(player_logado))
                     ////		throw new exception("[game_server::requestLogin][Error] Nao conseguiu disconnectar o player[UID=" + (player_logado.getUID())
-                    ////			+ ", OID=" + (player_logado.m_oid) + ", IP=" + player_logado.getIP() + "], ele pode esta com o bug do oid bloqueado, ou Session::UsaCtx bloqueado.");
+                    ////			+ ", OID=" + (player_logado.m_oid) + ", IP=" + player_logado.getIP() + "], ele pode esta com o bug do oid bloqueado, ou SessionBase::UsaCtx bloqueado.");
                     //}
                 }
 

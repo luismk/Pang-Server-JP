@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using PangyaAPI.Utilities;
-using PangyaAPI.TCP.Session;
+using PangyaAPI.Network.PangyaSession;
 
 namespace GameServer.Session
 {
@@ -97,7 +97,7 @@ namespace GameServer.Session
                         + "] _seession not connected.");
             }
 
-            // Block Session
+            // Block SessionBase
 
             uint tmp_oid = _session.m_oid;
 

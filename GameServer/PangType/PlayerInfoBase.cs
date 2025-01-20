@@ -1,5 +1,5 @@
 ﻿using GameServer.Game.Manager;
-using PangyaAPI.TCP.Pangya_St;
+using PangyaAPI.Network.Pangya_St;
 using PangyaAPI.Utilities;
 using System;
 using System.Collections.Generic;

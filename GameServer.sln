@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PangyaAPI.Utilities", "Pang
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PangyaAPI.SQL", "PangyaAPI\PangyaAPI.SQL\PangyaAPI.SQL.csproj", "{A3FE3DA6-5099-4A65-8734-D43513E23FFB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PangyaAPI.Network", "PangyaAPI\PangyaAPI.Network\PangyaAPI.Network.csproj", "{FE218D80-0679-47E0-BED2-284BBA6FE8AA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{A3FE3DA6-5099-4A65-8734-D43513E23FFB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A3FE3DA6-5099-4A65-8734-D43513E23FFB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A3FE3DA6-5099-4A65-8734-D43513E23FFB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FE218D80-0679-47E0-BED2-284BBA6FE8AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FE218D80-0679-47E0-BED2-284BBA6FE8AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FE218D80-0679-47E0-BED2-284BBA6FE8AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FE218D80-0679-47E0-BED2-284BBA6FE8AA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

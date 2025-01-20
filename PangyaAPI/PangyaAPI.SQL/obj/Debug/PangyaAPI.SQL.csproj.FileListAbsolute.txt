@@ -1,9 +1,0 @@
-C:\Users\LENOVO\Desktop\Pang-Server\PangyaAPI\PangyaAPI.SQL\bin\Debug\PangyaAPI.SQL.dll
-C:\Users\LENOVO\Desktop\Pang-Server\PangyaAPI\PangyaAPI.SQL\bin\Debug\PangyaAPI.SQL.pdb
-C:\Users\LENOVO\Desktop\Pang-Server\PangyaAPI\PangyaAPI.SQL\bin\Debug\PangyaAPI.Utilities.dll
-C:\Users\LENOVO\Desktop\Pang-Server\PangyaAPI\PangyaAPI.SQL\bin\Debug\PangyaAPI.Utilities.pdb
-C:\Users\LENOVO\Desktop\Pang-Server\PangyaAPI\PangyaAPI.SQL\obj\Debug\PangyaAPI.SQL.csproj.AssemblyReference.cache
-C:\Users\LENOVO\Desktop\Pang-Server\PangyaAPI\PangyaAPI.SQL\obj\Debug\PangyaAPI.SQL.csproj.CoreCompileInputs.cache
-C:\Users\LENOVO\Desktop\Pang-Server\PangyaAPI\PangyaAPI.SQL\obj\Debug\PangyaAPI.SQL.csproj.CopyComplete
-C:\Users\LENOVO\Desktop\Pang-Server\PangyaAPI\PangyaAPI.SQL\obj\Debug\PangyaAPI.SQL.dll
-C:\Users\LENOVO\Desktop\Pang-Server\PangyaAPI\PangyaAPI.SQL\obj\Debug\PangyaAPI.SQL.pdb

@@ -3,10 +3,10 @@ using GameServer.PangType;
 using System;
 using _smp = PangyaAPI.Utilities.Log;
 using snmdb = PangyaAPI.SQL.Manager;
-using packet = PangyaAPI.TCP.PangyaPacket.Packet;
+using packet = PangyaAPI.Network.PangyaPacket.Packet;
 using PangyaAPI.SQL;
 using GameServer.Session;
-using PangyaAPI.TCP.Pangya_St;
+using PangyaAPI.Network.Pangya_St;
 using GameServer.PacketFunc;
 using PangyaAPI.Utilities.Log;
 
@@ -82,7 +82,7 @@ namespace GameServer.Game
         public void sendCompleteData()
         {
             //// Verifica se a session ainda é valida, essas funções já é thread-safe
-            if (!m_session.IsConnected())
+            if (!m_session.getConnected())
             {
 
                 _smp.message_pool.push("[LoginTask::sendCompleteData][Error] session is invalid.");

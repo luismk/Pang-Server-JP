@@ -1,12 +1,12 @@
 ﻿using GameServer.PangSystem;
 using PangyaAPI.SQL;
-using PangyaAPI.TCP.Pangya_St;
+using PangyaAPI.Network.Pangya_St;
 using PangyaAPI.Utilities;
 using System.Collections.Generic;
 using System.Linq;
 using _smp = PangyaAPI.Utilities.Log;
 using snmdb = PangyaAPI.SQL.Manager;
-using packet = PangyaAPI.TCP.PangyaPacket.Packet;
+using packet = PangyaAPI.Network.PangyaPacket.Packet;
 using packet_func = GameServer.PacketFunc.packet_func;
 using static GameServer.PangType._Define;
 using GameServer.Cmd;
@@ -85,7 +85,7 @@ namespace GameServer.Game
                 task.getSession.usa();
 
                 // Verifica se a session ainda é valida, essas funções já é thread-safe
-                if (!task.getSession.IsConnected())
+                if (!task.getSession.getConnected())
                     throw new exception("[SQLDBResponse][Error] session is invalid, para tratar o pangya_db");
 
                 // Por Hora só sai, depois faço outro tipo de tratamento se precisar
@@ -405,7 +405,7 @@ namespace GameServer.Game
 
                             //        _smp.message_pool.push("[checkWarehouse][ErrorSystem] " + e.getFullMessageError());
 
-                            //        Session inválida
+                            //        SessionBase inválida
                             //        if (e.getCodeError() == STDA_ERROR_TYPE._ITEM_MANAGER)
                             //            throw new exception("[SQLDBResponse][Error] " + e.getFullMessageError(), STDA_ERROR_TYPE.LOGIN_MANAGER);
                             //        else
@@ -846,7 +846,7 @@ namespace GameServer.Game
                 _smp.message_pool.push(new message(
               $"[LoginManager::SQLDBResponse][ErrorSystem] {ex.Message}\nStack Trace: {ex.StackTrace}",
               type_msg.CL_FILE_LOG_AND_CONSOLE));
-                if (task.getSession != null && task.getSession.IsConnected())
+                if (task.getSession != null && task.getSession.getConnected())
                     Program.gs.DisconnectSession(task.getSession);
             }
         }
