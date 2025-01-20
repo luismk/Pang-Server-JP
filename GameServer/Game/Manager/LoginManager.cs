@@ -11,14 +11,12 @@ using packet_func = GameServer.PacketFunc.packet_func;
 using static GameServer.PangType._Define;
 using GameServer.Cmd;
 using GameServer.Session;
-using static GameServer.PangType.PlayerInfoBase;
+using static GameServer.PangType.PlayerInfo;
 using GameServer.GameServerTcp;
 using GameServer.PangType;
 using System;
-using PangyaAPI.Utilities.Log;
-using System.Runtime.CompilerServices;
-using System.Threading;
-
+using PangyaAPI.Utilities.Log;          
+using System.Threading;  
 namespace GameServer.Game
 {
     public class LoginManager

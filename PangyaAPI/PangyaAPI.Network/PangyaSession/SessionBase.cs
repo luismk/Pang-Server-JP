@@ -28,12 +28,7 @@ namespace PangyaAPI.Network.PangyaSession
         /// <summary>
         /// Conexão do cliente
         /// </summary>
-        public TcpClient Tcp { get; set; }
-        /// <summary>
-        /// Chave de criptografia e decriptografia
-        /// </summary>
-         // Propriedades e campos
-        public TcpClient _client { get; set; }
+        public TcpClient _client { get; set; }          
         public IPEndPoint Address { get; set; }
         public byte m_key { get; set; }
         public uint m_oid { get; set; }
@@ -65,16 +60,7 @@ namespace PangyaAPI.Network.PangyaSession
             m_connectedToSend = false;
             m_use_ctx = new stUseCtx();
         }
-
-        public SessionBase(TcpClient sock, IPEndPoint addr, byte key)
-            : this()
-        {
-            _client = sock;
-            Address = addr;
-            m_key = key;
-            m_use_ctx = new stUseCtx();
-        }
-
+           
         // Métodos
         public bool Clear()
         {
@@ -198,7 +184,7 @@ namespace PangyaAPI.Network.PangyaSession
 
         public int usa()
         {                   
-            if (m_connected)
+            if (!m_connected)
                 throw new exception("[session::usa][error] nao pode usa porque o session nao esta mais conectado.");
 
             return m_use_ctx.Usa();
@@ -286,9 +272,9 @@ namespace PangyaAPI.Network.PangyaSession
 
         public void SendBytes(byte[] buffer)
         {
-            if (Tcp.Connected && m_connected)
+            if (_client.Connected && m_connected)
             {
-                Tcp.GetStream().Write(buffer, 0, buffer.Length);
+                _client.GetStream().Write(buffer, 0, buffer.Length);
             }
         }
 
@@ -311,7 +297,7 @@ namespace PangyaAPI.Network.PangyaSession
                 {
                     // Liberando recursos gerenciados
                     this.m_connected = false;   
-                    Tcp.Dispose();
+                    _client.Dispose();
                 }
 
                 // Seta a variável booleana para true,

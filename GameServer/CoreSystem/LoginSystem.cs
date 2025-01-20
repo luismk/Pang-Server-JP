@@ -6,6 +6,7 @@ using PangyaAPI.Network.Cmd;
 using PangyaAPI.Network.Pangya_St;
 using PangyaAPI.Network.PangyaPacket;
 using PangyaAPI.Utilities;
+using PangyaAPI.Utilities.Log;
 using _smp = PangyaAPI.Utilities.Log;
 using snmdb = PangyaAPI.SQL.Manager;
 namespace GameServer.PangSystem
@@ -78,14 +79,18 @@ namespace GameServer.PangSystem
                 if (cmd_pi.getException().getCodeError() != 0)
                     throw cmd_pi.getException();
 
-                pi = (PlayerInfo)cmd_pi.getInfo();
+                pi.uid = cmd_pi.getInfo().uid;
+                pi.level = cmd_pi.getInfo().level;
+                pi.block_flag = cmd_pi.getInfo().block_flag;
+                pi.nickname = cmd_pi.getInfo().nickname;
+                pi.pass = cmd_pi.getInfo().pass;  
                 _session.m_pi = _pi;
 
                 if (pi.uid <= 0)
                     throw new exception("[game_server::requestLogin][Error] player[UID=" + (_pi.uid) + "] nao existe no banco de dados");
 
                 // UID de outro player ou enviou o ID errado mesmo (essa parte é anti-hack ou bot)
-                if (string.Compare(pi.id, _pi.id) != 0)
+                if (string.Compare(pi.id, _pi.id) ==0 )
                     throw new exception("[game_server::requestLogin][Error] Player[UID=" + (pi.uid) + ", REQ_UID="
                             + (_pi.uid) + "] Player ID nao bate : client send ID : " + (_pi.id) + "\t player DB ID : "
                             + (pi.id));
@@ -286,19 +291,22 @@ namespace GameServer.PangSystem
                 packet_func.session_send(ref p, _session, 0);
 
             }
-            catch (exception e)
+            catch (exception ex)
             {
+                _smp.message_pool.push(new message(
+             $"[LoginSystem::requestLogin][ErrorSt] {ex.Message}\nStack Trace: {ex.StackTrace}",
+             type_msg.CL_FILE_LOG_AND_CONSOLE));
 
                 // Error no login, set falso o autoriza o player a continuar conectado com o Game Server
                 _session.m_is_authorized = false;
 
                 // Error Sistema
-                p = new Packet(0x044);
-
+                p = new Packet();
+                p.Write(new byte[] { 0x44, 0x00 });
                 // Pronto agora sim, mostra o erro que eu quero
                 p.WriteInt32(300);
 
-                //Packet_func.session_send(p,_session, 1);
+                packet_func.session_send(ref p,_session, 1);
 
                 // Disconnect
 

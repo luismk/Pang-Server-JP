@@ -15,20 +15,20 @@ namespace PangyaAPI.Network.PangyaSession
         private uint _ttl;
         public uint m_count = 0;
         private static bool _isInit = false;
-        private readonly IniHandle _configReader;
+        private readonly IniHandle m_reader_ini;
         private readonly object _lockObject = new object();
 
         public SessionManager(uint maxSession)
         {
             m_max_session = maxSession;
-            _configReader = new IniHandle("server.ini");
-            ConfigInit();
+            m_reader_ini = new IniHandle("server.ini");
+            loadini();
             _isInit = true;
         }
 
-        public void ConfigInit()
+        public void loadini()
         {
-            _ttl = _configReader.ReadUInt32("OPTION", "TTL", 0);
+            _ttl = m_reader_ini.ReadUInt32("OPTION", "TTL", 0);
         }
 
         public void Clear()
@@ -93,10 +93,9 @@ namespace PangyaAPI.Network.PangyaSession
 
                 session.Lock();
 
-                if ((ret = session.Clear()))
-                {
-                    m_count--;
-                }
+                session.Clear();
+
+                m_count--;
 
                 session.Unlock();
             }
@@ -104,15 +103,7 @@ namespace PangyaAPI.Network.PangyaSession
             return ret;
         }
 
-        public uint GetNumSessionOnline()
-        {
-            uint currOnline;
-            lock (_lockObject)
-            {
-                currOnline = m_count;
-            }
-            return currOnline;
-        }
+        
 
         public SessionBase FindSessionByOid(uint oid)
         {
@@ -206,7 +197,12 @@ namespace PangyaAPI.Network.PangyaSession
 
         public uint NumSessionConnected()
         {
-            return m_count;
+            uint currOnline;
+            lock (_lockObject)
+            {
+                currOnline = m_count;
+            }
+            return currOnline;
         }
 
         public bool IsInit()

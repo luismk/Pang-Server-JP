@@ -141,7 +141,11 @@ namespace PangyaAPI.Network.PangyaServer
             TcpClient client = (TcpClient)obj;
 
             var Session = m_session_manager.AddSession(client, client.Client.RemoteEndPoint as IPEndPoint, (byte)(new Random().Next() % 16));
-                                               
+
+            _smp.message_pool.push(new message("[server::HandleSession][Log] New Player Connected [Ip: " + Session.getIP() + ", Key: " + Session.m_key + "]", type_msg.CL_FILE_LOG_AND_CONSOLE));
+            
+            onAcceptCompleted(Session);
+           
             while (Session.getConnected())
             {
                 try
@@ -215,9 +219,7 @@ namespace PangyaAPI.Network.PangyaServer
                         }
 
                         try
-                        {
-                            m_session_manager.CheckSessionLive();
-
+                        {                                           
                             // Atualiza o número de sessões conectadas
                             m_si.curr_user = (int)m_session_manager.NumSessionConnected();
                             NormalManagerDB.add(0, new CmdRegisterServer(m_si), SQLDBResponse, this);
@@ -438,7 +440,7 @@ namespace PangyaAPI.Network.PangyaServer
 
         public void SendToAll(byte[] Data)
         {
-            for (int i = 0; i < m_session_manager.GetNumSessionOnline(); i++)
+            for (int i = 0; i < m_session_manager.NumSessionConnected(); i++)
             {
                 m_session_manager.m_sessions[i].SendResponse(Data);
             }

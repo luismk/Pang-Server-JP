@@ -13,7 +13,7 @@ using static GameServer.PangType._Define;
 using MemberInfo = GameServer.PangType.MemberInfo;
 using SYSTEMTIME = GameServer.PangType.PangyaTime;
 using GameServer.Session;
-using PangyaAPI.Network.Session;
+using PangyaAPI.Network.PangyaSession;
 using PangyaAPI.Network.PangyaPacket;
 using GameServer.Game.RoomClass;
 using PangyaAPI.Network.PangyaServer;
@@ -491,9 +491,9 @@ SortedList<uint, CaddieInfoEx> v_element)
             if (s == null)
                 throw new Exception("[packet_func::session_send][Error] session *s is nullptr.");
             if(_debug == 1)
-            _smp.message_pool.push($"[SEND_PACKET_LOG]: PacketSize({p.GetBytes().Length}) \t\n{p.GetBytes().HexDump()}");
+                Console.WriteLine($"[SEND_PACKET_LOG]: PacketSize({p.GetBytes().Length}) \t\n{p.GetBytes().HexDump()}" + Environment.NewLine);
 
-            s.SendBuffer(p.GetBytes());
+            s.SendResponse(p.GetBytes());
 
             p.Clear();//@! pode esta causando falha aqui
         }
@@ -507,7 +507,7 @@ SortedList<uint, CaddieInfoEx> v_element)
 
             for (var i = 0; i < channel_session.Count(); ++i)
             {
-                channel_session[i].SendBuffer(p.GetBytes());//@!errado
+                channel_session[i].Send(p.GetBytes());//@!errado
             }
 
             p.Clear();

@@ -100,15 +100,11 @@ namespace GameServer.Session
             // Block SessionBase
 
             uint tmp_oid = _session.m_oid;
+            ret = _session.Clear();
+             m_count--;
 
-            if ((ret = _session.Clear()))
-            {
-
-                m_count--;
-
-                // Libera OID
-                freeOID(tmp_oid/*_session.m_oid*/);
-            }
+            // Libera OID
+            freeOID(tmp_oid/*_session.m_oid*/);
 
             return ret;
         }

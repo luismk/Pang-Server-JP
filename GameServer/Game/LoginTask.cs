@@ -110,7 +110,7 @@ namespace GameServer.Game
 
                 var pi = m_session.m_pi;
                 // Envia todos pacotes aqui, alguns envia antes, por que agora estou usando o jeito o pangya original
-                packet_func.pacote044(ref p, m_session, Program.gs.m_si, 0, m_pi);
+                packet_func.pacote044(ref p, m_session, Program.gs.m_si, 0, pi);
                 packet_func.session_send(ref p, m_session, 1);
 
                 packet_func.pacote070(ref p, m_session, pi.mp_ce);
@@ -127,55 +127,55 @@ namespace GameServer.Game
 
                 Program.gs.sendChannelListToSession(m_session);
 
-                //// // Treasure Hunter Info
-                //packet_func.pacote131(ref p);
+                ////// // Treasure Hunter Info
+                ////packet_func.pacote131(ref p);
+                ////packet_func.session_send(ref p, m_session, 1);
+
+                ////pi.mgr_achievement.sendCounterItemToPlayer(m_session);
+                ////pi.mgr_achievement.sendAchievementToPlayer(m_session);
+
+                //packet_func.pacote0F1(ref p, m_session);
                 //packet_func.session_send(ref p, m_session, 1);
 
-                //pi.mgr_achievement.sendCounterItemToPlayer(m_session);
-                //pi.mgr_achievement.sendAchievementToPlayer(m_session);
 
-                packet_func.pacote0F1(ref p, m_session);
-                packet_func.session_send(ref p, m_session, 1);
+                //packet_func.pacote135(ref p, m_session);
+                //packet_func.session_send(ref p, m_session, 1);
 
+                //packet_func.pacote138(ref p, m_session, pi.v_card_info);
+                //packet_func.session_send(ref p, m_session, 1);
 
-                packet_func.pacote135(ref p, m_session);
-                packet_func.session_send(ref p, m_session, 1);
+                //packet_func.pacote136(ref p, m_session);
+                //packet_func.session_send(ref p, m_session, 1);
 
-                packet_func.pacote138(ref p, m_session, pi.v_card_info);
-                packet_func.session_send(ref p, m_session, 1);
+                //packet_func.pacote137(ref p, m_session, pi.v_cei);
+                //packet_func.session_send(ref p, m_session, 1);
 
-                packet_func.pacote136(ref p, m_session);
-                packet_func.session_send(ref p, m_session, 1);
+                //packet_func.pacote13F(ref p, m_session);
+                //packet_func.session_send(ref p, m_session, 1);
 
-                packet_func.pacote137(ref p, m_session, pi.v_cei);
-                packet_func.session_send(ref p, m_session, 1);
+                //packet_func.pacote181(ref p, m_session, pi.v_ib);
+                //packet_func.session_send(ref p, m_session, 1);
 
-                packet_func.pacote13F(ref p, m_session);
-                packet_func.session_send(ref p, m_session, 1);
+                //packet_func.pacote096(ref p, m_session, m_pi);
+                //packet_func.session_send(ref p, m_session, 1);
 
-                packet_func.pacote181(ref p, m_session, pi.v_ib);
-                packet_func.session_send(ref p, m_session, 1);
+                //packet_func.pacote169(ref p, m_session, pi.ti_current_season, 5/*season atual*/);
+                //packet_func.session_send(ref p, m_session, 1);
+                //packet_func.pacote169(ref p, m_session, pi.ti_rest_season);
+                //packet_func.session_send(ref p, m_session, 1);
 
-                packet_func.pacote096(ref p, m_session, m_pi);
-                packet_func.session_send(ref p, m_session, 1);
+                //packet_func.pacote0B4(ref p, m_session, pi.v_tsi_current_season, 5/*season atual*/);
+                //packet_func.session_send(ref p, m_session, 1);
+                //packet_func.pacote0B4(ref p, m_session, pi.v_tsi_rest_season);
+                //packet_func.session_send(ref p, m_session, 1);
 
-                packet_func.pacote169(ref p, m_session, pi.ti_current_season, 5/*season atual*/);
-                packet_func.session_send(ref p, m_session, 1);
-                packet_func.pacote169(ref p, m_session, pi.ti_rest_season);
-                packet_func.session_send(ref p, m_session, 1);
+                //packet_func.pacote158(ref p, m_session, pi.uid, pi.ui, 0);
+                //packet_func.session_send(ref p, m_session, 1);    // Total de season, 5 atual season
 
-                packet_func.pacote0B4(ref p, m_session, pi.v_tsi_current_season, 5/*season atual*/);
-                packet_func.session_send(ref p, m_session, 1);
-                packet_func.pacote0B4(ref p, m_session, pi.v_tsi_rest_season);
-                packet_func.session_send(ref p, m_session, 1);
-
-                packet_func.pacote158(ref p, m_session, pi.uid, pi.ui, 0);
-                packet_func.session_send(ref p, m_session, 1);    // Total de season, 5 atual season
-
-                packet_func.pacote25D(ref p, m_session, pi.v_tgp_current_season, 5/*season atual*/);
-                packet_func.session_send(ref p, m_session, 1);
-                packet_func.pacote25D(ref p, m_session, pi.v_tgp_rest_season, 0);
-                packet_func.session_send(ref p, m_session, 1);
+                //packet_func.pacote25D(ref p, m_session, pi.v_tgp_current_season, 5/*season atual*/);
+                //packet_func.session_send(ref p, m_session, 1);
+                //packet_func.pacote25D(ref p, m_session, pi.v_tgp_rest_season, 0);
+                //packet_func.session_send(ref p, m_session, 1);
 
 
                 //// Login Reward System - verifica se o player ganhou algum item por logar

@@ -7,7 +7,7 @@ using System.Linq;
 using static GameServer.PangType._Define;
 namespace GameServer.PangType
 {
-    public abstract class PlayerInfoBase : player_info
+    public partial class PlayerInfo : player_info
     {
         public enum enLEVEL : short
         {
@@ -109,7 +109,7 @@ namespace GameServer.PangType
         }
 
               
-        public PlayerInfoBase()
+        public PlayerInfo()
         {
             clear();
         }
@@ -191,146 +191,146 @@ namespace GameServer.PangType
             m_mail_box = new PlayerMailBox();
         }
 
-        // get Size Cup Grand Zodiac from Grand Zodiac Pontos
-        public abstract int getSizeCupGrandZodiac();
+        //// get Size Cup Grand Zodiac from Grand Zodiac Pontos
+        //public abstract int getSizeCupGrandZodiac();
 
-        // Finder
+        //// Finder
 
-        // Friend
-        public abstract FriendInfo findFriendInfoByUID(int _uid);
-        public abstract FriendInfo findFriendInfoById(string _id);
-        public abstract FriendInfo findFriendInfoByNickname(string _nickname);
+        //// Friend
+        //public abstract FriendInfo findFriendInfoByUID(int _uid);
+        //public abstract FriendInfo findFriendInfoById(string _id);
+        //public abstract FriendInfo findFriendInfoByNickname(string _nickname);
 
-        // Itens Equipaveis
-        public abstract WarehouseItemEx findWarehouseItemById(int _id);
-        public abstract WarehouseItemEx findWarehouseItemByTypeid(int _typeid);
-        public abstract WarehouseItemEx findWarehouseItemByTypeidAndId(int _typeid, int _id); // Precisa desse para caso tenho um item com o mesmo id, mas com typeid diferente
+        //// Itens Equipaveis
+        //public abstract WarehouseItemEx findWarehouseItemById(int _id);
+        //public abstract WarehouseItemEx findWarehouseItemByTypeid(int _typeid);
+        //public abstract WarehouseItemEx findWarehouseItemByTypeidAndId(int _typeid, int _id); // Precisa desse para caso tenho um item com o mesmo id, mas com typeid diferente
 
-        public abstract CharacterInfo findCharacterById(int _id);
-        public abstract CharacterInfo findCharacterByTypeid(int _typeid);
-        public abstract CharacterInfo findCharacterByTypeidAndId(int _typeid, int _id);   // Precisa desse para caso tenho um item com o mesmo id, mas com typeid diferente
+        //public abstract CharacterInfo findCharacterById(int _id);
+        //public abstract CharacterInfo findCharacterByTypeid(int _typeid);
+        //public abstract CharacterInfo findCharacterByTypeidAndId(int _typeid, int _id);   // Precisa desse para caso tenho um item com o mesmo id, mas com typeid diferente
 
-        public abstract CaddieInfoEx findCaddieById(int _id);
-        public abstract CaddieInfoEx findCaddieByTypeid(int _typeid);
-        public abstract CaddieInfoEx findCaddieByTypeidAndId(int _typeid, int _id);   // Precisa desse para caso tenho um item com o mesmo id, mas com typeid diferente
+        //public abstract CaddieInfoEx findCaddieById(int _id);
+        //public abstract CaddieInfoEx findCaddieByTypeid(int _typeid);
+        //public abstract CaddieInfoEx findCaddieByTypeidAndId(int _typeid, int _id);   // Precisa desse para caso tenho um item com o mesmo id, mas com typeid diferente
 
-        public abstract MascotInfoEx findMascotById(int _id);
-        public abstract MascotInfoEx findMascotByTypeid(int _typeid);
-        public abstract MascotInfoEx findMascotByTypeidAndId(int _typeid, int _id);   // Precisa desse para caso tenho um item com o mesmo id, mas com typeid diferente
+        //public abstract MascotInfoEx findMascotById(int _id);
+        //public abstract MascotInfoEx findMascotByTypeid(int _typeid);
+        //public abstract MascotInfoEx findMascotByTypeidAndId(int _typeid, int _id);   // Precisa desse para caso tenho um item com o mesmo id, mas com typeid diferente
 
-        public abstract MyRoomItem findMyRoomItemById(int _id);    // Furniture
-        public abstract MyRoomItem findMyRoomItemByTypeid(int _typeid);
+        //public abstract MyRoomItem findMyRoomItemById(int _id);    // Furniture
+        //public abstract MyRoomItem findMyRoomItemByTypeid(int _typeid);
 
-        public abstract CardInfo findCardById(int _id);
-        public abstract CardInfo findCardByTypeid(int _typeid);
+        //public abstract CardInfo findCardById(int _id);
+        //public abstract CardInfo findCardByTypeid(int _typeid);
 
-        public abstract CardEquipInfoEx findCardEquipedById(int _id, int _char_typeid, int _slot);
-        public abstract CardEquipInfoEx findCardEquipedByTypeid(int _typeid, int _char_typeid = 0, int _slot = 0, int _tipo = 0, int _efeito = 0);
+        //public abstract CardEquipInfoEx findCardEquipedById(int _id, int _char_typeid, int _slot);
+        //public abstract CardEquipInfoEx findCardEquipedByTypeid(int _typeid, int _char_typeid = 0, int _slot = 0, int _tipo = 0, int _efeito = 0);
 
-        // Troféu especial
-        public abstract TrofelEspecialInfo findTrofelEspecialById(int _id);
-        public abstract TrofelEspecialInfo findTrofelEspecialByTypeid(int _typeid);
-        public abstract TrofelEspecialInfo findTrofelEspecialByTypeidAndId(int _typeid, int _id);
+        //// Troféu especial
+        //public abstract TrofelEspecialInfo findTrofelEspecialById(int _id);
+        //public abstract TrofelEspecialInfo findTrofelEspecialByTypeid(int _typeid);
+        //public abstract TrofelEspecialInfo findTrofelEspecialByTypeidAndId(int _typeid, int _id);
 
-        public abstract TrofelEspecialInfo findTrofelGrandPrixById(int _id);
-        public abstract TrofelEspecialInfo findTrofelGrandPrixByTypeid(int _typeid);
-        public abstract TrofelEspecialInfo findTrofelGrandPrixByTypeidAndId(int _typeid, int _id);
+        //public abstract TrofelEspecialInfo findTrofelGrandPrixById(int _id);
+        //public abstract TrofelEspecialInfo findTrofelGrandPrixByTypeid(int _typeid);
+        //public abstract TrofelEspecialInfo findTrofelGrandPrixByTypeidAndId(int _typeid, int _id);
 
-        public abstract GrandPrixClear findGrandPrixClear(int _typeid);
+        //public abstract GrandPrixClear findGrandPrixClear(int _typeid);
 
-        //// Get Power Extra
-        //ExtraPower getExtraPower(bool _pwr_condition_actived);
+        ////// Get Power Extra
+        ////ExtraPower getExtraPower(bool _pwr_condition_actived);
 
-        // Get Slot Power
-        public abstract int getSlotPower();
+        //// Get Slot Power
+        //public abstract int getSlotPower();
 
-        public abstract int getCharacterMaxSlot(CharacterInfo.Stats _stats);
-        public abstract int getClubSetMaxSlot(CharacterInfo.Stats _stats);
+        //public abstract int getCharacterMaxSlot(CharacterInfo.Stats _stats);
+        //public abstract int getClubSetMaxSlot(CharacterInfo.Stats _stats);
 
-        // --- Checkers
+        //// --- Checkers
 
-        // Verifica se ele tem Item Boost equipado (agora só pang mastery e nitro) exp acho que não precisa agora
-        public abstract PlayerRoomInfo.uItemBoost checkEquipedItemBoost();
+        //// Verifica se ele tem Item Boost equipado (agora só pang mastery e nitro) exp acho que não precisa agora
+        //public abstract PlayerRoomInfo.uItemBoost checkEquipedItemBoost();
 
-        // Verifica se fez record em todos course, que pode fazer record
-        // Cria um map com todos os maps que foram feito record, no normal, grand prix e natural, excluido o record assit
-        public abstract bool isMasterCourse();
+        //// Verifica se fez record em todos course, que pode fazer record
+        //// Cria um map com todos os maps que foram feito record, no normal, grand prix e natural, excluido o record assit
+        //public abstract bool isMasterCourse();
 
-        // Verifica se está com o item equipado
-        public abstract bool checkEquipedItem(int _typeid);
+        //// Verifica se está com o item equipado
+        //public abstract bool checkEquipedItem(int _typeid);
 
-        // Soma dos score dos record do natural(mas o JP pega o do grand prix)
-        public abstract int getSumRecordGrandPrix();
+        //// Soma dos score dos record do natural(mas o JP pega o do grand prix)
+        //public abstract int getSumRecordGrandPrix();
 
-        // verifica se é um amigo
-        public abstract bool isFriend(int _uid);
+        //// verifica se é um amigo
+        //public abstract bool isFriend(int _uid);
 
-        // Tem o item(Possuí o item)
-        public abstract bool ownerCaddieItem(int _typeid);
-        public abstract bool ownerHairStyle(int _typeid);
-        public abstract bool ownerSetItem(int _typeid);
-        public abstract bool ownerItem(int _typeid, int option = 0);   // Verifica todos os itens;
-        public abstract bool ownerMailBoxItem(int _typeid);
+        //// Tem o item(Possuí o item)
+        //public abstract bool ownerCaddieItem(int _typeid);
+        //public abstract bool ownerHairStyle(int _typeid);
+        //public abstract bool ownerSetItem(int _typeid);
+        //public abstract bool ownerItem(int _typeid, int option = 0);   // Verifica todos os itens;
+        //public abstract bool ownerMailBoxItem(int _typeid);
 
-        public abstract bool isPartEquiped(int _typeid, int _id);
-        public abstract bool isAuxPartEquiped(int _typeid);
+        //public abstract bool isPartEquiped(int _typeid, int _id);
+        //public abstract bool isAuxPartEquiped(int _typeid);
 
-        // Consome moedas
-        public abstract void consomeMoeda(ulong _pang, ulong _cookie);
-        public abstract void consomeCookie(ulong _cookie);
-        public abstract void consomePang(ulong _pang);
+        //// Consome moedas
+        //public abstract void consomeMoeda(ulong _pang, ulong _cookie);
+        //public abstract void consomeCookie(ulong _cookie);
+        //public abstract void consomePang(ulong _pang);
 
-        // Adiciona moedas
-        public abstract void addMoeda(ulong _pang, ulong _cookie);
-        public abstract void addCookie(ulong _cookie);
-        public abstract void addPang(ulong _pang);
+        //// Adiciona moedas
+        //public abstract void addMoeda(ulong _pang, ulong _cookie);
+        //public abstract void addCookie(ulong _cookie);
+        //public abstract void addPang(ulong _pang);
 
-        // Atualiza os valores do gs com o que está no banco de dados
-        public abstract void updateMoeda();
-        public abstract void updateCookie();
-        public abstract void updatePang();
+        //// Atualiza os valores do gs com o que está no banco de dados
+        //public abstract void updateMoeda();
+        //public abstract void updateCookie();
+        //public abstract void updatePang();
 
-        // Adiciona Pang
-        public abstract void addPang(uint _uid, ulong _pang);
+        //// Adiciona Pang
+        //public abstract void addPang(uint _uid, ulong _pang);
 
-        // Adiciona Cookie Point(CP)
-        public abstract void addCookie(uint _uid, ulong _cookie);
+        //// Adiciona Cookie Point(CP)
+        //public abstract void addCookie(uint _uid, ulong _cookie);
 
-        // Add (Soma) User Info
-        public abstract void addUserInfo(UserInfoEx _ui, ulong _total_pang_win_game = 0);
+        //// Add (Soma) User Info
+        //public abstract void addUserInfo(UserInfoEx _ui, ulong _total_pang_win_game = 0);
 
-        // Update User Info ON DB
-        public abstract void updateUserInfo();
+        //// Update User Info ON DB
+        //public abstract void updateUserInfo();
 
-        // Update User Info ON DB Estático
-        public abstract void updateUserInfo(uint _uid, UserInfoEx _ui);
+        //// Update User Info ON DB Estático
+        //public abstract void updateUserInfo(uint _uid, UserInfoEx _ui);
 
-        // Update Trofel Info
-        public abstract void updateTrofelInfo(int _trofel_typeid, bool _trofel_rank);
+        //// Update Trofel Info
+        //public abstract void updateTrofelInfo(int _trofel_typeid, bool _trofel_rank);
 
-        // Update Trofel Info Estático
-        public abstract void updateTrofelInfo(uint _uid, int _trofel_typeid, bool _trofel_rank);
+        //// Update Trofel Info Estático
+        //public abstract void updateTrofelInfo(uint _uid, int _trofel_typeid, bool _trofel_rank);
 
-        // Update Medal
-        public abstract void updateMedal(uMedalWin _medal_win);
+        //// Update Medal
+        //public abstract void updateMedal(uMedalWin _medal_win);
 
-        // Update Medal Estático
-        public abstract void updateMedal(uint _uid, uMedalWin _medal_win);
+        //// Update Medal Estático
+        //public abstract void updateMedal(uint _uid, uMedalWin _medal_win);
 
-        // Adiciona Exp
-        public abstract int addExp(uint _exp);
+        //// Adiciona Exp
+        //public abstract int addExp(uint _exp);
 
-        // update location player on DB
-        public abstract void updateLocationDB();
+        //// update location player on DB
+        //public abstract void updateLocationDB();
 
-        // Update Grand Prix Clear
-        public abstract bool updateGrandPrixClear(int _typeid, int _position);
+        //// Update Grand Prix Clear
+        //public abstract bool updateGrandPrixClear(int _typeid, int _position);
 
-        // Update Grand Zodiac Pontos
-        public abstract void addGrandZodiacPontos(ulong _pontos);
+        //// Update Grand Zodiac Pontos
+        //public abstract void addGrandZodiacPontos(ulong _pontos);
 
-        public abstract bool checkAlterationCookieOnDB();
-        public abstract bool checkAlterationPangOnDB();
+        //public abstract bool checkAlterationCookieOnDB();
+        //public abstract bool checkAlterationPangOnDB();
 
         public ulong cookie { get; set; }
         public CouponGacha cg { get; set; }

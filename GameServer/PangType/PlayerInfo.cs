@@ -8,9 +8,9 @@ using _smp = PangyaAPI.Utilities.Log;
 using snmdb = PangyaAPI.SQL.Manager;
 namespace GameServer.PangType
 {
-    public class PlayerInfo : PlayerInfoBase
+    public partial class PlayerInfo : player_info
     {        
-        public override void addCookie(ulong _cookie)
+        public void addCookie(ulong _cookie)
         {
             if (_cookie <= 0)
                 throw new exception("[PlayerInfo::addCookie][Error] _cookie valor invalido: " + _cookie);
@@ -40,11 +40,11 @@ namespace GameServer.PangType
             _smp::message_pool.push(new message("[PlayerInfo::addCookie][Log] Player: " + uid + ", ganhou " + _cookie + " e ficou com " + cookie + " Cookie(s).", type_msg.CL_FILE_LOG_AND_CONSOLE));
         }
 
-        public override void addCookie(uint _uid, ulong _cookie)
+        public void addCookie(uint _uid, ulong _cookie)
         {
         }
 
-        public override int addExp(uint _exp)
+        public int addExp(uint _exp)
         {
             if (_exp == 0)
                 throw new exception("[PlayerInfo::addExp][Error] _exp is invalid(zero)", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PLAYER_INFO, 21, 0));
@@ -112,7 +112,7 @@ namespace GameServer.PangType
             return ret;
             }
 
-        public override void addGrandZodiacPontos(ulong _pontos)
+        public void addGrandZodiacPontos(ulong _pontos)
         {
             if (_pontos < 0)
                     throw new exception("[PlayerInfo::addGrandZodiacPontos][Error] invalid _pontos(" + _pontos + "), ele eh negativo.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PLAYER_INFO, 101, 0));
@@ -128,7 +128,7 @@ namespace GameServer.PangType
 
         }
 
-        public override void addMoeda(ulong _pang, ulong _cookie)
+        public void addMoeda(ulong _pang, ulong _cookie)
         {
             if (_pang > 0)
                 addPang(_pang);
@@ -137,7 +137,7 @@ namespace GameServer.PangType
                 addCookie(_cookie);
         }
 
-        public override void addPang(ulong _pang)
+        public void addPang(ulong _pang)
         {
 
             if (_pang <= 0)
@@ -184,7 +184,7 @@ namespace GameServer.PangType
 
         }
 
-        public override void addPang(uint _uid, ulong _pang)
+        public void addPang(uint _uid, ulong _pang)
         {
             if (_pang <= 0)
                 throw new exception("[PlayerInfo::addPang][Error] _pang valor invalido: " + _pang, ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PLAYER_INFO, 21, 0));
@@ -195,7 +195,7 @@ namespace GameServer.PangType
         }
 
 
-        public override void addUserInfo(UserInfoEx _ui, ulong _total_pang_win_game = 0)
+        public void addUserInfo(UserInfoEx _ui, ulong _total_pang_win_game = 0)
         {
             ui.add(_ui, (uint)_total_pang_win_game);
 
@@ -203,7 +203,7 @@ namespace GameServer.PangType
             updateUserInfo();
         }
 
-        public override bool checkAlterationCookieOnDB()
+        public bool checkAlterationCookieOnDB()
         {
             var cmd_cp = new CmdCookie(uid);    // Waiter
 
@@ -216,7 +216,7 @@ namespace GameServer.PangType
             return (cmd_cp.getCookie() != cookie);
         }
 
-        public override bool checkAlterationPangOnDB()
+        public bool checkAlterationPangOnDB()
         {
            var cmd_pang = new CmdPang(uid);    // Waiter
 
@@ -228,89 +228,89 @@ namespace GameServer.PangType
             return (cmd_pang.getPang() != ui.pang);
         }
 
-        public override bool checkEquipedItem(int _typeid)
+        public bool checkEquipedItem(int _typeid)
         {
             return false;
         }
 
-        public override PlayerRoomInfo.uItemBoost checkEquipedItemBoost()
+        public PlayerRoomInfo.uItemBoost checkEquipedItemBoost()
         {
             return null;
         }
 
-        public override void consomeCookie(ulong _cookie)
+        public void consomeCookie(ulong _cookie)
         {
         }
 
-        public override void consomeMoeda(ulong _pang, ulong _cookie)
+        public void consomeMoeda(ulong _pang, ulong _cookie)
         {
         }
 
-        public override void consomePang(ulong _pang)
+        public void consomePang(ulong _pang)
         {
         }
 
-        public override CaddieInfoEx findCaddieById(int _id)
-        {
-            return null;
-        }
-
-        public override CaddieInfoEx findCaddieByTypeid(int _typeid)
+        public CaddieInfoEx findCaddieById(int _id)
         {
             return null;
         }
 
-        public override CaddieInfoEx findCaddieByTypeidAndId(int _typeid, int _id)
+        public CaddieInfoEx findCaddieByTypeid(int _typeid)
         {
             return null;
         }
 
-        public override CardInfo findCardById(int _id)
+        public CaddieInfoEx findCaddieByTypeidAndId(int _typeid, int _id)
         {
             return null;
         }
 
-        public override CardInfo findCardByTypeid(int _typeid)
+        public CardInfo findCardById(int _id)
         {
             return null;
         }
 
-        public override CardEquipInfoEx findCardEquipedById(int _id, int _char_typeid, int _slot)
+        public CardInfo findCardByTypeid(int _typeid)
         {
             return null;
         }
 
-        public override CardEquipInfoEx findCardEquipedByTypeid(int _typeid, int _char_typeid = 0, int _slot = 0, int _tipo = 0, int _efeito = 0)
+        public CardEquipInfoEx findCardEquipedById(int _id, int _char_typeid, int _slot)
         {
             return null;
         }
 
-        public override CharacterInfo findCharacterById(int _id)
+        public CardEquipInfoEx findCardEquipedByTypeid(int _typeid, int _char_typeid = 0, int _slot = 0, int _tipo = 0, int _efeito = 0)
         {
             return null;
         }
 
-        public override CharacterInfo findCharacterByTypeid(int _typeid)
+        public CharacterInfo findCharacterById(int _id)
         {
             return null;
         }
 
-        public override CharacterInfo findCharacterByTypeidAndId(int _typeid, int _id)
+        public CharacterInfo findCharacterByTypeid(int _typeid)
         {
             return null;
         }
 
-        public override FriendInfo findFriendInfoById(string _id)
+        public CharacterInfo findCharacterByTypeidAndId(int _typeid, int _id)
         {
             return null;
         }
 
-        public override FriendInfo findFriendInfoByNickname(string _nickname)
+        public FriendInfo findFriendInfoById(string _id)
         {
             return null;
         }
 
-        public override FriendInfo findFriendInfoByUID(int _uid)
+        public FriendInfo findFriendInfoByNickname(string _nickname)
+        {
+            return null;
+        }
+
+        public FriendInfo findFriendInfoByUID(int _uid)
         {
             if (_uid == 0u)
             {
@@ -323,92 +323,92 @@ namespace GameServer.PangType
             return it.Any() ? it.First().Value : null;
         }
 
-        public override GrandPrixClear findGrandPrixClear(int _typeid)
+        public GrandPrixClear findGrandPrixClear(int _typeid)
         {
             return null;
         }
 
-        public override MascotInfoEx findMascotById(int _id)
+        public MascotInfoEx findMascotById(int _id)
         {
             return null;
         }
 
-        public override MascotInfoEx findMascotByTypeid(int _typeid)
+        public MascotInfoEx findMascotByTypeid(int _typeid)
         {
             return null;
         }
 
-        public override MascotInfoEx findMascotByTypeidAndId(int _typeid, int _id)
+        public MascotInfoEx findMascotByTypeidAndId(int _typeid, int _id)
         {
             return null;
         }
 
-        public override MyRoomItem findMyRoomItemById(int _id)
+        public MyRoomItem findMyRoomItemById(int _id)
         {
             return null;
         }
 
-        public override MyRoomItem findMyRoomItemByTypeid(int _typeid)
+        public MyRoomItem findMyRoomItemByTypeid(int _typeid)
         {
             return new MyRoomItem();
         }
 
-        public override TrofelEspecialInfo findTrofelEspecialById(int _id)
+        public TrofelEspecialInfo findTrofelEspecialById(int _id)
         {
             return new TrofelEspecialInfo();
         }
 
-        public override TrofelEspecialInfo findTrofelEspecialByTypeid(int _typeid)
+        public TrofelEspecialInfo findTrofelEspecialByTypeid(int _typeid)
         {
             return new TrofelEspecialInfo();
         }
 
-        public override TrofelEspecialInfo findTrofelEspecialByTypeidAndId(int _typeid, int _id)
+        public TrofelEspecialInfo findTrofelEspecialByTypeidAndId(int _typeid, int _id)
         {
             return new TrofelEspecialInfo();
         }
 
-        public override TrofelEspecialInfo findTrofelGrandPrixById(int _id)
+        public TrofelEspecialInfo findTrofelGrandPrixById(int _id)
         {
             return new TrofelEspecialInfo();
         }
 
-        public override TrofelEspecialInfo findTrofelGrandPrixByTypeid(int _typeid)
+        public TrofelEspecialInfo findTrofelGrandPrixByTypeid(int _typeid)
         {
             return new TrofelEspecialInfo();
         }
 
-        public override TrofelEspecialInfo findTrofelGrandPrixByTypeidAndId(int _typeid, int _id)
+        public TrofelEspecialInfo findTrofelGrandPrixByTypeidAndId(int _typeid, int _id)
         {
             return new TrofelEspecialInfo();
         }
 
-        public override WarehouseItemEx findWarehouseItemById(int _id)
+        public WarehouseItemEx findWarehouseItemById(int _id)
         {
             return mp_wi.GetValues((uint)_id).First();
         }
 
-        public override WarehouseItemEx findWarehouseItemByTypeid(int _typeid)
+        public WarehouseItemEx findWarehouseItemByTypeid(int _typeid)
         {
             return new WarehouseItemEx();
         }
 
-        public override WarehouseItemEx findWarehouseItemByTypeidAndId(int _typeid, int _id)
+        public WarehouseItemEx findWarehouseItemByTypeidAndId(int _typeid, int _id)
         {
             return new WarehouseItemEx();
         }
 
-        public override int getCharacterMaxSlot(CharacterInfo.Stats _stats)
+        public int getCharacterMaxSlot(CharacterInfo.Stats _stats)
         {
             return 1;
         }
 
-        public override int getClubSetMaxSlot(CharacterInfo.Stats _stats)
+        public int getClubSetMaxSlot(CharacterInfo.Stats _stats)
         {
             return 1;
         }
 
-        public override int getSizeCupGrandZodiac()
+        public int getSizeCupGrandZodiac()
         {
             int size_cup = 1;
 
@@ -432,62 +432,62 @@ namespace GameServer.PangType
             return size_cup;
         }
 
-        public override int getSlotPower()
+        public int getSlotPower()
         {
             return 1;
         }
 
-        public override int getSumRecordGrandPrix()
+        public int getSumRecordGrandPrix()
         {
             return 1;
         }
 
-        public override bool isAuxPartEquiped(int _typeid)
+        public bool isAuxPartEquiped(int _typeid)
         {
             return false;
         }
 
-        public override bool isFriend(int _uid)
+        public bool isFriend(int _uid)
         {
             return false;
         }
 
-        public override bool isMasterCourse()
+        public bool isMasterCourse()
         {
             return false;
         }
 
-        public override bool isPartEquiped(int _typeid, int _id)
+        public bool isPartEquiped(int _typeid, int _id)
         {
             return false;
         }
 
-        public override bool ownerCaddieItem(int _typeid)
+        public bool ownerCaddieItem(int _typeid)
         {
             return false;
         }
 
-        public override bool ownerHairStyle(int _typeid)
+        public bool ownerHairStyle(int _typeid)
         {
             return false;
         }
 
-        public override bool ownerItem(int _typeid, int option = 0)
+        public bool ownerItem(int _typeid, int option = 0)
         {
             return false;
         }
 
-        public override bool ownerMailBoxItem(int _typeid)
+        public bool ownerMailBoxItem(int _typeid)
         {
             return false;
         }
 
-        public override bool ownerSetItem(int _typeid)
+        public bool ownerSetItem(int _typeid)
         {
             return false;
         }
 
-        public override void updateCookie()
+        public void updateCookie()
         {
             try
             {
@@ -512,16 +512,16 @@ namespace GameServer.PangType
             }
         }
 
-        public override bool updateGrandPrixClear(int _typeid, int _position)
+        public bool updateGrandPrixClear(int _typeid, int _position)
         {
             return false;
         }
 
-        public override void updateLocationDB()
+        public void updateLocationDB()
         {
         }
 
-        public override void updateMedal(uMedalWin _medal_win)
+        public void updateMedal(uMedalWin _medal_win)
         {
             if (_medal_win.ucMedal == 0u)
                 throw new exception("[PlayerInfo::updateMedal][Error] Player[UID=" + uid
@@ -534,7 +534,7 @@ namespace GameServer.PangType
             updateUserInfo();
         }
 
-        public override void updateMedal(uint _uid, uMedalWin _medal_win)
+        public void updateMedal(uint _uid, uMedalWin _medal_win)
         {
 
             if (_medal_win.ucMedal == 0u)
@@ -548,7 +548,7 @@ namespace GameServer.PangType
             updateUserInfo();
         }
 
-        public override void updateMoeda()
+        public void updateMoeda()
         {
             // Update Cookie
             updateCookie();
@@ -557,7 +557,7 @@ namespace GameServer.PangType
             updatePang();
         }
 
-        public override void updatePang()
+        public void updatePang()
         {
             try
             {
@@ -581,22 +581,22 @@ namespace GameServer.PangType
             }
         }
 
-        public override void updateTrofelInfo(int _trofel_typeid, bool _trofel_rank)
+        public void updateTrofelInfo(int _trofel_typeid, bool _trofel_rank)
         {
         }
 
-        public override void updateTrofelInfo(uint _uid, int _trofel_typeid, bool _trofel_rank)
+        public void updateTrofelInfo(uint _uid, int _trofel_typeid, bool _trofel_rank)
         {
         }
 
-        public override void updateUserInfo()
+        public void updateUserInfo()
         {
             snmdb::NormalManagerDB.add(3, new CmdUpdateUserInfo(uid, ui), SQLDBResponse, this);
 
             _smp::message_pool.push(new message("[PlayerInfo::updateUserInfo][Log] Atualizou info do player[UID=" + uid + "]", type_msg.CL_FILE_LOG_AND_CONSOLE));
         }
 
-        public override void updateUserInfo(uint _uid, UserInfoEx _ui)
+        public void updateUserInfo(uint _uid, UserInfoEx _ui)
         {
             if (_uid == 0)
                 throw new exception("[PlayerInfo::updateUserInfo][Error] _uid is invalid(zero)", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PLAYER_INFO, 300, 0));

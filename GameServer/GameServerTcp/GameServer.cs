@@ -367,18 +367,18 @@ namespace GameServer.GameServerTcp
         protected override void onAcceptCompleted(SessionBase _session)
         {
             try
-            {
-                var Packet = new Packet();
-                _session.Response = new PangyaBinaryWriter();
+            { 
+                var Response = new PangyaBinaryWriter();
                 //Gera Packet com chave de criptografia (posisão 8)
-                _session.Response.Write(new byte[] { 0x00, 0x06, 0x00, 0x00, 0x3f, 0x00, 0x01, 0x01 });
-                _session.Response.WriteByte(_session.m_key);
-                _session.SendBytes(_session.Response.GetBytes);
-                _session.Response.Clear();
+                Response.Write(new byte[] { 0x00, 0x06, 0x00, 0x00, 0x3f, 0x00, 0x01, 0x01 });
+                Response.WriteByte(_session.m_key);
+                _session.SendBytes(Response.GetBytes);
             }
             catch (Exception ex)
             {
-                _smp.message_pool.push(ex.Message, "GameServer::onAcceptCompleted", 808);
+                _smp.message_pool.push(new message(
+              $"[GameServer::onAcceptCompleted][ErrorSt] {ex.Message}\nStack Trace: {ex.StackTrace}",
+              type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
         }
         public override bool CheckPacket(SessionBase session, Packet Packet)
