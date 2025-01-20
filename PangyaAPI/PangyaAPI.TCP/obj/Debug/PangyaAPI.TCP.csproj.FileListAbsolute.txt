@@ -1,0 +1,13 @@
+C:\Users\LENOVO\Desktop\Pang-Server\PangyaAPI\PangyaAPI.TCP\bin\Debug\PangyaAPI.TCP.dll
+C:\Users\LENOVO\Desktop\Pang-Server\PangyaAPI\PangyaAPI.TCP\bin\Debug\PangyaAPI.TCP.pdb
+C:\Users\LENOVO\Desktop\Pang-Server\PangyaAPI\PangyaAPI.TCP\bin\Debug\PangyaAPI.Cryptor.dll
+C:\Users\LENOVO\Desktop\Pang-Server\PangyaAPI\PangyaAPI.TCP\bin\Debug\PangyaAPI.SQL.dll
+C:\Users\LENOVO\Desktop\Pang-Server\PangyaAPI\PangyaAPI.TCP\bin\Debug\PangyaAPI.Utilities.dll
+C:\Users\LENOVO\Desktop\Pang-Server\PangyaAPI\PangyaAPI.TCP\bin\Debug\PangyaAPI.Cryptor.pdb
+C:\Users\LENOVO\Desktop\Pang-Server\PangyaAPI\PangyaAPI.TCP\bin\Debug\PangyaAPI.SQL.pdb
+C:\Users\LENOVO\Desktop\Pang-Server\PangyaAPI\PangyaAPI.TCP\bin\Debug\PangyaAPI.Utilities.pdb
+C:\Users\LENOVO\Desktop\Pang-Server\PangyaAPI\PangyaAPI.TCP\obj\Debug\PangyaAPI.TCP.csproj.AssemblyReference.cache
+C:\Users\LENOVO\Desktop\Pang-Server\PangyaAPI\PangyaAPI.TCP\obj\Debug\PangyaAPI.TCP.csproj.CoreCompileInputs.cache
+C:\Users\LENOVO\Desktop\Pang-Server\PangyaAPI\PangyaAPI.TCP\obj\Debug\PangyaAPI.TCP.csproj.CopyComplete
+C:\Users\LENOVO\Desktop\Pang-Server\PangyaAPI\PangyaAPI.TCP\obj\Debug\PangyaAPI.TCP.dll
+C:\Users\LENOVO\Desktop\Pang-Server\PangyaAPI\PangyaAPI.TCP\obj\Debug\PangyaAPI.TCP.pdb

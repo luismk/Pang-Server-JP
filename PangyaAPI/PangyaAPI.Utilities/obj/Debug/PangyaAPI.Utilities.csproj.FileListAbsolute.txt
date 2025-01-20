@@ -1,0 +1,6 @@
+C:\Users\LENOVO\Desktop\Pang-Server\PangyaAPI\PangyaAPI.Utilities\bin\Debug\PangyaAPI.Utilities.dll
+C:\Users\LENOVO\Desktop\Pang-Server\PangyaAPI\PangyaAPI.Utilities\bin\Debug\PangyaAPI.Utilities.pdb
+C:\Users\LENOVO\Desktop\Pang-Server\PangyaAPI\PangyaAPI.Utilities\obj\Debug\PangyaAPI.Utilities.csproj.AssemblyReference.cache
+C:\Users\LENOVO\Desktop\Pang-Server\PangyaAPI\PangyaAPI.Utilities\obj\Debug\PangyaAPI.Utilities.csproj.CoreCompileInputs.cache
+C:\Users\LENOVO\Desktop\Pang-Server\PangyaAPI\PangyaAPI.Utilities\obj\Debug\PangyaAPI.Utilities.dll
+C:\Users\LENOVO\Desktop\Pang-Server\PangyaAPI\PangyaAPI.Utilities\obj\Debug\PangyaAPI.Utilities.pdb
