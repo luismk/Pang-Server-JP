@@ -111,7 +111,79 @@ namespace GameServer.PangType
               
         public PlayerInfo()
         {
-            clear();
+
+
+            cg = new CouponGacha();
+            mi = new MemberInfoEx();
+            ui = new UserInfoEx();
+            ei = new EquipedItem();
+            cwlul = new ClubSetWorkshopLasUpLevel();
+            cwtc = new ClubSetWorkshopTransformClubSet();
+            pt = new PremiumTicket();
+            ti_current_season = new TrofelInfo();
+            ti_rest_season = new TrofelInfo();
+            TutoInfo = new TutorialInfo();
+            ue = new UserEquip();
+            cmu = new chat_macro_user();
+            a_ms_normal = new MapStatistics[MS_NUM_MAPS];
+            a_msa_normal = new MapStatistics[MS_NUM_MAPS];
+            a_ms_natural = new MapStatistics[MS_NUM_MAPS];
+            a_msa_natural = new MapStatistics[MS_NUM_MAPS];
+            a_ms_grand_prix = new MapStatistics[MS_NUM_MAPS];
+            a_msa_grand_prix = new MapStatistics[MS_NUM_MAPS];
+            for (int i = 0; i < MS_NUM_MAPS; i++)
+            {
+                a_ms_normal.SetValue(new MapStatistics(), i);
+                a_msa_normal.SetValue(new MapStatistics(), i);
+                a_ms_natural.SetValue(new MapStatistics(), i);
+                a_msa_natural.SetValue(new MapStatistics(), i);
+                a_ms_grand_prix.SetValue(new MapStatistics(), i);
+                a_msa_grand_prix.SetValue(new MapStatistics(), i);
+            }
+            aa_ms_normal_todas_season = new MapStatistics[9][];
+
+            // Inicializando cada sessão com 20 mapas (ou MS_NUM_MAPS mapas)
+            for (int j = 0; j < 9; j++)
+            {
+                aa_ms_normal_todas_season[j] = new MapStatistics[MS_NUM_MAPS];
+                for (int i = 0; i < MS_NUM_MAPS; i++)
+                {
+                    aa_ms_normal_todas_season[j][i] = new MapStatistics();  // Inicializa cada mapa
+                }
+            }
+
+            mp_scl = new SortedList<uint, StateCharacterLounge>();
+
+            mp_ce = new SortedList<uint, CharacterInfoEx>();     // Tem que usar multimap aqui, para nao ficar realocando memória, uso o ponteiro de um element, para o item equipado
+            mp_ci = new SortedList<uint, CaddieInfoEx>();      // Tem que usar multimap aqui, para nao ficar realocando memória, uso o ponteiro de um element, para o item equipado
+            mp_mi = new SortedList<uint, MascotInfoEx>();      // Tem que usar multimap aqui, para nao ficar realocando memória, uso o ponteiro de um element, para o item equipado
+            mp_wi = new multimap<uint, WarehouseItemEx>();      // Tem que usar multimap aqui, para nao ficar realocando memória, uso o ponteiro de um element, para o item equipado
+
+            mp_fi = new SortedList<uint, FriendInfo>();   // Friend List
+
+            ari = new AttendanceRewardInfoEx();
+
+            //MgrAchievement mgr_achievement = new             // Manager Achievement
+            v_card_info = new List<CardInfo>();
+
+            v_cei = new List<CardEquipInfoEx>();
+            v_ib = new List<ItemBuffEx>();
+
+            mp_ui = new SortedList<stIdentifyKey/*uint/*ID*/, UpdateItem>();
+
+            v_tsi_current_season = new List<TrofelEspecialInfo>();
+            v_tsi_rest_season = new List<TrofelEspecialInfo>();
+            v_tgp_current_season = new List<TrofelEspecialInfo>();   // Trofel Grand Prix
+            v_tgp_rest_season = new List<TrofelEspecialInfo>(); // Trofel Grand Prix
+            v_mri = new List<MyRoomItem>();     // MyRoomItem
+            v_gpc = new List<GrandPrixClear>(); // Grand Prix Clear os grand prix que o player já jogou
+
+            mrc = new MyRoomConfig();
+            df = new DolfiniLocker();   // DolfiniLocker
+            gi = new GuildInfoEx();
+            dqiu = new DailyQuestInfoUser();
+            l5pg = new Last5PlayersGame();
+            m_mail_box = new PlayerMailBox();
         }
 
         public void clear()
@@ -145,7 +217,7 @@ namespace GameServer.PangType
                 a_ms_grand_prix.SetValue(new MapStatistics(), i);
                 a_msa_grand_prix.SetValue(new MapStatistics(), i);
             }                                        
-            MapStatistics[][] aa_ms_normal_todas_season = new MapStatistics[9][];
+            aa_ms_normal_todas_season = new MapStatistics[9][];
 
             // Inicializando cada sessão com 20 mapas (ou MS_NUM_MAPS mapas)
             for (int j = 0; j < 9; j++)
@@ -421,7 +493,7 @@ namespace GameServer.PangType
         public uint state;
         public uint state_lounge;
         public bool m_state_logged;       // State logged que usa no login gs, e que eu possa usar aqui, por que tbm tenho que prevenir contra ataques DDoS
-        public uCapability m_cap => mi?.capability;
+        public uCapabilityEx m_cap => mi?.capability;
         public ulong grand_zodiac_pontos;
 
         public ulong m_legacy_tiki_pts; // Point Shop(Tiki Shop antigo)

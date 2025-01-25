@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using PangyaAPI.Utilities;
 
 namespace PangyaAPI.Network.Pangya_St
 {
@@ -12,19 +13,19 @@ namespace PangyaAPI.Network.Pangya_St
         {
             IP_BLOCK_NORMAL,
             IP_BLOCK_RANGE
-        }             
+        }
         public _TYPE type;
         public uint ip;
         public uint mask;
     }
 
     // que guarda a estrutura de bits da propriedade do server
-    [StructLayout(LayoutKind.Sequential, Pack = 1, Size = 4)]
+    [StructLayout(LayoutKind.Sequential, Pack = 4, Size = 4)]
     public class uProperty
     {
         public uProperty(uint _ul = 0u)
         {
-             ulProperty = _ul;
+            ulProperty = _ul;
             setFlag();
         }
 
@@ -58,7 +59,7 @@ namespace PangyaAPI.Network.Pangya_St
         }
     }
     // que guarda a estrutura de bits do event flag do server
-    [StructLayout(LayoutKind.Sequential, Pack = 1, Size = 2)]
+    [StructLayout(LayoutKind.Sequential, Pack = 4, Size = 2)]
     public class uEventFlag
     {
         public uEventFlag(short ul = 0)
@@ -116,7 +117,7 @@ namespace PangyaAPI.Network.Pangya_St
             //};
             return this;
         }
-     }
+    }
 
     public class uFlag
     {
@@ -159,7 +160,7 @@ namespace PangyaAPI.Network.Pangya_St
     }
 
 
-    [StructLayout(LayoutKind.Sequential, Pack = 1, Size = 92)]
+    [StructLayout(LayoutKind.Sequential, Pack = 4, Size = 92)]
     public class ServerInfo
     {
         [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 40)]
@@ -181,7 +182,7 @@ namespace PangyaAPI.Network.Pangya_St
         public short img_no { get; set; }
     }
 
-    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public class ServerInfoEx : ServerInfo
     {
         internal int packet_version;
@@ -196,7 +197,7 @@ namespace PangyaAPI.Network.Pangya_St
         [field: MarshalAs(UnmanagedType.Struct, SizeConst = 4)]
         public uFlag flag { get; set; } = new uFlag();
     }
-    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public class RateConfigInfo
     {
         public short scratchy { get; set; }
@@ -288,7 +289,7 @@ namespace PangyaAPI.Network.Pangya_St
         }
     }
 
-    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public class chat_macro_user
     {
         [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 64)]
@@ -321,14 +322,14 @@ namespace PangyaAPI.Network.Pangya_St
             return (isValid() && string.Compare(_str, key) == 0);
         }
         public int server_uid;
-        [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 17)] 
+        [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 17)]
         public string key;               // 16 + null termineted string
         public byte valid = 1;
     }
 
 
     // Keys Of Login
-    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public class KeysOfLogin
     {
         public KeysOfLogin()
@@ -341,7 +342,7 @@ namespace PangyaAPI.Network.Pangya_St
     }
 
     // Keys Of Login
-    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public class AuthKeyInfo
     {
         public byte valid;
@@ -352,8 +353,8 @@ namespace PangyaAPI.Network.Pangya_St
 
     // Auth m_key Login Info
     // Keys Of Login
-    [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public class AuthKeyLoginInfo :AuthKeyInfo
+    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    public class AuthKeyLoginInfo : AuthKeyInfo
     {
     }
     // Auth m_key Game Info
@@ -361,9 +362,13 @@ namespace PangyaAPI.Network.Pangya_St
     {
         public int server_uid;
     }
-    [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public partial class CharacterInfo
+    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    public class CharacterInfo
     {
+        public CharacterInfo()
+        {
+            clear();
+        }
         public enum Stats : byte
         {
             S_POWER,
@@ -419,7 +424,7 @@ namespace PangyaAPI.Network.Pangya_St
         [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
         public uint[] Card_NPC { get; set; }
 
-        public void Init()
+        public void clear()
         {
             if (Card_NPC == null)
                 Card_NPC = new uint[4];
@@ -439,11 +444,21 @@ namespace PangyaAPI.Network.Pangya_St
                 Cut_in = new uint[5];
             if (PCL == null)
                 PCL = new byte[5];
+
+            Card_NPC.ClearArray();
+            Card_Character.ClearArray();
+            Card_Caddie.ClearArray();
+            parts_id.ClearArray();
+            parts_typeid.ClearArray();
+            AuxPart.ClearArray();
+            Blank.ClearArray();
+            Cut_in.ClearArray();
+            PCL.ClearArray();
         }
 
         public void initComboDef()
         {
-            Init();
+            clear();
         }
     }
 
@@ -532,7 +547,7 @@ namespace PangyaAPI.Network.Pangya_St
                     L_BLOCK_MAC_ADDRESS = false
                 };
             }
-             public class _stIDState
+            public class _stIDState
             {
                 public bool L_BLOCK_TEMPORARY { get; set; } = true;
                 public bool L_BLOCK_FOREVER { get; set; } = true;

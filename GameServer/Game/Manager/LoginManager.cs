@@ -16,7 +16,10 @@ using GameServer.GameServerTcp;
 using GameServer.PangType;
 using System;
 using PangyaAPI.Utilities.Log;          
-using System.Threading;  
+using System.Threading;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
 namespace GameServer.Game
 {
     public class LoginManager
@@ -74,13 +77,14 @@ namespace GameServer.Game
                 _smp.message_pool.push("[SQLDBResponse][Error] _arg is null na msg_id = " + (_msg_id));
                 return;
             }
-
+           // if (_arg is LoginTask && (task = (LoginTask)_arg) != null)
+            
             var task = (LoginTask)(_arg);
 
             try
             {
-                // usa session, para ela não poder ser excluída(disconnectada) antes de ser tratada aqui
-                task.getSession.usa();
+                if (task.isFinished())
+                    return;
 
                 // Verifica se a session ainda é valida, essas funções já é thread-safe
                 if (!task.getSession.getConnected())
@@ -109,15 +113,12 @@ namespace GameServer.Game
                             var pi = task.getSession.m_pi;
 
                             task.getSession.m_pi.ue = ((CmdUserEquip)(_pangya_db)).getInfo();
-
-
-                            packet p = new packet();
-
+                                              
                             // Verifica se tem o Pacote de verificação de bots ativado
                             //uint ttl = Program.gs.getBotTTL();
 
-                            packet_func.pacote1A9(ref p, task.getSession, 10000/*milliseconds*/);
-                            packet_func.session_send(ref p, task.getSession, 1); // Tempo para enviar um pacote, ant Bot
+                           var p = packet_func.pacote1A9(10000/*milliseconds*/);
+                            packet_func.session_send(p, task.getSession, 1); // Tempo para enviar um pacote, ant Bot
 
                             snmdb.NormalManagerDB.add(5, new CmdTutorialInfo(pi.uid), SQLDBResponse, task);
 
@@ -180,9 +181,8 @@ namespace GameServer.Game
                                                                                                         //pi.TutoInfo = pangya_db.getTutorialInfo(pi.uid);
 
                             // Manda pacote do tutorial aqui
-                            packet p = new packet();
-                            packet_func.pacote11F(ref p, task.getSession, task.getSession.m_pi, 3/*tutorial info, 3 add do zero init*/);
-                            packet_func.session_send(ref p, task.getSession, 1);
+                            var p =  packet_func.pacote11F(task.getSession.m_pi, 3/*tutorial info, 3 add do zero init*/);
+                            packet_func.session_send(p, task.getSession, 1);
 
                             break;
                         }
@@ -193,9 +193,9 @@ namespace GameServer.Game
 
                             // Não sei se o que é esse pacote, então não sei o que ele busca no banco de dados, mas depois descubro
                             // Deixar ele enviando aqui por enquanto
-                            packet p = new packet();
-                            packet_func.pacote101(ref p, task.getSession);
-                            packet_func.session_send(ref p, task.getSession, 1);   // pacote novo do JP
+                                                            
+                            var p = packet_func.pacote101();
+                            packet_func.session_send(p, task.getSession,1);   // pacote novo do JP
 
                             break;
                         }
@@ -607,7 +607,7 @@ namespace GameServer.Game
 
                             //}
 
-                            snmdb.NormalManagerDB.add(19, new CmdAchievementInfo(task.getSession.m_pi.uid), SQLDBResponse, task);
+                           snmdb.NormalManagerDB.add(19, new CmdAchievementInfo(task.getSession.m_pi.uid), SQLDBResponse, task);
                             task.incremenetCount();
                             break;
                         }
@@ -730,9 +730,8 @@ namespace GameServer.Game
 
                             var v_mb = task.getSession.m_pi.m_mail_box.getAllUnreadEmail();
 
-                            packet p = new packet();
-                            packet_func.pacote210(ref p, task.getSession, v_mb);
-                            packet_func.session_send(ref p, task.getSession, 1);
+                            var p = packet_func.pacote210(v_mb);
+                            packet_func.session_send(p, task.getSession, 1);
                             break;
                         }
                     case 33:    // Aviso Caddie Ferias
@@ -742,12 +741,9 @@ namespace GameServer.Game
                             if (v_cif.Any())
                             {
 
-                                packet p = new packet();
-                                packet_func.pacote0D4(ref p, task.getSession, v_cif);
-                                packet_func.session_send(ref p, task.getSession, 1);
-
-                            }
-
+                                var p = packet_func.pacote0D4(v_cif);
+                                packet_func.session_send(p, task.getSession, 1);            
+                            }                                                                                                                                                           
                             break;
                         }
                     case 34:    // Msg Off Info
@@ -757,9 +753,8 @@ namespace GameServer.Game
                             if (!v_moi.Any())
                             {
 
-                                packet p = new packet();
-                                packet_func.pacote0B2(ref p, task.getSession, v_moi);
-                                packet_func.session_send(ref p, task.getSession, 1);
+                                var p = packet_func.pacote0B2(v_moi);
+                                packet_func.session_send(p, task.getSession, 1);
 
                             }
 
@@ -832,12 +827,14 @@ namespace GameServer.Game
                 if (task.getCount() == 39) // 44 - 5 (38 deixei o 1, 2, 3, 40 e 41 para o game server)
                 {
                     task.sendCompleteData();
-                  
+                    task.WorkFinish();
                 }
                 else if (task.getCount() > 0)
                 {
-                    task.sendReply((uint)_msg_id + 1);
+                   task.sendReply((uint)_msg_id + 1);
                 }
+                if (task.getCount() > 39)
+                    Console.WriteLine($"test {_msg_id} msg_code, {task.getCount()} m_count");
             }
             catch (Exception ex)
             {

@@ -44,7 +44,25 @@ namespace PangyaAPI.Utilities.BinaryModels
             this.OutStream = new MemoryStream();
         }
 
+        public void init_plain(ushort value)
+        {
+            WriteUInt16(value);
+            //identificar pacotes com id errados
+            Console.WriteLine("[PacketBase::init_plain] log: " + GetBytes.HexDump());
+        }
 
+        public void WriteInt16(short value)
+        {
+            try
+            {
+                Write(value);
+            }
+            catch
+            {
+
+            }
+
+        }
         public bool WriteStr(string message, int length)
         {
 
@@ -331,30 +349,12 @@ namespace PangyaAPI.Utilities.BinaryModels
             // Escrever o buffer
             return true;
         }
-        public bool WriteStruct(object value)
-        {
-            try
-            {
-                int size = Marshal.SizeOf(value);
-                byte[] arr = new byte[size];
-
-                IntPtr ptr = Marshal.AllocHGlobal(size);
-                Marshal.StructureToPtr(value, ptr, true);
-                Marshal.Copy(ptr, arr, 0, size);
-                Marshal.FreeHGlobal(ptr);
-                Write(arr);
-            }
-            catch (exception e)
-            {
-                throw e;
-            }
-            return true;
-        }
-
+       
         public void WriteFile(string file)
         {
             File.WriteAllBytes(file, GetBytes);
         }
+
         public bool WriteStruct(object value, object value_ori)
         {
             try
@@ -366,7 +366,7 @@ namespace PangyaAPI.Utilities.BinaryModels
                 Marshal.StructureToPtr(value, ptr, true);
                 Marshal.Copy(ptr, arr, 0, size);
                 Marshal.FreeHGlobal(ptr);                   
-                Write(arr);
+                Write(arr, size);
             }
             catch (exception ex)
             {
@@ -389,19 +389,7 @@ namespace PangyaAPI.Utilities.BinaryModels
                 IntPtr ptr = Marshal.AllocHGlobal(size);
                 Marshal.StructureToPtr(value, ptr, true);
                 Marshal.Copy(ptr, arr, 0, size);
-                Marshal.FreeHGlobal(ptr);
-
-                // Converte as strings para bytes usando a codificação Shift-JIS
-                PropertyInfo[] properties = value.GetType().GetProperties();
-                foreach (var property in properties)
-                {
-                    if (property.PropertyType == typeof(string))
-                    {
-                        string stringValue = (string)property.GetValue(value);
-                        byte[] stringBytes = Encoding.GetEncoding("Shift-JIS").GetBytes(stringValue);
-                        Array.Copy(stringBytes, 0, arr, (int)property.GetCustomAttribute<FieldOffsetAttribute>().Value, stringBytes.Length);
-                    }
-                }
+                Marshal.FreeHGlobal(ptr);               
                 Write(arr);
             }
             catch (exception e)

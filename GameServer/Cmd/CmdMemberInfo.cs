@@ -42,7 +42,7 @@ namespace GameServer.Cmd
                 if (_result.IsNotNull(4))
                    m_mi.nick_name = Convert.ToString(_result.data[4]);
 
-                m_mi.nickNT = "@" + m_mi.nick_name;
+               // m_mi.nickNT = "@" + m_mi.nick_name;
                 m_mi.school = Convert.ToUInt32(_result.data[5]);
                 m_mi.capability.ulCapability = Convert.ToUInt32(_result.data[6]);
                 m_mi.capability.setState();
@@ -51,7 +51,7 @@ namespace GameServer.Cmd
                 if (_result.IsNotNull(11))
                   m_mi.guild_name = Convert.ToString(_result.data[11]);
 
-                m_mi.guild_uid = Convert.ToUInt64(_result.data[12]);
+                m_mi.guild_uid = Convert.ToUInt32(_result.data[12]);
                 m_mi.guild_pang = Convert.ToInt64(_result.data[13]);
                 m_mi.guild_point = Convert.ToUInt32(_result.data[14]);
                 m_mi.guild_mark_img_no = Convert.ToUInt32(_result.data[15]); // Guild Idx é o ultilizado no PangYa JP

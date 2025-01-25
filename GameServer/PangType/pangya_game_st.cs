@@ -1,6 +1,8 @@
 ﻿using PangyaAPI.Network.Pangya_St;
 using PangyaAPI.Utilities;
+using PangyaAPI.Utilities.BinaryModels;
 using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;     
@@ -60,54 +62,103 @@ namespace GameServer.PangType
             nickname = "";
             pass = "";
         }       
-    }
+    }          
+
     // MemberInfo dados principais do player, tem id, nick, guild, level, exp, e etc)
-    [StructLayout(LayoutKind.Sequential, Pack = 4, Size = 261)]
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public class MemberInfo
     {
         public MemberInfo()
-        {                                                   
-            clear();
-        }
-        protected virtual void clear()
         {
-            oid = uint.MaxValue;
-            id = "luismk";
-            nick_name = "MK(e7)";
-            guild_name = "";
-            guild_mark_img = "GUILDMARK";
-            state_flag = new uMemberInfoStateFlag();
-            capability = new uCapability();
-            papel_shop = new PlayerPapelShopInfo();
-            unk = "";
-            nickNT = "@NTREEV_ID";
-            ucUnknown107 = "";
+            id_bytes = new byte[22];
+            nick_name_bytes = new byte[22];
+            guild_name_bytes = new byte[17];
+            guild_mark_img_bytes = new byte[12];
+            ucUnknown35 = new byte[35];
+            ucUnknown16 = new byte[16];
+            nick_NT_bytes = new byte[22];
+            ucUnknown107 = new byte[106];      
+            Clear();
         }
-        [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 22)]
-        public string id { get; set; }
-        [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 22)]
-        public string nick_name { get; set; }
-        [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 17)]
-        public string guild_name { get; set; }
-        [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 16)]
-        public string guild_mark_img { get; set; }
+
+        public void Clear()
+        {
+            id_bytes.ClearArray();
+            nick_name_bytes.ClearArray();
+            guild_name_bytes.ClearArray();
+            guild_mark_img_bytes.ClearArray();
+            ucUnknown35.ClearArray();
+            ucUnknown16.ClearArray();
+            nick_NT_bytes.ClearArray();
+            ucUnknown107.ClearArray();                      
+            capability = new uCapability();
+            state_flag = new uMemberInfoStateFlag();
+            papel_shop = new PlayerPapelShopInfo();
+            oid = uint.MaxValue;
+        }
+
+        public byte[] GetInfo()
+        {
+            var p = new PangyaBinaryWriter();
+            p.WriteBuffer(this, 297);
+            return p.GetBytes;
+        }
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 22)]
+        private byte[] id_bytes;
+        public string id
+        {
+            get => id_bytes.GetString();
+            set => id_bytes.SetString(value);
+        }                                      
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 22)]
+        private byte[] nick_name_bytes;
+        public string nick_name
+        {
+            get => nick_name_bytes.GetString();
+            set => nick_name_bytes.SetString(value);
+        }                                                                                     
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 17)]
+        private byte[] guild_name_bytes;
+        public string guild_name
+        {
+            get => guild_name_bytes.GetString();
+            set => guild_name_bytes.SetString(value);
+        }
+
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 12)]
+        private byte[] guild_mark_img_bytes;
+        public string guild_mark_img
+        {
+            get => guild_mark_img_bytes.GetString();
+            set => guild_mark_img_bytes.SetString(value);  
+        }
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 35)]
+        public byte[] ucUnknown35;                  
+        public uint ulUnknown;
         [field: MarshalAs(UnmanagedType.Struct)]
-        public uCapability capability { get; set; } = new uCapability();
-        public uint ulUnknown2 { get; set; }            // ainda não o que é aqui direito
-        public uint oid { get; set; }
-        public uint ulUnknown3 { get; set; }            // ainda não o que é aqui direito
-        public ulong ullUnknown { get; set; }        // ainda não o que é aqui direito
-        public ulong guild_uid { get; set; }
+        public uCapability capability;
+        public uint ulUnknown2;
+        public uint oid;
+        public uint ulUnknown3;
+        public ulong ullUnknown;
+        public uint guild_uid;
+        public uint guild_mark_img_no;
         [field: MarshalAs(UnmanagedType.Struct)]
-        public uMemberInfoStateFlag state_flag { get; set; } = new uMemberInfoStateFlag();
+        public uMemberInfoStateFlag state_flag;
+        public ushort flag_login_time;
         [field: MarshalAs(UnmanagedType.Struct)]
-        public PlayerPapelShopInfo papel_shop { get; set; } = new PlayerPapelShopInfo();
-        [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 16)]
-        public string unk { get; set; }
-        [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 18)]
-        public string nickNT { get; set; }                // ainda não sei direito o que tem aqui
-        [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 110)]
-        public string ucUnknown107 { get; set; } // ainda não sei direito o que tem aqui
+        public PlayerPapelShopInfo papel_shop;
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)]
+        public byte[] ucUnknown16;
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 22)]
+        private byte[] nick_NT_bytes;
+        public string nick_NT
+        {
+            get => nick_NT_bytes.GetString();
+            set => nick_NT_bytes.SetString(value);
+        }                          
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 106)]
+        public byte[] ucUnknown107;
     }
 
     // MemberInfoEx extendido tem o uid, limite papel shop e tutorial,
@@ -117,47 +168,41 @@ namespace GameServer.PangType
     {
         public MemberInfoEx()
         {
-            clear();
-            capability = new uCapability();
+            Clear();
+            capability = new uCapabilityEx();
             state_flag = new uMemberInfoStateFlagEx();
             papel_shop_last_update = new PangyaTime();
+            papel_shop_last_update.CreateTime();
         }
-        [field: MarshalAs(UnmanagedType.Struct)]
-        public new uMemberInfoStateFlagEx state_flag;
-        public uint uid;
-        public uint guild_point;
-        public long guild_pang;
-        public uint guild_mark_img_no;
-        public short sala_numero = -1;
+        public new uCapabilityEx capability { get; set; }
+        public new uMemberInfoStateFlagEx state_flag { get; set; }
+        public uint uid { get; set; }
+        public uint guild_point { get; set; }
+        public Int64 guild_pang { get; set; }
+        public Int16 sala_numero { get; set; }
         public byte sexo;
         public byte level;
         public byte do_tutorial;
         public byte event_1;
         public byte event_2;
-        public uint school;
+        public uint school;     
         public uint manner_flag;
-        [field: MarshalAs(UnmanagedType.Struct)]
+        [field: MarshalAs(UnmanagedType.Struct, SizeConst = 16)]
         public PangyaTime papel_shop_last_update;
     }
-
-    // Union Capability, que guarda a estrutura de bits do Capability do Player
-    [StructLayout(LayoutKind.Sequential, Pack = 4, Size = 4)]
-    public class uCapability
+    //ext
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    public class uCapabilityEx : uCapability
     {
-        [field: MarshalAs(UnmanagedType.U4, SizeConst = 4)]
-        public uint ulCapability
-        {
-            get;
-            set;
-        }
-        public _stBit stBit;
-        public uCapability()
+        public _stBit stBit { get; set; }
+        public uCapabilityEx()
         {
             ulCapability = 0;
             stBit = new _stBit();
             setState();
         }
-        public uCapability(uint ul = 0)
+
+        public uCapabilityEx(uint ul = 0)
         {
             ulCapability = ul;
             stBit = new _stBit();
@@ -194,15 +239,33 @@ namespace GameServer.PangType
             }
         }
     }
-    [StructLayout(LayoutKind.Sequential, Pack = 4)]
-    public class uMemberInfoStateFlag
+    // fica na class Ex
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    public class uCapability
+    {                                                       
+        public uint ulCapability { get; set; }                       
+     
+        public uCapability()
+        {
+            ulCapability = 0; 
+        }
+        public uCapability(uint ul = 0)
+        {
+            ulCapability = ul;     
+        }    
+    }
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    public class uMemberInfoStateFlagEx  : uMemberInfoStateFlag
     {
-        [field: MarshalAs(UnmanagedType.U2, SizeConst = 2)]
-        public short ucByte { get; set; }
         public _stBit stFlagBit { get; set; }
-        public uMemberInfoStateFlag()
+        public uMemberInfoStateFlagEx()
         {
             ucByte = 0;
+            stFlagBit = new _stBit();
+        }
+        public uMemberInfoStateFlagEx(byte ul)
+        {
+            ucByte = ul;
             stFlagBit = new _stBit();
         }
         public class _stBit
@@ -217,21 +280,26 @@ namespace GameServer.PangType
             public byte quiter_2 = 1;         // Quit rate maior que 41%
         }
     }
-    [StructLayout(LayoutKind.Sequential, Pack = 4)]
-    public class uMemberInfoStateFlagEx : uMemberInfoStateFlag
-    {
-        public uMemberInfoStateFlagEx()
+
+    [StructLayout(LayoutKind.Sequential, Pack = 4, Size = 1)]
+    public class uMemberInfoStateFlag
+    {                                                          
+        public byte ucByte { get; set; }      
+        public uMemberInfoStateFlag()
         {
-            stFlagBit = new _stBit();
-        }
-    }
+            ucByte = 0;                
+        }                                                                   
+    }   
 
     // Player Papel Shop Info
-    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    [StructLayout(LayoutKind.Sequential, Pack = 4, Size = 6)]
     public class PlayerPapelShopInfo
     {
+        [field: MarshalAs(UnmanagedType.U2, SizeConst = 2)]
         public short remain_count;
+        [field: MarshalAs(UnmanagedType.U2, SizeConst = 2)]
         public short current_count;
+        [field: MarshalAs(UnmanagedType.U2, SizeConst = 2)]
         public short limit_count;
         public PlayerPapelShopInfo()
         {
@@ -264,18 +332,18 @@ namespace GameServer.PangType
     }
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public class UserInfo
-    {
-        public UserInfo()
+    {                                  
+        public UserInfo(uint _ul = 0u)
         {
             clear();
         }
-        protected void clear()
+        public void clear()
         {
             best_pang = new long[5];
             best_score = new byte[5];
             medal = new stMedal();
-        }
-        public void add(UserInfo _ui)
+        }   
+       public void add(UserInfo _ui)
         {
 
             if (_ui.best_drive > best_drive)
@@ -374,68 +442,73 @@ namespace GameServer.PangType
             skin_win += _ui.skin_win;
             skin_lose += _ui.skin_lose;
             skin_run_hole += _ui.skin_run_hole;
+            //skin_all_in_count += _ui.skin_all_in_count; // aqui adiciona lá em cima, por que ele reseta em 5
             skin_strike_point += _ui.skin_strike_point;
+            disconnect += _ui.disconnect;
             jogados_disconnect += _ui.jogados_disconnect;
             event_value += _ui.event_value;
+            sys_school_serie += _ui.sys_school_serie;
             game_count_season += _ui.game_count_season;
 
             // Medal
             medal.add(_ui.medal);
 
         }
-        public int tacada { get; set; }
-        public int putt { get; set; }
-        public int tempo { get; set; }
-        public int tempo_tacada { get; set; }
-        public float best_drive { get; set; }           // Max Distancia
-        public int acerto_pangya { get; set; }
-        public int timeout { get; set; }
-        public int ob { get; set; }
-        public int total_distancia { get; set; }
-        public int hole { get; set; }
-        public int hole_in { get; set; }        // Aqui é os holes que não foram concluídos Ex: Give up, ou no Match o outro player ganho sem precisar do player terminar o hole
-        public int hio { get; set; }
+        public uint tacada { get; set; }
+        public uint putt { get; set; }
+        public uint tempo { get; set; }
+        public uint tempo_tacada { get; set; }
+        public float best_drive { get; set; }            // Max Distancia
+        public uint acerto_pangya { get; set; }
+        public uint timeout { get; set; }
+        public uint ob { get; set; }
+        public uint total_distancia { get; set; }
+        public uint hole { get; set; }
+        public uint hole_in { get; set; }        // Aqui é os holes que não foram concluídos Ex: Give up, ou no Match o outro player ganho sem precisar do player terminar o hole
+        public uint hio { get; set; }
         public short bunker { get; set; }
-        public int fairway { get; set; }
-        public int albatross { get; set; }
-        public int mad_conduta { get; set; }    // Aqui é hole in, mas no info não tras ele por que ele já foi salvo no hole alí em cima
-        public int putt_in { get; set; }
+        public uint fairway { get; set; }
+        public uint albatross { get; set; }
+        public uint mad_conduta { get; set; }    // Aqui é hole in, mas no info não tras ele por que ele já foi salvo no hole alí em cima
+        public uint putt_in { get; set; }
         public float best_long_putt { get; set; }
+        public float best_chip_in { get; set; }
         public uint exp { get; set; }
         public byte level { get; set; }
         public ulong pang { get; set; }
-        public float best_chip_in { get; set; }
-        public int media_score { get; set; }
-        [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 0x05)]
-        public byte[] best_score { get; set; }             // Best Score Por Estrela, mas acho que o pangya nao usa mais isso
+        public uint media_score { get; set; }
+        [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 5)]
+        public byte[] best_score { get; set; }              // Best Score Por Estrela, mas acho que o pangya nao usa mais isso
         public byte event_flag { get; set; }
-        [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 0x05)]
+        [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 5)]
         public long[] best_pang { get; set; }           // Best Pang por Estrela, mas acho que o pangya nao usa mais isso
         public long sum_pang { get; set; }               // A soma do pangs das 5 estrela acho
-        public int jogado { get; set; }
-        public int team_hole { get; set; }
-        public int team_win { get; set; }
-        public int team_game { get; set; }
-        public int ladder_point { get; set; }               // Ladder é o Match acho, de tourneio não sei direito
-        public int ladder_hole { get; set; }
-        public int ladder_win { get; set; }
-        public int ladder_lose { get; set; }
-        public int ladder_draw { get; set; }
-        public int combo { get; set; }
-        public int all_combo { get; set; }
-        public int quitado { get; set; }
+        public uint jogado { get; set; }
+        public uint team_hole { get; set; }
+        public uint team_win { get; set; }
+        public uint team_game { get; set; }
+        public uint ladder_point { get; set; }               // Ladder é o Match acho, de tourneio não sei direito
+        public uint ladder_hole { get; set; }
+        public uint ladder_win { get; set; }
+        public uint ladder_lose { get; set; }
+        public uint ladder_draw { get; set; }
+        public uint combo { get; set; }
+        public uint all_combo { get; set; }
+        public uint quitado { get; set; }
         public long skin_pang { get; set; }          // Skin é o Pang Battle tem valor negativo ele """##### Ajeitei agora(ACHO)
-        public int skin_win { get; set; }
-        public int skin_lose { get; set; }
-        public int skin_all_in_count { get; set; }
+        public uint skin_win { get; set; }
+        public uint skin_lose { get; set; }
+        public uint skin_all_in_count { get; set; }
         public int skin_run_hole { get; set; }              // Correu desistiu (ACHO)
-        public int skin_strike_point { get; set; }          // Antes era o nao_sei
-        public int jogados_disconnect { get; set; }     // Antes era o jogos_nao_sei
-        public short event_value { get; set; }//98
-        public int game_count_season { get; set; }
-        public short _16bit_nao_sei { get; set; }
+        public uint skin_strike_point { get; set; }          // Antes era o nao_sei
+        public uint jogados_disconnect { get; set; }     // Antes era o jogos_nao_sei
+        public short event_value { get; set; }
+        public uint disconnect { get; set; }             // Vou deixar aqui o disconect count (antes era skin_strike_point)
         [field: MarshalAs(UnmanagedType.Struct, SizeConst = 6)]
         public stMedal medal { get; set; }
+        public uint sys_school_serie { get; set; }           // Sistema antigo do pangya JP que era de Serie de escola, respondia as perguntas se passasse ia pra outra serie é da 1° a 5°
+        public uint game_count_season { get; set; }
+        public short _16bit_nao_sei { get; set; }
         public float getMediaScore()
         {   // AVG SCORE
 
@@ -444,7 +517,7 @@ namespace GameServer.PangType
             if ((hole - hole_in) == 0)
                 return 0;
 
-            return (18 / (hole - hole_in)) * media_score + 72;
+            return (18 / (hole - hole_in)) *media_score + 72;
         }
         public float getPangyaShotRate()
         {
@@ -500,7 +573,8 @@ namespace GameServer.PangType
 
             return ((float)tempo_tacada / (tacada + putt)) * 100;
         }
-        public float getQuitRate()
+
+       public float getQuitRate()
         {
 
             // Previne divisão por 0
@@ -509,32 +583,47 @@ namespace GameServer.PangType
 
             return quitado * 100 / jogado;
         }
+        
+        public new string ToString()
+        {
+            return "Tacada: " + (tacada) + "  Putt: " + (putt) + "  Tempo: " + (tempo) + "  Tempo Tacada: " + (tempo_tacada)
+                + "  Best drive: " + (best_drive) + "  Acerto pangya: " + (acerto_pangya) + "  timeout: " + (timeout)
+                + "  OB: " + (ob) + "  Total distancia: " + (total_distancia) + "  hole: " + (hole)
+                + "  Hole in: " + (hole_in) + "  HIO: " + (hio) + "  Bunker: " + (bunker) + "  Fairway: " + (fairway)
+                + "  Albratross: " + (albatross) + "  Mad conduta: " + (mad_conduta) + "  Putt in: " + (putt_in)
+                + "  Best long puttin: " + (best_long_putt) + "  Best chipin: " + (best_chip_in) + "  Exp: " + (exp)
+                + "  Level: " + (level) + "  Pang: " + (pang) + "  Media score: " + (media_score)
+                + "  Best score[" + (best_score[0]) + ", " + (best_score[1]) + ", " + (best_score[2])
+                + ", " + (best_score[3]) + ", " + (best_score[4]) + "]  Event flag: " + (event_flag)
+                + "  Best pang[" + (best_pang[0]) + ", " + (best_pang[1]) + ", " + (best_pang[2]) + ", " + (best_pang[3])
+                + ", " + (best_pang[4]) + "]  Soma pang: " + (sum_pang) + "  Jogado: " + (jogado) + "  Team Hole: " + (team_hole)
+                + "  Team win: " + (team_win) + "  Team game: " + (team_game) + "  Ladder point: " + (ladder_point)
+                + "  Ladder hole: " + (ladder_hole) + "  Ladder win: " + (ladder_win) + "  Ladder lose: " + (ladder_lose)
+                + "  Ladder draw: " + (ladder_draw) + "  Combo: " + (combo) + "  All combo: " + (all_combo)
+                + "  Quitado: " + (quitado) + "  Skin pang: " + (skin_pang) + "  Skin win: " + (skin_win)
+                + "  Skin lose: " + (skin_lose) + "  Skin all in count: " + (skin_all_in_count) + "  Skin run hole: " + (skin_run_hole)
+                + "  Disconnect(MY): " + (disconnect) + "  Jogados Disconnect(MY): " + (jogados_disconnect) + "  Event value: " + (event_value)
+                + "  Skin Strike Point: " + (skin_strike_point) + "  Sistema School Serie: " + (sys_school_serie)
+                + "  Game count season: " + (game_count_season) + "  _16bit nao sei: " + (_16bit_nao_sei);
+        }
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public class UserInfoEx : UserInfo
-    {
-        public UserInfoEx()
-        {
-            clear();
+    {       
+        public UserInfoEx(int ul = 0) : base()
+        { }
+        public void add(UserInfoEx _ui, ulong _total_pang_win_game)
+        {                               
+            base.add(_ui);             
+            if (_total_pang_win_game > 0)
+                total_pang_win_game += _total_pang_win_game; 
         }
-
-        public void add(UserInfoEx _ui, ulong _game_win_total_pang)
-        {
-
-            base.add(_ui);
-
-            if (_game_win_total_pang > 0)
-                total_pang_win_game += _game_win_total_pang;
-
-        }
-        public ulong total_pang_win_game { get; set; }
-        public uint disconnect { get; set; }
-        public uint sys_school_serie { get; set; }
+        public ulong total_pang_win_game { get; set; }   
     }
 
     // Medal
-    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    [StructLayout(LayoutKind.Sequential, Pack = 4, Size = 6)]
     public class stMedal
     {
         public void add(stMedal _medal)
@@ -895,12 +984,12 @@ namespace GameServer.PangType
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public class EquipedItem
     {
-        public CharacterInfo char_info;
-        public CaddieInfoEx cad_info;
-        public MascotInfoEx mascot_info;
-        public ClubSetInfo csi;
-        public WarehouseItem comet;
-        public WarehouseItem clubset;
+        public CharacterInfo char_info { get; set; }
+        public CaddieInfoEx cad_info { get; set; }
+        public MascotInfoEx mascot_info { get; set; }
+        public ClubSetInfo csi { get; set; }
+        public WarehouseItem comet { get; set; }
+        public WarehouseItem clubset { get; set; }
 
         public EquipedItem()
         { cad_info = new CaddieInfoEx(); csi = new ClubSetInfo(); comet = new WarehouseItem(); clubset = new WarehouseItem(); mascot_info = new MascotInfoEx(); }
@@ -2232,7 +2321,7 @@ namespace GameServer.PangType
     {
         public CharacterInfoEx()
         {
-            base.Init();
+            base.clear();
         }
         public sbyte getSlotOfStatsFromsbyteEquipedPartItem(Stats __stat)
         {   // Get Slot of stats from Character equiped item
@@ -2255,7 +2344,7 @@ namespace GameServer.PangType
         }
         public new void initComboDef()
         {   // Initialize o combo de roupas padrões do Character
-            Init();
+            clear();
             if (_typeid == 0)
                 return;
 
@@ -2276,6 +2365,10 @@ namespace GameServer.PangType
     {
         public UserEquip()
         {
+            clear();
+        }
+        public void clear()
+        {
             item_slot = new uint[10];
             skin_id = new uint[6];
             skin_typeid = new uint[6];
@@ -2290,11 +2383,14 @@ namespace GameServer.PangType
         [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 6)]
         public uint[] skin_id;//[6];     // 6 skin id, tem o title, frame, stick e etc
         [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 6)]
-        public uint[] skin_typeid;//[6]; // 6 skin typeid, tem o title, frame, stick e etc
+        public uint[] skin_typeid; // 6 skin typeid, tem o title, frame, stick e etc
         public uint mascot_id;
         [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 2)]
-        public uint[] poster;// [2];          // Poster, tem 2 o poster A e poster B
-        public uint m_title => skin_typeid[5];// Titulo Typeid
+        public uint[] poster;     // Poster, tem 2 o poster A e poster B
+        public uint getTitle()
+        { 
+        return skin_typeid[5];// Titulo Typeid
+        }
     }
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public class MapStatistics
@@ -2509,11 +2605,11 @@ namespace GameServer.PangType
             public string idx { get; set; }             // 8 
             public sbyte status { get; set; }
             public short seq { get; set; }          // aqui é a seq de sd que vendeu
-            [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 22)]
-
+            [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 22)]           
             public string copier_nick { get; set; }
             public uint copier { get; set; }                // uid de quem fez a sd
         }
+        [field: MarshalAs(UnmanagedType.Struct)]
         public UCC ucc;
         [StructLayout(LayoutKind.Sequential, Pack = 4)]
         public class Card
@@ -2525,6 +2621,7 @@ namespace GameServer.PangType
             [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
             public uint[] NPC { get; set; }
         }
+        [field: MarshalAs(UnmanagedType.Struct)]
         public Card card;
         [StructLayout(LayoutKind.Sequential, Pack = 4)]
         public class ClubsetWorkshop
@@ -2577,6 +2674,7 @@ namespace GameServer.PangType
                 return uint.MaxValue;
             }
         }
+        [field: MarshalAs(UnmanagedType.Struct)]
         public ClubsetWorkshop clubset_workshop;
     }
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
@@ -2873,54 +2971,119 @@ namespace GameServer.PangType
         public PangyaTime create_time;
     }
 
+    // Canal Info Flag
+    [StructLayout(LayoutKind.Sequential, Pack = 1, Size = 4)]
+    public class ChannelInfoFlag
+    {
+        public uint ulFlag { get; set; }
+        public ChannelInfoFlag(uint ul = 0)
+        {
+            ulFlag = ul;
+            stBit = new _stBit();
+        }
+        public _stBit stBit { get; set; }
+        public class _stBit
+        {
+            public uint all { get; set; }
+            // Unknown
+            public uint junior_bellow { get; set; }             // De Junior A para baixo
+            public uint junior_above { get; set; }                  // De Junior E para cima
+            public uint only_rookie { get; set; }                   // Somente Rookie(Iniciante)
+            public uint beginner_between_junior { get; set; }       // De Beginner a Junior
+            public uint junior_between_senior { get; set; }  // De Junior a Senior
+        }
+    }
+
+    // Canal Info
+    [StructLayout(LayoutKind.Sequential, Pack = 1, Size = 4)]
+    public class ChannelInfoEx : ChannelInfo
+    {
+        public ChannelInfoEx()
+        {
+            clear();
+            flag = new ChannelInfoFlag();
+            flag.ulFlag = uint.MaxValue;
+        }
+        [field: MarshalAs(UnmanagedType.Struct, SizeConst = 4)]
+        public ChannelInfoFlag flag { get; set; } //aqui eu tenho que fazer o set e o get!
+       
+        public void SetFlag()
+        {
+            InternalSetFlag(flag.ulFlag);
+            //# Flag do Canal [512 Junior A para baixo, 1024 Junior E para cima]
+            //#               [2048 S� Rookie, 4096 Beginner e Junior]
+            //#               [8192 Junior e Senior] 
+            switch (flag.ulFlag)
+            {
+                case 0:
+                    flag.stBit.all = 1;
+                    break;
+                case 512:
+                    flag.stBit.junior_bellow = 1;
+                    break;
+                case 1024:
+                    flag.stBit.junior_above = 1;
+                    break;
+                case 2048:
+                    flag.stBit.only_rookie = 1;
+                    break;
+                case 4096:
+                    flag.stBit.beginner_between_junior = 1;
+                    break;
+                case 8192:
+                    flag.stBit.junior_between_senior = 1;
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
     // Canal Info
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public class ChannelInfo
     {
         public ChannelInfo()
         {
-            flag = new uFlag();
+            clear();
+        }
+        public ChannelInfo(ChannelInfoEx info)
+        {
+            clear();
+            name = info.name;
+            _flag = info.flag.ulFlag;
+            max_level_allow = info.max_level_allow;   
         }
 
-        [StructLayout(LayoutKind.Sequential, Pack = 4, Size = 4)]
-        public class uFlag
-        {
-            [field: MarshalAs(UnmanagedType.U4, SizeConst = 4)]
-            public uint ulFlag { get; set; }
-            public uFlag(uint ul = 0)
-            {
-                ulFlag = ul;
-                stBit = new _stBit();
-            }
-            public uFlag()
-            {
-                ulFlag = 0;
-                stBit = new _stBit();
-            }
-            public class _stBit
-            {
-                public uint all;
-                // Unknown
-                public uint junior_bellow;             // De Junior A para baixo
-                public uint junior_above;                  // De Junior E para cima
-                public uint only_rookie;                   // Somente Rookie(Iniciante)
-                public uint beginner_between_junior;       // De Beginner a Junior
-                public uint junior_between_senior;  // De Junior a Senior
-            }
-            public _stBit stBit { get; set; }
-        }
-        [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 64)]
-        public string name { get; set; }
-        public short max_user;
-        public short curr_user;
-        public byte id;
-        [field: MarshalAs(UnmanagedType.Struct)]
-        public uFlag flag { get; set; }
-        public uint min_level_allow;
-        public uint max_level_allow;
         public void clear()
-        { flag = new uFlag(); name = ""; }
+        {
+            name_bytes = new byte[64];
+            _flag = 0;
+        }
+
+        [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 64)]
+        private byte[] name_bytes { get; set; }
+        public string name { get => name_bytes.GetString(); set => name_bytes.SetString(value); }
+        public short max_user { get; set; }
+        public short curr_user { get; set; }
+        public byte id { get; set; }
+        [field: MarshalAs(UnmanagedType.U4, SizeConst = 4)]
+        private uint _flag { get; set; }
+        public uint flag2 { get; set; }
+        public uint min_level_allow { get; set; }
+        public uint max_level_allow { get; set; }
+        
+        public void InternalSetFlag(uint flag)
+        {
+            _flag = flag;
+        }
+
+        public uint InternalGetFlag()
+        {
+            return _flag;
+        }
     }
+
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public class ServerInfoEx2 : ServerInfoEx
     {

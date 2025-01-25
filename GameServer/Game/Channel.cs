@@ -8,12 +8,13 @@ using static GameServer.PangType._Define;
 using System;
 using _smp = PangyaAPI.Utilities.Log;
 using GameServer.Session;
+using PangyaAPI.Utilities.BinaryModels;
 
 namespace GameServer.Game
 {
     public class Channel : Ex.ChannelBase
     {
-        public Channel(ChannelInfo _ci, uint _type) : base(_ci, (int)_type)
+        public Channel(ChannelInfoEx _ci, uint _type) : base(_ci, (int)_type)
         {
         }
 
@@ -115,7 +116,7 @@ namespace GameServer.Game
         {
             PlayerCanalInfoEx pci = new PlayerCanalInfoEx
             {
-                // Player Canal Info Init
+                // Player Canal Info clear
                 uid = _session.m_pi.uid,
                 oid = _session.m_oid,
                 sala_numero = _session.m_pi.mi.sala_numero,
@@ -123,7 +124,7 @@ namespace GameServer.Game
                 capability = _session.m_pi.m_cap,
                 nickname = "@" + _session.m_pi.nickname,
 
-                title = _session.m_pi.ue.m_title,
+                title = _session.m_pi.ue.getTitle(),
                 team_point = 1000,
                 flag_visible_gm = 0
             };
@@ -159,6 +160,7 @@ namespace GameServer.Game
             // Update Player Location
             _session.m_pi.updateLocationDB();
         }
+
         protected void updatePlayerInfo(Player _session)
         {
             PlayerCanalInfoEx pci, _pci = new PlayerCanalInfoEx();
@@ -179,7 +181,7 @@ namespace GameServer.Game
             pci.team_point = 1000;
             pci.flag_visible_gm = 0;
             pci.capability = _session.m_pi.m_cap;
-            pci.title = _session.m_pi.ue.m_title;
+            pci.title = _session.m_pi.ue.getTitle();
             // Só faz calculo de Quita rate depois que o player
             // estiver no level Beginner E e jogado 50 games
             if (_session.m_pi.level >= 6 && _session.m_pi.ui.jogado >= 50)
@@ -282,14 +284,12 @@ namespace GameServer.Game
                     + "] ja esta conectado em outro canal.");
 
             addSession(_session);
+                     
+            var p = packet_func.pacote095(0x102);
+            packet_func.session_send(p, _session, 0); // Não sei direito desse aqui mas passa antes de entrar no canal, talvez é o que faz o cliente pedir MSN gs acho
 
-            packet p = new packet();
-
-            packet_func.pacote095(ref p, _session, 0x102);
-            packet_func.session_send(ref p, _session, 0); // Não sei direito desse aqui mas passa antes de entrar no canal, talvez é o que faz o cliente pedir MSN gs acho
-
-            packet_func.pacote04E(ref p, _session, 1);
-            packet_func.session_send(ref p, _session, 0);
+            p = packet_func.pacote04E(1);
+            packet_func.session_send(p, _session, 0);
 
             //// Verifica se o tempo do ticket premium user acabou e manda a mensagem para o player, e exclui o ticket do player no SERVER, DB e GAME
             //sPremiumSystem::getInstance().checkEndTimeTicket(_session);
@@ -364,7 +364,7 @@ namespace GameServer.Game
             }
         }
 
-        public ChannelInfo getInfo() { return m_ci; }
+        public ChannelInfoEx getInfo() { return m_ci; }
 
         // Gets
         public byte getId() { return (byte)m_ci.id; }
@@ -409,9 +409,7 @@ namespace GameServer.Game
             _session.m_pi.place = 0;
 
             updatePlayerInfo(_session);
-
-            packet p = new packet();
-
+              
             List<PlayerCanalInfo> v_pci = new List<PlayerCanalInfo>();
             PlayerCanalInfo pci = null;
 
@@ -428,19 +426,19 @@ namespace GameServer.Game
             pci = getPlayerInfo(_session);
 
             // Add o primeiro limpando a lobby
-            packet_func.pacote046(ref p, _session, v_pci, 4);
-            packet_func.session_send(ref p, _session, 0);
+            var p = packet_func.pacote046(v_pci, 4);
+            packet_func.session_send(p, _session, 0);
 
             if (v_pci.Count() > 0)
             {
-                packet_func.pacote046(ref p, _session, v_pci, 5);
-                packet_func.session_send(ref p, _session, 0);
+                p = packet_func.pacote046(v_pci, 5);
+                packet_func.session_send(p, _session, 0);
             }
             //if (packet_func.pacote047(p, v_ri, 0))
             //    packet_func.session_send(ref p, _session, 0);
 
-            packet_func.pacote046(ref p, _session, pci == null ? new vector<PlayerCanalInfo>() : new vector<PlayerCanalInfo>(pci), 1);
-            packet_func.channel_broadcast(this, ref p, 0);
+           p = packet_func.pacote046(pci == null ? new vector<PlayerCanalInfo>() : new vector<PlayerCanalInfo>(pci), 1);
+            packet_func.channel_broadcast(this, p, 0);
 
             v_pci.Clear();
         }
@@ -477,8 +475,9 @@ namespace GameServer.Game
                 // Enter Lobby
                 enterLobby(_session, 1/*Multi player*/);
 
-                packet p = new packet(0xF5);
-                packet_func.session_send(ref p, _session, 0);
+                var p = new PangyaBinaryWriter();       
+                p.init_plain(0xF5);
+                packet_func.session_send(p, _session, 0);
 
             }
             catch (exception e)
@@ -495,8 +494,9 @@ namespace GameServer.Game
                 // leave Lobby
                 leaveLobby(_session);
 
-                packet p = new packet(0xF6);
-                packet_func.session_send(ref p, _session, 0);
+                var p = new PangyaBinaryWriter();
+                p.init_plain(0xF6);
+                packet_func.session_send(p, _session, 0);
 
             }
             catch (exception e)
@@ -799,7 +799,6 @@ namespace GameServer.Game
         void sendUpdateRoomInfo(RoomInfoEx _ri, int _option) { }
         void sendUpdatePlayerInfo(Player _session, int _option)
         {
-            packet p = new packet();
             PlayerCanalInfo pci = getPlayerInfo(_session);
             if (_session.m_gi.visible == 0)
             {
@@ -809,8 +808,8 @@ namespace GameServer.Game
             {
                 updatePlayerInfo(_session);
             }
-            packet_func.pacote046(ref p, _session, new vector<PlayerCanalInfo> { (pci == null) ? new PlayerCanalInfo() : pci }, _option);
-            packet_func.channel_broadcast(this, ref p, 0);
+          var p = packet_func.pacote046(new vector<PlayerCanalInfo> { (pci == null) ? new PlayerCanalInfo() : pci }, _option);
+            packet_func.channel_broadcast(this, p, 0);
         }
 
         // Destroy Room

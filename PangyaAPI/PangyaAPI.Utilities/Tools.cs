@@ -314,6 +314,39 @@ namespace PangyaAPI.Utilities
     }
     public static class Tools
     {
+
+        public static void ClearArray(this Array array)
+        {
+            if (array != null)
+                Array.Clear(array, 0, array.Length);        
+        }
+
+        public static int SizeOf<T>(T structure)
+        {
+            return Marshal.SizeOf((object)structure);
+        }
+
+        public static int SizeOf(Type t)
+        {
+            return Marshal.SizeOf(t);
+        }
+
+        public static int SizeOf<T>()
+        {
+            return Marshal.SizeOf(typeof(T));
+        }
+        public static string GetString(this byte[] array)
+        {
+            return System.Text.Encoding.UTF8.GetString(array).TrimEnd('\0');
+        }
+
+        public static void SetString(this byte[] array, string value)
+        {
+            ClearArray(array);
+            var bytes = System.Text.Encoding.UTF8.GetBytes(value ?? string.Empty);
+            Array.Copy(bytes, array, Math.Min(bytes.Length, array.Length));
+        }
+
         public static T ToObject<T>(this DataRow dataRow)
      where T : new()
         {

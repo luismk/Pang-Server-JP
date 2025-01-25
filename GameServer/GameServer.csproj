@@ -106,8 +106,11 @@
     <Compile Include="Game\Channel.cs" />
     <Compile Include="Game\Ex\ChannelBase.cs" />
     <Compile Include="Game\LoginTask.cs" />
+    <Compile Include="Game\Manager\CaddieManager.cs" />
+    <Compile Include="Game\Manager\CharacterManager.cs" />
     <Compile Include="Game\Manager\GuildRoomManager.cs" />
     <Compile Include="Game\Manager\LoginManager.cs" />
+    <Compile Include="Game\Manager\MascotManager.cs" />
     <Compile Include="Game\Manager\PersonalShopManager.cs" />
     <Compile Include="Game\Manager\PlayerMailBox.cs" />
     <Compile Include="Game\Manager\WarehouseManager.cs" />

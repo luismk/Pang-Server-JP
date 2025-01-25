@@ -11,8 +11,7 @@ namespace GameServer.Game.Manager
         protected List<List<WarehouseItemEx>> Values;
         public WarehouseManager(multimap<uint, WarehouseItemEx> _mp_wi)
         {
-            mp_wi = _mp_wi;
-
+            mp_wi = _mp_wi;    
             Values = mp_wi.SplitValues(20); //ChunkBy(this.ToList(), totalBySplit);
         }
 
@@ -26,14 +25,14 @@ namespace GameServer.Game.Manager
             result.Write(new byte[] { 0x73, 0x00 });
             result.Write((short)Values.Count);//desnecessario conta +1 por causa do ticker report
             result.Write((short)Values.Count);
-            foreach (var item in Values.Split(1))
+            foreach (var values in this.Values)
             {
-                result.WriteStruct(item);
+                foreach (var item in values)
+                {
+                    result.WriteStruct(item, new WarehouseItem());
+                }
             }
             return result.GetBytes;
-        }
-
-       
-
+        }                    
     }
 }

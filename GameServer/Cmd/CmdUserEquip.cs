@@ -1,14 +1,6 @@
-﻿using GameServer.PangType;
-
-using PangyaAPI.SQL;
-
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿using GameServer.PangType;        
+using PangyaAPI.SQL;             
+using System;                  
 namespace GameServer.Cmd
 {
     public class CmdUserEquip : Pangya_DB
@@ -45,8 +37,7 @@ namespace GameServer.Cmd
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
-
+                Console.WriteLine(ex.Message);    
             }
         }
 

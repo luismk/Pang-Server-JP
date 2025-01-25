@@ -320,7 +320,7 @@ namespace GameServer.GameServerTcp
         }
         public virtual void init_load_channels()
         {
-            ChannelInfo ci = new ChannelInfo();
+            ChannelInfoEx ci = new ChannelInfoEx();
             int num_channel = m_reader_ini.readInt("CHANNELINFO", "NUM_CHANNEL");
 
             for (byte i = 0; i < num_channel; ++i)
@@ -332,6 +332,7 @@ namespace GameServer.GameServerTcp
                 try
                 {
                     ci.flag.ulFlag = m_reader_ini.ReadUInt32("CHANNEL" + (i + 1), "FLAG");
+                    ci.SetFlag();
                 }
                 catch (Exception e)
                 {
@@ -340,6 +341,7 @@ namespace GameServer.GameServerTcp
                 }
 
                 v_channel.Add(new Channel(ci, m_si.propriedade.ulProperty));
+                ci = new ChannelInfoEx();
             }
         }
         public virtual void reload_systems() { }

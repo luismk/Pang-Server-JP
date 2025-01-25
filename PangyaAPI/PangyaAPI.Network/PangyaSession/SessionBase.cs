@@ -46,9 +46,7 @@ namespace PangyaAPI.Network.PangyaSession
         private bool m_connectedToSend;
         private string m_ip;
 
-        public PangyaBinaryWriter Response { get; set; }
-        // Sincronização do uso da session
-        private stUseCtx m_use_ctx;                               
+        public PangyaBinaryWriter Response { get; set; }           
         #endregion
 
         #region Constructor
@@ -57,8 +55,7 @@ namespace PangyaAPI.Network.PangyaSession
         {
             m_connected = false;
             m_state = true;
-            m_connectedToSend = false;
-            m_use_ctx = new stUseCtx();
+            m_connectedToSend = false;                        
         }
            
         // Métodos
@@ -78,10 +75,7 @@ namespace PangyaAPI.Network.PangyaSession
 
                 m_oid = 0;
 
-                m_is_authorized = false;
-
-
-                m_use_ctx.Clear();
+                m_is_authorized = false;        
                 Dispose();
                 return true;
             }
@@ -180,26 +174,7 @@ namespace PangyaAPI.Network.PangyaSession
         {
             return m_connectedToSend;
         }
-
-
-        public int usa()
-        {                   
-            if (!m_connected)
-                throw new exception("[session::usa][error] nao pode usa porque o session nao esta mais conectado.");
-
-            return m_use_ctx.Usa();
-        }
-
-        public bool devolve()
-        {
-            return m_use_ctx.Devolve();
-        }
-
-        public bool isQuit()
-        {
-            return m_use_ctx.IsQuit();
-        }
-
+                    
         public void Disconnect()
         {
             Server.DisconnectSession(this);
@@ -325,75 +300,5 @@ namespace PangyaAPI.Network.PangyaSession
 
         #endregion
     }
-    // A classe stUseCtx é integrada aqui, ela controla o acesso sincronizado à session
-    public class stUseCtx
-    {
-        private readonly object _lock = new object();
-        private int m_active;
-        private bool m_quit;
-
-        public stUseCtx()
-        {
-            m_active = 0;
-            m_quit = false;
-            Clear();
-        }
-
-        public void Clear()
-        {
-            lock (_lock)
-            {
-                m_active = 0;
-                m_quit = false;
-            }
-        }
-
-        public bool IsQuit()
-        {
-            bool quit;
-            lock (_lock)
-            {
-                quit = m_quit;
-            }
-            return quit;
-        }
-
-        public int Usa()
-        {
-            int spin;
-            lock (_lock)
-            {
-                spin = ++m_active;
-            }
-            return spin;
-        }
-
-        public bool Devolve()
-        {
-            bool canDevolve;
-            lock (_lock)
-            {
-                --m_active;
-                canDevolve = m_active <= 0 && m_quit;
-            }
-            return canDevolve;
-        }
-
-        public bool CheckCanQuit()
-        {
-            bool canQuit;
-            lock (_lock)
-            {
-                if (m_active <= 0)
-                    canQuit = true;
-                else
-                {
-                    m_quit = true;
-                    canQuit = false;
-                }
-            }
-            return canQuit;
-        }
-
-    }
+     
 }

@@ -8,6 +8,8 @@ using GameServer.PangType;
 using GameServer.PangSystem;
 using GameServer.Game;
 using GameServer.PacketFunc;
+using PangyaAPI.Utilities.BinaryModels;
+
 namespace GameServer.GameServerTcp
 {
     public partial class GameServer : GameServerBase
@@ -40,7 +42,7 @@ namespace GameServer.GameServerTcp
         public override Channel enterChannel(Player _session, byte _channel)
         {
             Channel enter = null, last = null;
-            var p = new Packet();
+            var p = new PangyaBinaryWriter();
             try
             {
 
@@ -50,8 +52,8 @@ namespace GameServer.GameServerTcp
                 if (enter.getId() == _session.m_pi.channel)
                 {
 
-                    packet_func.pacote04E(ref p, _session, 1);
-                    packet_func.session_send(ref p, _session, 0);
+                   p = packet_func.pacote04E(1);
+                    packet_func.session_send(p, _session, 0);
 
                     return enter;   // Ele já está nesse canal
                 }
@@ -61,8 +63,8 @@ namespace GameServer.GameServerTcp
 
                     // Não conseguiu entrar no canal por que ele está cheio, deixa o enter como nullptr
                     enter = null;
-                    packet_func.pacote04E(ref p, _session, 2/*Channel Full*/);
-                    packet_func.session_send(ref p, _session, 0);
+                    p = packet_func.pacote04E(2/*Channel Full*/);
+                    packet_func.session_send(p, _session, 0);
 
                 }
                 else
@@ -264,11 +266,9 @@ namespace GameServer.GameServerTcp
         {
 
             try
-            {
-                var p = new Packet();
-
-                packet_func.pacote04D(ref p, _session, v_channel);
-                packet_func.session_send(ref p, _session, 0);
+            {             
+                var p = packet_func.pacote04D(v_channel);
+                packet_func.session_send(p, _session, 0);
 
             }
             catch (exception e)
@@ -307,11 +307,6 @@ namespace GameServer.GameServerTcp
         public override void updaterateAndEvent(uint _tipo, uint _qntd)
         {
             base.updaterateAndEvent(_tipo, _qntd);
-        }
-
-        internal void RunCommand(string[] comando)
-        {
-            
         }
     }
 }

@@ -7,6 +7,7 @@ using System.Text;
 using System;
 using _smp = PangyaAPI.Utilities.Log;
 using PangyaAPI.Utilities;
+using System.Threading;
 
 namespace PangyaAPI.Network.PangyaPacket
 {
@@ -57,18 +58,14 @@ namespace PangyaAPI.Network.PangyaPacket
         public byte Seq;
     }
 
-    public class PacketBase : IDisposable
-    {
-
+    public class PacketBase
+    {            
         #region Private Fields
         private readonly MemoryStream _stream;
         /// <summary>
         /// Leitor do packet
         /// </summary>
-        private PangyaBinaryReader Reader;
-
-        private PangyaBinaryWriter Reply = new PangyaBinaryWriter();
-
+        private PangyaBinaryReader Reader;                                   
         /// <summary>
         /// Mensagem do Packet
         /// </summary>
@@ -87,12 +84,7 @@ namespace PangyaAPI.Network.PangyaPacket
         #region Constructor
         public PacketBase()
         {
-        }
-        public PacketBase(ushort ID)
-        {
-            Reply.WriteUInt16(ID);
-        }
-
+        }               
         public PacketBase(byte[] message, byte key)
         {
             Id = BitConverter.ToInt16(new byte[] { message[5], message[6] }, 0);
@@ -280,324 +272,19 @@ namespace PangyaAPI.Network.PangyaPacket
         {
             get => Reader.GetRemainingData();
         }
+
         public byte[] ReadBytes(int count)
         {
             return Reader.ReadBytes(count);
         }
 
-
-        public void AddBuffer(object value1, object value2)
-        {
-            try
-            {
-                Reply.WriteStruct(value1, value2);
-            }
-            catch (Exception ex)
-            {
-                _smp.message_pool.push("[PacketBase::AddBuffer]", ex);
-            }
-        }
-
+                        
         public void SetReader(PangyaBinaryReader read)
         {
             Reader = read;
         }
 
-        #endregion
-
-        #region Methods Writer
-
-        public void Write(byte[] data)
-        {
-            try
-            {
-                Reply.Write(data);
-            }
-            catch
-            {
-            }
-            return;
-        }
-
-        public void Write(byte[] data, int len)
-        {
-            try
-            {
-                Reply.Write(data, len);
-            }
-            catch
-            {
-            }
-            return;
-        }
-
-        public void WriteStruct(object data)
-        {
-            try
-            {
-                Reply.WriteStruct(data);
-            }
-            catch
-            {
-            }
-            return;
-        }
-
-        public void WriteStruct(object data, object or)
-        {
-            try
-            {
-                Reply.WriteStruct(data, or);
-            }
-            catch
-            {
-            }
-            return;
-        }
-
-
-        public void WriteStr(string message, int length)
-        {
-
-            try
-            {
-                if (message == null)
-                {
-                    message = string.Empty;
-                }
-
-                message = message.PadRight(length, (char)0x00);
-                Reply.Write(message.Select(Convert.ToByte).ToArray());
-            }
-            catch
-            {
-            }
-            return;
-        }
-
-        public bool WriteStr(string message)
-        {
-            try
-            {
-                WriteStr(message, message.Length);
-            }
-            catch
-            {
-                return false;
-            }
-            return true;
-
-        }
-
-        public void WritePStr(string value)
-        {
-
-            try
-            {
-                Reply.WritePStr(value);
-
-            }
-            catch
-            {
-                return;
-            }
-        }
-
-        public void WriteString(string value)
-        {
-
-            try
-            {
-                Reply.WritePStr(value);
-
-            }
-            catch
-            {
-                return;
-            }
-        }
-
-        public void WriteZero(int count)
-        {
-            try
-            {
-                Reply.WriteZero(count);
-            }
-            catch
-            {
-
-            }
-
-        }
-        public void WriteUInt16(ushort value)
-        {
-            try
-            {
-                Reply.Write(value);
-            }
-            catch
-            {
-
-            }
-
-        }
-
-        public void WriteInt16(short value)
-        {
-            try
-            {
-                Reply.Write(value);
-            }
-            catch
-            {
-
-            }
-
-        }
-        public void WriteByte(byte value)
-        {
-            try
-            {
-                Reply.Write(value);
-            }
-            catch
-            {
-
-            }
-
-        }
-
-        public void WriteSingle(float value)
-        {
-            try
-            {
-                Reply.Write(value);
-            }
-            catch
-            {
-
-            }
-
-        }
-
-        public void WriteUInt32(uint value)
-        {
-            try
-            {
-                Reply.Write(value);
-            }
-            catch
-            {
-
-            }
-
-        }
-
-        public void WriteInt32(int value)
-        {
-            try
-            {
-                Reply.Write(value);
-            }
-            catch
-            {
-
-            }
-
-        }
-
-        public void WriteUInt64(ulong value)
-        {
-            try
-            {
-                Reply.Write(value);
-            }
-            catch
-            {
-
-            }
-
-        }
-
-        public void WriteInt64(long value)
-        {
-            try
-            {
-                Reply.Write(value);
-            }
-            catch
-            {
-
-            }
-
-        }
-
-        public void WriteDouble(double value)
-        {
-            try
-            {
-                Reply.Write(value);
-            }
-            catch
-            {
-
-            }
-
-        }
-
-
-        public void init_plain(ushort value)
-        {
-            Clear();
-            WriteUInt16(value);
-            //identificar pacotes com id errados
-            Console.WriteLine("[PacketBase::init_plain] log: " + Reply.GetBytes.HexDump());
-        }
-
-        public byte[] GetBytes()
-        {
-            return Reply.GetBytes;
-        }
-
-        public void Clear()
-        {
-            Reply = new PangyaBinaryWriter();
-        }
-
-        #region IDisposable Support
-        private bool disposedValue = false; // Para detectar chamadas redundantes
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    if (Reader != null)
-                    {
-                        Reader.Dispose();
-                    }
-                    else if (Reply != null)
-                    {
-                        Reply.Dispose();
-                    }
-                }
-                disposedValue = true;
-            }
-        }
-
-        ~PacketBase()
-        {
-            Dispose(false);
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-        #endregion
-        #endregion
+        #endregion         
         #endregion
     }
 

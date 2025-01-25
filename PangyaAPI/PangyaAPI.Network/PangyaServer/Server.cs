@@ -338,9 +338,7 @@ namespace PangyaAPI.Network.PangyaServer
             }
 
             try
-            {
-                session.usa();
-
+            {                        
                 // Atualiza o tick do cliente
                 session.m_tick = Environment.TickCount;
 
@@ -562,6 +560,12 @@ namespace PangyaAPI.Network.PangyaServer
                     break;
             }
         }
-       #endregion     
+
+
+        public virtual void RunCommand(string[] comando)
+        {
+
+        }
+        #endregion
     }
 }

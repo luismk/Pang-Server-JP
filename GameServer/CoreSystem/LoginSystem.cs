@@ -6,6 +6,7 @@ using PangyaAPI.Network.Cmd;
 using PangyaAPI.Network.Pangya_St;
 using PangyaAPI.Network.PangyaPacket;
 using PangyaAPI.Utilities;
+using PangyaAPI.Utilities.BinaryModels;
 using PangyaAPI.Utilities.Log;
 using _smp = PangyaAPI.Utilities.Log;
 using snmdb = PangyaAPI.SQL.Manager;
@@ -24,7 +25,7 @@ namespace GameServer.PangSystem
         /// <param db_name="_session">client = session</param>
         public static void requestLogin(Player _session, Packet _Packet)
         {
-            Packet p;
+            PangyaBinaryWriter p;
 
             try
             {
@@ -60,9 +61,9 @@ namespace GameServer.PangSystem
                 ////////////----------------------- Terminou a leitura do Packet que o cliente enviou -------------------------\\\\\\\\\\\/
 
                 // Verifica aqui se o IP/MAC ADDRESS do player está bloqueado
-                if (Program.gs.haveBanList(_session.getIP(), mac_address, !mac_address.empty()))
-                    throw new exception("[game_server::requestLogin][Error] Player[UID=" + (_pi.uid) + ", IP="
-                            + _session.getIP() + ", MAC=" + mac_address + "] esta bloqueado por regiao IP/MAC Addrress.");
+                //if (Program.gs.haveBanList(_session.getIP(), mac_address, !mac_address.empty()))
+                //    throw new exception("[game_server::requestLogin][Error] Player[UID=" + (_pi.uid) + ", IP="
+                //            + _session.getIP() + ", MAC=" + mac_address + "] esta bloqueado por regiao IP/MAC Addrress.");
 
                 // Aqui verifica se recebeu os dados corretos
                 if (_pi.id[0] == '\0')
@@ -276,19 +277,19 @@ namespace GameServer.PangSystem
                 //sPapelShopSystem.init_player_papel_shop_info(_session);
 
                 //snmdb.NormalManagerDB.add(11, new CmdFirstAnniversary(), Program.gs.SQLDBResponse, this);
-
-
+                                    
+                var rep = new PangyaBinaryWriter();
+                rep.Write(new byte[] { 0x43, 0x00 });
+                rep.WriteStr("Test server!");
+                _session.Send(rep);
                 // Cria o login manager para carregar o cache das informações e itens completo do player
-               Program.gs.m_login_manager.createTask(ref _session, kol, _pi/*esses valores não vai usar mais se ficar tudo bem aqui no game_server*/, Program.gs);
-
-
-                // Entra com sucesso
-                p = new Packet();
-
-                packet_func.pacote044(ref p, _session, Program.gs.m_si, 0xD3);
+                //@Error aqui
+                Program.gs.m_login_manager.createTask(ref _session, kol, _pi/*esses valores não vai usar mais se ficar tudo bem aqui no game_server*/, Program.gs);
+                                    
+               p = packet_func.pacote044(Program.gs.m_si, 0xD3);
 
                 // Entra com sucesso
-                packet_func.session_send(ref p, _session, 0);
+                packet_func.session_send(p, _session, 0);
 
             }
             catch (exception ex)
@@ -301,12 +302,12 @@ namespace GameServer.PangSystem
                 _session.m_is_authorized = false;
 
                 // Error Sistema
-                p = new Packet();
+                p = new PangyaBinaryWriter();
                 p.Write(new byte[] { 0x44, 0x00 });
                 // Pronto agora sim, mostra o erro que eu quero
-                p.WriteInt32(300);
+                p.Write(300);
 
-                packet_func.session_send(ref p,_session, 1);
+                packet_func.session_send(p,_session, 1);
 
                 // Disconnect
 
