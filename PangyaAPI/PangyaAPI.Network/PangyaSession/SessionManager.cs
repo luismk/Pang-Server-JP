@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
 using System.Net;
+using PangyaAPI.Network.PangyaServer;
 
 namespace PangyaAPI.Network.PangyaSession
 {
@@ -44,7 +45,7 @@ namespace PangyaAPI.Network.PangyaSession
             }
         }
 
-        public SessionBase AddSession(TcpClient socket, IPEndPoint address, byte key)
+        public SessionBase AddSession(Server _server,TcpClient socket, IPEndPoint address, byte key)
         {
             if (socket == null || !socket.Connected)
             {
@@ -62,6 +63,7 @@ namespace PangyaAPI.Network.PangyaSession
 
                 session = m_sessions[index];
                 session._client = socket;
+                session.Server = _server;// server! 
                 session.Address = address;
                 session.m_key = key;
                 session.m_oid = (uint)index;

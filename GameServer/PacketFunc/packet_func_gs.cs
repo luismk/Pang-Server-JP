@@ -22,6 +22,7 @@ using System.Reflection;
 using System.Runtime.Remoting.Channels;
 using PangyaAPI.Utilities.BinaryModels;
 using System.Runtime.InteropServices.WindowsRuntime;
+using GameServer.Game.Manager;
 
 namespace GameServer.PacketFunc
 {
@@ -381,82 +382,99 @@ namespace GameServer.PacketFunc
             return p;
         }
 
-        public static PangyaBinaryWriter pacote0E1(SortedList<uint, MascotInfoEx> v_element, int option = 0)
+        public static PangyaBinaryWriter pacote0E1(MascotManager v_element, int option = 0)
         {
             var p = new PangyaBinaryWriter();
 
-            p.init_plain(0xE1);
-
-            p.WriteByte((byte)(v_element.Count & 0xFF));
-
-            foreach (var item in v_element.Values)
-                p.WriteStruct(item, new MascotInfo());
+            p.init_plain(0xE1);                                 
+            p.Write(v_element.Build());
             return p;
         }
 
-        public static PangyaBinaryWriter pacote073(multimap<uint, WarehouseItemEx> v_element, int option = 0)
+        public static PangyaBinaryWriter pacote073(WarehouseManager v_element, int option = 0)
         {
             var p = new PangyaBinaryWriter();
-            p.Write(new byte[] { 0x73, 0x00 });
-            p.WriteInt16((short)elements);
-            p.WriteInt16((short)elements);
-
-            foreach (var values in v_element.GetValues())
+            try
             {
-                foreach (var item in values)
-                {
-                    p.WriteStruct(item, new WarehouseItem());
-                }
+                p.Write(new byte[] { 0x73, 0x00 });
+                p.Write(v_element.Build());
+                return p;
             }
-            return p;
+            catch (Exception)
+            {
+                return p;
+            }
         }
 
-        public static PangyaBinaryWriter pacote071(SortedList<uint, CaddieInfoEx> v_element, int option = 0)
+        public static PangyaBinaryWriter pacote071(CaddieManager v_element, int option = 0)
         {
             var p = new PangyaBinaryWriter();
             var elements = v_element.Count();
             p.init_plain(0x71);
-            p.WriteInt16((short)elements);
-            p.WriteInt16((short)elements);
-
-            foreach (var item in v_element.Values)
-            {
-                p.WriteStruct(item, new CaddieInfo());
-            }
+            p.Write(v_element.Build());
             return p;
         }
 
-        public static PangyaBinaryWriter pacote070(SortedList<uint, CharacterInfoEx> v_element, int option = 0)
+        public static PangyaBinaryWriter pacote070(CharacterManager v_element, int option = 0)
         {
             var p = new PangyaBinaryWriter();
-            p.init_plain(0x70);
-            p.WriteUInt16((short)elements);
-            p.WriteUInt16((short)elements);
-
-            foreach (var item in v_element.Values)
+            try
             {
-                p.WriteStruct(item, new CharacterInfo());
+                p.init_plain(0x70);
+                p.Write(v_element.Build());//write all
+                return p;
             }
-            return p;
+            catch (Exception)
+            {
+                return p;
+            }
         }
 
 
-        public static PangyaBinaryWriter pacote04D(List<Channel> v_element, int option = 0)
-        {
-            var p = new PangyaBinaryWriter();
-            p.Write(new byte[] { 0x4D , 0x00, (byte)v_element.Count });
-            for (var i = 0; i < v_element.Count; ++i)
+        public static PangyaBinaryWriter pacote04D(List<Channel> v_element, bool build_s = false)
+        {      
+            try
             {
-                var channel = v_element[i].getInfo();
-                p.WriteStr(channel.name, 40);
-                p.WriteInt16(channel.max_user);
-                p.WriteInt16(channel.curr_user);
-                p.WriteUInt32(channel.InternalGetFlag());
-                p.WriteUInt32(channel.flag2);
-                p.WriteUInt32(channel.max_level_allow);
-                p.WriteUInt32(channel.min_level_allow);
+                using (var p = new PangyaBinaryWriter())
+                {
+                    if (!build_s)
+                        p.Write(new byte[] { 0x4D, 0x00, (byte)v_element.Count });
+                    else
+                        p.Write(new byte[] { 0x4D, 0x00, (byte)v_element.Count });
+                    for (var i = 0; i < v_element.Count; ++i)
+                    {
+                        p.Write(v_element[i].getInfo().Build(), 85);
+                    }
+                    return p;
+                }
             }
-            return p;
+            catch (Exception ex)
+            {
+                _smp.message_pool.push(new message(
+              $"[packet_func::pacote04D][ErrorSystem] {ex.Message}\nStack Trace: {ex.StackTrace}",
+              type_msg.CL_FILE_LOG_AND_CONSOLE));
+                return null;
+            }
+        }
+
+        static byte[] LobbyInfo(string LobbyName, short MaxPlayers, short PlayersCount, byte LobbyID, uint LobbyFlag)
+        {
+            using (var Response = new PangyaBinaryWriter())
+            {
+                Response.WriteStr(LobbyName, 64);
+                Response.WriteInt16(MaxPlayers);
+                Response.WriteInt16(PlayersCount);
+                Response.WriteByte(LobbyID); //Lobby ID
+                Response.WriteUInt16(0); //ルーム制限あるね
+                Response.WriteUInt16(LobbyFlag); //メンテナンス表記+ナチュラルマーク
+                Response.WriteUInt16(0); //メンテナンス表記+Granplix
+                Response.WriteUInt16(0); //メンテナンス表記+なんか
+                Response.WriteUInt16(0); //メンテナンス表記+ナチュラルマーク
+                Response.WriteUInt16(0); //ルーム制限あるね
+                Response.WriteUInt16(0); //メンテナンス表記+Granplix
+                Response.WriteUInt16(0); //メンテナンス表記+なんか
+                return Response.GetBytes;
+            }
         }
 
         public static PangyaBinaryWriter pacote04E(int option, int _codeErrorInfo = 0)
@@ -485,7 +503,7 @@ namespace GameServer.PacketFunc
             if (option == 0 && pi == null)
                 throw new Exception("Erro PlayerInfo *pi is nullptr. packet_func::pacote044()");
 
-            p.WriteByte(0x44);
+            p.Write(new byte[] { 0x44, 0x00 });
 
             p.WriteByte((byte)(option & 0xFF));   // Option
 
@@ -525,7 +543,7 @@ int option = 0)
         }
         public static PangyaBinaryWriter pacote0D4(
 
-SortedList<uint, CaddieInfoEx> v_element)
+CaddieManager v_element)
         {
             var p = new PangyaBinaryWriter();
             p.init_plain((ushort)0xD4);
@@ -534,7 +552,7 @@ SortedList<uint, CaddieInfoEx> v_element)
 
             for (var i = 0; i != v_element.Count; i++)
             {
-                p.WriteStruct(i, new CharacterInfo());
+                p.WriteStruct(i, new CaddieInfo());
             }
 
             return p;
@@ -546,9 +564,11 @@ SortedList<uint, CaddieInfoEx> v_element)
             {
 
                 if (s == null)
-                    throw new Exception("[packet_func::session_send][Error] session *s is nullptr.");
+                    throw new Exception("[packet_func::session_send][Error] session is nullptr.");
                 if (_debug == 1)
                     Console.WriteLine($"[SEND_PACKET_LOG]: PacketSize({p.GetBytes.Length}) \t\n{p.GetBytes.HexDump()}" + Environment.NewLine);
+                if (p == null)
+                    throw new Exception("[packet_func::session_send][Error] write is nullptr.");
 
                 s.SendResponse(p.GetBytes);
             }
@@ -570,9 +590,7 @@ SortedList<uint, CaddieInfoEx> v_element)
             for (var i = 0; i < channel_session.Count(); ++i)
             {
                 channel_session[i].Send(p.GetBytes);//@!errado
-            }
-
-            p.Clear();
+            }                 
         }
 
         public static void lobby_broadcast(Channel _channel, packet p, byte _debug)

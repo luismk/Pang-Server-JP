@@ -21,13 +21,11 @@ namespace GameServer.GameServerTcp
         public int m_access_flag { get; private set; }
         public int m_create_user_flag { get; private set; }
         public int m_same_id_login_flag { get; private set; }
-        DailyQuestInfo m_dqi;
-        public LoginManager m_login_manager;
+        DailyQuestInfo m_dqi;                                   
         protected List<Channel> v_channel;
         public GameServerBase() : base(new player_manager(2000))
         {
-            v_channel = new List<Channel>();
-            m_login_manager = new LoginManager();
+            v_channel = new List<Channel>();         
             m_player_manager = new player_manager(2000); 
             ConfigInit();
             init_Packets();
@@ -238,11 +236,7 @@ namespace GameServer.GameServerTcp
         public virtual void blockOID(uint _oid) { }
         public virtual void unblockOID(uint _oid) { }
 
-        DailyQuestInfo getDailyQuestInfo() { return m_dqi; }
-
-        public virtual LoginManager getLoginManager() { return m_login_manager; }
-
-
+        DailyQuestInfo getDailyQuestInfo() { return m_dqi; }           
         // Login
         public virtual void requestLogin(Player _session, Packet _Packet) { }
 
@@ -320,7 +314,7 @@ namespace GameServer.GameServerTcp
         }
         public virtual void init_load_channels()
         {
-            ChannelInfoEx ci = new ChannelInfoEx();
+            ChannelInfo ci = new ChannelInfo();
             int num_channel = m_reader_ini.readInt("CHANNELINFO", "NUM_CHANNEL");
 
             for (byte i = 0; i < num_channel; ++i)
@@ -330,9 +324,8 @@ namespace GameServer.GameServerTcp
                 ci.max_user = m_reader_ini.ReadInt16("CHANNEL" + (i + 1), "MAXUSER");
 
                 try
-                {
-                    ci.flag.ulFlag = m_reader_ini.ReadUInt32("CHANNEL" + (i + 1), "FLAG");
-                    ci.SetFlag();
+                {                 
+                    ci.SetFlag(m_reader_ini.ReadUInt32("CHANNEL" + (i + 1), "FLAG"));
                 }
                 catch (Exception e)
                 {
@@ -341,7 +334,7 @@ namespace GameServer.GameServerTcp
                 }
 
                 v_channel.Add(new Channel(ci, m_si.propriedade.ulProperty));
-                ci = new ChannelInfoEx();
+                ci = new ChannelInfo();
             }
         }
         public virtual void reload_systems() { }

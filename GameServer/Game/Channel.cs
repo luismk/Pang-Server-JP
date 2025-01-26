@@ -14,7 +14,7 @@ namespace GameServer.Game
 {
     public class Channel : Ex.ChannelBase
     {
-        public Channel(ChannelInfoEx _ci, uint _type) : base(_ci, (int)_type)
+        public Channel(ChannelInfo _ci, uint _type) : base(_ci, (int)_type)
         {
         }
 
@@ -364,7 +364,7 @@ namespace GameServer.Game
             }
         }
 
-        public ChannelInfoEx getInfo() { return m_ci; }
+        public ChannelInfo getInfo() { return m_ci; }
 
         // Gets
         public byte getId() { return (byte)m_ci.id; }

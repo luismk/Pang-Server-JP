@@ -2,14 +2,311 @@
 using PangyaAPI.Network.Pangya_St;
 using PangyaAPI.Utilities;
 using PangyaAPI.Utilities.Log;
-using System;                     
-using System.Linq;               
+using System;
+using System.Linq;
 using _smp = PangyaAPI.Utilities.Log;
 using snmdb = PangyaAPI.SQL.Manager;
+using GameServer.Game.Manager;
+using System.Collections.Generic;
+using static GameServer.PangType._Define;
 namespace GameServer.PangType
 {
     public partial class PlayerInfo : player_info
-    {        
+    {
+        public enum enLEVEL : short
+        {
+            ROOKIE_F, ROOKIE_E, ROOKIE_D, ROOKIE_C, ROOKIE_B, ROOKIE_A,
+            BEGINNER_E, BEGINNER_D, BEGINNER_C, BEGINNER_B, BEGINNER_A,
+            JUNIOR_E, JUNIOR_D, JUNIOR_C, JUNIOR_B, JUNIOR_A,
+            SENIOR_E, SENIOR_D, SENIOR_C, SENIOR_B, SENIOR_A,
+            AMADOR_E, AMADOR_D, AMADOR_C, AMADOR_B, AMADOR_A,
+            SEMI_PRO_E, SEMI_PRO_D, SEMI_PRO_C, SEMI_PRO_B, SEMI_PRO_A,
+            PRO_E, PRO_D, PRO_C, PRO_B, PRO_A,
+            NACIONAL_E, NACIONAL_D, NACIONAL_C, NACIONAL_B, NACIONAL_A,
+            WORLD_PRO_E, WORLD_PRO_D, WORLD_PRO_C, WORLD_PRO_B, WORLD_PRO_A,
+            MESTRE_E, MESTRE_D, MESTRE_C, MESTRE_B, MESTRE_A,
+            TOP_MASTER_V, TOP_MASTER_IV, TOP_MASTER_III, TOP_MASTER_II, TOP_MASTER_I,
+            WORLD_MASTER_V, WORLD_MASTER_IV, WORLD_MASTER_III, WORLD_MASTER_II, WORLD_MASTER_I,
+            LEGEND_V, LEGEND_IV, LEGEND_III, LEGEND_II, LEGEND_I,
+            INFINIT_LEGEND_V, INFINIT_LEGEND_IV, INFINIT_LEGEND_III, INFINIT_LEGEND_II, INFINIT_LEGEND_I
+        }
+
+        public static readonly uint[] ExpByLevel = { 30, 40, 50, 60, 70, 140,					// ROOKIE
+												   105, 125, 145, 165, 330,					// BEGINNER
+												   248, 278, 308, 338, 675,					// JUNIOR
+												   506, 546, 586, 626, 1253,					// SENIOR
+												   1002, 1052, 1102, 1152, 2304,				// AMADOR
+												   1843, 1903, 1963, 2023, 4046,				// SEMI PRO
+												   3237, 3307, 3377, 3447, 6894,				// PRO
+												   5515, 5595, 5675, 5755, 11511,				// NACIONAL
+												   8058, 8148, 8238, 8328, 16655,				// WORLD PRO
+												   8328, 8428, 8528, 8628, 17255,				// MESTRE
+												   9490, 9690, 9890, 10090, 20181,			// TOP_MASTER
+												   20181, 20481, 20781, 21081, 42161,			// WORLD_MASTER
+												   37945, 68301, 122942, 221296, 442592,		// LEGEND
+												   663887, 995831, 1493747, 2240620, 0 };// INFINIT_LEGEND
+
+        public class stIdentifyKey
+        {
+
+            public uint _typeid;
+            public uint id;
+            public stIdentifyKey(uint __typeid, uint _id)
+            {
+                _typeid = (__typeid);
+                id = (_id);
+            }
+            public static bool operator <(stIdentifyKey MyIntLeft, stIdentifyKey _ik)
+            {
+
+                // Classifica pelo ID, depois o typeid
+                if (MyIntLeft.id != _ik.id)
+                    return MyIntLeft.id < _ik.id;
+                else
+                    return MyIntLeft._typeid < _ik._typeid;
+            }
+
+            public static bool operator >(stIdentifyKey MyIntLeft, stIdentifyKey _ik)
+            {
+
+                // Classifica pelo ID, depois o typeid
+                if (MyIntLeft.id != _ik.id)
+                    return MyIntLeft.id < _ik.id;
+                else
+                    return MyIntLeft._typeid < _ik._typeid;
+            }
+
+        }
+
+        /*
+			 Skin[Title] map Call back function to trate Condition 
+			*/
+        public class stTitleMapCallback
+        {
+
+            // Function Callback type
+
+            // Constructor
+            public stTitleMapCallback(uint _ul = 0)
+            {
+            }
+            stTitleMapCallback(Action<object> _callback, object _arg)
+            {
+                call_back = (_callback);
+                arg = (_arg);
+            }
+            uint exec()
+            {
+
+                if (call_back != null)
+                {
+                    call_back.Invoke(arg);
+                    return 1;
+                }
+                else
+                    //  _smp::message_pool::getInstance().push(new message("[PlayerInfo::stTitleMapCallBack::exec][Error] call_back is nullptr.", CL_FILE_LOG_AND_CONSOLE));
+
+                    return 0;
+            }
+            //uint id;
+            Action<object> call_back;
+            object arg;
+        }
+
+
+        public PlayerInfo()
+        {
+            clear();
+        }
+
+        public void clear()
+        {
+
+
+            cg = new CouponGacha();
+            mi = new MemberInfoEx();
+            ui = new UserInfoEx();
+            ei = new EquipedItem();
+            cwlul = new ClubSetWorkshopLasUpLevel();
+            cwtc = new ClubSetWorkshopTransformClubSet();
+            pt = new PremiumTicket();
+            ti_current_season = new TrofelInfo();
+            ti_rest_season = new TrofelInfo();
+            TutoInfo = new TutorialInfo();
+            ue = new UserEquip();
+            cmu = new chat_macro_user();
+            a_ms_normal = new MapStatistics[MS_NUM_MAPS];
+            a_msa_normal = new MapStatistics[MS_NUM_MAPS];
+            a_ms_natural = new MapStatistics[MS_NUM_MAPS];
+            a_msa_natural = new MapStatistics[MS_NUM_MAPS];
+            a_ms_grand_prix = new MapStatistics[MS_NUM_MAPS];
+            a_msa_grand_prix = new MapStatistics[MS_NUM_MAPS];
+            for (int i = 0; i < MS_NUM_MAPS; i++)
+            {
+                a_ms_normal.SetValue(new MapStatistics(), i);
+                a_msa_normal.SetValue(new MapStatistics(), i);
+                a_ms_natural.SetValue(new MapStatistics(), i);
+                a_msa_natural.SetValue(new MapStatistics(), i);
+                a_ms_grand_prix.SetValue(new MapStatistics(), i);
+                a_msa_grand_prix.SetValue(new MapStatistics(), i);
+            }
+            aa_ms_normal_todas_season = new MapStatistics[9][];
+
+            // Inicializando cada sessão com 20 mapas (ou MS_NUM_MAPS mapas)
+            for (int j = 0; j < 9; j++)
+            {
+                aa_ms_normal_todas_season[j] = new MapStatistics[MS_NUM_MAPS];
+                for (int i = 0; i < MS_NUM_MAPS; i++)
+                {
+                    aa_ms_normal_todas_season[j][i] = new MapStatistics();  // Inicializa cada mapa
+                }
+            }
+
+            mp_scl = new SortedList<uint, StateCharacterLounge>();
+
+            mp_ce = new CharacterManager();     // Tem que usar multimap aqui, para nao ficar realocando memória, uso o ponteiro de um element, para o item equipado
+            mp_ci = new CaddieManager();      // Tem que usar multimap aqui, para nao ficar realocando memória, uso o ponteiro de um element, para o item equipado
+            mp_mi = new MascotManager();      // Tem que usar multimap aqui, para nao ficar realocando memória, uso o ponteiro de um element, para o item equipado
+            mp_wi = new WarehouseManager();      // Tem que usar multimap aqui, para nao ficar realocando memória, uso o ponteiro de um element, para o item equipado
+
+            mp_fi = new SortedList<uint, FriendInfo>();   // Friend List
+
+            ari = new AttendanceRewardInfoEx();
+
+            //MgrAchievement mgr_achievement = new             // Manager Achievement
+            v_card_info = new List<CardInfo>();
+
+            v_cei = new List<CardEquipInfoEx>();
+            v_ib = new List<ItemBuffEx>();
+
+            mp_ui = new SortedList<stIdentifyKey/*uint/*ID*/, UpdateItem>();
+
+            v_tsi_current_season = new List<TrofelEspecialInfo>();
+            v_tsi_rest_season = new List<TrofelEspecialInfo>();
+            v_tgp_current_season = new List<TrofelEspecialInfo>();   // Trofel Grand Prix
+            v_tgp_rest_season = new List<TrofelEspecialInfo>(); // Trofel Grand Prix
+            v_mri = new List<MyRoomItem>();     // MyRoomItem
+            v_gpc = new List<GrandPrixClear>(); // Grand Prix Clear os grand prix que o player já jogou
+
+            mrc = new MyRoomConfig();
+            df = new DolfiniLocker();   // DolfiniLocker
+            gi = new GuildInfoEx();
+            dqiu = new DailyQuestInfoUser();
+            l5pg = new Last5PlayersGame();
+            m_mail_box = new PlayerMailBox();
+        }
+
+        public void SetInfo(player_info info)
+        {
+            uid = info.uid;
+            level = info.level;
+            block_flag = info.block_flag;
+            nickname = info.nickname;
+            pass = info.pass;
+        }                                    
+
+        public ulong cookie { get; set; }
+        public CouponGacha cg { get; set; }
+        public MemberInfoEx mi { get; set; }
+        public UserInfoEx ui { get; set; }
+        public EquipedItem ei { get; set; }
+        ClubSetWorkshopLasUpLevel cwlul { get; set; }
+        ClubSetWorkshopTransformClubSet cwtc { get; set; }
+        public PremiumTicket pt { get; set; }
+        public TrofelInfo ti_current_season { get; set; }
+        public TrofelInfo ti_rest_season { get; set; }
+        public TutorialInfo TutoInfo { get; set; }
+        public UserEquip ue { get; set; }
+        public chat_macro_user cmu { get; set; }
+        public MapStatistics[] a_ms_normal { get; set; }
+        public MapStatistics[] a_msa_normal { get; set; }
+        public MapStatistics[] a_ms_natural { get; set; }
+        public MapStatistics[] a_msa_natural { get; set; }
+        public MapStatistics[] a_ms_grand_prix { get; set; }
+        public MapStatistics[] a_msa_grand_prix { get; set; }
+        public MapStatistics[][] aa_ms_normal_todas_season { get; set; }   // Esse aqui é diferente, explico ele no pacote principal
+        public SortedList<uint, StateCharacterLounge> mp_scl { get; set; }
+
+        public CharacterManager mp_ce { get; set; }      //  
+        public CaddieManager mp_ci { get; set; }       // Tem que usar multimap aqui, para nao ficar realocando memória, uso o ponteiro de um element, para o item equipado
+        public MascotManager mp_mi { get; set; }       // Tem que usar multimap aqui, para nao ficar realocando memória, uso o ponteiro de um element, para o item equipado
+        public WarehouseManager mp_wi { get; set; }       // Tem que usar multimap aqui, para nao ficar realocando memória, uso o ponteiro de um element, para o item equipado
+
+        public SortedList<uint/*UID*/, FriendInfo> mp_fi;    // Friend List
+
+        public AttendanceRewardInfoEx ari;
+
+        //MgrAchievement mgr_achievement;             // Manager Achievement
+        public List<CardInfo> v_card_info;
+
+        public List<CardEquipInfoEx> v_cei;
+        public List<ItemBuffEx> v_ib;
+
+        public SortedList<stIdentifyKey/*uint/*ID*/, UpdateItem> mp_ui;
+
+        public List<TrofelEspecialInfo> v_tsi_current_season;
+        public List<TrofelEspecialInfo> v_tsi_rest_season;
+        public List<TrofelEspecialInfo> v_tgp_current_season;   // Trofel Grand Prix
+        public List<TrofelEspecialInfo> v_tgp_rest_season; // Trofel Grand Prix
+        public List<MyRoomItem> v_mri;      // MyRoomItem
+
+        public List<GrandPrixClear> v_gpc;  // Grand Prix Clear os grand prix que o player já jogou
+
+        public MyRoomConfig mrc;
+        public DolfiniLocker df;   // DolfiniLocker
+        public GuildInfoEx gi;
+        public DailyQuestInfoUser dqiu;
+        public Last5PlayersGame l5pg;
+        public class stLocation
+        {
+
+            public float x { get; set; }
+            public float y { get; set; }
+            public float z { get; set; }
+            public float r { get; set; }    // Face
+
+            public static stLocation operator +(stLocation _old_location, stLocation _add_location)
+            {
+                return new stLocation()
+                {
+                    x = _old_location.x + _add_location.x,
+                    y = _old_location.y + _add_location.y,
+                    z = _old_location.z + _add_location.z,
+                    r = _old_location.r + _add_location.r
+                };
+            }
+            public static stLocation operator -(stLocation _old_location, stLocation _add_location)
+            {
+                return new stLocation()
+                {
+                    x = _old_location.x - _add_location.x,
+                    y = _old_location.y - _add_location.y,
+                    z = _old_location.z - _add_location.z,
+                    r = _old_location.r - _add_location.r
+                };
+            }
+        }
+        public stLocation location { get; set; } = new stLocation();
+        public byte place { get; set; }            // Lugar que o player está no momento
+        public byte lobby { get; set; } = byte.MaxValue;            // Lobby
+        public byte channel { get; set; } = byte.MaxValue;          // Channel
+        public byte whisper { get; set; } = 1; // Whisper 0 e 1, 0 OFF, 1 ON
+        public uint state;
+        public uint state_lounge;
+        public bool m_state_logged;       // State logged que usa no login gs, e que eu possa usar aqui, por que tbm tenho que prevenir contra ataques DDoS
+        public uCapabilityEx m_cap => mi?.capability;
+        public ulong grand_zodiac_pontos;
+
+        public ulong m_legacy_tiki_pts; // Point Shop(Tiki Shop antigo)
+
+        //// Mail Box
+        public PlayerMailBox m_mail_box;
+
+        //	stPlayerLocationDB m_pl;
+        //stSyncUpdateDB m_update_pang_db;
+        //stSyncUpdateDB m_update_cookie_db;
+
+
         public void addCookie(ulong _cookie)
         {
             if (_cookie <= 0)
@@ -383,9 +680,9 @@ namespace GameServer.PangType
             return new TrofelEspecialInfo();
         }
 
-        public WarehouseItemEx findWarehouseItemById(int _id)
+        public WarehouseItemEx findWarehouseItemById(uint _id)
         {
-            return mp_wi.GetValues((uint)_id).First();
+            return mp_wi.findWarehouseItemById(_id);
         }
 
         public WarehouseItemEx findWarehouseItemByTypeid(int _typeid)
@@ -607,33 +904,14 @@ namespace GameServer.PangType
 
         }
 
-        public multimap<uint/*ID*/, WarehouseItemEx> findWarehouseItemItByTypeid(uint _typeid)
+        public WarehouseItemEx findWarehouseItemByTypeid(uint _typeid)
         {
-            multimap<uint/*ID*/, WarehouseItemEx> HasSet = new multimap<uint, WarehouseItemEx>();
-            foreach (var item in mp_wi)
-            {
-                var result = item.Value.FirstOrDefault(c => c._typeid == _typeid);
-                if (result != null)
-                {
-                    HasSet.Add(result.id, result);
-                }
-            }
-            return HasSet;
+            return mp_wi.findWarehouseItemByTypeid(_typeid);
         }
 
-        public multimap<uint/*ID*/, WarehouseItemEx> findWarehouseItemItByTypeid(uint _typeid, uint _id)
-        {
-            multimap<uint/*ID*/, WarehouseItemEx> HasSet = new multimap<uint, WarehouseItemEx>();
-
-            var it = mp_wi.Find(_id);
-            foreach (var item in it)
-            {
-                if (item._typeid != _typeid)
-                {
-                    HasSet.Add(item.id, item);
-                }
-            }
-            return HasSet;
+        public WarehouseItemEx findWarehouseItemByTypeidAndId(uint _typeid, uint _id)
+        {                                                          
+            return mp_wi.findWarehouseItemByTypeidAndId(_typeid, _id);
         }
 
         public static void SQLDBResponse(int _msg_id, PangyaAPI.SQL.Pangya_DB _pangya_db, object _arg)

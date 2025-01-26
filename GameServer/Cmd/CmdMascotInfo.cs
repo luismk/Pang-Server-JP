@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using _smp = PangyaAPI.Utilities.Log;
 using GameServer.PangType;
+using GameServer.Game.Manager;
 
 namespace GameServer.Cmd
 {
@@ -21,7 +22,7 @@ namespace GameServer.Cmd
 		}
 		TYPE m_type;
 		uint m_item_id;
-		SortedList<uint/*ID*/, MascotInfoEx> v_mi;
+		MascotManager v_mi;
 		protected override string _getName { get; } = "CmdMascotInfo";
 
 		public CmdMascotInfo(uint _uid, TYPE _type, uint _item_id = 0)
@@ -29,7 +30,7 @@ namespace GameServer.Cmd
 			m_uid = _uid;
 			m_type = _type;
 			m_item_id = _item_id;
-			v_mi = new SortedList<uint, MascotInfoEx>();
+			v_mi = new MascotManager();
 
 		}
 
@@ -38,7 +39,7 @@ namespace GameServer.Cmd
 			m_uid = _uid;
 			m_type = (TYPE)_type;
 			m_item_id = _item_id;
-			v_mi = new SortedList<uint, MascotInfoEx>();
+			v_mi = new MascotManager();
 
 		}
 
@@ -112,7 +113,7 @@ namespace GameServer.Cmd
 		}
 
 
-		public SortedList<uint/*ID*/, MascotInfoEx> getInfo()
+		public MascotManager getInfo()
 		{
 			return v_mi;
 		}														   

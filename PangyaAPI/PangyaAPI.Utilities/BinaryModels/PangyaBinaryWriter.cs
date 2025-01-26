@@ -46,9 +46,7 @@ namespace PangyaAPI.Utilities.BinaryModels
 
         public void init_plain(ushort value)
         {
-            WriteUInt16(value);
-            //identificar pacotes com id errados
-            Console.WriteLine("[PacketBase::init_plain] log: " + GetBytes.HexDump());
+            WriteUInt16(value);                                                             
         }
 
         public void WriteInt16(short value)

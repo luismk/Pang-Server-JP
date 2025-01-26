@@ -1,4 +1,5 @@
-﻿using GameServer.PangType;
+﻿using GameServer.Game.Manager;
+using GameServer.PangType;
 using PangyaAPI.SQL;
 using System;
 using System.Collections.Generic;
@@ -18,7 +19,7 @@ namespace GameServer.Cmd
         }
         TYPE m_type;
         uint m_item_id;
-        SortedList<uint/*ID*/, CaddieInfoEx> v_ci;
+        CaddieManager v_ci;
         protected override string _getName { get; } = "CmdCaddieInfo";
 
         public CmdCaddieInfo(uint _uid, TYPE _type, uint _item_id = 0)
@@ -26,7 +27,7 @@ namespace GameServer.Cmd
             m_uid = _uid;
             m_type = _type;
             m_item_id = _item_id;
-            v_ci = new SortedList<uint, CaddieInfoEx>();
+            v_ci = new CaddieManager();
 
         }
         /// <summary>
@@ -40,7 +41,7 @@ namespace GameServer.Cmd
             m_uid = _uid;
             m_type = (TYPE)_type;
             m_item_id = _item_id;
-            v_ci = new SortedList<uint, CaddieInfoEx>();
+            v_ci = new CaddieManager();
         }
 
         protected override void lineResult(ctx_res _result, uint _index_result)
@@ -111,7 +112,7 @@ namespace GameServer.Cmd
         }
 
 
-        public SortedList<uint/*ID*/, CaddieInfoEx> getInfo()
+        public CaddieManager getInfo()
         {
             return v_ci;
         }

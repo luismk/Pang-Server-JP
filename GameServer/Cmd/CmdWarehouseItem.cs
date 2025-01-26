@@ -13,6 +13,7 @@ using System.Reflection;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using GameServer.PangType;
+using GameServer.Game.Manager;
 
 namespace GameServer.Cmd
 {
@@ -25,7 +26,7 @@ namespace GameServer.Cmd
 			}
         TYPE m_type;
         uint m_item_id;
-       multimap<uint/*ID*/, WarehouseItemEx> v_wi;
+        WarehouseManager v_wi;
         protected override string _getName { get; } = "CmdWarehouseItem";
 
         public CmdWarehouseItem(uint _uid, TYPE _type, uint _item_id = 0)
@@ -33,7 +34,7 @@ namespace GameServer.Cmd
             m_uid = _uid;
             m_type = _type;
             m_item_id = _item_id;
-			v_wi = new multimap<uint, WarehouseItemEx>();
+			v_wi = new WarehouseManager();
 
 		}
 
@@ -42,7 +43,7 @@ namespace GameServer.Cmd
 			m_uid = _uid;
 			m_type =(TYPE) _type;
 			m_item_id = _item_id;
-			v_wi = new multimap<uint, WarehouseItemEx>();
+			v_wi = new WarehouseManager();
 
 		}
 
@@ -103,7 +104,7 @@ namespace GameServer.Cmd
                 wi.ucc.trade = _result.GetSByte(42);
                 wi.ucc.status = _result.GetSByte(44);
 
-                var it = v_wi.GetValues(wi.id, true);
+                var it = v_wi.GetValues(wi.id);
 
                 if (!it.Any())
 				{
@@ -115,17 +116,13 @@ namespace GameServer.Cmd
 					var er = v_wi.GetValues(wi.id);
 
 					// N�o tem um igual add um novo
-					if (it.Count() > 1 && it.Any() && wi.id == er.First().id/*End*/ && it.First()._typeid != wi._typeid)
+					if (it.Count() > 1 && it.Any() && wi.id == er.First().Key /*End*/ && it.First().Value._typeid != wi._typeid)
 					{
 						v_wi.Insert(wi.id, wi);
 
 						_smp.message_pool.push("[CmdWarehouseItemInfo::lineResult][WARNING] player[UID=" + (m_uid) + "] adicionou WarehouseItem[TYPEID="
 								+ (wi._typeid) + ", ID=" + (wi.id) + "], com mesmo id e typeid diferente de outro WarehouseItemEx que tem no multimap");
-					}
-					else
-					{
-					
-					}
+					}                        
 				}
             }
             catch (Exception ex)
@@ -148,10 +145,8 @@ namespace GameServer.Cmd
         }
 
 
-		public multimap<uint/*ID*/, WarehouseItemEx> getInfo()
-        {
-
-            v_wi.OrderBy();
+		public WarehouseManager getInfo()
+        {                                      
             return v_wi;
         }
 

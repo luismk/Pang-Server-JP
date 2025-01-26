@@ -19,7 +19,7 @@ namespace GameServer.Game.Ex
             ROOM_DESTROYED,
         }
 
-        protected ChannelInfoEx m_ci;
+        protected ChannelInfo m_ci;
         //RoomManager m_rm;
 
         protected int m_type;           // Type GrandPrix, Natural, Normal
@@ -30,7 +30,7 @@ namespace GameServer.Game.Ex
         protected multimap<Player, PlayerCanalInfoEx> m_player_info;
 
         protected List<InviteChannelInfo> v_invite;
-        public ChannelBase(ChannelInfoEx _ci, int _type)
+        public ChannelBase(ChannelInfo _ci, int _type)
         {
             m_ci = _ci;
             m_state = (int)ESTADO.INITIALIZED;

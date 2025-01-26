@@ -24,7 +24,7 @@ namespace PangyaAPI.Network.PangyaServer
             GoodWithWarning,
             Initialized,
             Failure
-        }                 
+        }
 
         ServerState m_state;
         private List<string> v_mac_ban_list;
@@ -35,7 +35,7 @@ namespace PangyaAPI.Network.PangyaServer
         private bool m_chatDiscord;
         private volatile bool _continueAccept;
         public bool _isRunning => m_state == ServerState.Good;
-        public IniHandle m_reader_ini { get; set; }  
+        public IniHandle m_reader_ini { get; set; }
         public List<TableMac> ListBlockMac { get; set; }
         public List<ServerInfo> m_server_list { get; set; }
         protected func_arr funcs { get; set; }
@@ -139,13 +139,13 @@ namespace PangyaAPI.Network.PangyaServer
         {
             //Recebe cliente a partir do parâmetro
             TcpClient client = (TcpClient)obj;
-
-            var Session = m_session_manager.AddSession(client, client.Client.RemoteEndPoint as IPEndPoint, (byte)(new Random().Next() % 16));
-
+            //add player
+            var Session = m_session_manager.AddSession(this, client, client.Client.RemoteEndPoint as IPEndPoint, (byte)(new Random().Next() % 16));
+            //
             _smp.message_pool.push(new message("[server::HandleSession][Log] New Player Connected [Ip: " + Session.getIP() + ", Key: " + Session.m_key + "]", type_msg.CL_FILE_LOG_AND_CONSOLE));
-            
+
             onAcceptCompleted(Session);
-           
+
             while (Session.getConnected())
             {
                 try
@@ -157,7 +157,7 @@ namespace PangyaAPI.Network.PangyaServer
                         if (Session.getConnected())
                         {
                             var packet = new Packet(message, Session.m_key);
-                            
+
                             //Dispara evento OnPacketReceived
                             DispatchPacketSameThread(Session, packet);
                         }
@@ -167,12 +167,15 @@ namespace PangyaAPI.Network.PangyaServer
                         if (Session.getConnected())
                         {
                             DisconnectSession(Session);
+                            break;
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    _smp::message_pool.push(new message("[server::HandleSession][ErrorSystem] " +ex.Message, type_msg.CL_FILE_LOG_AND_CONSOLE));
+                    DisconnectSession(Session);
+                    _smp::message_pool.push(new message("[server::HandleSession][ErrorSystem] " + ex.Message, type_msg.CL_FILE_LOG_AND_CONSOLE));
+                    break;
                 }
             }
             if (Session.getConnected())
@@ -219,7 +222,7 @@ namespace PangyaAPI.Network.PangyaServer
                         }
 
                         try
-                        {                                           
+                        {
                             // Atualiza o número de sessões conectadas
                             m_si.curr_user = (int)m_session_manager.NumSessionConnected();
                             NormalManagerDB.add(0, new CmdRegisterServer(m_si), SQLDBResponse, this);
@@ -338,7 +341,7 @@ namespace PangyaAPI.Network.PangyaServer
             }
 
             try
-            {                        
+            {
                 // Atualiza o tick do cliente
                 session.m_tick = Environment.TickCount;
 
@@ -414,7 +417,7 @@ namespace PangyaAPI.Network.PangyaServer
                 _smp::message_pool.push(new message(e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
         }
-    
+
         public void Stop()
         {
             m_state = ServerState.Failure;

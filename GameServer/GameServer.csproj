@@ -101,15 +101,13 @@
     <Compile Include="Cmd\CmdUserEquip.cs" />
     <Compile Include="Cmd\CmdUserInfo.cs" />
     <Compile Include="Cmd\CmdWarehouseItem.cs" />
-    <Compile Include="CoreSystem\LoginSystem.cs" />
+    <Compile Include="CoreSystem\LoginManager.cs" />
     <Compile Include="GameServerTcp\GameServer.cs" />
     <Compile Include="Game\Channel.cs" />
     <Compile Include="Game\Ex\ChannelBase.cs" />
-    <Compile Include="Game\LoginTask.cs" />
     <Compile Include="Game\Manager\CaddieManager.cs" />
     <Compile Include="Game\Manager\CharacterManager.cs" />
     <Compile Include="Game\Manager\GuildRoomManager.cs" />
-    <Compile Include="Game\Manager\LoginManager.cs" />
     <Compile Include="Game\Manager\MascotManager.cs" />
     <Compile Include="Game\Manager\PersonalShopManager.cs" />
     <Compile Include="Game\Manager\PlayerMailBox.cs" />
@@ -120,7 +118,6 @@
     <Compile Include="PangType\GMInfo.cs" />
     <Compile Include="PangType\pangya_game_st.cs" />
     <Compile Include="PangType\PlayerInfo.cs" />
-    <Compile Include="PangType\PlayerInfoBase.cs" />
     <Compile Include="Session\Player.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

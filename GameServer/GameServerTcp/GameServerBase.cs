@@ -104,12 +104,7 @@ namespace GameServer.GameServerTcp
         {
             return base.findPlayer(_uid, _oid);
         }
-
-        public override LoginManager getLoginManager()
-        {
-            return base.getLoginManager();
-        }
-
+                             
         public override void init_load_channels()
         {
             base.init_load_channels();
@@ -214,7 +209,7 @@ namespace GameServer.GameServerTcp
 
         public override void requestLogin(Player _session, Packet _packet)
         {
-            LoginSystem.requestLogin(_session, _packet);
+           new LoginManager().requestLogin(_session, _packet);
         }
 
         public override void requestNotifyNotDisplayPrivateMessageNow(Player _session, Packet _packet)
@@ -268,12 +263,10 @@ namespace GameServer.GameServerTcp
             try
             {             
                 var p = packet_func.pacote04D(v_channel);
-                packet_func.session_send(p, _session, 0);
-
+                packet_func.session_send(p, _session, 1);         
             }
             catch (exception e)
             {
-
                 _smp.message_pool.push("[game_server::sendChannelListToSession][ErrorSystem] " + e.getFullMessageError());
             }
         }

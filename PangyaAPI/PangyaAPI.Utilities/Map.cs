@@ -135,10 +135,9 @@ namespace PangyaAPI.Utilities
         /// </returns>
         public HashSet<TValue> GetValues(TKey key, bool returnEmptySet = false)
         {
-            HashSet<TValue> toReturn = null;
-            if (!base.TryGetValue(key, out toReturn) && returnEmptySet)
+            if (base.TryGetValue(key, out HashSet<TValue> toReturn) && returnEmptySet)
             {
-                toReturn = new HashSet<TValue>();
+                return toReturn;
             }
             return toReturn;
         }

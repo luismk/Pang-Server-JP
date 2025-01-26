@@ -8,6 +8,8 @@ using System.Text;
 using System.Threading.Tasks;
 using _smp = PangyaAPI.Utilities.Log;
 using GameServer.PangType;
+using GameServer.Game.Manager;
+using PangyaAPI.Network.Pangya_St;
 
 namespace GameServer.Cmd
 {
@@ -21,7 +23,7 @@ namespace GameServer.Cmd
 		}
 		TYPE m_type;
 		uint m_item_id;
-		SortedList<uint/*ID*/, CharacterInfoEx> v_ce;
+		CharacterManager v_ce;
 		protected override string _getName { get; } = "CmdCharacterInfo";
 
 		public CmdCharacterInfo(uint _uid, TYPE _type, uint _item_id =0)
@@ -29,7 +31,7 @@ namespace GameServer.Cmd
 			m_uid = _uid;
 			m_type = _type;
 			m_item_id = _item_id;
-			v_ce = new SortedList<uint, CharacterInfoEx>();
+			v_ce = new CharacterManager();
 		}
 		/// <summary>
 		/// inicia a consulta
@@ -42,7 +44,7 @@ namespace GameServer.Cmd
 			m_uid = _uid;
 			m_type = (TYPE)_type;
 			m_item_id = _item_id;
-			v_ce = new SortedList<uint, CharacterInfoEx>();
+			v_ce = new CharacterManager();
 		}
 
 		protected override void lineResult(ctx_res _result, uint _index_result)
@@ -98,11 +100,12 @@ namespace GameServer.Cmd
 		}
 
 
-		public SortedList<uint/*ID*/, CharacterInfoEx> getAllInfo()
+		public CharacterManager getAllInfo()
 		{
 			return v_ce;
 		}
-		public CharacterInfoEx getInfo()
+
+		public CharacterInfo getInfo()
 		{
 			return v_ce.First().Value;
 		}

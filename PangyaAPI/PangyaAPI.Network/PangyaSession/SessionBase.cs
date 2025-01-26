@@ -18,7 +18,7 @@ namespace PangyaAPI.Network.PangyaSession
     public abstract partial class SessionBase : IDisposeable
     {
         #region Public Fields
-                                               
+
 
         /// <summary>
         /// Servidor em que o cliente está conectado
@@ -28,7 +28,7 @@ namespace PangyaAPI.Network.PangyaSession
         /// <summary>
         /// Conexão do cliente
         /// </summary>
-        public TcpClient _client { get; set; }          
+        public TcpClient _client { get; set; }
         public IPEndPoint Address { get; set; }
         public byte m_key { get; set; }
         public uint m_oid { get; set; }
@@ -46,7 +46,7 @@ namespace PangyaAPI.Network.PangyaSession
         private bool m_connectedToSend;
         private string m_ip;
 
-        public PangyaBinaryWriter Response { get; set; }           
+        public PangyaBinaryWriter Response { get; set; }
         #endregion
 
         #region Constructor
@@ -55,9 +55,9 @@ namespace PangyaAPI.Network.PangyaSession
         {
             m_connected = false;
             m_state = true;
-            m_connectedToSend = false;                        
+            m_connectedToSend = false;
         }
-           
+
         // Métodos
         public bool Clear()
         {
@@ -75,7 +75,7 @@ namespace PangyaAPI.Network.PangyaSession
 
                 m_oid = 0;
 
-                m_is_authorized = false;        
+                m_is_authorized = false;
                 Dispose();
                 return true;
             }
@@ -145,6 +145,7 @@ namespace PangyaAPI.Network.PangyaSession
         public void SetConnected(bool connected)
         {
             m_connected = connected;
+            MakeIP();
         }
 
         public void SetConnectedToSend(bool connectedToSend)
@@ -168,16 +169,12 @@ namespace PangyaAPI.Network.PangyaSession
             {
                 m_ip = Address.Address.ToString();
             }
-        }
+        }                     
 
-        private bool IsConnectedToSend()
-        {
-            return m_connectedToSend;
-        }
-                    
         public void Disconnect()
         {
-            Server.DisconnectSession(this);
+            if (Server != null)
+                Server.DisconnectSession(this);
         }
         #endregion
 
@@ -271,7 +268,7 @@ namespace PangyaAPI.Network.PangyaSession
                 if (disposing)
                 {
                     // Liberando recursos gerenciados
-                    this.m_connected = false;   
+                    this.m_connected = false;
                     _client.Dispose();
                 }
 
@@ -300,5 +297,5 @@ namespace PangyaAPI.Network.PangyaSession
 
         #endregion
     }
-     
+
 }

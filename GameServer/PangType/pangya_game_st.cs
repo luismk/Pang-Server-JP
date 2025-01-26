@@ -2969,96 +2969,81 @@ namespace GameServer.PangType
     public class GuildInfoEx : GuildInfo
     {
         public PangyaTime create_time;
-    }
-
-    // Canal Info Flag
-    [StructLayout(LayoutKind.Sequential, Pack = 1, Size = 4)]
-    public class ChannelInfoFlag
-    {
-        public uint ulFlag { get; set; }
-        public ChannelInfoFlag(uint ul = 0)
-        {
-            ulFlag = ul;
-            stBit = new _stBit();
-        }
-        public _stBit stBit { get; set; }
-        public class _stBit
-        {
-            public uint all { get; set; }
-            // Unknown
-            public uint junior_bellow { get; set; }             // De Junior A para baixo
-            public uint junior_above { get; set; }                  // De Junior E para cima
-            public uint only_rookie { get; set; }                   // Somente Rookie(Iniciante)
-            public uint beginner_between_junior { get; set; }       // De Beginner a Junior
-            public uint junior_between_senior { get; set; }  // De Junior a Senior
-        }
-    }
+    }        
 
     // Canal Info
-    [StructLayout(LayoutKind.Sequential, Pack = 1, Size = 4)]
-    public class ChannelInfoEx : ChannelInfo
-    {
-        public ChannelInfoEx()
-        {
-            clear();
-            flag = new ChannelInfoFlag();
-            flag.ulFlag = uint.MaxValue;
-        }
-        [field: MarshalAs(UnmanagedType.Struct, SizeConst = 4)]
-        public ChannelInfoFlag flag { get; set; } //aqui eu tenho que fazer o set e o get!
-       
-        public void SetFlag()
-        {
-            InternalSetFlag(flag.ulFlag);
-            //# Flag do Canal [512 Junior A para baixo, 1024 Junior E para cima]
-            //#               [2048 S� Rookie, 4096 Beginner e Junior]
-            //#               [8192 Junior e Senior] 
-            switch (flag.ulFlag)
-            {
-                case 0:
-                    flag.stBit.all = 1;
-                    break;
-                case 512:
-                    flag.stBit.junior_bellow = 1;
-                    break;
-                case 1024:
-                    flag.stBit.junior_above = 1;
-                    break;
-                case 2048:
-                    flag.stBit.only_rookie = 1;
-                    break;
-                case 4096:
-                    flag.stBit.beginner_between_junior = 1;
-                    break;
-                case 8192:
-                    flag.stBit.junior_between_senior = 1;
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
-
-    // Canal Info
-    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public class ChannelInfo
     {
         public ChannelInfo()
         {
             clear();
-        }
-        public ChannelInfo(ChannelInfoEx info)
-        {
-            clear();
-            name = info.name;
-            _flag = info.flag.ulFlag;
-            max_level_allow = info.max_level_allow;   
-        }
+        }   
 
         public void clear()
         {
             name_bytes = new byte[64];
-            _flag = 0;
+            flag = default;  
+        }
+        [StructLayout(LayoutKind.Explicit, Size = 4)]
+        public struct UFlag
+        {
+            [FieldOffset(0)]
+            public uint ulFlag;
+
+            [FieldOffset(0)]
+            public Bits stBit;
+
+            public UFlag(uint ul = 0)
+            {
+                stBit = default;
+                ulFlag = ul;
+                SetFlag();
+            }
+
+            public void Clear()
+            {
+                ulFlag = 0;
+            }
+
+            [StructLayout(LayoutKind.Sequential, Pack = 1)]
+            public struct Bits
+            {
+                public uint all { get; set; }
+                // Unknown
+                public uint junior_bellow { get; set; }             // De Junior A para baixo
+                public uint junior_above { get; set; }                  // De Junior E para cima
+                public uint only_rookie { get; set; }                   // Somente Rookie(Iniciante)
+                public uint beginner_between_junior { get; set; }       // De Beginner a Junior
+                public uint junior_between_senior { get; set; }  // De Junior a Senior
+            }
+
+            public void SetFlag()
+            {                    
+                switch (ulFlag)
+                {
+                    case 0:
+                        stBit.all = 1;
+                        break;
+                    case 512:
+                        stBit.junior_bellow = 1;
+                        break;
+                    case 1024:
+                        stBit.junior_above = 1;
+                        break;
+                    case 2048:
+                        stBit.only_rookie = 1;
+                        break;
+                    case 4096:
+                        stBit.beginner_between_junior = 1;
+                        break;
+                    case 8192:
+                        stBit.junior_between_senior = 1;
+                        break;
+                    default:
+                        break;
+                }
+            }
         }
 
         [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 64)]
@@ -3067,21 +3052,33 @@ namespace GameServer.PangType
         public short max_user { get; set; }
         public short curr_user { get; set; }
         public byte id { get; set; }
-        [field: MarshalAs(UnmanagedType.U4, SizeConst = 4)]
-        private uint _flag { get; set; }
+        [field: MarshalAs(UnmanagedType.Struct)]
+        public UFlag flag { get; set; }
         public uint flag2 { get; set; }
         public uint min_level_allow { get; set; }
         public uint max_level_allow { get; set; }
-        
-        public void InternalSetFlag(uint flag)
+
+        public void SetFlag(uint value)
         {
-            _flag = flag;
+            flag = new UFlag(value);
         }
 
-        public uint InternalGetFlag()
+        public byte[] Build()
         {
-            return _flag;
+            using (var Response = new PangyaBinaryWriter())
+            {
+                Response.WriteStr(name, 64);
+                Response.WriteInt16(max_user);                                    
+                Response.WriteInt16(curr_user);
+                Response.WriteByte(id); //Lobby ID
+                Response.WriteUInt32(flag.ulFlag); //ルーム制限あるね- channel flag
+                Response.WriteUInt32(flag2); //メンテナンス表記+ナチュラルマーク- flag2
+                Response.WriteUInt32(max_level_allow); //メンテナンス表記+Granplix
+                Response.WriteUInt32(min_level_allow); //メンテナンス表記+なんか    
+                return Response.GetBytes;
+            }
         }
+
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 4)]

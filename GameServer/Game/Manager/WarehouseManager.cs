@@ -2,37 +2,77 @@
 using PangyaAPI.Utilities;
 using System.Collections.Generic;
 using GameServer.PangType;
+using System;
+using System.Linq;
 
 namespace GameServer.Game.Manager
 {
-    public class WarehouseManager
-    {
-        protected multimap<uint/*ID*/, WarehouseItemEx> mp_wi;        // Tem que usar multimap aqui, para nao ficar realocando memória, uso o ponteiro de um element, para o item equipado
-        protected List<List<WarehouseItemEx>> Values;
-        public WarehouseManager(multimap<uint, WarehouseItemEx> _mp_wi)
-        {
-            mp_wi = _mp_wi;    
-            Values = mp_wi.SplitValues(20); //ChunkBy(this.ToList(), totalBySplit);
+    public class WarehouseManager   : Dictionary<uint/*ID*/, WarehouseItemEx>
+    {                                                                              
+        public WarehouseManager()
+        {                                                                                 
         }
 
         /// <summary>
         /// WAREHOUSE REBUILD ACRISIO OK
         /// </summary>
         /// <returns></returns>
-        public byte[] GetWarehouseData()
+        public byte[] Build()
         {
-            var result = new PangyaBinaryWriter();
-            result.Write(new byte[] { 0x73, 0x00 });
-            result.Write((short)Values.Count);//desnecessario conta +1 por causa do ticker report
-            result.Write((short)Values.Count);
-            foreach (var values in this.Values)
+            var p = new PangyaBinaryWriter();
+            try
             {
-                foreach (var item in values)
+                p.WriteUInt16((short)Count);
+                p.WriteUInt16((short)Count);
+                foreach (var item in Values)
                 {
-                    result.WriteStruct(item, new WarehouseItem());
+                    p.WriteStruct(item, new WarehouseItemEx());
                 }
+                return p.GetBytes;
             }
-            return result.GetBytes;
-        }                    
+            catch (Exception)
+            {
+                return new byte[0];
+            }
+        }
+
+        public byte[] GetInfo(uint _id)
+        {
+            var wi_info = findWarehouseItemById(_id);
+            if (wi_info == null)
+                return new byte[0];
+            else
+            {
+                var p = new PangyaBinaryWriter();
+                p.WriteStruct(wi_info, new WarehouseItemEx());
+                return p.GetBytes;
+            }
+        }
+
+        public List<KeyValuePair<uint, WarehouseItemEx>>  GetValues(uint _id)
+        {
+            return this.Where(c => c.Key == _id).ToList();
+        }
+
+        public bool Insert(uint _id, WarehouseItemEx item)
+        {
+             Add(_id, item);
+            return true;
+        }
+
+        public WarehouseItemEx findWarehouseItemById(uint _id)
+        {
+            return this.Values.FirstOrDefault(c => c.id == _id);
+        }
+
+        public WarehouseItemEx findWarehouseItemByTypeid(uint _typeid)
+        {
+            return this.Values.FirstOrDefault(c => c._typeid == _typeid);
+        }
+
+        public WarehouseItemEx findWarehouseItemByTypeidAndId(uint _typeid, uint _id)
+        {
+            return this.Values.FirstOrDefault(c => c.id == _id && c._typeid == _typeid);
+        }                     
     }
 }
