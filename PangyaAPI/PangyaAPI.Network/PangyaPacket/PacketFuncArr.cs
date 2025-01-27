@@ -1,7 +1,9 @@
 ﻿using PangyaAPI.Network.PangyaSession;
+using PangyaAPI.Utilities.Log;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -40,13 +42,17 @@ namespace PangyaAPI.Network.PangyaPacket
             {
                 try
                 {
-                    if (cf != null)
-                        cf.Invoke(pd);
+                    if (cf == null)
+                    {                                                                                                                      
+                        return 1; // Retorna 1 se o ID não existir (cf é nulo).
+                    }                     
+
+                    cf.Invoke(pd);
                     return 0;
                 }
-                catch
-                {
-                    return 0;
+                catch (Exception ex)
+                {                                                                                                                                   
+                    return 1; // Retorna 1 se ocorrer uma exceção.
                 }
             }
         }

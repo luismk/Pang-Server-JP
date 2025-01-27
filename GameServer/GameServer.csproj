@@ -105,6 +105,7 @@
     <Compile Include="GameServerTcp\GameServer.cs" />
     <Compile Include="Game\Channel.cs" />
     <Compile Include="Game\Ex\ChannelBase.cs" />
+    <Compile Include="Game\System\AttendanceRewardSystem.cs" />
     <Compile Include="Game\Manager\CaddieManager.cs" />
     <Compile Include="Game\Manager\CharacterManager.cs" />
     <Compile Include="Game\Manager\GuildRoomManager.cs" />
@@ -114,7 +115,9 @@
     <Compile Include="Game\Manager\WarehouseManager.cs" />
     <Compile Include="Game\RoomClass\Game.cs" />
     <Compile Include="Game\RoomClass\Room.cs" />
+    <Compile Include="Game\System\PremiumSystem.cs" />
     <Compile Include="PacketFunc\packet_func_gs.cs" />
+    <Compile Include="PangDefinition\PacketGame.cs" />
     <Compile Include="PangType\GMInfo.cs" />
     <Compile Include="PangType\pangya_game_st.cs" />
     <Compile Include="PangType\PlayerInfo.cs" />

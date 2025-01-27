@@ -79,8 +79,7 @@ namespace GameServer.Cmd
                 m_ui.medal.best_puttin =  _result.GetByte(64);
                 m_ui.medal.best_recovery =  _result.GetByte(65);
                 m_ui._16bit_nao_sei = (short) _result.GetInt16(66);
-                m_ui.total_pang_win_game =  _result.GetUInt32(67);
-                Console.WriteLine($"CmdUserInfo: [UID= {m_uid}, \nINFO= {m_ui.ToString()}");
+                m_ui.total_pang_win_game =  _result.GetUInt32(67);                              
             }
             catch (Exception ex)
             {

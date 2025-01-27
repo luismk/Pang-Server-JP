@@ -53,7 +53,7 @@ namespace GameServer.Cmd
 			try
 			{
 
-				CharacterInfoEx ce = new CharacterInfoEx();
+				CharacterInfo ce = new CharacterInfo();
 				var i = 0;
 
 				ce.id = Convert.ToUInt32(_result.data[0]);

@@ -1,4 +1,5 @@
 ﻿using PangyaAPI.Cryptor.HandlePacket;
+using PangyaAPI.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +16,13 @@ namespace PangyaAPI.Network.PangyaPacket
 
         public Packet(byte[] message, byte key) : base(message, key)
         {
-        }        
+        }
+
+        public string Log()
+        {
+            return Message.HexDump();
+        }
+
         public void Version_Decrypt(uint @packet_version)
         {
             Pang.Packet_Ver_Decrypt(ref @packet_version);

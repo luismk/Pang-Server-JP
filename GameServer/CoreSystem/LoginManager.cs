@@ -17,6 +17,8 @@ using PangyaAPI.SQL.Manager;
 using PangyaAPI.Utilities.BinaryModels;
 using PangyaAPI.Network.Cmd;
 using CmdChatMacroUser = GameServer.Cmd.CmdChatMacroUser;
+using System.Diagnostics;
+using GameServer.Game.System;
 
 namespace GameServer.PangSystem
 {
@@ -83,8 +85,6 @@ namespace GameServer.PangSystem
                 var cmd_pi = new CmdPlayerInfo(_pi.uid); // Waiter
 
                 NormalManagerDB.add(0, cmd_pi, null, null);
-
-                cmd_pi.ExecCmd();
 
                 if (cmd_pi.getException().getCodeError() != 0)
                     throw cmd_pi.getException();
@@ -290,7 +290,7 @@ namespace GameServer.PangSystem
                 p = packet_func.pacote044(Program.gs.m_si, 0xD3);
 
                 // Entra com sucesso
-                packet_func.session_send(p, _session, 0);
+                _session.Send(p);
 
             }
             catch (exception ex)
@@ -308,11 +308,11 @@ namespace GameServer.PangSystem
                 // Pronto agora sim, mostra o erro que eu quero
                 p.Write(300);
 
-                packet_func.session_send(p, _session, 1);
+                _session.Send(p);                                  
 
                 // Disconnect
 
-                Program.gs.onDisconnected(_session);
+                Program.gs.DisconnectSession(_session);
             }
         }
 
@@ -361,7 +361,7 @@ namespace GameServer.PangSystem
                             //uint ttl = Program.gs.getBotTTL();
 
                             var p = packet_func.pacote1A9(10000/*milliseconds*/);
-                            packet_func.session_send(p, _session, 1); // Tempo para enviar um pacote, ant Bot
+                            _session.Send(p);                                   // Tempo para enviar um pacote, ant Bot
 
                             NormalManagerDB.add(5, new CmdTutorialInfo(pi.uid), SQLDBResponse, _session);
 
@@ -407,13 +407,13 @@ namespace GameServer.PangSystem
 
                             ///Att Capability do player
                             ///Verifica se tem premium ticket para mandar o pacote do premium user e a comet
-                            //if (sPremiumSystem.isPremiumTicket(pi.pt._typeid) && pi.pt.id != 0 && pi.pt.unix_sec_date > 0)
-                            //{
+                            if (sPremiumSystem.getInstance().isPremiumTicket(pi.pt._typeid) && pi.pt.id != 0 && pi.pt.unix_sec_date > 0)
+                            {
 
-                            //    sPremiumSystem.updatePremiumUser(_session);
+                                sPremiumSystem.getInstance().updatePremiumUser(_session);
 
-                            //    _smp.message_pool.push("[SQLDBResponse][Log] Player[UID=" + (pi.uid) + "] is Premium User");
-                            //}
+                                _smp.message_pool.push("[SQLDBResponse][Log] Player[UID=" + (pi.uid) + "] is Premium User");
+                            }
 
                             break;
                         }
@@ -425,7 +425,7 @@ namespace GameServer.PangSystem
 
                             // Manda pacote do tutorial aqui
                             var p = packet_func.pacote11F(_session.m_pi, 3/*tutorial info, 3 add do zero init*/);
-                            packet_func.session_send(p, _session, 1);
+                            _session.Send(p);                                  
 
                             break;
                         }
@@ -438,7 +438,7 @@ namespace GameServer.PangSystem
                             // Deixar ele enviando aqui por enquanto
 
                             var p = packet_func.pacote101();
-                            packet_func.session_send(p, _session, 1);   // pacote novo do JP
+                            _session.Send(p);                                     // pacote novo do JP
 
                             break;
                         }
@@ -850,7 +850,7 @@ namespace GameServer.PangSystem
 
                             //}
 
-                            NormalManagerDB.add(19, new CmdAchievementInfo(_session.m_pi.uid), SQLDBResponse, _session);
+                          //  NormalManagerDB.add(19, new CmdAchievementInfo(_session.m_pi.uid), SQLDBResponse, _session);
                             incremenetCount();
                             break;
                         }
@@ -974,7 +974,7 @@ namespace GameServer.PangSystem
                             var v_mb = _session.m_pi.m_mail_box.getAllUnreadEmail();
 
                             var p = packet_func.pacote210(v_mb);
-                            packet_func.session_send(p, _session, 1);
+                            _session.Send(p);                                  
                             break;
                         }
                     case 33:    // Aviso Caddie Ferias
@@ -985,7 +985,7 @@ namespace GameServer.PangSystem
                             {
 
                                 var p = packet_func.pacote0D4(v_cif);
-                                packet_func.session_send(p, _session, 1);
+                                _session.Send(p);                                  
                             }
                             break;
                         }
@@ -997,7 +997,7 @@ namespace GameServer.PangSystem
                             {
 
                                 var p = packet_func.pacote0B2(v_moi);
-                                packet_func.session_send(p, _session, 1);
+                                _session.Send(p);                                  
 
                             }
 
@@ -1074,7 +1074,7 @@ namespace GameServer.PangSystem
                 else if (getCount() > 0)
                 {
                     var p = packet_func.pacote044(Program.gs.m_si, 0xD2, _session.m_pi, _msg_id + 1); // send bar loading server!
-                    packet_func.session_send(p, _session, 0);        
+                    _session.Send(p);        
                 }                                                                     
             }
             catch (Exception ex)
@@ -1100,6 +1100,9 @@ namespace GameServer.PangSystem
 
             try
             {
+
+                var stopwatch = Stopwatch.StartNew();
+
                 //// Check All Character All Item Equiped is on Warehouse Item of Player
                 //foreach (var el in _session.m_pi.mp_ce)
                 //{
@@ -1112,81 +1115,78 @@ namespace GameServer.PangSystem
 
 
                 var pi = _session.m_pi;
-                // Envia todos pacotes aqui, alguns envia antes, por que agora estou usando o jeito o pangya original
-                var p = packet_func.pacote044(Program.gs.m_si, 0, pi);
-                packet_func.session_send(p, _session, 0);
+                // Envia todos pacotes aqui, alguns envia antes, por que agora estou usando o jeito o pangya original   
+                _session.Send(packet_func.pacote044(Program.gs.m_si, 0, pi));
+                                               
+                _session.Send(packet_func.pacote070(pi.mp_ce));
+                                                              
+                //_session.Send(packet_func.pacote071(pi.mp_ci));    
 
-                //p = packet_func.pacote070(pi.mp_ce);
-                //packet_func.session_send(p, _session, 1);
+                //_session.Send(packet_func.pacote0E1(pi.mp_mi));
 
-                //p = packet_func.pacote071(pi.mp_ci);
-                //packet_func.session_send(p, _session, 1);
-
-                //p = packet_func.pacote073(pi.mp_wi);
-              //  packet_func.session_send(p, _session, 1);
-
-                //p = packet_func.pacote0E1(pi.mp_mi);
-                //packet_func.session_send(p, _session, 1);
-
-                p = packet_func.pacote072(pi.ue);
-                packet_func.session_send(p, _session, 1);
+             //   _session.Send(packet_func.pacote072(pi.ue));                                  
 
                 Program.gs.sendChannelListToSession(_session);
 
-                ////// // Treasure Hunter Info
-                ////packet_func.pacote131(ref p);
-                ////packet_func.session_send(ref p, _session, 1);
+                //// // Treasure Hunter Info
+                //packet_func.pacote131(ref p);
+                //_session.Send(p);
 
-                ////pi.mgr_achievement.sendCounterItemToPlayer(_session);
-                ////pi.mgr_achievement.sendAchievementToPlayer(_session);
+                //pi.mgr_achievement.sendCounterItemToPlayer(_session);
+                //pi.mgr_achievement.sendAchievementToPlayer(_session);
 
-                //packet_func.pacote0F1(ref p, _session);
-                //packet_func.session_send(ref p, _session, 1);
+               //p = packet_func.pacote0F1();
+               // _session.Send(p);
 
 
-                //packet_func.pacote135(ref p, _session);
-                //packet_func.session_send(ref p, _session, 1);
+               // p = packet_func.pacote135();
+               // _session.Send(p);
 
-                //packet_func.pacote138(ref p, _session, pi.v_card_info);
-                //packet_func.session_send(ref p, _session, 1);
+               // p = packet_func.pacote138(pi.v_card_info);
+               // _session.Send(p);
 
-                //packet_func.pacote136(ref p, _session);
-                //packet_func.session_send(ref p, _session, 1);
+               // p = packet_func.pacote136();
+               // _session.Send(p);
 
-                //packet_func.pacote137(ref p, _session, pi.v_cei);
-                //packet_func.session_send(ref p, _session, 1);
+               // p = packet_func.pacote137(pi.v_cei);
+               // _session.Send(p);
 
-                //packet_func.pacote13F(ref p, _session);
-                //packet_func.session_send(ref p, _session, 1);
+               // p = packet_func.pacote13F();
+               // _session.Send(p);
 
-                //packet_func.pacote181(ref p, _session, pi.v_ib);
-                //packet_func.session_send(ref p, _session, 1);
+               // p = packet_func.pacote181(pi.v_ib);
+               // _session.Send(p);
+                                                        
+                _session.Send(packet_func.pacote096(pi));
 
-                //packet_func.pacote096(ref p, _session, m_pi);
-                //packet_func.session_send(ref p, _session, 1);
+                //p = packet_func.pacote169(pi.ti_current_season, 5/*season atual*/);
+                //_session.Send(p);
 
-                //packet_func.pacote169(ref p, _session, pi.ti_current_season, 5/*season atual*/);
-                //packet_func.session_send(ref p, _session, 1);
-                //packet_func.pacote169(ref p, _session, pi.ti_rest_season);
-                //packet_func.session_send(ref p, _session, 1);
+                //p = packet_func.pacote169(pi.ti_rest_season);
+                //_session.Send(p);
 
-                //packet_func.pacote0B4(ref p, _session, pi.v_tsi_current_season, 5/*season atual*/);
-                //packet_func.session_send(ref p, _session, 1);
-                //packet_func.pacote0B4(ref p, _session, pi.v_tsi_rest_season);
-                //packet_func.session_send(ref p, _session, 1);
+                //p = packet_func.pacote0B4(pi.v_tsi_current_season, 5/*season atual*/);
+                //_session.Send(p);
 
-                //packet_func.pacote158(ref p, _session, pi.uid, pi.ui, 0);
-                //packet_func.session_send(ref p, _session, 1);    // Total de season, 5 atual season
+                //p = packet_func.pacote0B4(pi.v_tsi_rest_season);
+                //_session.Send(p);
 
-                //packet_func.pacote25D(ref p, _session, pi.v_tgp_current_season, 5/*season atual*/);
-                //packet_func.session_send(ref p, _session, 1);
-                //packet_func.pacote25D(ref p, _session, pi.v_tgp_rest_season, 0);
-                //packet_func.session_send(ref p, _session, 1);
+                //p = packet_func.pacote158(pi.uid, pi.ui, 0);
+                //_session.Send(p);    // Total de season, 5 atual season
+
+                //p = packet_func.pacote25D(pi.v_tgp_current_season, 5/*season atual*/);
+                //_session.Send(p);
+
+                //p = packet_func.pacote25D(pi.v_tgp_rest_season, 0);
+                //_session.Send(p);
 
 
                 //// Login Reward System - verifica se o player ganhou algum item por logar
                 //if (sgs::gs::getInstance().getInfo().rate.login_reward_event)
                 //    sLoginRewardSystem::getInstance().checkRewardLoginAndSend(_session);
+
+                stopwatch.Stop();
+                Console.WriteLine($"[LoginTask::sendCompleteData][Log] Function executed in {stopwatch.ElapsedMilliseconds}ms");
 
             }
             catch (Exception ex)

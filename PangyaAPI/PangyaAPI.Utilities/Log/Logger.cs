@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+using System.IO;
 namespace PangyaAPI.Utilities.Log
 {
     public enum type_msg : int
@@ -26,7 +23,7 @@ namespace PangyaAPI.Utilities.Log
         public message(string s, type_msg _tipo = 0)
         {
             m_message = s;
-            m_tipo = (type_msg)_tipo;
+            m_tipo = _tipo;
             var time = DateTime.Now.ToString("[yyyy/MM/dd HH:mm:ss]");
             m_message = time + " " + m_message;
         }
@@ -60,20 +57,37 @@ namespace PangyaAPI.Utilities.Log
     {
         static readonly List<message> m_message = new List<message>();
         static DateTime date { get; set; }
+        private static string _file;
+        private static readonly object _lock = new object();
+
+        private static void InitializeLogFile()
+        {
+            lock (_lock)
+            {
+                if (string.IsNullOrEmpty(_file))
+                {
+                    var logDirectory = Path.Combine(Directory.GetCurrentDirectory(), "Log");
+                    if (!Directory.Exists(logDirectory))
+                    {
+                        Directory.CreateDirectory(logDirectory);
+                    }
+
+                    date = DateTime.Now;
+                    _file = Path.Combine(logDirectory, $"log_{date.ToString("ddMMyyyyHHmmss")}.log");
+                }
+            }
+        }
 
         private static void LogOnly()
         {
-            var _local = System.IO.Directory.GetCurrentDirectory() + "\\Log";
-            if (System.IO.Directory.Exists(_local) == false)
-            {
-                System.IO.Directory.CreateDirectory(_local);
-
-            }
-            var _file = System.IO.Directory.GetCurrentDirectory() + "\\Log\\log " + date.ToString("ddMMyyyyHHmmss") + ".log";
+            InitializeLogFile();
             var m = getMessage();
-            using (System.IO.StreamWriter w = System.IO.File.AppendText(_file))
+            lock (_lock)
             {
-                w.WriteLine(m.get());
+                using (var writer = new StreamWriter(_file, append: true))
+                {
+                    writer.WriteLine(m.get());
+                }
             }
         }
 
@@ -82,6 +96,7 @@ namespace PangyaAPI.Utilities.Log
             LogOnly();
             console_log();
         }
+
 
         static void console_log()
         {
@@ -101,7 +116,7 @@ namespace PangyaAPI.Utilities.Log
             {
                 date = DateTime.Now;
             }
-                push(new message(s, _tipo));
+            push(new message(s, _tipo));
         }
         static string GetExceptionDetails(Exception ex)
         {
@@ -127,8 +142,8 @@ namespace PangyaAPI.Utilities.Log
                 date = DateTime.Now;
             }
             push(new message(s, _tipo));
-        }    
-      
+        }
+
         public static void push(int msg2, string msg, int _code = 0, type_msg _tipo = 0)
         {
             if (date == DateTime.MinValue)
@@ -150,34 +165,7 @@ namespace PangyaAPI.Utilities.Log
         public static void push(message m)
         {
             m_message.Add(m);
-
-
-            switch (m.getTipo())
-            {
-                case type_msg.CL_FILE_LOG_AND_CONSOLE:
-                    LogAndConsole();
-                    break;
-                case type_msg.CL_ONLY_CONSOLE:
-                    console_log();
-                    break;
-                case type_msg.CL_FILE_TIME_LOG_AND_CONSOLE:
-                    break;
-                case type_msg.CL_ONLY_FILE_LOG:
-                    LogOnly();
-                    break;
-                case type_msg.CL_ONLY_FILE_TIME_LOG:
-                    break;
-                case type_msg.CL_ONLY_FILE_LOG_IO_DATA:
-                    break;
-                case type_msg.CL_FILE_LOG_IO_DATA_AND_CONSOLE:
-                    break;
-                case type_msg.CL_ONLY_FILE_LOG_TEST:
-                    break;
-                case type_msg.CL_FILE_LOG_TEST_AND_CONSOLE:
-                    break;
-                default:
-                    break;
-            }
+            LogAndConsole();
             m_message.Clear();
         }
         static message getMessage() { return getFirstMessage(); }
@@ -189,18 +177,17 @@ namespace PangyaAPI.Utilities.Log
 
             bool ret = false;
 
-            var ti_day = new DateTime();          
+            var ti_day = new DateTime();
             // Criar novos Logs que trocou o Dia do Log
             if (ti_day.Year < DateTime.Now.Year || ti_day.Month < DateTime.Now.Month || ti_day.Day < DateTime.Now.Day)
             {
 
                 // Criou novos logs, trocou o dia do log
                 if (DateTime.Now.Hour == 0 && DateTime.Now.Minute == 0 && DateTime.Now.Second == 0 && date.Millisecond == 0)
-                { ret = true; date = DateTime.Now;
+                {
+                    ret = true; date = DateTime.Now;
                 }
-            }
-
-
+            }    
             return ret;
         }
     }

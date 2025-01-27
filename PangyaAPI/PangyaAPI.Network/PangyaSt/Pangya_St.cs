@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using PangyaAPI.Utilities;
+using PangyaAPI.Utilities.BinaryModels;
 
 namespace PangyaAPI.Network.Pangya_St
 {
@@ -362,6 +363,8 @@ namespace PangyaAPI.Network.Pangya_St
     {
         public int server_uid;
     }
+
+
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public class CharacterInfo
     {
@@ -455,10 +458,86 @@ namespace PangyaAPI.Network.Pangya_St
             Cut_in.ClearArray();
             PCL.ClearArray();
         }
+        public byte AngelEquiped()
+        { return 0; }
+        public sbyte getSlotOfStatsFromsbyteEquipedPartItem(Stats __stat)
+        {   // Get Slot of stats from Character equiped item
+
+            sbyte value = 0;
+            // IFF.Part part = null;
+
+            // Invalid Stats type, Unknown type Stats
+            if (__stat > Stats.S_CURVE)
+                return -1;
+
+            for (var i = 0; i < (Marshal.SizeOf(parts_typeid) / Marshal.SizeOf(parts_typeid[0])); ++i)
+            {
+
+                //if (parts_id[i] != 0 && (part = sIff.findPart(parts_typeid[i])) != null)
+                //    value += (sbyte)part.Slot[(int)__stat];
+            }
+
+            return value;
+        }
 
         public void initComboDef()
-        {
+        {   // Initialize o combo de roupas padrões do Character
             clear();
+            if (_typeid == 0)
+                return;
+
+            uint part_typeid = 0;
+
+            for (var i = 0; i < (Marshal.SizeOf(parts_typeid) / Marshal.SizeOf(parts_typeid[0])); ++i)
+            {
+                part_typeid = Convert.ToUInt32((((_typeid << 5) | i) << 13) | 0x8000400);
+
+                //if (sIff.findPart(part_typeid) != null)
+                //    parts_typeid[i] = part_typeid;
+            }
+        }
+
+        public byte[] Build()
+        {
+            using (var p = new PangyaBinaryWriter())
+            {
+                p.Write(_typeid);
+                p.Write(id);
+                p.Write(default_hair);
+                p.Write(default_shirts);
+                p.Write(gift_flag);
+                p.Write(Purchase);
+                
+                for (var Index = 0; Index < 24; Index++)
+                    p.Write(parts_typeid[Index]);
+                
+                for (var Index = 0; Index < 24; Index++)
+                    p.Write(parts_id[Index]);
+
+                p.Write(Blank, 216); //deve ser algum objeto ainda nao terminado
+                
+                for (int i = 0; i < AuxPart.Length; i++)
+                    p.WriteUInt32(AuxPart[i]);
+                
+                for (int i = 0; i < Cut_in.Length; i++)
+                    p.WriteUInt32(Cut_in[i]);
+                
+                for (int i = 0; i < PCL.Length; i++)
+                    p.WriteByte(PCL[i]);
+
+                p.WriteUInt32(MasteryPoint);
+                
+                for (int i = 0; i < 4; i++)
+                    p.WriteUInt32(Card_Caddie[i]);
+                
+                for (int i = 0; i < 4; i++)
+                    p.WriteUInt32(Card_Character[i]);
+                
+                for (int i = 0; i < 4; i++)
+                    p.WriteUInt32(Card_NPC[i]);
+                
+                return p.GetBytes;
+            }
         }
     }
 

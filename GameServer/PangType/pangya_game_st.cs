@@ -5,15 +5,17 @@ using System;
 using System.CodeDom;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;     
-using BlockFlag = PangyaAPI.Network.Pangya_St.BlockFlag; 
+using System.Runtime.InteropServices;
+using BlockFlag = PangyaAPI.Network.Pangya_St.BlockFlag;
 namespace GameServer.PangType
-{          
+{
     /// <summary>
     /// define 
     /// </summary>
     public static class _Define
     {
+        public const byte INVALID_CHANNEL = 255; // channel invalid
+
         public const uint CLEAR_10_DAILY_QUEST_TYPEID = 0x78800001; // Quest 10 clear daily quest
         public const uint ASSIST_ITEM_TYPEID = 0x1BE00016;
         public const uint GRAND_PRIX_TICKET = 0x1A000264;
@@ -44,7 +46,25 @@ namespace GameServer.PangType
         public const byte cadie_cauldron_Jester_random_id = 3;
         public const byte cadie_cauldron_Twilight_random_id = 4;
         public const int MS_NUM_MAPS = 20;
-        public const int INVALID_CHANNEL = ~0;
+        // !@ tempor�rio
+        public const uint PREMIUM_TICKET_TYPEID = 0x1A100002u;
+        // !@ tempor�rio
+        public const uint PREMIUM_2_TICKET_TYPEID = 0x1A100003u;
+
+        // !@ tempor�rio
+        public const uint PREMIUM_BALL_TYPEID = 0x140000D8u;
+        // !@ tempor�rio
+        public const uint PREMIUM_2_BALL_TYPEID = 0x140000E9u; // Sakura (Premium)
+
+        // !@ tempor�rio
+        public const uint PREMIUM_2_CLUBSET_TYPEID = 0x100000F7u; // Rank D(0x1000005D), Rank S(0x1000006B), (Premium)
+
+        // !@ tempor�rio
+        public const uint PREMIUM_2_AUTO_CALIPER_TYPEID = 0x1A000040u;
+
+        // !@ tempor�rio
+        public const uint PREMIUM_2_MASCOT_TYPEID = 0x4000004Bu; // Lolo (Premium)
+
     }
 
     public partial class player_info
@@ -61,62 +81,48 @@ namespace GameServer.PangType
             id = "";
             nickname = "";
             pass = "";
-        }       
-    }          
+        }
+    }
 
     // MemberInfo dados principais do player, tem id, nick, guild, level, exp, e etc)
-    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+    [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public class MemberInfo
     {
         public MemberInfo()
         {
-            id_bytes = new byte[22];
-            nick_name_bytes = new byte[22];
-            guild_name_bytes = new byte[17];
-            guild_mark_img_bytes = new byte[12];
-            ucUnknown35 = new byte[35];
-            ucUnknown16 = new byte[16];
-            nick_NT_bytes = new byte[22];
-            ucUnknown107 = new byte[106];      
             Clear();
         }
 
         public void Clear()
         {
-            id_bytes.ClearArray();
-            nick_name_bytes.ClearArray();
-            guild_name_bytes.ClearArray();
-            guild_mark_img_bytes.ClearArray();
-            ucUnknown35.ClearArray();
-            ucUnknown16.ClearArray();
-            nick_NT_bytes.ClearArray();
-            ucUnknown107.ClearArray();                      
+            rank = new uint[3];
+            id_bytes = new byte[22];
+            nick_name_bytes = new byte[22];
+            guild_name_bytes = new byte[17];
+            guild_mark_img_bytes = new byte[12];
+            ucUnknown35 = new byte[35];
+            nick_NT_bytes = new byte[22];
+            ucUnknown106 = new byte[106];
             capability = new uCapability();
             state_flag = new uMemberInfoStateFlag();
             papel_shop = new PlayerPapelShopInfo();
             oid = uint.MaxValue;
         }
 
-        public byte[] GetInfo()
-        {
-            var p = new PangyaBinaryWriter();
-            p.WriteBuffer(this, 297);
-            return p.GetBytes;
-        }
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 22)]
         private byte[] id_bytes;
         public string id
         {
             get => id_bytes.GetString();
             set => id_bytes.SetString(value);
-        }                                      
+        }
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 22)]
         private byte[] nick_name_bytes;
         public string nick_name
         {
             get => nick_name_bytes.GetString();
             set => nick_name_bytes.SetString(value);
-        }                                                                                     
+        }
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 17)]
         private byte[] guild_name_bytes;
         public string guild_name
@@ -130,35 +136,67 @@ namespace GameServer.PangType
         public string guild_mark_img
         {
             get => guild_mark_img_bytes.GetString();
-            set => guild_mark_img_bytes.SetString(value);  
+            set => guild_mark_img_bytes.SetString(value);
         }
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 35)]
-        public byte[] ucUnknown35;                  
-        public uint ulUnknown;
+        public byte[] ucUnknown35;
+        public uint school;
         [field: MarshalAs(UnmanagedType.Struct)]
         public uCapability capability;
-        public uint ulUnknown2;
+        public uint galleryUid;
         public uint oid;
-        public uint ulUnknown3;
-        public ulong ullUnknown;
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 3)]
+        public uint[] rank;
         public uint guild_uid;
-        public uint guild_mark_img_no;
+        public uint guild_mark_img_no; // só tem no JP
         [field: MarshalAs(UnmanagedType.Struct)]
         public uMemberInfoStateFlag state_flag;
         public ushort flag_login_time;
         [field: MarshalAs(UnmanagedType.Struct)]
         public PlayerPapelShopInfo papel_shop;
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)]
-        public byte[] ucUnknown16;
+        public uint point_point_event;         // S4 TH
+        public ulong flag_block;                // S4 TH é 32 bytes é time_block, mas no Fresh UP JP o flag block do pacote principal é de 64, então não tem mais o time block
+        public uint channeling_flag;			// S4 TH
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 22)]
         private byte[] nick_NT_bytes;
         public string nick_NT
         {
             get => nick_NT_bytes.GetString();
             set => nick_NT_bytes.SetString(value);
-        }                          
+        }
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 106)]
-        public byte[] ucUnknown107;
+        public byte[] ucUnknown106;
+        public byte[] Build()
+        {
+            using (var p = new PangyaBinaryWriter())
+            {
+                p.WriteStr(id, 22);
+                p.WriteStr(nick_name, 22);
+                p.WriteStr(guild_name, 17);
+                p.WriteStr(guild_mark_img, 12);
+                p.WriteBytes(ucUnknown35, 35);      // ainda não sei direito o que tem aqui	, talvez seja o nome da escola!]
+                p.WriteUInt32(school);          // ainda não o que é aqui direito
+                p.WriteUInt32(capability.ulCapability);
+                p.WriteUInt32(galleryUid);          // S4 TH gallery uid, spectator uid
+                p.WriteUInt32(oid);
+                p.WriteUInt32(rank[1]);             // S4 TH rank]
+                p.WriteUInt32(rank[1]);             // S4 TH rank]
+                p.WriteUInt32(rank[2]);             // S4 TH rank]
+                p.WriteUInt32(guild_uid);
+                p.WriteUInt32(guild_mark_img_no);   // só tem no JP
+                p.WriteByte(state_flag.ucByte);
+                p.WriteUInt16(flag_login_time);     // 1 é primeira vez que logou, 2 já não é mais a primeira vez que fez login no server
+                p.WriteUInt16(papel_shop.remain_count);
+                p.WriteUInt16(papel_shop.current_count);
+                p.WriteUInt16(papel_shop.limit_count);
+                p.WriteUInt32(point_point_event);           // S4 TH
+                p.WriteUInt64(flag_block);              // S4 TH é 32 bytes é time_block, mas no Fresh UP JP o flag block do pacote principal é de 64, então não tem mais o time block
+                p.WriteUInt32(channeling_flag);         // S4 TH
+                p.WriteStr(nick_NT, 22);             // S4 TH
+                p.WriteBytes(ucUnknown106, 106);				// S4 TH
+                return p.GetBytes;
+            }
+        }
     }
 
     // MemberInfoEx extendido tem o uid, limite papel shop e tutorial,
@@ -173,19 +211,19 @@ namespace GameServer.PangType
             state_flag = new uMemberInfoStateFlagEx();
             papel_shop_last_update = new PangyaTime();
             papel_shop_last_update.CreateTime();
+            sala_numero = short.MaxValue;
         }
         public new uCapabilityEx capability { get; set; }
         public new uMemberInfoStateFlagEx state_flag { get; set; }
         public uint uid { get; set; }
         public uint guild_point { get; set; }
-        public Int64 guild_pang { get; set; }
-        public Int16 sala_numero { get; set; }
+        public long guild_pang { get; set; }
+        public short sala_numero { get; set; }
         public byte sexo;
         public byte level;
         public byte do_tutorial;
         public byte event_1;
         public byte event_2;
-        public uint school;     
         public uint manner_flag;
         [field: MarshalAs(UnmanagedType.Struct, SizeConst = 16)]
         public PangyaTime papel_shop_last_update;
@@ -242,20 +280,20 @@ namespace GameServer.PangType
     // fica na class Ex
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public class uCapability
-    {                                                       
-        public uint ulCapability { get; set; }                       
-     
+    {
+        public uint ulCapability { get; set; }
+
         public uCapability()
         {
-            ulCapability = 0; 
+            ulCapability = 0;
         }
         public uCapability(uint ul = 0)
         {
-            ulCapability = ul;     
-        }    
+            ulCapability = ul;
+        }
     }
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public class uMemberInfoStateFlagEx  : uMemberInfoStateFlag
+    public class uMemberInfoStateFlagEx : uMemberInfoStateFlag
     {
         public _stBit stFlagBit { get; set; }
         public uMemberInfoStateFlagEx()
@@ -281,15 +319,15 @@ namespace GameServer.PangType
         }
     }
 
-    [StructLayout(LayoutKind.Sequential, Pack = 4, Size = 1)]
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public class uMemberInfoStateFlag
-    {                                                          
-        public byte ucByte { get; set; }      
+    {
+        public byte ucByte { get; set; }
         public uMemberInfoStateFlag()
         {
-            ucByte = 0;                
-        }                                                                   
-    }   
+            ucByte = 0;
+        }
+    }
 
     // Player Papel Shop Info
     [StructLayout(LayoutKind.Sequential, Pack = 4, Size = 6)]
@@ -332,7 +370,7 @@ namespace GameServer.PangType
     }
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public class UserInfo
-    {                                  
+    {
         public UserInfo(uint _ul = 0u)
         {
             clear();
@@ -342,8 +380,8 @@ namespace GameServer.PangType
             best_pang = new long[5];
             best_score = new byte[5];
             medal = new stMedal();
-        }   
-       public void add(UserInfo _ui)
+        }
+        public void add(UserInfo _ui)
         {
 
             if (_ui.best_drive > best_drive)
@@ -517,7 +555,7 @@ namespace GameServer.PangType
             if ((hole - hole_in) == 0)
                 return 0;
 
-            return (18 / (hole - hole_in)) *media_score + 72;
+            return (18 / (hole - hole_in)) * media_score + 72;
         }
         public float getPangyaShotRate()
         {
@@ -574,7 +612,7 @@ namespace GameServer.PangType
             return ((float)tempo_tacada / (tacada + putt)) * 100;
         }
 
-       public float getQuitRate()
+        public float getQuitRate()
         {
 
             // Previne divisão por 0
@@ -583,7 +621,7 @@ namespace GameServer.PangType
 
             return quitado * 100 / jogado;
         }
-        
+
         public new string ToString()
         {
             return "Tacada: " + (tacada) + "  Putt: " + (putt) + "  Tempo: " + (tempo) + "  Tempo Tacada: " + (tempo_tacada)
@@ -606,20 +644,82 @@ namespace GameServer.PangType
                 + "  Skin Strike Point: " + (skin_strike_point) + "  Sistema School Serie: " + (sys_school_serie)
                 + "  Game count season: " + (game_count_season) + "  _16bit nao sei: " + (_16bit_nao_sei);
         }
+
+        public byte[] Build()
+        {
+            using (var p = new PangyaBinaryWriter())
+            {
+                p.WriteUInt32(tacada);
+                p.WriteUInt32(putt);
+                p.WriteUInt32(tempo);
+                p.WriteUInt32(tempo_tacada);
+                p.Write(best_drive);           // Max Distancia
+                p.WriteUInt32(acerto_pangya);
+                p.WriteUInt32(timeout);
+                p.WriteUInt32(ob);
+                p.WriteUInt32(total_distancia);
+                p.WriteUInt32(hole);
+                p.WriteUInt32(hole_in);       // Aqui é os holes que não foram concluídos Ex: Give up, ou no Match o outro player ganho sem precisar do player terminar o hole
+                p.WriteUInt32(hio);
+                p.WriteInt16(bunker);
+                p.WriteUInt32(fairway);
+                p.WriteUInt32(albatross);
+                p.WriteUInt32(mad_conduta);   // Aqui é hole in, mas no info não tras ele por que ele já foi salvo no hole alí em cima
+                p.WriteUInt32(putt_in);
+                p.Write(best_long_putt);
+                p.Write(best_chip_in);
+                p.WriteUInt32(exp);
+                p.WriteByte(level);
+                p.WriteUInt64(pang);
+                p.WriteUInt32(media_score);             // Best Score Por Estrela, mas acho que o pangya nao usa mais isso
+                for (int i = 0; i < 5; i++)
+                    p.WriteByte(best_score[i]);
+                p.WriteByte(event_flag);
+                for (int i = 0; i < 5; i++)
+                    p.WriteInt64(best_pang[i]);
+                p.WriteInt64(sum_pang);              // A soma do pangs das 5 estrela acho
+                p.WriteUInt32(jogado);
+                p.WriteUInt32(team_hole);
+                p.WriteUInt32(team_win);
+                p.WriteUInt32(team_game);
+                p.WriteUInt32(ladder_point);              // Ladder é o Match acho, de tourneio não sei direito
+                p.WriteUInt32(ladder_hole);
+                p.WriteUInt32(ladder_win);
+                p.WriteUInt32(ladder_lose);
+                p.WriteUInt32(ladder_draw);
+                p.WriteUInt32(combo);
+                p.WriteUInt32(all_combo);
+                p.WriteUInt32(quitado);
+                p.WriteInt64(skin_pang);         // Skin é o Pang Battle tem valor negativo ele """##### Ajeitei agora(ACHO)
+                p.WriteUInt32(skin_win);
+                p.WriteUInt32(skin_lose);
+                p.WriteUInt32(skin_all_in_count);
+                p.WriteInt32(skin_run_hole);             // Correu desistiu (ACHO)
+                p.WriteUInt32(skin_strike_point);         // Antes era o nao_sei
+                p.WriteUInt32(jogados_disconnect);    // Antes era o jogos_nao_sei
+                p.WriteInt16(event_value);
+                p.WriteUInt32(disconnect);            // Vou deixar aqui o disconect count (antes era skin_strike_point)
+                p.WriteStruct(medal, new stMedal());
+                p.WriteUInt32(sys_school_serie);          // Sistema antigo do pangya JP que era de Serie de escola, respondia as perguntas se passasse ia pra outra serie é da 1° a 5°
+                p.WriteUInt32(game_count_season);
+                p.WriteInt16(_16bit_nao_sei);
+                return p.GetBytes;
+            }
+        }
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public class UserInfoEx : UserInfo
-    {       
+    {
         public UserInfoEx(int ul = 0) : base()
         { }
         public void add(UserInfoEx _ui, ulong _total_pang_win_game)
-        {                               
-            base.add(_ui);             
+        {
+            base.add(_ui);
             if (_total_pang_win_game > 0)
-                total_pang_win_game += _total_pang_win_game; 
+                total_pang_win_game += _total_pang_win_game;
         }
-        public ulong total_pang_win_game { get; set; }   
+        public ulong total_pang_win_game { get; set; }
     }
 
     // Medal
@@ -769,11 +869,11 @@ namespace GameServer.PangType
         public void Clear()
         {
             Year = 0;
-            Month =0;
-            Minute =0;
-            Day =0;
-            Hour =0;
-            Second =0;
+            Month = 0;
+            Minute = 0;
+            Day = 0;
+            Hour = 0;
+            Second = 0;
             MilliSecond = 0;
         }
     }
@@ -791,7 +891,7 @@ namespace GameServer.PangType
             clear();
         }
         public void clear()
-        {                                   
+        {
         }
         public bool isValid()
         {
@@ -799,23 +899,23 @@ namespace GameServer.PangType
         }
         public byte active;
         public uint _typeid = new uint();
-        public uint id =0;
-        public uint value =0;
+        public uint id = 0;
+        public uint value = 0;
     }
 
     // Quest Stuff Info
     public class QuestStuffInfo
     {
         public void clear()
-        {                                   
+        {
         }
         public bool isValid()
         {
             return (id > 0 && _typeid != 0);
         }
-        public uint id =0;
+        public uint id = 0;
         public uint _typeid = new uint();
-        public uint counter_item_id =0;
+        public uint counter_item_id = 0;
         public uint clear_date_unix = new uint();
     }
     public class AchievementInfo : IDisposable
@@ -1188,7 +1288,7 @@ namespace GameServer.PangType
             date.clear();
             date_reserve = 0;
             Array.Clear(c, 0, c.Length);
-        }                               
+        }
         public uint id = new uint();
         public uint _typeid = new uint();
 
@@ -1257,7 +1357,7 @@ namespace GameServer.PangType
         public stDate date = new stDate();
         public ushort date_reserve;
 
-        public short[] c = new short[5];       
+        public short[] c = new short[5];
     }
 
     // stItem Extended
@@ -1268,12 +1368,12 @@ namespace GameServer.PangType
             clear();
         }
         public new void clear()
-        {                            
+        {
         }
         public class ClubSetWorkshop
         {
             public void clear()
-            {                                     
+            {
             }
             public ushort[] c = new ushort[5];
             public uint mastery = new uint();
@@ -1448,6 +1548,7 @@ namespace GameServer.PangType
         {
             base.clear();
             state_flag = new uStateFlagEx();
+            state_flag.stBit = new uStateFlagEx._stBit();
         }
         public new uStateFlagEx state_flag;
         [StructLayout(LayoutKind.Sequential, Pack = 4)]
@@ -1936,7 +2037,7 @@ namespace GameServer.PangType
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public class EmailInfoEx : EmailInfo
     {
-       public EmailInfoEx()
+        public EmailInfoEx()
         {
             clear();
             visit_count = 0;
@@ -2316,49 +2417,7 @@ namespace GameServer.PangType
         public uint _typeid;
         public uint qntd;
     }
-    [StructLayout(LayoutKind.Sequential, Pack = 4)]
-    public class CharacterInfoEx : CharacterInfo
-    {
-        public CharacterInfoEx()
-        {
-            base.clear();
-        }
-        public sbyte getSlotOfStatsFromsbyteEquipedPartItem(Stats __stat)
-        {   // Get Slot of stats from Character equiped item
 
-            sbyte value = 0;
-            // IFF.Part part = null;
-
-            // Invalid Stats type, Unknown type Stats
-            if (__stat > Stats.S_CURVE)
-                return -1;
-
-            for (var i = 0; i < (Marshal.SizeOf(parts_typeid) / Marshal.SizeOf(parts_typeid[0])); ++i)
-            {
-
-                //if (parts_id[i] != 0 && (part = sIff.findPart(parts_typeid[i])) != null)
-                //    value += (sbyte)part.Slot[(int)__stat];
-            }
-
-            return value;
-        }
-        public new void initComboDef()
-        {   // Initialize o combo de roupas padrões do Character
-            clear();
-            if (_typeid == 0)
-                return;
-
-            uint part_typeid = 0;
-
-            for (var i = 0; i < (Marshal.SizeOf(parts_typeid) / Marshal.SizeOf(parts_typeid[0])); ++i)
-            {
-                part_typeid = Convert.ToUInt32((((_typeid << 5) | i) << 13) | 0x8000400);
-
-                //if (sIff.findPart(part_typeid) != null)
-                //    parts_typeid[i] = part_typeid;
-            }
-        }
-    }
     // Item Equipados
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public class UserEquip
@@ -2388,8 +2447,8 @@ namespace GameServer.PangType
         [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 2)]
         public uint[] poster;     // Poster, tem 2 o poster A e poster B
         public uint getTitle()
-        { 
-        return skin_typeid[5];// Titulo Typeid
+        {
+            return skin_typeid[5];// Titulo Typeid
         }
     }
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
@@ -2605,7 +2664,7 @@ namespace GameServer.PangType
             public string idx { get; set; }             // 8 
             public sbyte status { get; set; }
             public short seq { get; set; }          // aqui é a seq de sd que vendeu
-            [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 22)]           
+            [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 22)]
             public string copier_nick { get; set; }
             public uint copier { get; set; }                // uid de quem fez a sd
         }
@@ -2784,19 +2843,23 @@ namespace GameServer.PangType
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public class AttendanceRewardInfo
     {
-
-        public byte login;
         [StructLayout(LayoutKind.Sequential, Pack = 4)]
         public class item
         {
-
             public uint _typeid;
             public uint qntd;
         }
+        public byte login;
+        [field: MarshalAs(UnmanagedType.Struct, SizeConst = 8)]
         public item now;
+        [field: MarshalAs(UnmanagedType.Struct, SizeConst = 8)]
         public item after;
         public uint counter;
         public AttendanceRewardInfo()
+        {
+            clear();
+        }
+        public void clear()
         {
             now = new item();
             after = new item();
@@ -2807,12 +2870,13 @@ namespace GameServer.PangType
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public class AttendanceRewardInfoEx : AttendanceRewardInfo
     {
-
-        public PangyaTime last_login;   // Data do ultimo login
         public AttendanceRewardInfoEx()
         {
             last_login = new PangyaTime();
+            base.clear();
         }
+        [field: MarshalAs(UnmanagedType.Struct, SizeConst = 8)]
+        public PangyaTime last_login;   // Data do ultimo login
     }
 
     // Attendance Reward Item Context
@@ -2969,7 +3033,7 @@ namespace GameServer.PangType
     public class GuildInfoEx : GuildInfo
     {
         public PangyaTime create_time;
-    }        
+    }
 
     // Canal Info
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
@@ -2978,12 +3042,12 @@ namespace GameServer.PangType
         public ChannelInfo()
         {
             clear();
-        }   
+        }
 
         public void clear()
         {
             name_bytes = new byte[64];
-            flag = default;  
+            flag = default;
         }
         [StructLayout(LayoutKind.Explicit, Size = 4)]
         public struct UFlag
@@ -3019,7 +3083,7 @@ namespace GameServer.PangType
             }
 
             public void SetFlag()
-            {                    
+            {
                 switch (ulFlag)
                 {
                     case 0:
@@ -3068,7 +3132,7 @@ namespace GameServer.PangType
             using (var Response = new PangyaBinaryWriter())
             {
                 Response.WriteStr(name, 64);
-                Response.WriteInt16(max_user);                                    
+                Response.WriteInt16(max_user);
                 Response.WriteInt16(curr_user);
                 Response.WriteByte(id); //Lobby ID
                 Response.WriteUInt32(flag.ulFlag); //ルーム制限あるね- channel flag
@@ -3085,5 +3149,5 @@ namespace GameServer.PangType
     public class ServerInfoEx2 : ServerInfoEx
     {
         public List<ChannelInfo> v_ci;
-    }                                                                                    
+    }
 }

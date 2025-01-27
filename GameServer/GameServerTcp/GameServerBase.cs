@@ -9,6 +9,7 @@ using GameServer.PangSystem;
 using GameServer.Game;
 using GameServer.PacketFunc;
 using PangyaAPI.Utilities.BinaryModels;
+using static GameServer.PangType._Define;
 
 namespace GameServer.GameServerTcp
 {
@@ -39,7 +40,7 @@ namespace GameServer.GameServerTcp
             base.destroyRoom(_channel_owner, _number);
         }
 
-        public override Channel enterChannel(Player _session, byte _channel)
+        public Channel enterChannel(Player _session, byte _channel)
         {
             Channel enter = null, last = null;
             var p = new PangyaBinaryWriter();
@@ -53,7 +54,7 @@ namespace GameServer.GameServerTcp
                 {
 
                    p = packet_func.pacote04E(1);
-                    packet_func.session_send(p, _session, 0);
+                    _session.Send(p);
 
                     return enter;   // Ele já está nesse canal
                 }
@@ -64,7 +65,7 @@ namespace GameServer.GameServerTcp
                     // Não conseguiu entrar no canal por que ele está cheio, deixa o enter como nullptr
                     enter = null;
                     p = packet_func.pacote04E(2/*Channel Full*/);
-                    packet_func.session_send(p, _session, 0);
+                    _session.Send(p);
 
                 }
                 else
@@ -74,7 +75,7 @@ namespace GameServer.GameServerTcp
                     enter.checkEnterChannel(_session);
 
                     // Sai do canal antigo se ele estiver em outro canal
-                    if (_session.m_pi.channel != -1 && (last = findChannel(_session.m_pi.channel)) != null)
+                    if (_session.m_pi.channel != INVALID_CHANNEL && (last = findChannel(_session.m_pi.channel)) != null)
                         last.leaveChannel(_session);
 
                     // Entra no canal
@@ -263,7 +264,7 @@ namespace GameServer.GameServerTcp
             try
             {             
                 var p = packet_func.pacote04D(v_channel);
-                packet_func.session_send(p, _session, 1);         
+                _session.Send(p);                                  
             }
             catch (exception e)
             {

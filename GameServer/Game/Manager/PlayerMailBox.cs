@@ -10,29 +10,25 @@ using System.Linq;
 using _smp = PangyaAPI.Utilities.Log;
 namespace GameServer.Game.Manager
 {
-    public class PlayerMailBox : System.IDisposable
+    public class PlayerMailBox 
     {
         public const uint UPDATE_TIME_INTERVALE_HOUR = 24u;
         private DateTime m_last_update;
         public const ulong EXPIRES_CACHE_TIME = 3 * 1000Ul; // 3 Segundos
         public const uint NUM_OF_EMAIL_PER_PAGE = 20u; // 20 Emails por p�gina
-        public const uint LIMIT_OF_UNREAD_EMAIL = 300u; // 300 Emails n�o lidos que pode enviar para o player
-
-
-        protected uint m_uid;
-
-        protected SortedDictionary<uint, EmailInfoEx> m_emails = new SortedDictionary<uint, EmailInfoEx>();
-        private bool disposedValue;
+        public const uint LIMIT_OF_UNREAD_EMAIL = 300u; // 300 Emails n�o lidos que pode enviar para o player                                                                                                   
+        protected uint m_uid;                                                                           
+        protected Dictionary<uint, EmailInfoEx> m_emails = new Dictionary<uint, EmailInfoEx>();    
 
         public PlayerMailBox()
         {
-            this.m_emails = new SortedDictionary<uint, EmailInfoEx>();
+            this.m_emails = new Dictionary<uint, EmailInfoEx>();
             this.m_uid = 0u;
             this.m_last_update = DateTime.Now;
 
         }
 
-        public void init(SortedDictionary<uint, EmailInfoEx> _emails, uint _uid)
+        public void init(Dictionary<uint, EmailInfoEx> _emails, uint _uid)
         {
 
             if (m_emails.Count > 0)
@@ -41,13 +37,10 @@ namespace GameServer.Game.Manager
             }
 
             m_uid = _uid;
-            m_emails = new SortedDictionary<uint, EmailInfoEx>(_emails);
+            m_emails = new Dictionary<uint, EmailInfoEx>(_emails);
 
             // Initialize last update time
             m_last_update = DateTime.Now;
-
-            _smp.message_pool.push(new message("[PlayerMailBox::init][Log] Player[UID=" + Convert.ToString(m_uid) + "] Inicializou Mail Box, DATE=" + m_last_update.ToLongTimeString() + ", with (" + Convert.ToString(m_emails.Count) + ") Email in Mail Box.", type_msg.CL_FILE_LOG_AND_CONSOLE));
-
         }
         public void clear()
         {
@@ -438,29 +431,6 @@ namespace GameServer.Game.Manager
             {
                 _smp.message_pool.push(new message($"[PlayerMailBox::SQLDBResponse][Error] QUERY_MSG[ID={_msg_id}] {e.Message}", type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    // TODO: dispose managed state (managed objects)
-                }
-
-                // TODO: free unmanaged resources (unmanaged objects) and override finalizer
-                // TODO: set large fields to null
-                disposedValue = true;
-            }
-        }
-                
-
-        void IDisposable.Dispose()
-        {
-            // Não altere este código. Coloque o código de limpeza no método 'Dispose(bool disposing)'
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
-        }
+        }            
     }
 }

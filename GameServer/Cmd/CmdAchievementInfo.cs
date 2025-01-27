@@ -39,49 +39,49 @@ namespace GameServer.Cmd
         {
             checkColumnNumber(10);
 
-            var ai = new AchievementInfoEx();
-            var qsi = new QuestStuffInfo();
-            var cii = new CounterItemInfo { active = 1 };
+            //var ai = new AchievementInfoEx();
+            //var qsi = new QuestStuffInfo();
+            //var cii = new CounterItemInfo { active = 1 };
 
-            ai._typeid = IFNULL(_result.data[1]);
-            ai.id = IFNULL(_result.data[2]);
+            //ai._typeid = IFNULL(_result.data[1]);
+            //ai.id = IFNULL(_result.data[2]);
 
-            qsi.id = IFNULL(_result.data[4]);
-            qsi._typeid = IFNULL(_result.data[5]);
-            cii._typeid = IFNULL(_result.data[6]);
-            cii.id = qsi.counter_item_id = IFNULL(_result.data[7]);
-            cii.value = IFNULL(_result.data[8]);
-            qsi.clear_date_unix = IFNULL(_result.data[9]);
+            //qsi.id = IFNULL(_result.data[4]);
+            //qsi._typeid = IFNULL(_result.data[5]);
+            //cii._typeid = IFNULL(_result.data[6]);
+            //cii.id = qsi.counter_item_id = IFNULL(_result.data[7]);
+            //cii.value = IFNULL(_result.data[8]);
+            //qsi.clear_date_unix = IFNULL(_result.data[9]);
 
-            if (!map_ai.ContainsKey(ai._typeid) ||
-                (map_ai.TryGetValue(ai._typeid, out var existingAi) && existingAi.id != ai.id))
-            {
+            //if (!map_ai.ContainsKey(ai._typeid) ||
+            //    (map_ai.TryGetValue(ai._typeid, out var existingAi) && existingAi.id != ai.id))
+            //{
 
-                ai.active = (byte)IFNULL(_result.data[0]);
-                ai.status = IFNULL(_result.data[3]);
+            //    ai.active = (byte)IFNULL(_result.data[0]);
+            //    ai.status = IFNULL(_result.data[3]);
 
-                CheckAchievementRetorno(ai);
-                CheckQuestAchievement(ai, qsi);
+            //    CheckAchievementRetorno(ai);
+            //    CheckQuestAchievement(ai, qsi);
 
-                ai.v_qsi.Add(qsi);
+            //    ai.v_qsi.Add(qsi);
 
-                if (cii.id > 0)
-                    ai.map_counter_item[cii.id] = cii;
+            //    if (cii.id > 0)
+            //        ai.map_counter_item[cii.id] = cii;
 
-                map_ai[ai._typeid] = ai;
-            }
-            else if (map_ai[ai._typeid].id == ai.id)
-            {
-                CheckQuestAchievement(map_ai[ai._typeid], qsi);
-                map_ai[ai._typeid].v_qsi.Add(qsi);
+            //    map_ai[ai._typeid] = ai;
+            //}
+            //else if (map_ai[ai._typeid].id == ai.id)
+            //{
+            //    CheckQuestAchievement(map_ai[ai._typeid], qsi);
+            //    map_ai[ai._typeid].v_qsi.Add(qsi);
 
-                if (cii.id > 0)
-                    map_ai[ai._typeid].map_counter_item[cii.id] = cii;
-            }
-            else
-            {
-                // Handle duplicate TypeId logic here
-            }
+            //    if (cii.id > 0)
+            //        map_ai[ai._typeid].map_counter_item[cii.id] = cii;
+            //}
+            //else
+            //{
+            //    // Handle duplicate TypeId logic here
+            //}
         }
 
         protected override Response prepareConsulta()

@@ -121,14 +121,26 @@ namespace PangyaAPI.Network.PangyaServer
         private void HandleWaitConnections()
         {
             while (_isRunning)
-            {
-                // Inicia Escuta de novas conexões (Quando player se conecta).
-                TcpClient newClient = _server.AcceptTcpClient();
+            { 
+                try
+                {
 
-                // Cliente conectado
-                // Cria uma Thread para manusear a comunicação (uma thread por cliente)
-                Thread t = new Thread(new ParameterizedThreadStart(HandleSession));
-                t.Start(newClient);
+                    // Inicia Escuta de novas conexões (Quando player se conecta).
+                    TcpClient newClient = _server.AcceptTcpClient();
+
+                    // Cliente conectado
+                    // Cria uma Thread para manusear a comunicação (uma thread por cliente)
+                    Thread t = new Thread(new ParameterizedThreadStart(HandleSession));
+                    t.Start(newClient);
+
+                }
+
+                catch (exception e) // Exceção específica da aplicação
+                {
+                    _smp.message_pool.push(new message(
+                        $"[Server.Monitor][ErrorSystem] {e.GetType().Name}: {e.getFullMessageError()}\nStack Trace: {e.getStackTrace()}",
+                        type_msg.CL_FILE_LOG_AND_CONSOLE));
+                }
             }
         }
 
@@ -146,7 +158,7 @@ namespace PangyaAPI.Network.PangyaServer
 
             onAcceptCompleted(Session);
 
-            while (Session.getConnected())
+            while (Session.getConnected() && Session._client.Connected)
             {
                 try
                 {
@@ -173,13 +185,9 @@ namespace PangyaAPI.Network.PangyaServer
                 }
                 catch (Exception ex)
                 {
-                    DisconnectSession(Session);
-                    _smp::message_pool.push(new message("[server::HandleSession][ErrorSystem] " + ex.Message, type_msg.CL_FILE_LOG_AND_CONSOLE));
-                    break;
+                     _smp::message_pool.push(new message("[server::HandleSession][ErrorSystem] " + ex.Message, type_msg.CL_FILE_LOG_AND_CONSOLE));
                 }
-            }
-            if (Session.getConnected())
-                DisconnectSession(Session);
+            }                                         
         }
 
         protected byte[] ReceivePacket(NetworkStream Stream)
@@ -201,73 +209,32 @@ namespace PangyaAPI.Network.PangyaServer
 
                 return message;
             }
-            catch
+            catch (exception e) // Exceção específica da aplicação
             {
+                _smp.message_pool.push(new message(
+                    $"[Server.ReceivePacket][ErrorSystem] {e.GetType().Name}: {e.getFullMessageError()}\nStack Trace: {e.getStackTrace()}",
+                    type_msg.CL_FILE_LOG_AND_CONSOLE));
                 return new byte[0];
             }
         }
 
         protected void OnMonitor()
         {
-            Thread thread = new Thread(() =>
+            while (_isRunning)
             {
-                while (_isRunning)
+                try
                 {
+                    // Verifica e atualiza os arquivos de log caso o dia tenha mudado
+                    if (_smp.message_pool.checkUpdateDayLog())
+                    {
+                        _smp.message_pool.push("[AppServer::Monitor::UpdateLogFiles][Log] Atualizou os arquivos de Log porque trocou de dia.");
+                    }
+
                     try
                     {
-                        // Verifica e atualiza os arquivos de log caso o dia tenha mudado
-                        if (_smp.message_pool.checkUpdateDayLog())
-                        {
-                            _smp.message_pool.push("[AppServer::Monitor::UpdateLogFiles][Log] Atualizou os arquivos de Log porque trocou de dia.");
-                        }
-
-                        try
-                        {
-                            // Atualiza o número de sessões conectadas
-                            m_si.curr_user = (int)m_session_manager.NumSessionConnected();
-                            NormalManagerDB.add(0, new CmdRegisterServer(m_si), SQLDBResponse, this);
-                        }
-                        catch (Exception)
-                        {
-
-                            throw;
-                        }
-                        // Atualiza o título da janela do console conforme o tipo do servidor
-                        switch (m_si.tipo)
-                        {
-                            case 0:
-                                Console.Title = $"Login Server - P: {m_si.curr_user}";
-                                break;
-                            case 1:
-                                Console.Title = $"Game Server - P: {m_si.curr_user}";
-                                break;
-                            case 2:
-                                Console.Title = $"Bird Server - P: {m_si.curr_user}";
-                                break;
-                            case 3:
-                                Console.Title = $"Messenger Server - P: {m_si.curr_user}";
-                                break;
-                            case 4:
-                                Console.Title = $"Rank Server - P: {m_si.curr_user}";
-                                break;
-                            case 5:
-                                Console.Title = $"Auth Server - P: {m_si.curr_user}";
-                                break;
-                            case 6:
-                                Console.Title = $"GG Auth Server - P: {m_si.curr_user}";
-                                break;
-                            default:
-                                Console.Title = $"Unknown Server - P: {m_si.curr_user}";
-                                break;
-                        }
-
-                        // Atualiza a lista de servidores online e bloqueios de IP/MAC
-                        cmdUpdateServerList();
-                        cmdUpdateListBlock_IP_MAC();
-
-                        // Evento de heartbeat
-                        OnHeartBeat();
-
+                        // Atualiza o número de sessões conectadas
+                        m_si.curr_user = (int)m_session_manager.NumSessionConnected();
+                        NormalManagerDB.add(0, new CmdRegisterServer(m_si), SQLDBResponse, this);
                     }
                     catch (exception e) // Exceção específica da aplicação
                     {
@@ -275,17 +242,57 @@ namespace PangyaAPI.Network.PangyaServer
                             $"[Server.Monitor][ErrorSystem] {e.GetType().Name}: {e.getFullMessageError()}\nStack Trace: {e.getStackTrace()}",
                             type_msg.CL_FILE_LOG_AND_CONSOLE));
                     }
-                    catch (Exception ex) // Exceções gerais do .NET
+                    // Atualiza o título da janela do console conforme o tipo do servidor
+                    switch (m_si.tipo)
                     {
-                        _smp.message_pool.push(new message(
-                            $"[Server.Monitor][ErrorSystem] {ex.GetType().Name}: {ex.Message}\nStack Trace: {ex.StackTrace}",
-                            type_msg.CL_FILE_LOG_AND_CONSOLE));
+                        case 0:
+                            Console.Title = $"Login Server - P: {m_si.curr_user}";
+                            break;
+                        case 1:
+                            Console.Title = $"Game Server - P: {m_si.curr_user}";
+                            break;
+                        case 2:
+                            Console.Title = $"Bird Server - P: {m_si.curr_user}";
+                            break;
+                        case 3:
+                            Console.Title = $"Messenger Server - P: {m_si.curr_user}";
+                            break;
+                        case 4:
+                            Console.Title = $"Rank Server - P: {m_si.curr_user}";
+                            break;
+                        case 5:
+                            Console.Title = $"Auth Server - P: {m_si.curr_user}";
+                            break;
+                        case 6:
+                            Console.Title = $"GG Auth Server - P: {m_si.curr_user}";
+                            break;
+                        default:
+                            Console.Title = $"Unknown Server - P: {m_si.curr_user}";
+                            break;
                     }
-                }
-            });
 
-            thread.Start(); // Inicia a thread de verificação
-            Thread.Sleep(2000);
+                    // Atualiza a lista de servidores online e bloqueios de IP/MAC
+                    cmdUpdateServerList();
+                    //cmdUpdateListBlock_IP_MAC();
+
+                    // Evento de heartbeat
+                    OnHeartBeat();
+
+                }
+                catch (exception e) // Exceção específica da aplicação
+                {
+                    _smp.message_pool.push(new message(
+                        $"[Server.Monitor][ErrorSystem] {e.GetType().Name}: {e.getFullMessageError()}\nStack Trace: {e.getStackTrace()}",
+                        type_msg.CL_FILE_LOG_AND_CONSOLE));
+                }
+                catch (Exception ex) // Exceções gerais do .NET
+                {
+                    _smp.message_pool.push(new message(
+                        $"[Server.Monitor][ErrorSystem] {ex.GetType().Name}: {ex.Message}\nStack Trace: {ex.StackTrace}",
+                        type_msg.CL_FILE_LOG_AND_CONSOLE));
+                }
+            }
+            Thread.Sleep(2100);
         }
 
         protected void cmdUpdateServerList()
@@ -345,7 +352,7 @@ namespace PangyaAPI.Network.PangyaServer
                 // Atualiza o tick do cliente
                 session.m_tick = Environment.TickCount;
 
-                var paramDispatch = new ParamDispatch
+                var pd = new ParamDispatch
                 {
                     _session = session,
                     _packet = packet
@@ -353,10 +360,11 @@ namespace PangyaAPI.Network.PangyaServer
 
                 if (CheckPacket(session, packet))
                 {
-                    if (func != null && func.ExecCmd(paramDispatch) != 0)
-                    {
-                        _smp::message_pool.push(new message(
-                            $"[Server.DispatchPacketSameThread][Error] Ao tratar o pacote. ID: {packet.Id}(0x{packet.Id:X})."));
+                    if (func != null && func.ExecCmd(pd) != 0)
+                    {                                                                                         
+                        _smp.message_pool.push(new message($"[Server.DispatchPacketSameThread][Error] Ao tratar o pacote. ID: {packet.Id}(0x{packet.Id:X}). Hex:\n\r" + pd._packet.Log(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                        //pode dar dc aqui por que o pacote nao e reconhecido!
+                        //@@@@
                     }
                 }
             }
@@ -392,8 +400,13 @@ namespace PangyaAPI.Network.PangyaServer
                         //if (m_unit_connect != nullptr)
                         //    m_unit_connect->start();
                         //Inicia Thread para exec. registrar/att o servidor    
-                        OnMonitor();
 
+                        Thread thread = new Thread(() =>
+                        {
+                            OnMonitor();
+                        });
+
+                        thread.Start(); // Inicia a thread de verificação
                         // On Start
                         OnStart();
 
@@ -549,7 +562,7 @@ namespace PangyaAPI.Network.PangyaServer
         {
             if (_arg == null)
             {
-                _smp.message_pool.push("[TcpServer.SQLDBResponse][WARNING] _arg is nullptr, na msg_id = " + _msg_id);
+                _smp.message_pool.push("[Server.SQLDBResponse][WARNING] _arg is nullptr, na msg_id = " + _msg_id);
                 return;
             }
             switch (_msg_id)

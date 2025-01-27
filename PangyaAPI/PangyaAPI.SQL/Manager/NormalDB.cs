@@ -50,14 +50,20 @@ namespace PangyaAPI.SQL
             }
 
             public void execQuery()
-            {
-
-                if (_pangya_db == null)
+            {                    
+                try
                 {
-                    throw new System.Exception("[NormalDB::mgs_t::execQuery][Error] _pangya_db is nullptr");
+                    if (_pangya_db == null)
+                    {
+                        throw new System.Exception("[NormalDB::mgs_t::execQuery][Error] _pangya_db is nullptr");
+                    }
+                    sucess = false;
+                    _pangya_db.exec();
                 }
-                sucess = false;
-                _pangya_db.exec();
+                catch (Exception ex)
+                {            
+                    throw ex;
+                }
             }
          
             protected int id; // ID da msg

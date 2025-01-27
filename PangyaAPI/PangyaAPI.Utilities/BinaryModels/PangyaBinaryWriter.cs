@@ -7,25 +7,32 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
-using System.Xml.Linq;
-
+using System.Xml.Linq;                           
 namespace PangyaAPI.Utilities.BinaryModels
 {
     public class PangyaBinaryWriter : BinaryWriter
     {
+        Encoding _Encoding = Encoding.GetEncoding("Shift_JIS");
         public PangyaBinaryWriter(Stream output) { }
         public PangyaBinaryWriter(Stream output, Encoding encoding) : base(output, encoding)
         {
+             
         }
 
         public PangyaBinaryWriter(Stream output, Encoding encoding, bool leaveOpen) : base(output, encoding, leaveOpen)
         {
         }
-        public PangyaBinaryWriter()
-        {
-            this.OutStream = new MemoryStream();
-        }
 
+        public PangyaBinaryWriter() : base(new MemoryStream(), Encoding.GetEncoding("Shift_JIS"))
+        {
+            //this.OutStream = new MemoryStream();
+            //this._Encoding = Encoding.GetEncoding("Shift_JIS"); // Japan!
+
+        }
+        public PangyaBinaryWriter(ushort id) : base(new MemoryStream(), Encoding.GetEncoding("Shift_JIS"))
+        {
+            init_plain(id);
+        }
         public uint GetSize
         {
             get { return (uint)BaseStream.Length; }
@@ -72,7 +79,7 @@ namespace PangyaAPI.Utilities.BinaryModels
                 }
 
                 var ret = new byte[length];
-                Encoding.UTF7.GetBytes(message).Take(length).ToArray().CopyTo(ret, 0);
+                _Encoding.GetBytes(message).Take(length).ToArray().CopyTo(ret, 0);
 
                 Write(ret);
             }
@@ -103,7 +110,7 @@ namespace PangyaAPI.Utilities.BinaryModels
             if (data == null) data = "";
             try
             {
-                var encoded = Encoding.UTF7.GetBytes(data);
+                var encoded = _Encoding.GetBytes(data);
                 var length = encoded.Length;
                 if (length >= ushort.MaxValue)
                 {
@@ -361,7 +368,7 @@ namespace PangyaAPI.Utilities.BinaryModels
                 byte[] arr = new byte[size];
 
                 IntPtr ptr = Marshal.AllocHGlobal(size);
-                Marshal.StructureToPtr(value, ptr, true);
+                Marshal.StructureToPtr(value, ptr, false);
                 Marshal.Copy(ptr, arr, 0, size);
                 Marshal.FreeHGlobal(ptr);                   
                 Write(arr, size);

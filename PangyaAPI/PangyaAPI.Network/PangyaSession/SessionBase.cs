@@ -18,8 +18,7 @@ namespace PangyaAPI.Network.PangyaSession
     public abstract partial class SessionBase : IDisposeable
     {
         #region Public Fields
-
-
+         
         /// <summary>
         /// Servidor em que o cliente está conectado
         /// </summary>
@@ -34,6 +33,7 @@ namespace PangyaAPI.Network.PangyaSession
         public uint m_oid { get; set; }
         public int m_start_time { get; set; }
         public int m_tick { get; set; }
+        public int m_tick_bot { get; set; }
         public bool m_is_authorized { get; set; }
         public uint Uid { get; set; }
         public string Nickname { get; set; }
@@ -146,12 +146,7 @@ namespace PangyaAPI.Network.PangyaSession
         {
             m_connected = connected;
             MakeIP();
-        }
-
-        public void SetConnectedToSend(bool connectedToSend)
-        {
-            m_connectedToSend = connectedToSend;
-        }
+        }                                                  
 
 
         public abstract uint getUID();
@@ -181,9 +176,16 @@ namespace PangyaAPI.Network.PangyaSession
         #region Player Send Packets 
         public void Send(PangyaBinaryWriter packet)
         {
-            var buffer = packet.GetBytes.ServerEncrypt(m_key);
+            try
+            {
+                var buffer = packet.GetBytes.ServerEncrypt(m_key);
 
-            SendBytes(buffer);
+                SendBytes(buffer);
+            }
+            catch (Exception e)
+            {            
+                throw e;
+            }
         }
 
         public void Write(PangyaBinaryWriter Data)
@@ -244,9 +246,17 @@ namespace PangyaAPI.Network.PangyaSession
 
         public void SendBytes(byte[] buffer)
         {
-            if (_client.Connected && m_connected)
+            try
             {
-                _client.GetStream().Write(buffer, 0, buffer.Length);
+
+                if (_client.Connected)
+                {
+                    _client.GetStream().Write(buffer, 0, buffer.Length);
+                }
+            }
+            catch (Exception e)
+            {           
+                throw e;
             }
         }
 

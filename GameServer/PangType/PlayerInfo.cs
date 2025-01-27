@@ -224,7 +224,7 @@ namespace GameServer.PangType
         public MapStatistics[] a_msa_natural { get; set; }
         public MapStatistics[] a_ms_grand_prix { get; set; }
         public MapStatistics[] a_msa_grand_prix { get; set; }
-        public MapStatistics[][] aa_ms_normal_todas_season { get; set; }   // Esse aqui é diferente, explico ele no pacote principal
+        public MapStatistics[][] aa_ms_normal_todas_season { get; set; }   // Esse aqui é diferente, explico ele no pacote InitialLogin
         public SortedList<uint, StateCharacterLounge> mp_scl { get; set; }
 
         public CharacterManager mp_ce { get; set; }      //  
@@ -288,8 +288,8 @@ namespace GameServer.PangType
         }
         public stLocation location { get; set; } = new stLocation();
         public byte place { get; set; }            // Lugar que o player está no momento
-        public byte lobby { get; set; } = byte.MaxValue;            // Lobby
-        public byte channel { get; set; } = byte.MaxValue;          // Channel
+        public byte lobby { get; set; } = INVALID_CHANNEL;            // Lobby
+        public byte channel { get; set; } = INVALID_CHANNEL;          // Channel
         public byte whisper { get; set; } = 1; // Whisper 0 e 1, 0 OFF, 1 ON
         public uint state;
         public uint state_lounge;

@@ -30,6 +30,10 @@ namespace PangyaAPI.SQL
                     }
                     clear_response(r);
                 }
+                else
+                {
+                    Console.WriteLine("[Pangya_DB::" + _getName + "::exec][Error] return prepareConsulta is null.");    
+                }
             }
             catch (Exception e)
             {

@@ -4,31 +4,32 @@ using PangyaAPI.Utilities.BinaryModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace GameServer.Game.Manager
 {
-    public class CharacterManager : Dictionary<uint/*ID*/, CharacterInfoEx>
+    public class CharacterManager : Dictionary<uint/*ID*/, CharacterInfo>
     {
         public CharacterManager()
         {
-            
+
         }
 
-        public CharacterManager(Dictionary<uint/*ID*/, CharacterInfoEx> keys)
+        public CharacterManager(Dictionary<uint/*ID*/, CharacterInfo> keys)
         {
-           // this.(keys);    add array 
+            // this.(keys);    add array 
         }
 
         public byte[] Build()
         {
             var p = new PangyaBinaryWriter();
             try
-            {                              
-                p.WriteUInt16((short)Count);
-                p.WriteUInt16((short)Count);
+            {
+                p.WriteUInt16((ushort)1);
+                p.WriteUInt16((ushort)1);  
                 foreach (var item in Values)
                 {
-                    p.WriteStruct(item, new CharacterInfo());
+                    p.Write(item.Build());
                 }
                 return p.GetBytes;
             }
@@ -38,21 +39,42 @@ namespace GameServer.Game.Manager
             }
         }
 
-        public byte[] GetInfo(uint _id)
+        public byte[] GetInfo(CharacterInfo char_info)
         {
-           var char_info = findCharacterById(_id);
-            if (char_info == null)
-                return new byte[0];
-            else
+            using (var p = new PangyaBinaryWriter())
             {
-                var p = new PangyaBinaryWriter();
-                p.WriteStruct(char_info, new CharacterInfo());
+                p.Write(char_info._typeid);
+                p.Write(char_info.id);
+                p.Write(char_info.default_hair);
+                p.Write(char_info.default_shirts);
+                p.Write(char_info.gift_flag);
+                p.Write(char_info.Purchase);
+                for (var Index = 0; Index < 24; Index++)
+                    p.Write(char_info.parts_typeid[Index]);
+                for (var Index = 0; Index < 24; Index++)
+                    p.Write(char_info.parts_id[Index]);
+                p.Write(char_info.Blank, 216); //deve ser algum objeto ainda nao terminado
+                for (int i = 0; i < 5; i++)
+                    p.WriteUInt32(char_info.AuxPart[i]);
+                for (int i = 0; i < 4; i++)
+                    p.WriteUInt32(char_info.Cut_in[i]);
+                for (int i = 0; i < 5; i++)
+                    p.WriteUInt32(char_info.PCL[i]);
+
+                p.WriteUInt32(char_info.MasteryPoint);
+                for (int i = 0; i < 4; i++)
+                    p.WriteUInt32(char_info.Card_Caddie[i]);
+                for (int i = 0; i < 4; i++)
+                    p.WriteUInt32(char_info.Card_Character[i]);
+                for (int i = 0; i < 4; i++)
+                    p.WriteUInt32(char_info.Card_NPC[i]);
                 return p.GetBytes;
             }
         }
+
         public CharacterInfo findCharacterById(uint _id)
         {
-            return this.Values.FirstOrDefault(c=> c.id == _id);
+            return this.Values.FirstOrDefault(c => c.id == _id);
         }
 
         public CharacterInfo findCharacterByTypeid(uint _typeid)
@@ -63,6 +85,6 @@ namespace GameServer.Game.Manager
         public CharacterInfo findCharacterByTypeidAndId(uint _typeid, uint _id)
         {
             return this.Values.FirstOrDefault(c => c.id == _id && c._typeid == _typeid);
-        }        
+        }
     }
 }

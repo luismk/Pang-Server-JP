@@ -31,9 +31,9 @@ namespace GameServer.Cmd
             this.m_uid = _uid;
         }
 
-        public SortedDictionary<uint, EmailInfoEx> getInfo()
+        public Dictionary<uint, EmailInfoEx> getInfo()
         {
-            return new SortedDictionary<uint, EmailInfoEx>(m_emails);
+            return new Dictionary<uint, EmailInfoEx>(m_emails);
         }
 
         protected override void lineResult(ctx_res _result, uint _index_result)
@@ -170,7 +170,7 @@ namespace GameServer.Cmd
         }
 
         private uint m_uid;
-        private SortedDictionary<uint, EmailInfoEx> m_emails = new SortedDictionary<uint, EmailInfoEx>();
+        private Dictionary<uint, EmailInfoEx> m_emails = new Dictionary<uint, EmailInfoEx>();
 
         private const string m_szConsulta = "pangya.ProcGetAllEmailFromMailBox";
     }

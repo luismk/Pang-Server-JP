@@ -337,13 +337,13 @@ namespace PangyaAPI.Utilities
         }
         public static string GetString(this byte[] array)
         {
-            return System.Text.Encoding.UTF8.GetString(array).TrimEnd('\0');
+            return Encoding.GetEncoding("Shift_JIS").GetString(array).TrimEnd('\0');
         }
 
         public static void SetString(this byte[] array, string value)
         {
             ClearArray(array);
-            var bytes = System.Text.Encoding.UTF8.GetBytes(value ?? string.Empty);
+            var bytes = Encoding.GetEncoding("Shift_JIS").GetBytes(value ?? string.Empty);
             Array.Copy(bytes, array, Math.Min(bytes.Length, array.Length));
         }
 
