@@ -1,0 +1,49 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32616.157
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameServer", "GameServer\GameServer.csproj", "{9CD7A0B3-C309-4568-B28D-153FE91FA17C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PangyaAPI.Cryptor", "PangyaAPI\PangyaAPI.Cryptor\PangyaAPI.Cryptor.csproj", "{BCCD991F-699A-4915-B533-074BABCD3DEC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PangyaAPI.Utilities", "PangyaAPI\PangyaAPI.Utilities\PangyaAPI.Utilities.csproj", "{1E2BE994-1794-47CE-B66B-65F02D42570C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PangyaAPI.SQL", "PangyaAPI\PangyaAPI.SQL\PangyaAPI.SQL.csproj", "{A3FE3DA6-5099-4A65-8734-D43513E23FFB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PangyaAPI.Network", "PangyaAPI\PangyaAPI.Network\PangyaAPI.Network.csproj", "{FE218D80-0679-47E0-BED2-284BBA6FE8AA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9CD7A0B3-C309-4568-B28D-153FE91FA17C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9CD7A0B3-C309-4568-B28D-153FE91FA17C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9CD7A0B3-C309-4568-B28D-153FE91FA17C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9CD7A0B3-C309-4568-B28D-153FE91FA17C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BCCD991F-699A-4915-B533-074BABCD3DEC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BCCD991F-699A-4915-B533-074BABCD3DEC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BCCD991F-699A-4915-B533-074BABCD3DEC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BCCD991F-699A-4915-B533-074BABCD3DEC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1E2BE994-1794-47CE-B66B-65F02D42570C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1E2BE994-1794-47CE-B66B-65F02D42570C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1E2BE994-1794-47CE-B66B-65F02D42570C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1E2BE994-1794-47CE-B66B-65F02D42570C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A3FE3DA6-5099-4A65-8734-D43513E23FFB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A3FE3DA6-5099-4A65-8734-D43513E23FFB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A3FE3DA6-5099-4A65-8734-D43513E23FFB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A3FE3DA6-5099-4A65-8734-D43513E23FFB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FE218D80-0679-47E0-BED2-284BBA6FE8AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FE218D80-0679-47E0-BED2-284BBA6FE8AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FE218D80-0679-47E0-BED2-284BBA6FE8AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FE218D80-0679-47E0-BED2-284BBA6FE8AA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D89632E2-B0EE-4E60-B535-A38BCFE10AB1}
+	EndGlobalSection
+EndGlobal
