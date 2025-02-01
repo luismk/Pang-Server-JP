@@ -42,7 +42,7 @@ namespace GameServer.Cmd
                 m_ui.exp = _result.GetUInt32(20);
                 m_ui.level = _result.GetByte(21);
                 m_ui.pang =  _result.GetUInt64(22);
-                m_ui.media_score =  _result.GetUInt32(23);
+                m_ui.media_score =  _result.GetInt64(23);
                 for (i = 0; i < 5; i++)
                     m_ui.best_score[i] =  _result.GetByte(24 + i);    // 24 + 5
                 for (i = 0; i < 5; i++)
