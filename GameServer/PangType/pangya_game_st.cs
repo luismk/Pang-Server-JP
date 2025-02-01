@@ -525,7 +525,7 @@ namespace GameServer.PangType
         public uint exp { get; set; }
         public byte level { get; set; }
         public ulong pang { get; set; }
-        public uint media_score { get; set; }
+        public long media_score { get; set; }
         [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 5)]
         public byte[] best_score { get; set; }              // Best Score Por Estrela, mas acho que o pangya nao usa mais isso
         public byte event_flag { get; set; }
@@ -682,7 +682,7 @@ namespace GameServer.PangType
                 p.WriteUInt32(exp);
                 p.WriteByte(level);
                 p.WriteUInt64(pang);
-                p.WriteUInt32(media_score);             // Best Score Por Estrela, mas acho que o pangya nao usa mais isso
+                p.WriteInt64(media_score);             // Best Score Por Estrela, mas acho que o pangya nao usa mais isso
                 for (int i = 0; i < 5; i++)
                     p.WriteByte(best_score[i]);
                 p.WriteByte(event_flag);
