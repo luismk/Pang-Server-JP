@@ -29,11 +29,11 @@ namespace GameServer.Cmd
             cei.efeito = IFNULL(_result.data[5]);
             cei.efeito_qntd = IFNULL(_result.data[6]);
             cei.slot = IFNULL(_result.data[7]);
-            if (_result.data[8] != null)
+            if (!_result.IsEmptyObject(8))
             {
                 cei.use_date.CreateTime(_translateDate(_result.data[8]));
             }
-            if (_result.data[9] != null)
+            if (!_result.IsEmptyObject(9))
             {
                 cei.end_date.CreateTime(_translateDate(_result.data[9]));
             }
