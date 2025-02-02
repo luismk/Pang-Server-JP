@@ -36,19 +36,7 @@ namespace GameServer.Game.Manager
                 return new byte[0];
             }
         }
-
-        public byte[] GetInfo(uint _id)
-        {
-            var char_info = findCaddieById(_id);
-            if (char_info == null)
-                return new byte[0x19];
-            else
-            {
-                var p = new PangyaBinaryWriter();
-                p.WriteBytes(char_info.Build());
-                return p.GetBytes;
-            }
-        }
+                                       
         public CaddieInfo findCaddieById(uint _id)
         {
             return this.Values.FirstOrDefault(c => c.id == _id);

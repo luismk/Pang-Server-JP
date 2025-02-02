@@ -200,9 +200,9 @@ namespace GameServer.GameServerTcp
                 if (_session.m_pi.mi.sala_numero != ushort.MaxValue)
                     c.requestSendMsgChatRoom(_session, msg);
                 else
-                {
-
-                    _session.SendLobby_broadcast(c, packet_func.pacote040(_session.m_pi, msg, (byte)((_session.m_pi.m_cap.stBit.game_master.IsTrue()) ? 0x80 : 0)));
+                {                                                 
+                    //is low :/
+                    _session.SendLobby_broadcast(packet_func.pacote040(_session.m_pi, msg, (byte)(_session.IsGM ? 0x80 : 0)));                   
                 }
 
             }
@@ -342,7 +342,7 @@ namespace GameServer.GameServerTcp
                         throw cmdGi.getException();
 
                     var gi = cmdGi.getInfo();
-                    _session.Send(packet_func.pacote157(pi.mi, season));
+                    _session.Send(packet_func.pacote157(pi.mi, season), true);
 
                     _session.Send(packet_func.pacote15E(pi.uid, ci));
 
@@ -451,6 +451,11 @@ namespace GameServer.GameServerTcp
         public override void updaterateAndEvent(uint _tipo, uint _qntd)
         {
             base.updaterateAndEvent(_tipo, _qntd);
+        }
+
+        public List<Channel> getChannelList()
+        {
+            return v_channel;
         }
     }
 }

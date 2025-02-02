@@ -17,6 +17,7 @@ using packet = PangyaAPI.Network.PangyaPacket.Packet;
 using SYSTEMTIME = GameServer.PangType.PangyaTime;
 using static GameServer.PangType._Define;
 using System.Xml.Linq;
+using System.IO;
 
 namespace GameServer.PacketFunc
 {
@@ -3611,10 +3612,7 @@ namespace GameServer.PacketFunc
         }
 
         public static void packet0D3(ParamDispatch pd)
-        {
-
-
-
+        {                    
             try
             {
 
@@ -3635,7 +3633,7 @@ namespace GameServer.PacketFunc
                 p.WriteUInt32(0); // option
                 p.WriteUInt32(check);
 
-                pd._session.Send(p);
+                ((Player)pd._session).Send(p);
 
             }
             catch (exception e)
@@ -6178,10 +6176,10 @@ namespace GameServer.PacketFunc
                 if (pi == null)
                     throw new Exception("Erro PlayerInfo *pi is null. packet_func::InitialLogin()");
 
-                p.WritePStr(_si.version_client);
+                p.WritePStr("PM.R7.960.01");
 
                 // member info
-                p.WriteUInt16(pi.mi.sala_numero);
+                p.WriteUInt16(ushort.MaxValue);//num the room
                 //write struct info player      
                 p.WriteBytes(pi.mi.Build());
                 // User Info player
@@ -6189,69 +6187,49 @@ namespace GameServer.PacketFunc
                 p.WriteBytes(pi.ui.Build());
 
                 // Trofel Info
-                p.WriteZero(78);// (pi.ti_current_season, new TrofelInfo());
+                p.WriteBytes(pi.ti_current_season.Build());
                 // User Equip
                 p.WriteBytes(pi.ue.Build());
-
-                // Map Statistics Normal
-                for (var st_i = 0; st_i < MS_NUM_MAPS; st_i++)
+                #region MapStatic Caution 
+                //---------------------------- DATA CORRECT? not finish analize -------------------------------\\
+                if (File.Exists("MapStatic.hex"))
                 {
-                    p.WriteBytes(pi.a_ms_normal[st_i].Build());
+                    var maps = File.ReadAllBytes("MapStatic.hex");
+                    p.WriteBytes(maps);
                 }
-
-                // Map Statistics Natural
-                for (var st_i = 0; st_i < MS_NUM_MAPS; st_i++)
+                else
                 {
-                    p.WriteBytes(pi.a_ms_natural[st_i].Build());
-                }
 
-                // Map Statistics Grand Prix
-                for (var st_i = 0; st_i < MS_NUM_MAPS; st_i++)
-                {
-                    p.WriteBytes(pi.a_ms_grand_prix[st_i].Build());
-                }
-
-                // Map Statistics Normal for all seasons
-                for (int j = 0; j < 9; j++)
-                {
-                    for (var st_i = 0; st_i < MS_NUM_MAPS; st_i++)        //talvez algum problema aqui!
+                    // Map Statistics Normal
+                    for (var st_i = 0; st_i < MS_NUM_MAPS; st_i++)
                     {
-                        p.WriteBytes(pi.aa_ms_normal_todas_season[j][st_i].Build());
+                        p.WriteBytes(pi.a_ms_normal[st_i].Build());
+                    }
+
+                    // Map Statistics Natural
+                    for (var st_i = 0; st_i < MS_NUM_MAPS; st_i++)
+                    {
+                        p.WriteBytes(pi.a_ms_natural[st_i].Build());
+                    }
+
+                    // Map Statistics Grand Prix
+                    for (var st_i = 0; st_i < MS_NUM_MAPS; st_i++)
+                    {
+                        p.WriteBytes(pi.a_ms_grand_prix[st_i].Build());
+                    }
+
+                    // Map Statistics Normal for all seasons
+                    for (int j = 0; j < 9; j++)
+                    {
+                        for (var st_i = 0; st_i < MS_NUM_MAPS; st_i++)        //talvez algum problema aqui!
+                        {
+                            p.WriteBytes(pi.aa_ms_normal_todas_season[j][st_i].Build());
+                        }
                     }
                 }
-                // Character Info (CharEquip)
-                if (pi.ei.char_info != null)
-                {
-                    p.WriteBytes(pi.ei.char_info.Build());
-                }
-                else
-                {
-                    p.WriteZero(Marshal.SizeOf(new CharacterInfo()));
-                }
-
-                // CWriteie Info
-                if (pi.ei.cad_info != null)
-                {
-                    p.WriteBytes(pi.ei.cad_info.Build());
-                }
-                else
-                {
-                    p.WriteZero(Marshal.SizeOf(new CaddieInfo()));
-                }
-
-                // Club Set Info
-                p.WriteBytes(pi.ei.csi.Build());
-
-                // Mascot Info
-                if (pi.ei.mascot_info != null)
-                {
-                    p.WriteBytes(pi.ei.mascot_info.Build());
-                }
-                else
-                {
-                    p.WriteZero(new MascotInfo().SizeOfS());
-                }
-
+                //---------------------------- DATA CORRECT? -------------------------------\\
+                #endregion fim
+                p.WriteBytes(pi.ei.Build());
                 // Adiciona o buffer de tempo do Pangya
                 p.WriteTime();
 
@@ -6347,7 +6325,7 @@ namespace GameServer.PacketFunc
             var p = new PangyaBinaryWriter();
             p.init_plain(0x157);
 
-            p.WriteByte((byte)season);
+            p.WriteByte(season);
 
             p.WriteUInt32(_uid);             
             p.WriteBytes(_ue.Build());     
@@ -6364,14 +6342,10 @@ namespace GameServer.PacketFunc
 
             p.WriteUInt32(_mi.uid);
             p.WriteUInt16(_mi.sala_numero);
-            if (_mi.capability.stBit.game_master == 1)
-                _mi.capability.ulCapability = 0;
             p.WriteBytes(_mi.Build());
-
             p.WriteUInt32(_mi.uid);
             p.WriteUInt32(_mi.guild_point);
-
-            return p.GetBytes;
+             return p.GetBytes;
         }
 
         public static byte[] pacote158(uint _uid, UserInfoEx _ui, byte season)
@@ -6383,7 +6357,7 @@ namespace GameServer.PacketFunc
 
             p.WriteUInt32(_uid);
 
-            p.WriteStruct(_ui, new UserInfo());
+            p.WriteBytes(_ui.Build());                                     
             return p.GetBytes;
         }
 
@@ -6392,7 +6366,7 @@ namespace GameServer.PacketFunc
             var p = new PangyaBinaryWriter(0x159);
             p.WriteByte(season);
             p.WriteUInt32(uid);
-            p.WriteStruct(ti, new TrofelInfo());
+            p.WriteBytes(ti.Build());
             return p.GetBytes;
         }
 
@@ -6596,7 +6570,7 @@ namespace GameServer.PacketFunc
                 p.WriteInt16((short)v_element.Count);
                 foreach (var char_info in v_element.Values)
                 {
-                    p.WriteBytes(char_info.Build());
+                    p.WriteBytes(char_info.Build(false));
                 }
                 return p.GetBytes;
             }
@@ -6647,7 +6621,6 @@ namespace GameServer.PacketFunc
                     if (!build_s)
                         p.Write(new byte[] { 0x4D, 0x00 }); //channel list!         
 
-                    //p.WriteBytes(login_fix);
                     p.WriteByte(v_element.Count);
                     foreach (var channel in v_element)
                         p.WriteBytes(channel.Build());
@@ -6672,12 +6645,7 @@ namespace GameServer.PacketFunc
             {
                 p.Write(new byte[] { 0x48, 0x02 });
                 p.WriteInt32(option);
-                p.WriteByte(ari.login);
-                p.WriteUInt32(ari.now._typeid);
-                p.WriteUInt32(ari.now.qntd);
-                p.WriteUInt32(ari.after._typeid);
-                p.WriteUInt32(ari.after.qntd);
-                p.WriteUInt32(ari.counter);
+                p.WriteStruct(ari, new AttendanceRewardInfo());
                 return p.GetBytes;
             }
         }
@@ -6690,12 +6658,7 @@ namespace GameServer.PacketFunc
             {
                 p.Write(new byte[] { 0x49, 0x02 });
                 p.WriteInt32(option);
-                p.WriteByte(ari.login);
-                p.WriteUInt32(ari.now._typeid);
-                p.WriteUInt32(ari.now.qntd);
-                p.WriteUInt32(ari.after._typeid);
-                p.WriteUInt32(ari.after.qntd);
-                p.WriteUInt32(ari.counter);
+                p.WriteStruct(ari, new AttendanceRewardInfo());
                 return p.GetBytes;
             }
         }
@@ -6771,7 +6734,9 @@ namespace GameServer.PacketFunc
             p.WriteByte(option);   // Option
 
             if (option == 0)
+            {
                 p.Write(InitialLogin(pi, _si));
+            }
             else if (option == 1)
                 p.WriteByte(0);
             else if (option == 0xD3)
@@ -6835,7 +6800,7 @@ int option = 0)
 
             for (var i = 0; i < v_element.Count; ++i)
             {
-                p.WriteStruct(v_element[i], new MailBox());
+                p.WriteBytes(v_element[i].Build());
             }
 
             return p.GetBytes;
@@ -6894,7 +6859,7 @@ int option = 0)
 
             p.WriteByte((byte)option);
 
-            p.WriteStruct(ti, new TrofelInfo());
+            p.WriteBytes(ti.Build());
 
             return p.GetBytes;
         }

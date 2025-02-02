@@ -46,15 +46,21 @@ namespace PangyaAPI.Network.PangyaPacket
                 try
                 {
                     if (cf == null)
-                    {                                                                                                                      
+                    {
                         return 1; // Retorna 1 se o ID não existir (cf é nulo).
-                    }                     
-
-                    cf.Invoke(pd);
-                    return 0;
+                    }
+                    if (pd._session.getConnected())
+                    {
+                        cf.Invoke(pd);
+                        return 0;
+                    }
+                    else
+                    {
+                        return 1; // Retorna 1 se ocorrer uma exceção.
+                    }
                 }
                 catch
-                {                                                                                                                                   
+                {
                     return 1; // Retorna 1 se ocorrer uma exceção.
                 }
             }
@@ -73,22 +79,13 @@ namespace PangyaAPI.Network.PangyaPacket
 
         public func_arr_ex getPacketCall(short _tipo)
         {
-
-            if (_tipo < MAX_CALL_FUNC_ARR)
+            if (m_func[_tipo] != null)
             {
-
-                if (m_func[_tipo] != null)
-                {
-                    return m_func[_tipo];
-                }
-                else
-                {
-                    throw new Exception("[new func_arr().getPacketCall][Error] Tipo: " + Convert.ToString(_tipo) + "(0x" + _tipo + "), desconhecido ou nao implementado.");
-                }
+                return m_func[_tipo];
             }
             else
             {
-                throw new Exception("[new func_arr().getPacketCall][Error] Tipo: " + Convert.ToString(_tipo) + "(0x" + _tipo + ") maior que o array.");
+                throw new Exception("[new func_arr().getPacketCall][Error] Tipo: " + Convert.ToString(_tipo) + "(0x" + _tipo + "), desconhecido ou nao implementado.");
             }
         }
     }

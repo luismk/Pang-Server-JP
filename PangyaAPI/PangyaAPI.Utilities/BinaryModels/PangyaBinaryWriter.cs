@@ -32,14 +32,11 @@ namespace PangyaAPI.Utilities.BinaryModels
         {
             init_plain(id);
         }
-        public uint GetSize
+        public PangyaBinaryWriter(short id) : base(new MemoryStream())
         {
-            get { return (uint)BaseStream.Length; }
+            WriteInt16(id);
         }
-        public uint Size
-        {
-            get { return (uint)BaseStream.Length; }
-        }
+        public uint GetSize => (uint)BaseStream.Length;
         public byte[] GetBytes => CreateBytes();
 
 

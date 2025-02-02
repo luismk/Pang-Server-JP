@@ -54,6 +54,7 @@ namespace PangyaAPI.Network.PangyaSession
         // Construtores
         public SessionBase()
         {
+            m_oid = uint.MaxValue;
             m_connected = false;
             m_state = true;
             m_connectedToSend = false;
@@ -78,12 +79,12 @@ namespace PangyaAPI.Network.PangyaSession
                 m_connected = false;
                 m_connectedToSend = false;
 
-                m_key = 0;
+                m_key = byte.MaxValue;
                 Address = null;
 
-                m_start_time = 0;
-                m_tick = 0;
-                m_oid = 0;
+                m_start_time = int.MaxValue;
+                m_tick = int.MaxValue;
+                m_oid = uint.MaxValue;
                 m_is_authorized = false;                                 
 
                 Dispose();
@@ -212,14 +213,14 @@ namespace PangyaAPI.Network.PangyaSession
         #endregion
 
         #region Player Send Packets 
-        public void Send(PangyaBinaryWriter packet, bool debug = true)
+        public virtual void Send(PangyaBinaryWriter packet, bool debug = true)
         {
             if (debug)
                 Console.WriteLine("[SessionBase::Send1][HexLog]: " + packet.GetBytes.HexDump() + Environment.NewLine);
             SafeSend(packet.GetBytes.ServerEncrypt(m_key));
         }
 
-        public void Send(byte[] Data, bool debug = true)
+        public virtual void Send(byte[] Data, bool debug = true)
         {
             if (debug)
                 Console.WriteLine("[SessionBase::Send2][HexLog]: " + Data.HexDump() + Environment.NewLine);

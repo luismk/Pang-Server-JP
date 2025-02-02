@@ -13,7 +13,14 @@ namespace GameServer.PangType
     /// define 
     /// </summary>
     public static class _Define
-    {
+    {                                        
+            public const long STDA_10_MICRO_PER_MICRO = 10L;
+            public const long STDA_10_MICRO_PER_MILLI = STDA_10_MICRO_PER_MICRO * 1000L;
+            public const long STDA_10_MICRO_PER_SEC = STDA_10_MICRO_PER_MILLI * 1000L;
+            public const long STDA_10_MICRO_PER_MIN = STDA_10_MICRO_PER_SEC * 60L;
+            public const long STDA_10_MICRO_PER_HOUR = STDA_10_MICRO_PER_MIN * 60L;
+            public const long STDA_10_MICRO_PER_DAY = STDA_10_MICRO_PER_HOUR * 24L;
+ 
         public const byte DEFAULT_CHANNEL = 255; // channel invalid
         public const ushort DEFAULT_ROOM_ID = ushort.MaxValue; // room invalid
 
@@ -194,10 +201,10 @@ namespace GameServer.PangType
                 p.WriteUInt64(flag_block);              // S4 TH é 32 bytes é time_block, mas no Fresh UP JP o flag block do pacote principal é de 64, então não tem mais o time block
                 p.WriteUInt32(channeling_flag);         // S4 TH
                 p.WriteStr(nick_NT, 22);             // S4 TH
-                p.WriteBytes(ucUnknown108, 106);				// S4 TH
+                p.WriteBytes(ucUnknown108, 106);                // S4 TH
+                if (p.GetSize == 297)
+                    Console.WriteLine("Test Size MemberInfo Ok");
 
-                if (p.Size == 297) Console.WriteLine("Test Size MemberInfo Ok");
-                
                 return p.GetBytes;
             }
         }
@@ -670,30 +677,30 @@ namespace GameServer.PangType
                 p.WriteInt32(ob);
                 p.WriteInt32(total_distancia);
                 p.WriteInt32(hole);
-                p.WriteInt32(hole_in);       // Aqui é os holes que não foram concluídos Ex: Give up, ou no Match o outro player ganho sem precisar do player terminar o hole
+                p.WriteInt32(hole_in);        // Aqui é os holes que não foram concluídos Ex: Give up, ou no Match o outro player ganho sem precisar do player terminar o hole
                 p.WriteInt32(hio);
                 p.WriteInt16(bunker);
                 p.WriteInt32(fairway);
                 p.WriteInt32(albatross);
-                p.WriteInt32(mad_conduta);   // Aqui é hole in, mas no info não tras ele por que ele já foi salvo no hole alí em cima
+                p.WriteInt32(mad_conduta);    // Aqui é hole in, mas no info não tras ele por que ele já foi salvo no hole alí em cima
                 p.WriteInt32(putt_in);
                 p.Write(best_long_putt);
                 p.Write(best_chip_in);
                 p.WriteUInt32(exp);
                 p.WriteByte(level);
                 p.WriteUInt64(pang);
-                p.WriteInt32(media_score);             // Best Score Por Estrela, mas acho que o pangya nao usa mais isso
+                p.WriteInt32(media_score);
                 for (int i = 0; i < 5; i++)
-                    p.WriteByte(best_score[i]);
+                    p.WriteByte(best_score[i]);              // Best Score Por Estrela, mas acho que o pangya nao usa mais isso
                 p.WriteByte(event_flag);
-                for (int i = 0; i < 5; i++)
-                    p.WriteInt64(best_pang[i]);
-                p.WriteInt64(sum_pang);              // A soma do pangs das 5 estrela acho
+                for (int i = 0; i < 5; i++)  
+                 p.WriteInt64(best_pang[i]);          // Best Pang por Estrela, mas acho que o pangya nao usa mais isso
+                p.WriteInt64(sum_pang);             // A soma do pangs das 5 estrela acho
                 p.WriteInt32(jogado);
                 p.WriteInt32(team_hole);
                 p.WriteInt32(team_win);
                 p.WriteInt32(team_game);
-                p.WriteInt32(ladder_point);              // Ladder é o Match acho, de tourneio não sei direito
+                p.WriteInt32(ladder_point);               // Ladder é o Match acho, de tourneio não sei direito
                 p.WriteInt32(ladder_hole);
                 p.WriteInt32(ladder_win);
                 p.WriteInt32(ladder_lose);
@@ -705,16 +712,16 @@ namespace GameServer.PangType
                 p.WriteInt32(skin_win);
                 p.WriteInt32(skin_lose);
                 p.WriteInt32(skin_all_in_count);
-                p.WriteInt32(skin_run_hole);             // Correu desistiu (ACHO)
-                p.WriteInt32(skin_strike_point);         // Antes era o nao_sei
-                p.WriteInt32(jogados_disconnect);    // Antes era o jogos_nao_sei
+                p.WriteInt32(skin_run_hole);              // Correu desistiu (ACHO)
+                p.WriteInt32(skin_strike_point);          // Antes era o nao_sei
+                p.WriteInt32(jogados_disconnect);     // Antes era o jogos_nao_sei
                 p.WriteInt16(event_value);
-                p.WriteInt32(disconnect);            // Vou deixar aqui o disconect count (antes era skin_strike_point)
+                p.WriteInt32(disconnect);             // Vou deixar aqui o disconect count (antes era skin_strike_point)
                 p.WriteStruct(medal, new stMedal());
-                p.WriteInt32(sys_school_serie);          // Sistema antigo do pangya JP que era de Serie de escola, respondia as perguntas se passasse ia pra outra serie é da 1° a 5°
+                p.WriteInt32(sys_school_serie);           // Sistema antigo do pangya JP que era de Serie de escola, respondia as perguntas se passasse ia pra outra serie é da 1° a 5°
                 p.WriteInt32(game_count_season);
                 p.WriteInt16(_16bit_nao_sei);
-                if (p.Size == 260)
+                if (p.GetSize == 265)
                     Console.WriteLine("UserInfo Size Okay");
 
                 return p.GetBytes;
@@ -737,7 +744,7 @@ namespace GameServer.PangType
     }
 
     // Medal
-    [StructLayout(LayoutKind.Sequential, Pack = 4, Size = 6)]
+    [StructLayout(LayoutKind.Sequential, Pack = 4, Size = 24)]
     public class stMedal
     {
         public void add(stMedal _medal)
@@ -764,12 +771,12 @@ namespace GameServer.PangType
             else if (_medal_win.stMedal.best_recovery == 1)
                 best_recovery++;
         }
-        public byte lucky { get; set; }
-        public byte fast { get; set; }
-        public byte best_drive { get; set; }
-        public byte best_chipin { get; set; }
-        public byte best_puttin { get; set; }
-        public byte best_recovery { get; set; }
+        public int lucky { get; set; }
+        public int fast { get; set; }
+        public int best_drive { get; set; }
+        public int best_chipin { get; set; }
+        public int best_puttin { get; set; }
+        public int best_recovery { get; set; }
     }
     /// <summary>
     /// System time public classure based on Windows uinternal SYSTEMTIME public class
@@ -829,7 +836,7 @@ namespace GameServer.PangType
         {
             get
             {
-                return Year == 0 && Month == 0 && DayOfWeek == 0 && Day == 0 && Hour == 0 && Minute == 0 && Second == 0 && MilliSecond > 0;
+                return Year == 0 && Month == 0 && DayOfWeek == 0 && Day == 0 && Hour == 0 && Minute == 0 && Second == 0 && MilliSecond == 0;
             }
         }
 
@@ -1107,6 +1114,51 @@ namespace GameServer.PangType
 
         public EquipedItem()
         { cad_info = new CaddieInfoEx(); csi = new ClubSetInfo(); comet = new WarehouseItem(); clubset = new WarehouseItem(); mascot_info = new MascotInfoEx(); }
+
+        /// <summary>
+        /// GetCharacter(513 bytes), GetCaddie(0x19 bytes),ClubSet(28 bytes), Mascot(62 bytes), Total Size 634 
+        /// </summary>
+        /// <returns>Select(634 array of byte)</returns>
+        public byte[] Build()
+        {
+            using (var p = new PangyaBinaryWriter())
+            {
+                if (char_info != null && char_info.id != 0)
+                {
+                    p.WriteBytes(char_info.Build());
+                }
+                else
+                {
+                    p.WriteZero(Marshal.SizeOf(new CharacterInfo()));
+                }
+
+                // CWriteie Info
+                if (cad_info != null && cad_info.id != 0)
+                {
+                    p.WriteBytes(cad_info.Build());
+                }
+                else
+                {
+                    p.WriteZero(Marshal.SizeOf(new CaddieInfo()));
+                }
+
+                // Club Set Info
+                p.WriteBytes(csi.Build());
+
+                // Mascot Info
+                if (mascot_info != null && mascot_info.id != 0)
+                {
+                    p.WriteBytes(mascot_info.Build());
+                }
+                else
+                {
+                    p.WriteZero(new MascotInfo().SizeOfS());
+                }
+
+                return p.GetBytes;
+            }
+        }
+    
     }
 
     // Itens Equipado do Player
@@ -2089,6 +2141,27 @@ namespace GameServer.PangType
                 ucc_img_mark = "";                                  
                 ucUnknown3 = new byte[3]; 
             }
+
+            public byte[] Build()
+            {
+                using (var p = new PangyaBinaryWriter())
+                {
+
+                    p.WriteUInt32(id);
+                    p.WriteUInt32(_typeid);
+                    p.WriteByte(flag_time);
+                    p.WriteUInt32(qntd);
+                    p.WriteUInt32(tempo_qntd);
+                    p.WriteUInt64(pang);
+                    p.WriteUInt64(cookie);
+                    p.WriteUInt32(gm_id);
+                    p.WriteUInt32(flag_gift);
+                    p.WriteStr(ucc_img_mark, 9);//[9];
+                    p.WriteBytes(ucUnknown3, 3);//[3];
+                    p.WriteInt16(type);
+                    return p.GetBytes;
+                }
+            }
         }
         public List<item> itens;
     }
@@ -2115,16 +2188,39 @@ namespace GameServer.PangType
     public class MailBox
     {
         public uint id;
-        [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 30)]
-        public string from_id;// [30];
-        [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 80)]
-        public string msg;// [80];
+        [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 30)]
+        public byte[] from_id_bytes;// [30];
+        public string from_id { get=> from_id_bytes.GetString(); set=> from_id_bytes.SetString(value); }
+        [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 80)]
+        public byte[] msg_bytes;// [80];
+        public string msg { get => msg_bytes.GetString(); set => msg_bytes.SetString(value); }
         [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 18)]
         public byte[] unknown2;// [18];
         public uint visit_count;
         public byte lida_yn;
         public uint item_num;           // Número de itens que tem nesse anexado a esse email
         public EmailInfo.item item;
+        public MailBox()
+        {
+            from_id_bytes = new byte[30];
+            msg_bytes = new byte[80];
+        }
+
+        public byte[] Build()
+        {
+            using (var p = new PangyaBinaryWriter())
+            {
+                p.WriteUInt32(id);
+                p.WriteStr(from_id, 30);// [30]);
+                p.WriteStr(msg, 80);// [80]);
+                p.WriteBytes(unknown2, 18);// [18]);
+                p.WriteUInt32(visit_count);
+                p.WriteByte(lida_yn);
+                p.WriteUInt32(item_num);        
+                p.WriteBytes(item.Build());
+                return p.GetBytes;
+            }
+        }
     }
 
     //// Ticket Report Scroll Info
@@ -2465,6 +2561,40 @@ namespace GameServer.PangType
         public short[] pro_6;     // Ouro, Prata e Bronze
         [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 3)]
         public short[] pro_7;		// Ouro, Prata e Bronze
+
+        public byte[] Build()
+        {
+            using (var p = new PangyaBinaryWriter())
+            {
+                for (int i = 0; i < 3; i++)
+                    p.WriteInt16(ama_6[i]);     // Ouro, Prata e Bronze
+                for (int i = 0; i < 3; i++)
+                    p.WriteInt16(ama_5[i]);     // Ouro, Prata e Bronze
+                for (int i = 0; i < 3; i++)
+                    p.WriteInt16(ama_4[i]);     // Ouro, Prata e Bronze
+                for (int i = 0; i < 3; i++)
+                    p.WriteInt16(ama_3[i]);     // Ouro, Prata e Bronze
+                for (int i = 0; i < 3; i++)
+                    p.WriteInt16(ama_2[i]);     // Ouro, Prata e Bronze
+                for (int i = 0; i < 3; i++)
+                    p.WriteInt16(ama_1[i]);     // Ouro, Prata e Bronze
+                for (int i = 0; i < 3; i++)
+                    p.WriteInt16(pro_1[i]);     // Ouro, Prata e Bronze
+                for (int i = 0; i < 3; i++)
+                    p.WriteInt16(pro_2[i]);     // Ouro, Prata e Bronze
+                for (int i = 0; i < 3; i++)
+                    p.WriteInt16(pro_3[i]);     // Ouro, Prata e Bronze
+                for (int i = 0; i < 3; i++)
+                    p.WriteInt16(pro_4[i]);     // Ouro, Prata e Bronze
+                for (int i = 0; i < 3; i++)
+                    p.WriteInt16(pro_5[i]);     // Ouro, Prata e Bronze
+                for (int i = 0; i < 3; i++)
+                    p.WriteInt16(pro_6[i]);     // Ouro, Prata e Bronze
+                for (int i = 0; i < 3; i++)
+                    p.WriteInt16(pro_7[i]);		// Ouro, Prata e Bronze
+                return p.GetBytes;
+            }
+        }
     }
 
 
@@ -2509,8 +2639,11 @@ namespace GameServer.PangType
         public uint getTitle()
         {
             return skin_typeid[5];// Titulo Typeid
-        }
-
+        }            
+        /// <summary>
+        /// Size = 116 Bytes
+        /// </summary>
+        /// <returns></returns>
         public byte[] Build()
         {
             using (var p = new PangyaBinaryWriter())
@@ -2532,6 +2665,8 @@ namespace GameServer.PangType
                 p.WriteUInt32(mascot_id);
                 for (int i = 0; i < 2; i++)
                     p.WriteUInt32(poster[i]);     // Poster, tem 2 o poster A e poster B
+                if (p.GetSize == 116)
+                    Console.WriteLine("EquipData Size Okay");
 
                 return p.GetBytes;
             }
@@ -2619,33 +2754,25 @@ namespace GameServer.PangType
         public byte purchase;
         public short check_end;
 
-        public byte[] Build()
-        {
-            using (var p = new PangyaBinaryWriter())
-            {                      
-                p.WriteUInt32(id);
-                p.WriteUInt32(_typeid);
-                p.WriteUInt32(parts_typeid);
-                p.WriteByte(level);
-                p.WriteUInt32(exp);
-                p.WriteByte(rent_flag);
-                p.WriteInt16(end_date_unix);
-                p.WriteInt16(parts_end_date_unix);
-                p.WriteByte(purchase);
-                p.WriteInt16(check_end);
-                return p.GetBytes;
-            }
-        }
     }
 
     // Caddie Info Ex
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public class CaddieInfoEx : CaddieInfo
     {
+        public PangyaTime end_date;
+        public PangyaTime end_parts_date;
+        public bool need_update;         // Precisa Atulizar para o cliente
+
+        public CaddieInfoEx()
+        {
+            end_date = new PangyaTime();
+            end_parts_date = new PangyaTime();
+        }
         public void updatePartsEndDate()
         {
 
-            ulong diff_end_parts_date = (ulong)(end_parts_date.IsEmpty ? 0 : 0/* getLocalTimeDiffDESC(end_parts_date)*/);
+            ulong diff_end_parts_date = (ulong)(end_parts_date.IsEmpty ? 0 : UtilTime.GetLocalDateDiffDESC(end_parts_date.ConvertTime()));
 
             // Não tem mais o parts _typeid acabou o tempo dela
             if (diff_end_parts_date <= 0)
@@ -2664,40 +2791,68 @@ namespace GameServer.PangType
 
             }
             else
-                parts_end_date_unix = (short)((diff_end_parts_date /= 0) == 0 ? 1 : (short)diff_end_parts_date);
+                parts_end_date_unix = (short)((diff_end_parts_date /= _Define.STDA_10_MICRO_PER_HOUR) == 0 ? 1 : (short)diff_end_parts_date);
 
         }
         public void updateEndDate()
         {
 
-            ulong diff_end_date = (ulong)(end_date.IsEmpty ? 0 : 0/*  getLocalTimeDiffDESC(end_date) */);
+            ulong diff_end_date = (ulong)(end_date.IsEmpty ? 0 : UtilTime.GetLocalDateDiffDESC(end_date.ConvertTime()));
 
             if (diff_end_date <= 0)
                 end_date_unix = 0;
             else
-                end_date_unix = (short)((diff_end_date /= 0) == 0 ? 1 : (short)diff_end_date);
+                end_date_unix = ((short)((diff_end_date /= _Define.STDA_10_MICRO_PER_DAY) == 0 ? 1/*Less 1 Day, bot not left time*/ : (short)diff_end_date));
 
         }
-        public CaddieInfo getInfo()
-        {
 
+        //precisa ser o CaddieInfoEx mesmo, depois modifico
+        public void Check()
+        {           
             // Update Timestamp Unix of caddie and caddie Parts
 
             // End Date Unix Update 
             updateEndDate();
 
             // Parts End Date Unix Update
-            updatePartsEndDate();
-
-            return this;
+            
+            updatePartsEndDate();   
         }
-        public PangyaTime end_date;
-        public PangyaTime end_parts_date;
-        public bool need_update;         // Precisa Atulizar para o cliente
-        public CaddieInfoEx()
+        /// <summary>
+        /// Size = 25 (0x19)
+        /// </summary>
+        /// <param name="is_login"></param>
+        /// <returns></returns>
+        public byte[] Build(bool is_login = true)
         {
-            end_date = new PangyaTime();
-            end_parts_date = new PangyaTime();
+            try
+            {
+                if (!is_login)
+                    Check();
+
+                using (var p = new PangyaBinaryWriter())
+                {
+                    p.WriteUInt32(id);
+                    p.WriteUInt32(_typeid);
+                    p.WriteUInt32(parts_typeid);
+                    p.WriteByte(level);
+                    p.WriteUInt32(exp);
+                    p.WriteByte(rent_flag);
+                    p.WriteInt16(end_date_unix);
+                    p.WriteInt16(parts_end_date_unix);
+                    p.WriteByte(purchase);
+                    p.WriteInt16(check_end);
+
+                    if (p.GetSize == 0x19)
+                        Console.WriteLine("GetCaddieInfo Size Okay");
+
+                    return p.GetBytes;
+                }
+            }
+            catch (Exception e)
+            {               
+                throw e;
+            }
         }
     }
 
@@ -2723,6 +2878,10 @@ namespace GameServer.PangType
             slot_c = new short[5];
             enchant_c = new short[5];
         }
+        /// <summary>
+        /// Size = 28 bytes (0x)
+        /// </summary>
+        /// <returns></returns>
         public byte[] Build()
         {
             using (var p = new PangyaBinaryWriter())
@@ -2735,6 +2894,8 @@ namespace GameServer.PangType
 
                 for (int i = 0; i < 5; i++)
                     p.WriteInt16(enchant_c[i]);// [5];     // Enchant Club, Força, controle, spin e etc
+                if (p.GetSize == 28)
+                    Console.WriteLine("GetClubData Size Okay");
 
                 return p.GetBytes;  
             }
@@ -2763,9 +2924,12 @@ namespace GameServer.PangType
         }
 
 
-
+        /// <summary>
+        /// Size = 62 bytes(0x3E)
+        /// </summary>
+        /// <returns></returns>
         public byte[] Build()
-        {
+        {                   
             using (var p = new PangyaBinaryWriter())
             {
                 p.WriteUInt32(id);
@@ -3123,7 +3287,7 @@ namespace GameServer.PangType
     }
 
     // Attendence Reward Info
-    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public class AttendanceRewardInfo
     {
         [StructLayout(LayoutKind.Sequential, Pack = 4)]
@@ -3133,9 +3297,9 @@ namespace GameServer.PangType
             public uint qntd;
         }
         public byte login;
-        [field: MarshalAs(UnmanagedType.Struct, SizeConst = 8)]
+        [field: MarshalAs(UnmanagedType.Struct)]
         public item now;
-        [field: MarshalAs(UnmanagedType.Struct, SizeConst = 8)]
+        [field: MarshalAs(UnmanagedType.Struct)]
         public item after;
         public uint counter;
         public AttendanceRewardInfo()

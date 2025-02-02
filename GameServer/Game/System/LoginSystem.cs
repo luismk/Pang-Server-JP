@@ -1108,7 +1108,7 @@ namespace GameServer.Game.System
 
                 var pi = _session.m_pi;
                 // Envia todos pacotes aqui, alguns envia antes, por que agora estou usando o jeito o pangya original   
-                _session.Send(packet_func.pacote044(Program.gs.m_si, 0, pi));
+                _session.Send(packet_func.pacote044(Program.gs.m_si, 0, pi), true);
                                                
                 _session.Send(packet_func.pacote070(pi.mp_ce)); // characters
                                                               

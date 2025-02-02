@@ -44,7 +44,7 @@ namespace PangyaAPI.SQL
             var value = data[column];
 
             // Verifica se o valor é nulo ou uma string vazia
-            if (value == null || (value is object _obj && value is System.DBNull))
+            if (value == null || (value is System.DBNull))
             {
                 return false;
             }

@@ -445,7 +445,7 @@ namespace GameServer.Game
             //if (packet_func.pacote047(p, v_ri, 0))
             //    packet_func.session_send(ref p, _session, 0);
 
-            _session.SendChannel_broadcast(this, packet_func.pacote046(pci == null ? new vector<PlayerCanalInfo>() : new vector<PlayerCanalInfo>(pci), 1));
+            _session.SendChannel_broadcast(packet_func.pacote046(pci == null ? new vector<PlayerCanalInfo>() : new vector<PlayerCanalInfo>(pci), 1));
 
             v_pci.Clear();
         }

@@ -55,19 +55,19 @@ namespace PangyaAPI.Network.PangyaSession
             SessionBase session = null;
             lock (_lockObject)
             {
-                int index = FindSessionFree();
-                if (index == -1)
+                uint index = findSessionFree();
+                if (index == uint.MaxValue)
                 {
                     throw new InvalidOperationException("[SessionManager::AddSession] Already reached session limit.");
                 }
                 //socket.ReceiveTimeout = 60000; // 20 segundos
                 //socket.SendTimeout = 60000;
-                session = m_sessions[index];
+                session = m_sessions[(int)index];
                 session._client = socket;
                 session.Server = _server;// server! 
                 session.Address = address;
                 session.m_key = key;
-                session.m_oid = (uint)index;
+                session.m_oid = index;
                 session.m_start_time = Environment.TickCount;
                 session.m_tick = Environment.TickCount;
 
@@ -216,16 +216,16 @@ namespace PangyaAPI.Network.PangyaSession
             return _isInit;
         }
 
-        private int FindSessionFree()
+        public virtual uint findSessionFree()
         {
-            for (int i = 0; i < m_sessions.Count; i++)
+            for (uint i = 0; i < m_sessions.Count; i++)
             {
-                if (m_sessions[i]._client == null)
+                if (m_sessions[(int)i].m_oid == uint.MaxValue)
                 {
                     return i;
                 }
             }
-            return -1;
+            return uint.MaxValue;
         }
     }
 }

@@ -125,7 +125,7 @@ namespace PangyaAPI.Network.PangyaServer
         private void HandleWaitConnections()
         {
             while (_isRunning)
-            { 
+            {
                 try
                 {
 
@@ -372,7 +372,7 @@ namespace PangyaAPI.Network.PangyaServer
                 if (CheckPacket(session, packet))
                 {
                     if (func != null && func.ExecCmd(pd) != 0)
-                    {                                                                                         
+                    {
                         _smp.message_pool.push(new message($"[Server.DispatchPacketSameThread][Error] Ao tratar o pacote. ID: {packet.Id}(0x{packet.Id:X}). Hex:\n\r" + pd._packet.Log(), type_msg.CL_FILE_LOG_AND_CONSOLE));
                         //pode dar dc aqui por que o pacote nao e reconhecido!
                         //@@@@
@@ -565,10 +565,11 @@ namespace PangyaAPI.Network.PangyaServer
                     Thread.Sleep(300/*espera 300 miliseconds até o session_manager ser inicializado*/);
 
             }
-            catch (exception e) {
+            catch (exception e)
+            {
                 _smp::message_pool.push(new message("[server::disconnect_session][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
-            }
+        }
         public virtual SessionBase FindSession(uint _uid, bool _oid = false)
         {
             return (_oid ? m_session_manager.FindSessionByOid(_uid) : m_session_manager.FindSessionByUid(_uid));
@@ -585,20 +586,20 @@ namespace PangyaAPI.Network.PangyaServer
             Console.WriteLine($"[server::DisconnectSession][Log] PLAYER[IP: {_session.getIP()}, Key: {_session.m_key}, Hora: {DateTime.Now}]");
 
             // Notifica que a desconexão ocorreu
-                             if(_session.getConnected())
+            if (_session.getConnected())
                 onDisconnected(_session);
 
             bool result;
             try
             {
                 // Remove a sessão do gerenciador        
-                    result = m_session_manager.DeleteSession(_session);    
+                result = m_session_manager.DeleteSession(_session);
             }
             catch (Exception ex)
             {
                 result = false;
                 Console.WriteLine($"[server::DisconnectSession][Error] Erro ao deletar sessão: {ex.Message}");
-            }                                           
+            }
             return result;
         }
 

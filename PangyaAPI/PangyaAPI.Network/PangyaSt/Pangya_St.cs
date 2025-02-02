@@ -533,7 +533,10 @@ namespace PangyaAPI.Network.Pangya_St
                 //    parts_typeid[i] = part_typeid;
             }
         }
-
+        /// <summary>
+        /// Size = 513 bytes
+        /// </summary>
+        /// <returns></returns>
         public byte[] Build()
         {
             using (var p = new PangyaBinaryWriter())
@@ -571,7 +574,9 @@ namespace PangyaAPI.Network.Pangya_St
                     p.WriteUInt32(Card_Character[i]);
                 
                 for (int i = 0; i < 4; i++)
-                    p.WriteUInt32(Card_NPC[i]);                                        
+                    p.WriteUInt32(Card_NPC[i]);
+                if (p.GetSize == 513)
+                    Console.WriteLine("GetCharacterInfo Size Okay");
 
                 return p.GetBytes;
             }

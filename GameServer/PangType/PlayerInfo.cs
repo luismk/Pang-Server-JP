@@ -255,11 +255,9 @@ namespace GameServer.PangType
         public DolfiniLocker df { get; set; }   // DolfiniLocker
         public GuildInfoEx gi { get; set; }
         public DailyQuestInfoUser dqiu { get; set; }
-        public Last5PlayersGame l5pg { get; set; }
-        public Channel _Channel { get; set; }
+        public Last5PlayersGame l5pg { get; set; }               
         public class stLocation
-        {
-
+        {                                                    
             public float x { get; set; }
             public float y { get; set; }
             public float z { get; set; }

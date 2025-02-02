@@ -24,13 +24,14 @@ namespace GameServer.Session
             public byte getFlag()
             { return ucFlag; }
         }
-       
+
         SortedList<uint, uIndexOID> m_indexes;		// Index de OID
 
         public player_manager(uint _max_session) : base(_max_session)
         {
             if (_max_session != 0)
-            {            
+            {
+                m_indexes = new SortedList<uint, uIndexOID>();
                 for (var i = 0u; i < _max_session; ++i)
                     m_sessions.Add(new Player() { m_oid = uint.MaxValue });
             }
@@ -40,7 +41,7 @@ namespace GameServer.Session
         public new void Clear()
         {
             base.Clear();
-            if (m_indexes !=null && m_indexes.Count >0)
+            if (m_indexes != null && m_indexes.Count > 0)
                 m_indexes.Clear();
         }
 
@@ -76,25 +77,26 @@ namespace GameServer.Session
 
         // Override methods
         public override bool DeleteSession(SessionBase _session)
-        {                                                       
+        {
 
             if (_session == null)
                 throw new exception("[player_manager::deleteSession][ERR_SESSION] _session is nullptr.");
 
 
-            bool ret = true;
-             
+
             // Block SessionBase
 
-            uint tmp_oid = _session.m_oid;
-			if ((ret = _session.Clear()))
-                {
+            uint tmp_oid = _session.m_oid;    
 
-            // Libera OID
-            freeOID(tmp_oid/*_session.m_oid*/);
+            bool ret;
+            if ((ret = _session.Clear()))
+            {
 
-                    m_count--;
-                }  
+                // Libera OID
+                freeOID(tmp_oid/*_session.m_oid*/);
+
+                m_count--;
+            }
             return ret;
         }
 
@@ -102,7 +104,7 @@ namespace GameServer.Session
 
         public void blockOID(uint _oid)
         {
-            var it = m_indexes.Where(c=> c.Key == _oid).FirstOrDefault();
+            var it = m_indexes.Where(c => c.Key == _oid).FirstOrDefault();
 
             if (it.Value != null)
                 it.Value.flag.block = 1;	// Block
@@ -124,10 +126,10 @@ namespace GameServer.Session
         public static void checkWarehouse(Player _session) { }
 
         // Sem proteção de sincronização, chamar ela em uma função thread safe(thread com seguranção de sincronização)
-        public uint findSessionFree()
+        public override uint findSessionFree()
         {
             for (var i = 0; i < m_sessions.Count; ++i)
-                if (m_sessions[i] == null)
+                if (m_sessions[i].m_oid == uint.MaxValue)
                     return getNewOID();
 
             return uint.MaxValue;
