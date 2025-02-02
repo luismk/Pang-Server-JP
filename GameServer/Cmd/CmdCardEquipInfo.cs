@@ -20,20 +20,21 @@ namespace GameServer.Cmd
         {
             checkColumnNumber(13);
 
-            CardEquipInfoEx cei = new CardEquipInfoEx();
-
-            cei.index = IFNULL(_result.data[0]);
-            cei._typeid = IFNULL(_result.data[1]);
-            cei.parts_typeid = IFNULL(_result.data[3]);
-            cei.parts_id = IFNULL(_result.data[4]);
-            cei.efeito = IFNULL(_result.data[5]);
-            cei.efeito_qntd = IFNULL(_result.data[6]);
-            cei.slot = IFNULL(_result.data[7]);
-            if (_result.data[8] != null)
+            CardEquipInfoEx cei = new CardEquipInfoEx
+            {
+                index = IFNULL(_result.data[0]),
+                _typeid = IFNULL(_result.data[1]),
+                parts_typeid = IFNULL(_result.data[3]),
+                parts_id = IFNULL(_result.data[4]),
+                efeito = IFNULL(_result.data[5]),
+                efeito_qntd = IFNULL(_result.data[6]),
+                slot = IFNULL(_result.data[7])
+            };
+            if (_result.IsNotNull(8))
             {
                 cei.use_date.CreateTime(_translateDate(_result.data[8]));
             }
-            if (_result.data[9] != null)
+            if (_result.IsNotNull(9))
             {
                 cei.end_date.CreateTime(_translateDate(_result.data[9]));
             }

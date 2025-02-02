@@ -503,60 +503,60 @@ namespace GameServer.PangType
             medal.add(_ui.medal);
 
         }
-        public uint tacada { get; set; }
-        public uint putt { get; set; }
-        public uint tempo { get; set; }
-        public uint tempo_tacada { get; set; }
-        public float best_drive { get; set; }            // Max Distancia
-        public uint acerto_pangya { get; set; }
-        public uint timeout { get; set; }
-        public uint ob { get; set; }
-        public uint total_distancia { get; set; }
-        public uint hole { get; set; }
-        public uint hole_in { get; set; }        // Aqui é os holes que não foram concluídos Ex: Give up, ou no Match o outro player ganho sem precisar do player terminar o hole
-        public uint hio { get; set; }
+        public int tacada { get; set; }
+        public int putt { get; set; }
+        public int tempo { get; set; }
+        public int tempo_tacada { get; set; }
+        public float best_drive { get; set; }           // Max Distancia
+        public int acerto_pangya { get; set; }
+        public int timeout { get; set; }
+        public int ob { get; set; }
+        public int total_distancia { get; set; }
+        public int hole { get; set; }
+        public int hole_in { get; set; }        // Aqui é os holes que não foram concluídos Ex: Give up, ou no Match o outro player ganho sem precisar do player terminar o hole
+        public int hio { get; set; }
         public short bunker { get; set; }
-        public uint fairway { get; set; }
-        public uint albatross { get; set; }
-        public uint mad_conduta { get; set; }    // Aqui é hole in, mas no info não tras ele por que ele já foi salvo no hole alí em cima
-        public uint putt_in { get; set; }
+        public int fairway { get; set; }
+        public int albatross { get; set; }
+        public int mad_conduta { get; set; }    // Aqui é hole in, mas no info não tras ele por que ele já foi salvo no hole alí em cima
+        public int putt_in { get; set; }
         public float best_long_putt { get; set; }
         public float best_chip_in { get; set; }
         public uint exp { get; set; }
         public byte level { get; set; }
-        public ulong pang { get; set; }
-        public uint media_score { get; set; }
+        public UInt64 pang { get; set; }
+        public int media_score { get; set; }
         [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 5)]
         public byte[] best_score { get; set; }              // Best Score Por Estrela, mas acho que o pangya nao usa mais isso
         public byte event_flag { get; set; }
         [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 5)]
-        public long[] best_pang { get; set; }           // Best Pang por Estrela, mas acho que o pangya nao usa mais isso
-        public long sum_pang { get; set; }               // A soma do pangs das 5 estrela acho
-        public uint jogado { get; set; }
-        public uint team_hole { get; set; }
-        public uint team_win { get; set; }
-        public uint team_game { get; set; }
-        public uint ladder_point { get; set; }               // Ladder é o Match acho, de tourneio não sei direito
-        public uint ladder_hole { get; set; }
-        public uint ladder_win { get; set; }
-        public uint ladder_lose { get; set; }
-        public uint ladder_draw { get; set; }
-        public uint combo { get; set; }
-        public uint all_combo { get; set; }
-        public uint quitado { get; set; }
-        public long skin_pang { get; set; }          // Skin é o Pang Battle tem valor negativo ele """##### Ajeitei agora(ACHO)
-        public uint skin_win { get; set; }
-        public uint skin_lose { get; set; }
-        public uint skin_all_in_count { get; set; }
+        public Int64[] best_pang { get; set; }          // Best Pang por Estrela, mas acho que o pangya nao usa mais isso
+        public Int64 sum_pang { get; set; }             // A soma do pangs das 5 estrela acho
+        public int jogado { get; set; }
+        public int team_hole { get; set; }
+        public int team_win { get; set; }
+        public int team_game { get; set; }
+        public int ladder_point { get; set; }               // Ladder é o Match acho, de tourneio não sei direito
+        public int ladder_hole { get; set; }
+        public int ladder_win { get; set; }
+        public int ladder_lose { get; set; }
+        public int ladder_draw { get; set; }
+        public int combo { get; set; }
+        public int all_combo { get; set; }
+        public int quitado { get; set; }
+        public long skin_pang { get; set; }         // Skin é o Pang Battle tem valor negativo ele """##### Ajeitei agora(ACHO)
+        public int skin_win { get; set; }
+        public int skin_lose { get; set; }
+        public int skin_all_in_count { get; set; }
         public int skin_run_hole { get; set; }              // Correu desistiu (ACHO)
-        public uint skin_strike_point { get; set; }          // Antes era o nao_sei
-        public uint jogados_disconnect { get; set; }     // Antes era o jogos_nao_sei
+        public int skin_strike_point { get; set; }          // Antes era o nao_sei
+        public int jogados_disconnect { get; set; }     // Antes era o jogos_nao_sei
         public short event_value { get; set; }
-        public uint disconnect { get; set; }             // Vou deixar aqui o disconect count (antes era skin_strike_point)
+        public int disconnect { get; set; }             // Vou deixar aqui o disconect count (antes era skin_strike_point)
         [field: MarshalAs(UnmanagedType.Struct, SizeConst = 6)]
         public stMedal medal { get; set; }
-        public uint sys_school_serie { get; set; }           // Sistema antigo do pangya JP que era de Serie de escola, respondia as perguntas se passasse ia pra outra serie é da 1° a 5°
-        public uint game_count_season { get; set; }
+        public int sys_school_serie { get; set; }           // Sistema antigo do pangya JP que era de Serie de escola, respondia as perguntas se passasse ia pra outra serie é da 1° a 5°
+        public int game_count_season { get; set; }
         public short _16bit_nao_sei { get; set; }
         public float getMediaScore()
         {   // AVG SCORE
@@ -660,59 +660,59 @@ namespace GameServer.PangType
         {
             using (var p = new PangyaBinaryWriter())
             {
-                p.WriteUInt32(tacada);
-                p.WriteUInt32(putt);
-                p.WriteUInt32(tempo);
-                p.WriteUInt32(tempo_tacada);
+                p.WriteInt32(tacada);
+                p.WriteInt32(putt);
+                p.WriteInt32(tempo);
+                p.WriteInt32(tempo_tacada);
                 p.Write(best_drive);           // Max Distancia
-                p.WriteUInt32(acerto_pangya);
-                p.WriteUInt32(timeout);
-                p.WriteUInt32(ob);
-                p.WriteUInt32(total_distancia);
-                p.WriteUInt32(hole);
-                p.WriteUInt32(hole_in);       // Aqui é os holes que não foram concluídos Ex: Give up, ou no Match o outro player ganho sem precisar do player terminar o hole
-                p.WriteUInt32(hio);
+                p.WriteInt32(acerto_pangya);
+                p.WriteInt32(timeout);
+                p.WriteInt32(ob);
+                p.WriteInt32(total_distancia);
+                p.WriteInt32(hole);
+                p.WriteInt32(hole_in);       // Aqui é os holes que não foram concluídos Ex: Give up, ou no Match o outro player ganho sem precisar do player terminar o hole
+                p.WriteInt32(hio);
                 p.WriteInt16(bunker);
-                p.WriteUInt32(fairway);
-                p.WriteUInt32(albatross);
-                p.WriteUInt32(mad_conduta);   // Aqui é hole in, mas no info não tras ele por que ele já foi salvo no hole alí em cima
-                p.WriteUInt32(putt_in);
+                p.WriteInt32(fairway);
+                p.WriteInt32(albatross);
+                p.WriteInt32(mad_conduta);   // Aqui é hole in, mas no info não tras ele por que ele já foi salvo no hole alí em cima
+                p.WriteInt32(putt_in);
                 p.Write(best_long_putt);
                 p.Write(best_chip_in);
                 p.WriteUInt32(exp);
                 p.WriteByte(level);
                 p.WriteUInt64(pang);
-                p.WriteUInt32(media_score);             // Best Score Por Estrela, mas acho que o pangya nao usa mais isso
+                p.WriteInt32(media_score);             // Best Score Por Estrela, mas acho que o pangya nao usa mais isso
                 for (int i = 0; i < 5; i++)
                     p.WriteByte(best_score[i]);
                 p.WriteByte(event_flag);
                 for (int i = 0; i < 5; i++)
                     p.WriteInt64(best_pang[i]);
                 p.WriteInt64(sum_pang);              // A soma do pangs das 5 estrela acho
-                p.WriteUInt32(jogado);
-                p.WriteUInt32(team_hole);
-                p.WriteUInt32(team_win);
-                p.WriteUInt32(team_game);
-                p.WriteUInt32(ladder_point);              // Ladder é o Match acho, de tourneio não sei direito
-                p.WriteUInt32(ladder_hole);
-                p.WriteUInt32(ladder_win);
-                p.WriteUInt32(ladder_lose);
-                p.WriteUInt32(ladder_draw);
-                p.WriteUInt32(combo);
-                p.WriteUInt32(all_combo);
-                p.WriteUInt32(quitado);
+                p.WriteInt32(jogado);
+                p.WriteInt32(team_hole);
+                p.WriteInt32(team_win);
+                p.WriteInt32(team_game);
+                p.WriteInt32(ladder_point);              // Ladder é o Match acho, de tourneio não sei direito
+                p.WriteInt32(ladder_hole);
+                p.WriteInt32(ladder_win);
+                p.WriteInt32(ladder_lose);
+                p.WriteInt32(ladder_draw);
+                p.WriteInt32(combo);
+                p.WriteInt32(all_combo);
+                p.WriteInt32(quitado);
                 p.WriteInt64(skin_pang);         // Skin é o Pang Battle tem valor negativo ele """##### Ajeitei agora(ACHO)
-                p.WriteUInt32(skin_win);
-                p.WriteUInt32(skin_lose);
-                p.WriteUInt32(skin_all_in_count);
+                p.WriteInt32(skin_win);
+                p.WriteInt32(skin_lose);
+                p.WriteInt32(skin_all_in_count);
                 p.WriteInt32(skin_run_hole);             // Correu desistiu (ACHO)
-                p.WriteUInt32(skin_strike_point);         // Antes era o nao_sei
-                p.WriteUInt32(jogados_disconnect);    // Antes era o jogos_nao_sei
+                p.WriteInt32(skin_strike_point);         // Antes era o nao_sei
+                p.WriteInt32(jogados_disconnect);    // Antes era o jogos_nao_sei
                 p.WriteInt16(event_value);
-                p.WriteUInt32(disconnect);            // Vou deixar aqui o disconect count (antes era skin_strike_point)
+                p.WriteInt32(disconnect);            // Vou deixar aqui o disconect count (antes era skin_strike_point)
                 p.WriteStruct(medal, new stMedal());
-                p.WriteUInt32(sys_school_serie);          // Sistema antigo do pangya JP que era de Serie de escola, respondia as perguntas se passasse ia pra outra serie é da 1° a 5°
-                p.WriteUInt32(game_count_season);
+                p.WriteInt32(sys_school_serie);          // Sistema antigo do pangya JP que era de Serie de escola, respondia as perguntas se passasse ia pra outra serie é da 1° a 5°
+                p.WriteInt32(game_count_season);
                 p.WriteInt16(_16bit_nao_sei);
                 if (p.Size == 260)
                     Console.WriteLine("UserInfo Size Okay");
@@ -3316,7 +3316,7 @@ namespace GameServer.PangType
     {
         public uint uid;
         [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 17)]
-        public string name;
+        public string name { get; set; }
         public uint point;
         public uint pang;
         public uint total_member;
@@ -3441,12 +3441,11 @@ namespace GameServer.PangType
                 Response.WriteByte(id); //Lobby ID
                 Response.WriteUInt32(flag.ulFlag); //ルーム制限あるね- channel flag
                 Response.WriteUInt32(flag2); //メンテナンス表記+ナチュラルマーク- flag2
-                Response.WriteUInt32(max_level_allow); //メンテナンス表記+Granplix
                 Response.WriteUInt32(min_level_allow); //メンテナンス表記+なんか    
+                Response.WriteUInt32(max_level_allow); //メンテナンス表記+Granplix
                 return Response.GetBytes;
             }
         }
-
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 4)]

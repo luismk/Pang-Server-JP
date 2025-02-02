@@ -23,12 +23,12 @@ namespace GameServer.GameServerTcp
         public int m_access_flag { get; private set; }
         public int m_create_user_flag { get; private set; }
         public int m_same_id_login_flag { get; private set; }
-        DailyQuestInfo m_dqi;                                   
+        DailyQuestInfo m_dqi;
         protected List<Channel> v_channel;
         public GameServerBase() : base(new player_manager(2000))
         {
-            v_channel = new List<Channel>();         
-            m_player_manager = new player_manager(2000); 
+            v_channel = new List<Channel>();
+            m_player_manager = new player_manager(2000);
             ConfigInit();
             init_Packets();
             init_load_channels();
@@ -72,24 +72,11 @@ namespace GameServer.GameServerTcp
 
                 _smp.message_pool.push(("[GameServer::config_init][ErrorSystem] Config.FLAG" + e.getFullMessageError()));
             }
-
-            // Game Guard Auth
-            try
-            {
-
-                // m_g = (m_reader_ini.readInt("SERVERINFO", "GAMEGUARDAUTH") >= 1 ? 1 : 0);
-
-            }
-            catch (exception e)
-            {
-
-                _smp.message_pool.push(("[GameServer::config_init][ErrorSystem] Config.GAMEGUARDAUTH. " + e.getFullMessageError()));
-            }
-
+                                   
 
             // Recupera Valores de rate do gs do banco de dados
             var cmd_rci = new CmdRateConfigInfo(m_si.uid);  // Waiter
-                                                
+
             if (cmd_rci.getException().getCodeError() != 0 || cmd_rci.isError()/*Deu erro na consulta não tinha o rate config info para esse gs, pode ser novo*/)
             {
 
@@ -202,7 +189,7 @@ namespace GameServer.GameServerTcp
 
             switch (_msg_id)
             {
-                
+
                 default:
                     {
                         break;
@@ -217,9 +204,9 @@ namespace GameServer.GameServerTcp
 
 
         public virtual void clear() { }
-                           
+
         public virtual void sendServerListAndChannelListToSession(Player _session)
-        {                                                                 
+        {
             _session.Send(packet_func.pacote09F(m_server_list, v_channel));
         }
         public virtual void sendDateTimeToSession(Player _session)
@@ -235,66 +222,32 @@ namespace GameServer.GameServerTcp
 
         public virtual void sendRankServer(Player _session) { }
 
-        public virtual Channel findChannel(byte _channel) { return v_channel.Find(c => c.getId() == _channel); }
+        public virtual Channel findChannel(byte _channel) {
+            if (_channel == 255)
+                return null;
 
-        public virtual Player findPlayer(uint _uid, bool _oid = false) { return null; }
+            for (var i = 0; i < v_channel.Count; ++i)
+                if (v_channel[i].getId() == _channel)
+                    return v_channel[i];
+
+            return null;
+        }
+
+        public virtual Player findPlayer(uint _uid, bool _oid = false)
+        {
+            return m_player_manager.findPlayer(_uid, _oid);
+        }
 
         // find All GM Online
-        public virtual List<Player> findAllGM() { return null; }
+        public virtual List<Player> findAllGM()
+        {
+            return m_player_manager.findAllGM();
+        }
 
         public virtual void blockOID(uint _oid) { }
         public virtual void unblockOID(uint _oid) { }
 
-        DailyQuestInfo getDailyQuestInfo() { return m_dqi; }           
-        // Login
-        public virtual void requestLogin(Player _session, Packet _Packet) { }
-
-        // Channel
-        public virtual void requestEnterChannel(Player _session, Packet _Packet) { }
-
-        public virtual void requestEnterOtherChannelAndLobby(Player _session, Packet _Packet) { }
-
-        // Change Server
-        public virtual void requestChangeServer(Player _session, Packet _Packet) { }
-
-        // UCC::Self Design System [Info, Save, Web Key]
-        public virtual void requestUCCWebKey(Player _session, Packet _Packet) { }
-        public virtual void requestUCCSystem(Player _session, Packet _Packet) { }
-
-        // Chat
-        public virtual void requestChat(Player _session, Packet _Packet) { }
-
-        // Chat Macro
-        public virtual void requestChangeChatMacroUser(Player _session, Packet _Packet) { }
-
-        // Request Player Info
-        public virtual void requestPlayerInfo(Player _session, Packet _Packet) { }
-
-        // Private message
-        public virtual void requestPrivateMessage(Player _session, Packet _Packet) { }
-        public virtual void requestChangeWhisperState(Player _session, Packet _Packet) { }
-        public virtual void requestNotifyNotDisplayPrivateMessageNow(Player _session, Packet _Packet) { }
-
-        // Command GM
-        public virtual void requestCommonCmdGM(Player _session, Packet _Packet) { }
-        public virtual void requestCommandNoticeGM(Player _session, Packet _Packet) { }
-
-        // Request translate Sub Packet
-        public virtual void requestTranslateSubPacket(Player _session, Packet _Packet) { }
-
-        // Ticker
-        public virtual void requestSendNotice(string notice) { }
-
-        public virtual void requestSendTicker(Player _session, Packet _Packet) { }
-        public virtual void requestQueueTicker(Player _session, Packet _Packet) { }
-
-        // Exception Client message
-        public virtual void requestExceptionClientMessage(Player _session, Packet _Packet) { }
-
-        // Game Guard Auth
-        public virtual void requestCheckGameGuardAuthAnswer(Player _session, Packet _Packet) { }
-
-        // Set rate Server
+        DailyQuestInfo getDailyQuestInfo() { return m_dqi; }
 
         // Set Event Server
         public virtual void setAngelEvent(uint _angel_event) { }
@@ -306,13 +259,10 @@ namespace GameServer.GameServerTcp
         //	public virtual void sendUpdateRoomInfo(room _r, int _option) { }
 
 
-        player_manager m_player_manager;
-
-
-        public virtual bool checkCommand(string[] _command) { return true; }
-
-        public virtual void reload_files() { }
-
+        public player_manager m_player_manager;
+                                         
+        public virtual bool checkCommand(string[] _command) { return true; }      
+        public virtual void reload_files() { }                                                                                                                      
         public virtual void init_systems() { }
         public virtual void init_Packets()
         {
@@ -528,7 +478,7 @@ namespace GameServer.GameServerTcp
                 ci.min_level_allow = m_reader_ini.ReadUInt32("CHANNEL" + (i + 1), "LOWLEVEL");
 
                 try
-                {                 
+                {
                     ci.SetFlag(m_reader_ini.ReadUInt32("CHANNEL" + (i + 1), "FLAG"));
                 }
                 catch (Exception e)
@@ -566,7 +516,7 @@ namespace GameServer.GameServerTcp
         protected override void onAcceptCompleted(SessionBase _session)
         {
             try
-            { 
+            {
                 var Response = new PangyaBinaryWriter();
                 //Gera Packet com chave de criptografia (posisão 8)
                 Response.Write(new byte[] { 0x00, 0x06, 0x00, 0x00, 0x3f, 0x00, 0x01, 0x01 });
@@ -612,14 +562,12 @@ namespace GameServer.GameServerTcp
 
                 _smp::message_pool.push(new message("[GameServer::onDisconnect][Error] " + e.getFullMessageError()));
             }
-
-
         }
 
         //chama alguma coisa aqui!
         public override void OnStart()
         {
-            Console.Title = $"Game Server - P: {m_si.curr_user}";                                             
+            Console.Title = $"Game Server - P: {m_si.curr_user}";
         }
     }
 }

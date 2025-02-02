@@ -79,7 +79,7 @@ namespace PangyaAPI.Network.PangyaSession
             return session;
         }
 
-        public bool DeleteSession(SessionBase session)
+        public virtual bool DeleteSession(SessionBase session)
         {
             if (session == null)
             {
@@ -95,11 +95,11 @@ namespace PangyaAPI.Network.PangyaSession
                 }
 
                 session.Lock();
-
-                session.Clear();
-
-                m_count--;
-
+                                                
+                if ((ret = session.Clear()))
+                {                                            
+                    m_count--;
+                }
                 session.Unlock();
             }
 

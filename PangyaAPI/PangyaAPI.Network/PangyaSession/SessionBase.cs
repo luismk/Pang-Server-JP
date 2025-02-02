@@ -45,7 +45,9 @@ namespace PangyaAPI.Network.PangyaSession
         private bool m_connected;
         private bool m_state;
         private bool m_connectedToSend;
-        private string m_ip;                                 
+        private string m_ip;
+        private bool disposing = false;
+
         #endregion
 
         #region Constructor
@@ -62,8 +64,16 @@ namespace PangyaAPI.Network.PangyaSession
         // Métodos
         public bool Clear()
         {
+            // Se já foi chamado antes e não está pronto para limpar, retorna false
+            if (disposing)
+            {
+                return false;
+            }
+
+            // Se já estava pronto, executa a limpeza
             try
             {
+                disposing = true; // Marca como tentativa de limpeza
                 m_state = false;
                 m_connected = false;
                 m_connectedToSend = false;
@@ -73,10 +83,9 @@ namespace PangyaAPI.Network.PangyaSession
 
                 m_start_time = 0;
                 m_tick = 0;
-
                 m_oid = 0;
+                m_is_authorized = false;                                 
 
-                m_is_authorized = false;
                 Dispose();
                 return true;
             }
@@ -85,6 +94,7 @@ namespace PangyaAPI.Network.PangyaSession
                 return false;
             }
         }
+
 
         public string getIP()
         {

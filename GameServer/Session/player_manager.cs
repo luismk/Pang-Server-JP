@@ -75,28 +75,15 @@ namespace GameServer.Session
         }
 
         // Override methods
-        public bool deleteSession(Player _session)
-        {
+        public override bool DeleteSession(SessionBase _session)
+        {                                                       
+
             if (_session == null)
                 throw new exception("[player_manager::deleteSession][ERR_SESSION] _session is nullptr.");
 
-            if (!_session.getConnected())
-                throw new exception("[player_manager::deleteSession][ERR_SESSION] SESSION[IP=" + _session.getIP() + ", UID="
-                        + ((_session).m_pi.uid) + ", OID=" + (_session.m_oid)
-                        + "] _seession not connected.");
 
             bool ret = true;
-
-
-            if (_session == null)
-            {
-
-
-                throw new exception("[player_manager::deleteSession][ERR_SESSION] SESSION[IP=" + _session.getIP() + ", UID="
-                        + _session.m_pi.uid + ", OID=" + _session.m_oid
-                        + "] _seession not connected.");
-            }
-
+             
             // Block SessionBase
 
             uint tmp_oid = _session.m_oid;

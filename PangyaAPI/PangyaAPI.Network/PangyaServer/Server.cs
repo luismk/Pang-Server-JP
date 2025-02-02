@@ -585,30 +585,20 @@ namespace PangyaAPI.Network.PangyaServer
             Console.WriteLine($"[server::DisconnectSession][Log] PLAYER[IP: {_session.getIP()}, Key: {_session.m_key}, Hora: {DateTime.Now}]");
 
             // Notifica que a desconexão ocorreu
-            onDisconnected(_session);
+                             if(_session.getConnected())
+                onDisconnected(_session);
 
             bool result;
             try
             {
-                // Remove a sessão do gerenciador
-                result = m_session_manager.DeleteSession(_session);
+                // Remove a sessão do gerenciador        
+                    result = m_session_manager.DeleteSession(_session);    
             }
             catch (Exception ex)
             {
                 result = false;
                 Console.WriteLine($"[server::DisconnectSession][Error] Erro ao deletar sessão: {ex.Message}");
-            }
-
-            // Certifica-se de limpar recursos da sessão
-            try
-            {
-                _session.Dispose();
-            }
-            catch (Exception disposeEx)
-            {
-                Console.WriteLine($"[server::DisconnectSession][Error] Erro ao liberar recursos da sessão: {disposeEx.Message}");
-            }
-
+            }                                           
             return result;
         }
 

@@ -177,8 +177,8 @@ namespace GameServer.Game
             // Player Canal Info Update
             pci.uid = _session.m_pi.uid;
             pci.oid = _session.m_oid;
-            pci.sala_numero = _session.m_pi.mi.sala_numero;                                                       
-            pci.level = (byte)_session.m_pi.level;       
+            pci.sala_numero = _session.m_pi.mi.sala_numero;
+            pci.level = (byte)_session.m_pi.level;
             pci.team_point = 1000;
             pci.flag_visible_gm = 0;
             pci.capability = _session.m_pi.mi.capability;
@@ -285,7 +285,7 @@ namespace GameServer.Game
                     + "] ja esta conectado em outro canal.");
 
             addSession(_session);
-                     
+
             var p = packet_func.pacote095(0x102);
             _session.Send(p);
 
@@ -304,13 +304,13 @@ namespace GameServer.Game
             try
             {
 
-                if (_session.m_pi.lobby != (byte)0)
+                if (_session.m_pi.lobby != ~0)
                     leaveLobby(_session);       // Sai da Lobby
 
                 else // Sai da Sala Practice que não entra na lobby, [SINGLE PLAY]
-                     //leaveRoom(_session, 0);
+                    leaveRoom(_session, 0);
 
-                    removeSession(_session);
+                removeSession(_session);
 
             }
             catch (exception e)
@@ -318,11 +318,16 @@ namespace GameServer.Game
 
                 removeSession(_session);
 
-               // _smp.message_pool.push("[channel::leaveChannel][Error] " + e.getFullMessageError());
+                // _smp.message_pool.push("[channel::leaveChannel][Error] " + e.getFullMessageError());
 
 
             }
         }
+        LEAVE_ROOM_STATE leaveRoom(Player _session, int _option)
+        {
+            return LEAVE_ROOM_STATE.DO_NOTHING;
+        }
+
 
         public void checkEnterChannel(Player _session)
         {
@@ -379,9 +384,9 @@ namespace GameServer.Game
             PlayerCanalInfoEx pci = null;
             PlayerCanalInfoEx i;
 
-            if ((i = m_player_info.First(c=> c.Key.m_pi.uid == _session.m_pi.uid).Value) != null)
+            if ((i = m_player_info.First(c => c.Key.m_pi.uid == _session.m_pi.uid).Value) != null)
                 pci = i;
-                                                                      
+
 
             return pci;
         }
@@ -399,7 +404,7 @@ namespace GameServer.Game
         }
 
         // Lobby
-        void enterLobby(Player _session, byte _lobby)
+        public void enterLobby(Player _session, byte _lobby)
         {
             //if (!_session.get())
             //    throw new exception("[channel.enterLobby][Error] player[UID_TRASH=" + (_session.m_pi.uid)
@@ -413,7 +418,7 @@ namespace GameServer.Game
             _session.m_pi.place = 0;
 
             updatePlayerInfo(_session);
-              
+
             List<PlayerCanalInfo> v_pci = new List<PlayerCanalInfo>();
             PlayerCanalInfo pci = null;
 
@@ -434,17 +439,17 @@ namespace GameServer.Game
             _session.Send(p);
 
             if (v_pci.Count() > 0)
-            {                                                 
+            {
                 _session.Send(packet_func.pacote046(v_pci, 5));
             }
             //if (packet_func.pacote047(p, v_ri, 0))
             //    packet_func.session_send(ref p, _session, 0);
-                                                                                                                                                         
-            _session.Send(packet_func.pacote046(pci == null ? new vector<PlayerCanalInfo>() : new vector<PlayerCanalInfo>(pci), 1));
+
+            _session.SendChannel_broadcast(this, packet_func.pacote046(pci == null ? new vector<PlayerCanalInfo>() : new vector<PlayerCanalInfo>(pci), 1));
 
             v_pci.Clear();
         }
-        void leaveLobby(Player _session)
+        public void leaveLobby(Player _session)
         {/// !@tem que tira isso aqui por que tem que enviar para os outros player da lobby que ele sai,
          /// mesmo que o sock dele não pode mais enviar
             //if (!_session.getState())
@@ -476,7 +481,7 @@ namespace GameServer.Game
                 // Enter Lobby
                 enterLobby(_session, 1/*Multi player*/);
 
-                var p = new PangyaBinaryWriter();       
+                var p = new PangyaBinaryWriter();
                 p.init_plain(0xF5);
                 _session.Send(p);
 
@@ -528,7 +533,7 @@ namespace GameServer.Game
 
             for (var i = 0; i < v_sessions.Count(); ++i)
             {
-                if (v_sessions[i] != null && v_sessions[i].m_pi.channel != 0
+                if (v_sessions[i] != null && v_sessions[i].m_pi.channel != DEFAULT_CHANNEL
                     && (_lobby == ~0 || v_sessions[i].m_pi.lobby != DEFAULT_CHANNEL))
                     v_session.Add(v_sessions[i]);
 
@@ -546,141 +551,141 @@ namespace GameServer.Game
         {
             leaveLobbyMultiPlayer(_session);
         }
-        public void  requestEnterLobbyGrandPrix(Player _session, packet _packet) { }
-        public void  requestExitLobbyGrandPrix(Player _session, packet _packet) { }
+        public void requestEnterLobbyGrandPrix(Player _session, packet _packet) { }
+        public void requestExitLobbyGrandPrix(Player _session, packet _packet) { }
 
         // Spy (GM) observer
-        public void  requestEnterSpyRoom(Player _session, packet _packet) { }
+        public void requestEnterSpyRoom(Player _session, packet _packet) { }
 
         // Room
-        public void  requestMakeRoom(Player _session, packet _packet) { }
-        public void  requestEnterRoom(Player _session, packet _packet) { }
-        public void  requestChangeInfoRoom(Player _session, packet _packet) { }
-        public void  requestExitRoom(Player _session, packet _packet) { }
-        public void  requestShowInfoRoom(Player _session, packet _packet) { }
-        public void  requestPlayerLocationRoom(Player _session, packet _packet) { }
-        public void  requestChangePlayerStateReadyRoom(Player _session, packet _packet) { }
-        public void  requestKickPlayerOfRoom(Player _session, packet _packet) { }
-        public void  requestChangePlayerTeamRoom(Player _session, packet _packet) { }
-        public void  requestChangePlayerStateAFKRoom(Player _session, packet _packet) { }
-        public void  requestPlayerStateCharacterLounge(Player _session, packet _packet) { }
-        public void  requestToggleAssist(Player _session, packet _packet) { }
-        public void  requestInvite(Player _session, packet _packet) { }
-        public void  requestCheckInvite(Player _session, packet _packet) { } // Esse aqui o O Server Original nao retorna nada para o cliente, acho que é só um check
-        public void  requestChatTeam(Player _session, packet _packet) { }
+        public void requestMakeRoom(Player _session, packet _packet) { }
+        public void requestEnterRoom(Player _session, packet _packet) { }
+        public void requestChangeInfoRoom(Player _session, packet _packet) { }
+        public void requestExitRoom(Player _session, packet _packet) { }
+        public void requestShowInfoRoom(Player _session, packet _packet) { }
+        public void requestPlayerLocationRoom(Player _session, packet _packet) { }
+        public void requestChangePlayerStateReadyRoom(Player _session, packet _packet) { }
+        public void requestKickPlayerOfRoom(Player _session, packet _packet) { }
+        public void requestChangePlayerTeamRoom(Player _session, packet _packet) { }
+        public void requestChangePlayerStateAFKRoom(Player _session, packet _packet) { }
+        public void requestPlayerStateCharacterLounge(Player _session, packet _packet) { }
+        public void requestToggleAssist(Player _session, packet _packet) { }
+        public void requestInvite(Player _session, packet _packet) { }
+        public void requestCheckInvite(Player _session, packet _packet) { } // Esse aqui o O Server Original nao retorna nada para o cliente, acho que é só um check
+        public void requestChatTeam(Player _session, packet _packet) { }
 
         // Request Player sai do Web Guild, verifica se tem alguma atualização para passar para o player no gs
-        public void  requestExitedFromWebGuild(Player _session, packet _packet) { }
+        public void requestExitedFromWebGuild(Player _session, packet _packet) { }
 
         // Request Game
-        public void  requestStartGame(Player _session, packet _packet) { }
-        public void  requestInitHole(Player _session, packet _packet) { }
-        public void  requestFinishLoadHole(Player _session, packet _packet) { }
-        public void  requestFinishCharIntro(Player _session, packet _packet) { }
-        public void  requestFinishHoleData(Player _session, packet _packet) { }
+        public void requestStartGame(Player _session, packet _packet) { }
+        public void requestInitHole(Player _session, packet _packet) { }
+        public void requestFinishLoadHole(Player _session, packet _packet) { }
+        public void requestFinishCharIntro(Player _session, packet _packet) { }
+        public void requestFinishHoleData(Player _session, packet _packet) { }
 
         // Server enviou a resposta do InitShot para o cliente
-        public void  requestInitShotSended(Player _session, packet _packet) { }
+        public void requestInitShotSended(Player _session, packet _packet) { }
 
-        public void  requestInitShot(Player _session, packet _packet) { }
-        public void  requestSyncShot(Player _session, packet _packet) { }
-        public void  requestInitShotArrowSeq(Player _session, packet _packet) { }
-        public void  requestShotEndData(Player _session, packet _packet) { }
-        public void  requestFinishShot(Player _session, packet _packet) { }
+        public void requestInitShot(Player _session, packet _packet) { }
+        public void requestSyncShot(Player _session, packet _packet) { }
+        public void requestInitShotArrowSeq(Player _session, packet _packet) { }
+        public void requestShotEndData(Player _session, packet _packet) { }
+        public void requestFinishShot(Player _session, packet _packet) { }
 
-        public void  requestChangeMira(Player _session, packet _packet) { }
-        public void  requestChangeStateBarSpace(Player _session, packet _packet) { }
-        public void  requestActivePowerShot(Player _session, packet _packet) { }
-        public void  requestChangeClub(Player _session, packet _packet) { }
-        public void  requestUseActiveItem(Player _session, packet _packet) { }
-        public void  requestChangeStateTypeing(Player _session, packet _packet) { }
-        public void  requestMoveBall(Player _session, packet _packet) { }
-        public void  requestChangeStateChatBlock(Player _session, packet _packet) { }
-        public void  requestActiveBooster(Player _session, packet _packet) { }
-        public void  requestActiveReplay(Player _session, packet _packet) { }
-        public void  requestActiveCutin(Player _session, packet _packet) { }
-        public void  requestActiveAutoCommand(Player _session, packet _packet) { }
-        public void  requestActiveAssistGreen(Player _session, packet _packet) { }
+        public void requestChangeMira(Player _session, packet _packet) { }
+        public void requestChangeStateBarSpace(Player _session, packet _packet) { }
+        public void requestActivePowerShot(Player _session, packet _packet) { }
+        public void requestChangeClub(Player _session, packet _packet) { }
+        public void requestUseActiveItem(Player _session, packet _packet) { }
+        public void requestChangeStateTypeing(Player _session, packet _packet) { }
+        public void requestMoveBall(Player _session, packet _packet) { }
+        public void requestChangeStateChatBlock(Player _session, packet _packet) { }
+        public void requestActiveBooster(Player _session, packet _packet) { }
+        public void requestActiveReplay(Player _session, packet _packet) { }
+        public void requestActiveCutin(Player _session, packet _packet) { }
+        public void requestActiveAutoCommand(Player _session, packet _packet) { }
+        public void requestActiveAssistGreen(Player _session, packet _packet) { }
 
         // VersusBase
-        public void  requestLoadGamePercent(Player _session, packet _packet) { }
-        public void  requestMarkerOnCourse(Player _session, packet _packet) { }
-        public void  requestStartTurnTime(Player _session, packet _packet) { }
-        public void  requestUnOrPauseGame(Player _session, packet _packet) { }
-        public void  requestLastPlayerFinishVersus(Player _session, packet _packet) { }
-        public void  requestReplyContinueVersus(Player _session, packet _packet) { }
+        public void requestLoadGamePercent(Player _session, packet _packet) { }
+        public void requestMarkerOnCourse(Player _session, packet _packet) { }
+        public void requestStartTurnTime(Player _session, packet _packet) { }
+        public void requestUnOrPauseGame(Player _session, packet _packet) { }
+        public void requestLastPlayerFinishVersus(Player _session, packet _packet) { }
+        public void requestReplyContinueVersus(Player _session, packet _packet) { }
 
         // Match
-        public void  requestTeamFinishHole(Player _session, packet _packet) { }
+        public void requestTeamFinishHole(Player _session, packet _packet) { }
 
         // Practice
-        public void  requestLeavePractice(Player _session, packet _packet) { }
+        public void requestLeavePractice(Player _session, packet _packet) { }
 
         // Tourney
-        public void  requestUseTicketReport(Player _session, packet _packet) { }
+        public void requestUseTicketReport(Player _session, packet _packet) { }
 
         // Grand Zodiac
-        public void  requestLeaveChipInPractice(Player _session, packet _packet) { }
-        public void  requestStartFirstHoleGrandZodiac(Player _session, packet _packet) { }
-        public void  requestReplyInitialValueGrandZodiac(Player _session, packet _packet) { }
+        public void requestLeaveChipInPractice(Player _session, packet _packet) { }
+        public void requestStartFirstHoleGrandZodiac(Player _session, packet _packet) { }
+        public void requestReplyInitialValueGrandZodiac(Player _session, packet _packet) { }
 
         // Ability Item
-        public void  requestActiveRing(Player _session, packet _packet) { }
-        public void  requestActiveRingGround(Player _session, packet _packet) { }
-        public void  requestActiveRingPawsRainbowJP(Player _session, packet _packet) { }
-        public void  requestActiveRingPawsRingSetJP(Player _session, packet _packet) { }
-        public void  requestActiveRingPowerGagueJP(Player _session, packet _packet) { }
-        public void  requestActiveRingMiracleSignJP(Player _session, packet _packet) { }
-        public void  requestActiveWing(Player _session, packet _packet) { }
-        public void  requestActivePaws(Player _session, packet _packet) { }
-        public void  requestActiveGlove(Player _session, packet _packet) { }
-        public void  requestActiveEarcuff(Player _session, packet _packet) { }
+        public void requestActiveRing(Player _session, packet _packet) { }
+        public void requestActiveRingGround(Player _session, packet _packet) { }
+        public void requestActiveRingPawsRainbowJP(Player _session, packet _packet) { }
+        public void requestActiveRingPawsRingSetJP(Player _session, packet _packet) { }
+        public void requestActiveRingPowerGagueJP(Player _session, packet _packet) { }
+        public void requestActiveRingMiracleSignJP(Player _session, packet _packet) { }
+        public void requestActiveWing(Player _session, packet _packet) { }
+        public void requestActivePaws(Player _session, packet _packet) { }
+        public void requestActiveGlove(Player _session, packet _packet) { }
+        public void requestActiveEarcuff(Player _session, packet _packet) { }
 
         // Request Enter Game After Started
-        public void  requestEnterGameAfterStarted(Player _session, packet _packet) { }
+        public void requestEnterGameAfterStarted(Player _session, packet _packet) { }
 
-        public void  requestFinishGame(Player _session, packet _packet) { }
+        public void requestFinishGame(Player _session, packet _packet) { }
 
-        public void  requestChangeWindNextHoleRepeat(Player _session, packet _packet) { }
+        public void requestChangeWindNextHoleRepeat(Player _session, packet _packet) { }
 
         // Grand Prix
-        public void  requestEnterRoomGrandPrix(Player _session, packet _packet) { }
-        public void  requestExitRoomGrandPrix(Player _session, packet _packet) { }
+        public void requestEnterRoomGrandPrix(Player _session, packet _packet) { }
+        public void requestExitRoomGrandPrix(Player _session, packet _packet) { }
 
         // Player Report Chat Game
-        public void  requestPlayerReportChatGame(Player _session, packet _packet) { }
+        public void requestPlayerReportChatGame(Player _session, packet _packet) { }
 
         // Common Command GM
-        public void  requestExecCCGVisible(Player _session, packet _packet) { }
-        public void  requestExecCCGChangeWindVersus(Player _session, packet _packet) { }
-        public void  requestExecCCGChangeWeather(Player _session, packet _packet) { }
-        public void  requestExecCCGGoldenBell(Player _session, packet _packet) { }
-        public void  requestExecCCGIdentity(Player _session, packet _packet) { }
-        public void  requestExecCCGKick(Player _session, packet _packet) { }
-        public void  requestExecCCGDestroy(Player _session, packet _packet) { }
+        public void requestExecCCGVisible(Player _session, packet _packet) { }
+        public void requestExecCCGChangeWindVersus(Player _session, packet _packet) { }
+        public void requestExecCCGChangeWeather(Player _session, packet _packet) { }
+        public void requestExecCCGGoldenBell(Player _session, packet _packet) { }
+        public void requestExecCCGIdentity(Player _session, packet _packet) { }
+        public void requestExecCCGKick(Player _session, packet _packet) { }
+        public void requestExecCCGDestroy(Player _session, packet _packet) { }
 
         // MyRoom
-        public void  requestChangePlayerItemMyRoom(Player _session, packet _packet) { }
-        public void  requestOpenTicketReportScroll(Player _session, packet _packet) { }
-        public void  requestChangeMascotMessage(Player _session, packet _packet) { }
+        public void requestChangePlayerItemMyRoom(Player _session, packet _packet) { }
+        public void requestOpenTicketReportScroll(Player _session, packet _packet) { }
+        public void requestChangeMascotMessage(Player _session, packet _packet) { }
 
         // Caddie Extend Days and Set Notice Holyday Caddie
-        public void  requestPayCaddieHolyDay(Player _session, packet _packet) { }
-        public void  requestSetNoticeBeginCaddieHolyDay(Player _session, packet _packet) { }
+        public void requestPayCaddieHolyDay(Player _session, packet _packet) { }
+        public void requestSetNoticeBeginCaddieHolyDay(Player _session, packet _packet) { }
 
         // Shop
-        public void  requestBuyItemShop(Player _session, packet _packet) { }
-        public void  requestGiftItemShop(Player _session, packet _packet) { }
+        public void requestBuyItemShop(Player _session, packet _packet) { }
+        public void requestGiftItemShop(Player _session, packet _packet) { }
 
         // MyRoom Extend or Remove Part Rental
-        public void  requestExtendRental(Player _session, packet _packet) { }
-        public void  requestDeleteRental(Player _session, packet _packet) { }
+        public void requestExtendRental(Player _session, packet _packet) { }
+        public void requestDeleteRental(Player _session, packet _packet) { }
 
         // Attendance reward, Premios por logar no pangya
-       public void  requestCheckAttendanceReward(Player _session, packet _packet)
+        public void requestCheckAttendanceReward(Player _session, packet _packet)
         {
             try
-            {                                                        
+            {
                 sAttendanceRewardSystem.getInstance().requestCheckAttendance(_session, _packet);
             }
             catch (exception e)
@@ -691,10 +696,10 @@ namespace GameServer.Game
             }
         }
 
-      public void  requestAttendanceRewardLoginCount(Player _session, packet _packet)
+        public void requestAttendanceRewardLoginCount(Player _session, packet _packet)
         {
             try
-            {                                                   
+            {
                 sAttendanceRewardSystem.getInstance().requestUpdateCountLogin(_session, _packet);
             }
             catch (exception e)
@@ -707,123 +712,123 @@ namespace GameServer.Game
         }
 
         // Daily Quest
-        public void  requestDailyQuest(Player _session, packet _packet) { }
-        public void  requestAcceptDailyQuest(Player _session, packet _packet) { }
-        public void  requestTakeRewardDailyQuest(Player _session, packet _packet) { }
-        public void  requestLeaveDailyQuest(Player _session, packet _packet) { }
+        public void requestDailyQuest(Player _session, packet _packet) { }
+        public void requestAcceptDailyQuest(Player _session, packet _packet) { }
+        public void requestTakeRewardDailyQuest(Player _session, packet _packet) { }
+        public void requestLeaveDailyQuest(Player _session, packet _packet) { }
 
         // Cadie's Cauldron
-        public void  requestCadieCauldronExchange(Player _session, packet _packet) { }
+        public void requestCadieCauldronExchange(Player _session, packet _packet) { }
 
         // Character Stats
-        public void  requestCharacterStatsUp(Player _session, packet _packet) { }
-        public void  requestCharacterStatsDown(Player _session, packet _packet) { }
-        public void  requestCharacterMasteryExpand(Player _session, packet _packet) { }
-        public void  requestCharacterCardEquip(Player _session, packet _packet) { }
-        public void  requestCharacterCardEquipWithPatcher(Player _session, packet _packet) { }
-        public void  requestCharacterRemoveCard(Player _session, packet _packet) { }
+        public void requestCharacterStatsUp(Player _session, packet _packet) { }
+        public void requestCharacterStatsDown(Player _session, packet _packet) { }
+        public void requestCharacterMasteryExpand(Player _session, packet _packet) { }
+        public void requestCharacterCardEquip(Player _session, packet _packet) { }
+        public void requestCharacterCardEquipWithPatcher(Player _session, packet _packet) { }
+        public void requestCharacterRemoveCard(Player _session, packet _packet) { }
 
         // ClubSet Enchant
-        public void  requestClubSetStatsUpdate(Player _session, packet _packet) { }
+        public void requestClubSetStatsUpdate(Player _session, packet _packet) { }
 
         // Tiki's Shop
-        public void  requestTikiShopExchangeItem(Player _session, packet _packet) { }
+        public void requestTikiShopExchangeItem(Player _session, packet _packet) { }
 
         // Item Equipado
-        public void  requestChangePlayerItemChannel(Player _session, packet _packet) { }
-        public void  requestChangePlayerItemRoom(Player _session, packet _packet) { }
+        public void requestChangePlayerItemChannel(Player _session, packet _packet) { }
+        public void requestChangePlayerItemRoom(Player _session, packet _packet) { }
 
         // Delete Active Item
-        public void  requestDeleteActiveItem(Player _session, packet _packet) { }
+        public void requestDeleteActiveItem(Player _session, packet _packet) { }
 
         // ClubSet WorkShop
-        public void  requestClubSetWorkShopTransferMasteryPts(Player _session, packet _packet) { }
-        public void  requestClubSetWorkShopRecoveryPts(Player _session, packet _packet) { }
-        public void  requestClubSetWorkShopUpLevel(Player _session, packet _packet) { }
-        public void  requestClubSetWorkShopUpLevelConfirm(Player _session, packet _packet) { }
-        public void  requestClubSetWorkShopUpLevelCancel(Player _session, packet _packet) { }
-        public void  requestClubSetWorkShopUpRank(Player _session, packet _packet) { }
-        public void  requestClubSetWorkShopUpRankTransformConfirm(Player _session, packet _packet) { }
-        public void  requestClubSetWorkShopUpRankTransformCancel(Player _session, packet _packet) { }
+        public void requestClubSetWorkShopTransferMasteryPts(Player _session, packet _packet) { }
+        public void requestClubSetWorkShopRecoveryPts(Player _session, packet _packet) { }
+        public void requestClubSetWorkShopUpLevel(Player _session, packet _packet) { }
+        public void requestClubSetWorkShopUpLevelConfirm(Player _session, packet _packet) { }
+        public void requestClubSetWorkShopUpLevelCancel(Player _session, packet _packet) { }
+        public void requestClubSetWorkShopUpRank(Player _session, packet _packet) { }
+        public void requestClubSetWorkShopUpRankTransformConfirm(Player _session, packet _packet) { }
+        public void requestClubSetWorkShopUpRankTransformCancel(Player _session, packet _packet) { }
 
         // ClubSet Reset
-        public void  requestClubSetReset(Player _session, packet _packet) { }
+        public void requestClubSetReset(Player _session, packet _packet) { }
 
         // Tutorial
-        public void  requestMakeTutorial(Player _session, packet _packet) { }
+        public void requestMakeTutorial(Player _session, packet _packet) { }
 
         // Web Link
-        public void  requestEnterWebLinkState(Player _session, packet _packet) { }
+        public void requestEnterWebLinkState(Player _session, packet _packet) { }
 
         // Pede o Cookies
-        public void  requestCookie(Player _session, packet _packet) { }
+        public void requestCookie(Player _session, packet _packet) { }
 
         // Pede para atualizar Gacha Coupon(s)
-        public void  requestUpdateGachaCoupon(Player _session, packet _packet) { }
+        public void requestUpdateGachaCoupon(Player _session, packet _packet) { }
 
         // Box System, Box que envia para o MailBox e a Box que envia direto para o MyRoom
-        public void  requestOpenBoxMail(Player _session, packet _packet) { }
-        public void  requestOpenBoxMyRoom(Player _session, packet _packet) { }
+        public void requestOpenBoxMail(Player _session, packet _packet) { }
+        public void requestOpenBoxMyRoom(Player _session, packet _packet) { }
 
         // Memorial System
-        public void  requestPlayMemorial(Player _session, packet _packet) { }
+        public void requestPlayMemorial(Player _session, packet _packet) { }
 
         // Card System
-        public void  requestOpenCardPack(Player _session, packet _packet) { }
-        public void  requestLoloCardCompose(Player _session, packet _packet) { }
+        public void requestOpenCardPack(Player _session, packet _packet) { }
+        public void requestLoloCardCompose(Player _session, packet _packet) { }
 
         // Card Special/ Item Buff
-        public void  requestUseCardSpecial(Player _session, packet _packet) { }
-        public void  requestUseItemBuff(Player _session, packet _packet) { }
+        public void requestUseCardSpecial(Player _session, packet _packet) { }
+        public void requestUseItemBuff(Player _session, packet _packet) { }
 
         // Comet Refill
-        public void  requestCometRefill(Player _session, packet _packet) { }
+        public void requestCometRefill(Player _session, packet _packet) { }
 
         // MailBox
-        public void  requestOpenMailBox(Player _session, packet _packet) { }
-        public void  requestInfoMail(Player _session, packet _packet) { }
-        public void  requestSendMail(Player _session, packet _packet) { }
-        public void  requestTakeItemFomMail(Player _session, packet _packet) { }
-        public void  requestDeleteMail(Player _session, packet _packet) { }
+        public void requestOpenMailBox(Player _session, packet _packet) { }
+        public void requestInfoMail(Player _session, packet _packet) { }
+        public void requestSendMail(Player _session, packet _packet) { }
+        public void requestTakeItemFomMail(Player _session, packet _packet) { }
+        public void requestDeleteMail(Player _session, packet _packet) { }
 
         // Dolfini Locker
-        public void  requestMakePassDolfiniLocker(Player _session, packet _packet) { }
-        public void  requestCheckDolfiniLockerPass(Player _session, packet _packet) { }
-        public void  requestChangeDolfiniLockerPass(Player _session, packet _packet) { }
-        public void  requestChangeDolfiniLockerModeEnter(Player _session, packet _packet) { }
-        public void  requestDolfiniLockerItem(Player _session, packet _packet) { }
-        public void  requestDolfiniLockerPang(Player _session, packet _packet) { }
-        public void  requestUpdateDolfiniLockerPang(Player _session, packet _packet) { }
-        public void  requestAddDolfiniLockerItem(Player _session, packet _packet) { }
-        public void  requestRemoveDolfiniLockerItem(Player _session, packet _packet) { }
+        public void requestMakePassDolfiniLocker(Player _session, packet _packet) { }
+        public void requestCheckDolfiniLockerPass(Player _session, packet _packet) { }
+        public void requestChangeDolfiniLockerPass(Player _session, packet _packet) { }
+        public void requestChangeDolfiniLockerModeEnter(Player _session, packet _packet) { }
+        public void requestDolfiniLockerItem(Player _session, packet _packet) { }
+        public void requestDolfiniLockerPang(Player _session, packet _packet) { }
+        public void requestUpdateDolfiniLockerPang(Player _session, packet _packet) { }
+        public void requestAddDolfiniLockerItem(Player _session, packet _packet) { }
+        public void requestRemoveDolfiniLockerItem(Player _session, packet _packet) { }
 
         // Legacy Tiki Shop (Point Shop)
-        public void  requestOpenLegacyTikiShop(Player _session, packet _packet) { }
-        public void  requestPointLegacyTikiShop(Player _session, packet _packet) { }
-        public void  requestExchangeTPByItemLegacyTikiShop(Player _session, packet _packet) { }
-        public void  requestExchangeItemByTPLegacyTikiShop(Player _session, packet _packet) { }
+        public void requestOpenLegacyTikiShop(Player _session, packet _packet) { }
+        public void requestPointLegacyTikiShop(Player _session, packet _packet) { }
+        public void requestExchangeTPByItemLegacyTikiShop(Player _session, packet _packet) { }
+        public void requestExchangeItemByTPLegacyTikiShop(Player _session, packet _packet) { }
 
         // Personal Shop
-        public void  requestOpenEditSaleShop(Player _session, packet _packet) { }
-        public void  requestCloseSaleShop(Player _session, packet _packet) { }
-        public void  requestChangeNameSaleShop(Player _session, packet _packet) { }
-        public void  requestOpenSaleShop(Player _session, packet _packet) { }
-        public void  requestVisitCountSaleShop(Player _session, packet _packet) { }
-        public void  requestPangSaleShop(Player _session, packet _packet) { }
-        public void  requestCancelEditSaleShop(Player _session, packet _packet) { }
-        public void  requestViewSaleShop(Player _session, packet _packet) { }
-        public void  requestCloseViewSaleShop(Player _session, packet _packet) { }
-        public void  requestBuyItemSaleShop(Player _session, packet _packet) { }
+        public void requestOpenEditSaleShop(Player _session, packet _packet) { }
+        public void requestCloseSaleShop(Player _session, packet _packet) { }
+        public void requestChangeNameSaleShop(Player _session, packet _packet) { }
+        public void requestOpenSaleShop(Player _session, packet _packet) { }
+        public void requestVisitCountSaleShop(Player _session, packet _packet) { }
+        public void requestPangSaleShop(Player _session, packet _packet) { }
+        public void requestCancelEditSaleShop(Player _session, packet _packet) { }
+        public void requestViewSaleShop(Player _session, packet _packet) { }
+        public void requestCloseViewSaleShop(Player _session, packet _packet) { }
+        public void requestBuyItemSaleShop(Player _session, packet _packet) { }
 
         // Papel Shop
-        public void  requestOpenPapelShop(Player _session, packet _packet) { }
-        public void  requestPlayPapelShop(Player _session, packet _packet) { }
+        public void requestOpenPapelShop(Player _session, packet _packet) { }
+        public void requestPlayPapelShop(Player _session, packet _packet) { }
 
         // Msg Chat da Sala
-        public void  requestSendMsgChatRoom(Player _session, string _msg) { }
+        public void requestSendMsgChatRoom(Player _session, string _msg) { }
 
         // senders
-        public void  sendUpdateRoomInfo(RoomInfoEx _ri, int _option) { }
+        public void sendUpdateRoomInfo(RoomInfoEx _ri, int _option) { }
         void sendUpdatePlayerInfo(Player _session, int _option)
         {
             PlayerCanalInfo pci = getPlayerInfo(_session);

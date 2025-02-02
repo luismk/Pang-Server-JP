@@ -22,30 +22,17 @@ namespace GameServer.Cmd
 			ONE,
 		}
 		TYPE m_type;
-		uint m_item_id;
+		int m_item_id;
 		CharacterManager v_ce;
 		protected override string _getName { get; } = "CmdCharacterInfo";
 
-		public CmdCharacterInfo(uint _uid, TYPE _type, uint _item_id =0)
+		public CmdCharacterInfo(uint _uid, TYPE _type, int _item_id = -1)
 		{
 			m_uid = _uid;
 			m_type = _type;
 			m_item_id = _item_id;
 			v_ce = new CharacterManager();
-		}
-		/// <summary>
-		/// inicia a consulta
-		/// </summary>
-		/// <param db_name="_uid">player id</param>
-		/// <param db_name="_type">todos os item = 1 </param>
-		/// <param db_name="_item_id"></param>
-		public CmdCharacterInfo(uint _uid, int _type, uint _item_id = 0)
-		{
-			m_uid = _uid;
-			m_type = (TYPE)_type;
-			m_item_id = _item_id;
-			v_ce = new CharacterManager();
-		}
+		}															    
 
 		protected override void lineResult(ctx_res _result, uint _index_result)
 		{
@@ -131,12 +118,12 @@ namespace GameServer.Cmd
 			m_type = _type;
 		}
 
-		public uint getItemID()
+		public int getItemID()
 		{
 			return m_item_id;
 		}
 
-		public void setItemID(uint _item_id)
+		public void setItemID(int _item_id)
 		{
 			m_item_id = _item_id;
 		}
