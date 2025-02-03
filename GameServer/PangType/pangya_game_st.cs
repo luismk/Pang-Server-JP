@@ -2217,7 +2217,9 @@ namespace GameServer.PangType
                 p.WriteUInt32(visit_count);
                 p.WriteByte(lida_yn);
                 p.WriteUInt32(item_num);        
-                p.WriteBytes(item.Build());
+                // Sometimes mail don't contain any items, need to check if mail contains an item or not.
+                if (item?.Build() is byte[] itemData)
+                    p.WriteBytes(itemData);
                 return p.GetBytes;
             }
         }
