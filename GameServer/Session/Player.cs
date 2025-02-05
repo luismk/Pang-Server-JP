@@ -1,4 +1,4 @@
-﻿using GameServer.Game;
+﻿using GameServer.GameServerTcp;
 using GameServer.PangType;
 using PangyaAPI.Network.PangyaSession;
 using PangyaAPI.Utilities.BinaryModels;
@@ -31,17 +31,20 @@ namespace GameServer.Session
         }
 
         public override uint getCapability() { return m_pi.m_cap.ulCapability; }
-
-        public bool IsGM => m_pi.m_cap.ulCapability == 4;
-
-        public override void Send(PangyaBinaryWriter packet, bool debug = false)
+               
+        public void Send(List<PangyaBinaryWriter> packet, bool debug_log = false)
         {
-            base.Send(packet, debug);
+            for (int i = 0; i < packet.Count; i++) 
+                    base.Send(packet[i], debug_log);
+        }
+        public override void Send(PangyaBinaryWriter packet, bool debug_log = false)
+        {
+            base.Send(packet, debug_log);
         }
 
-        public override void Send(byte[] Data, bool debug = false)
+        public override void Send(byte[] Data, bool debug_log = false)
         {
-            base.Send(Data, debug);
+            base.Send(Data, debug_log);
         }
 
         public void SendChannel_broadcast(byte[] p)

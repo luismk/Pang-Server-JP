@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Sockets;
+
 namespace PangyaAPI.Utilities.Log
 {
     public enum type_msg : int
@@ -104,8 +106,7 @@ namespace PangyaAPI.Utilities.Log
 
             if (m != null)
             {
-
-                Console.WriteLine(m.get());
+                Console.WriteLine(m.get(), ConsoleColor.Cyan);       
             }
             else
                 throw new Exception("message is null. message_pool::console_log()");

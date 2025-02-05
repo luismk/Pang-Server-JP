@@ -13,15 +13,7 @@ namespace PangyaAPI.SQL.Manager
     {                                                
 
         ~mssql()
-        {
-            if (m_ctx.hDbc != null)
-                m_ctx.hDbc.Dispose();
-
-            if (m_ctx.hEnv != null)
-                m_ctx.hEnv.Dispose();
-
-            if (m_ctx.hStmt != null)
-                m_ctx.hStmt.Dispose();
+        {     
             init();
         }
             /// <summary>
@@ -85,11 +77,7 @@ namespace PangyaAPI.SQL.Manager
             {
                 _smp.message_pool.push("[mssql::Connect][Error] " + ex.Message + "]", _smp.type_msg.CL_FILE_LOG_AND_CONSOLE);
                 m_connected = false;
-            }
-            finally
-            {
-                m_ctx.hDbc.Close();
-            }
+            }  
         }
                     
         public override void reconnect()
@@ -124,7 +112,13 @@ namespace PangyaAPI.SQL.Manager
                 {
                     var _data = m_ctx.hStmt.Tables[ m_ctx_db.db_name];
                     if (_data == null)
-                        throw new Exception("error data empty!");
+                    {
+                        res = new response();
+                        result = new result_set((uint)result_set.STATE_TYPE._NO_DATA, 0, 0);
+                        result.addLine();   // Adiciona linha    
+                        res.addResultSet(result);
+                        return res;
+                    }
                     if (_data.Rows.Count == 1)
                     {
                         numResults = 1;
@@ -268,9 +262,9 @@ namespace PangyaAPI.SQL.Manager
                     m_ctx.hDbc.Close();
                 }
             }
-            catch (Exception ex)
+            catch (exception ex)
             {
-                _smp.message_pool.push("[mssql::HandleDiagnosticQuery][Error] " + ex.Message + "]", _smp.type_msg.CL_FILE_LOG_AND_CONSOLE);
+                _smp.message_pool.push("[mssql::HandleDiagnosticQuery][Error] " + ex.getFullMessageError() + "]", _smp.type_msg.CL_FILE_LOG_AND_CONSOLE);
             }
         }
 
@@ -303,9 +297,9 @@ namespace PangyaAPI.SQL.Manager
                     da.Fill(m_ctx.hStmt,  m_ctx_db.db_name);
                 }
             }
-            catch (Exception ex)
+            catch (exception ex)
             {
-                throw ex;
+                _smp.message_pool.push("[mssql::HandleDiagnosticQuery][Error] " + ex.getFullMessageError() + "]", _smp.type_msg.CL_FILE_LOG_AND_CONSOLE);
             }
 
             finally

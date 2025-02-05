@@ -13,18 +13,10 @@ namespace GameServer.Cmd
             ALL,
             ONE
         }
-
-        public CmdMyRoomItem()
-        {
-            this.m_uid = 0u;
-            this.m_item_id = uint.MaxValue;
-            this.m_type = TYPE.ALL;
-            this.v_mri = new List<MyRoomItem>();
-        }
-
+               
         public CmdMyRoomItem(uint _uid,
             TYPE _type,
-            uint _item_id = uint.MaxValue)
+            int _item_id = -1)
         {
              this.m_uid = _uid;         
             this.m_type = (_type);
@@ -47,12 +39,12 @@ namespace GameServer.Cmd
         m_uid = _uid;
         }
 
-        public uint getItemID()
+        public int getItemID()
         {
             return m_item_id;
         }
 
-        public void setItemID(uint _item_id)
+        public void setItemID(int _item_id)
         {
              m_item_id = _item_id;           
         }
@@ -72,24 +64,31 @@ namespace GameServer.Cmd
 
             checkColumnNumber(9);
 
-            MyRoomItem mri = new MyRoomItem();
-            uint uid_req = 0u;
-
-            mri.id = IFNULL(_result.data[0]);
-            uid_req = IFNULL(_result.data[1]);
-            mri._typeid = IFNULL(_result.data[2]);
-            mri.number = (short)IFNULL(_result.data[3]);
-            mri.location.x = (float)IFNULL(_result.data[4]);
-            mri.location.y = (float)IFNULL(_result.data[5]);
-            mri.location.z = (float)IFNULL(_result.data[6]);
-            mri.location.r = (float)IFNULL(_result.data[7]);
-            mri.equiped = (byte)IFNULL(_result.data[8]);
-
-            v_mri.Add(mri);
-
-            if (uid_req != m_uid)
+            try
             {
-                throw new exception("[CmdMyRoomItem::lineResult][Error] o uid do my room item requisitado do player e diferente. UID_req: " + Convert.ToString(uid_req) + " != " + Convert.ToString(m_uid));
+                MyRoomItem mri = new MyRoomItem();
+                uint uid_req = 0u;
+
+                mri.id = IFNULL<uint>(_result.data[0]);
+                uid_req = IFNULL<uint>(_result.data[1]);
+                mri._typeid = IFNULL<uint>(_result.data[2]);
+                mri.number = IFNULL< short> (_result.data[3]);
+                mri.location.x = IFNULL<float>(_result.data[4]);
+                mri.location.y = IFNULL<float>(_result.data[5]);
+                mri.location.z = IFNULL<float>(_result.data[6]);
+                mri.location.r =IFNULL<float>(_result.data[7]);
+                mri.equiped = IFNULL<byte>(_result.data[8]);
+
+                v_mri.Add(mri);
+
+                if (uid_req != m_uid)
+                {
+                    throw new exception("[CmdMyRoomItem::lineResult][Error] o uid do my room item requisitado do player e diferente. UID_req: " + Convert.ToString(uid_req) + " != " + Convert.ToString(m_uid));
+                }
+            }
+            catch (Exception e)
+            {           
+                throw e;
             }
         }
 
@@ -108,7 +107,7 @@ namespace GameServer.Cmd
         }
                           
         private uint m_uid = new uint();
-        private uint m_item_id = new uint();
+        private int m_item_id = -1;
         private TYPE m_type;
         private List<MyRoomItem> v_mri = new List<MyRoomItem>();
 

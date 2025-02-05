@@ -10,6 +10,7 @@ using GameServer.Game.Manager;
 using System.Collections.Generic;
 using static GameServer.PangType._Define;
 using GameServer.Game;
+using System.Security.Cryptography;
 
 namespace GameServer.PangType
 {
@@ -122,9 +123,7 @@ namespace GameServer.PangType
         }
 
         public void clear()
-        {
-
-
+        {                                     
             cg = new CouponGacha();
             mi = new MemberInfoEx();
             ui = new UserInfoEx();
@@ -137,30 +136,31 @@ namespace GameServer.PangType
             TutoInfo = new TutorialInfo();
             ue = new UserEquip();
             cmu = new chat_macro_user();
-            a_ms_normal = new MapStatistics[MS_NUM_MAPS];
-            a_msa_normal = new MapStatistics[MS_NUM_MAPS];
-            a_ms_natural = new MapStatistics[MS_NUM_MAPS];
-            a_msa_natural = new MapStatistics[MS_NUM_MAPS];
-            a_ms_grand_prix = new MapStatistics[MS_NUM_MAPS];
-            a_msa_grand_prix = new MapStatistics[MS_NUM_MAPS];
+            a_ms_normal = new List<MapStatisticsEx>();
+            a_msa_normal = new List<MapStatisticsEx>();
+            a_ms_natural = new List<MapStatisticsEx>();
+            a_msa_natural = new List<MapStatisticsEx>();
+            a_ms_grand_prix = new List<MapStatisticsEx>();
+            a_msa_grand_prix = new List<MapStatisticsEx>();
+
             for (int i = 0; i < MS_NUM_MAPS; i++)
             {
-                a_ms_normal.SetValue(new MapStatistics(), i);
-                a_msa_normal.SetValue(new MapStatistics(), i);
-                a_ms_natural.SetValue(new MapStatistics(), i);
-                a_msa_natural.SetValue(new MapStatistics(), i);
-                a_ms_grand_prix.SetValue(new MapStatistics(), i);
-                a_msa_grand_prix.SetValue(new MapStatistics(), i);
+                a_ms_normal.Add(new MapStatisticsEx());
+                a_msa_normal.Add(new MapStatisticsEx());
+                a_ms_natural.Add(new MapStatisticsEx());
+                a_msa_natural.Add(new MapStatisticsEx());
+                a_ms_grand_prix.Add(new MapStatisticsEx());
+                a_msa_grand_prix.Add(new MapStatisticsEx());
             }
-            aa_ms_normal_todas_season = new MapStatistics[9][];
 
-            // Inicializando cada sessão com 20 mapas (ou MS_NUM_MAPS mapas)
+            aa_ms_normal_todas_season = new List<MapStatisticsEx>();
+
+            // Inicializando cada sessão com 21 mapas (ou MS_NUM_MAPS mapas)
             for (int j = 0; j < 9; j++)
             {
-                aa_ms_normal_todas_season[j] = new MapStatistics[MS_NUM_MAPS];
-                for (int i = 0; i < MS_NUM_MAPS; i++)
+                 for (int i = 0; i < MS_NUM_MAPS; i++)
                 {
-                    aa_ms_normal_todas_season[j][i] = new MapStatistics();  // Inicializa cada mapa
+                    aa_ms_normal_todas_season.Add(new MapStatisticsEx());  // Inicializa cada mapa
                 }
             }
 
@@ -217,13 +217,13 @@ namespace GameServer.PangType
         public TutorialInfo TutoInfo { get; set; }
         public UserEquip ue { get; set; }
         public chat_macro_user cmu { get; set; }
-        public MapStatistics[] a_ms_normal { get; set; }
-        public MapStatistics[] a_msa_normal { get; set; }
-        public MapStatistics[] a_ms_natural { get; set; }
-        public MapStatistics[] a_msa_natural { get; set; }
-        public MapStatistics[] a_ms_grand_prix { get; set; }
-        public MapStatistics[] a_msa_grand_prix { get; set; }
-        public MapStatistics[][] aa_ms_normal_todas_season { get; set; }   // Esse aqui é diferente, explico ele no pacote InitialLogin
+        public List<MapStatisticsEx> a_ms_normal { get; set; }
+        public List<MapStatisticsEx> a_msa_normal { get; set; }
+        public List<MapStatisticsEx> a_ms_natural { get; set; }
+        public List<MapStatisticsEx> a_msa_natural { get; set; }
+        public List<MapStatisticsEx> a_ms_grand_prix { get; set; }
+        public List<MapStatisticsEx> a_msa_grand_prix { get; set; }
+        public List<MapStatisticsEx> aa_ms_normal_todas_season { get; set; }   // Esse aqui é diferente, explico ele no pacote InitialLogin
         public SortedList<uint, StateCharacterLounge> mp_scl { get; set; }
 
         public CharacterManager mp_ce { get; set; }      //  
@@ -283,6 +283,7 @@ namespace GameServer.PangType
                     r = _old_location.r - _add_location.r
                 };
             }
+            
         }
         public stLocation location { get; set; } = new stLocation();
         public byte place { get; set; }            // Lugar que o player está no momento
@@ -580,9 +581,9 @@ namespace GameServer.PangType
             return null;
         }
 
-        public CharacterInfo findCharacterById(int _id)
+        public CharacterInfo findCharacterById(uint _id)
         {
-            return null;
+            return this.mp_ce.findCharacterById(_id);
         }
 
         public CharacterInfo findCharacterByTypeid(int _typeid)
@@ -683,9 +684,9 @@ namespace GameServer.PangType
             return mp_wi.findWarehouseItemById(_id);
         }
 
-        public WarehouseItemEx findWarehouseItemByTypeid(int _typeid)
+        public WarehouseItemEx findWarehouseItemByTypeid(uint _typeid)
         {
-            return new WarehouseItemEx();
+            return mp_wi.findWarehouseItemByTypeid(_typeid);
         }
 
         public WarehouseItemEx findWarehouseItemByTypeidAndId(int _typeid, int _id)
@@ -900,17 +901,7 @@ namespace GameServer.PangType
 
             _smp::message_pool.push(new message("[PlayerInfo::updateUserInfo][Log] Atualizou info do player[UID=" + _uid + "]", type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-        }
-
-        public WarehouseItemEx findWarehouseItemByTypeid(uint _typeid)
-        {
-            return mp_wi.findWarehouseItemByTypeid(_typeid);
-        }
-
-        public WarehouseItemEx findWarehouseItemByTypeidAndId(uint _typeid, uint _id)
-        {                                                          
-            return mp_wi.findWarehouseItemByTypeidAndId(_typeid, _id);
-        }
+        }                              
 
         public static void SQLDBResponse(int _msg_id, PangyaAPI.SQL.Pangya_DB _pangya_db, object _arg)
         {

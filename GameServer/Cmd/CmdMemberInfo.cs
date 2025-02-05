@@ -29,7 +29,7 @@ namespace GameServer.Cmd
                 if (_result.IsNotNull(4))
                    m_mi.nick_name = Convert.ToString(_result.data[4]);
 
-               // m_mi.nickNT = "@" + m_mi.nick_name;
+                m_mi.nick_NT = "@NT_" + m_mi.nick_name;
                 m_mi.school = Convert.ToUInt32(_result.data[5]);
                 m_mi.capability.ulCapability = Convert.ToUInt32(_result.data[6]);
                 m_mi.capability.setState();
@@ -49,8 +49,8 @@ namespace GameServer.Cmd
                 m_mi.flag_login_time = 2;
 
                 // Sexo do player
-                m_mi.state_flag.stFlagBit.sexo = m_mi.sexo;
-
+                m_mi.state_flag.stFlagBit.sexo = m_mi.sexo; //tem que setar uma identidade aqui.
+                m_mi.state_flag.ucByte = m_mi.sexo;
                 m_mi.papel_shop.limit_count = Convert.ToInt16(_result.data[18]);
                 m_mi.papel_shop.current_count = Convert.ToInt16(_result.data[22]);
                 m_mi.papel_shop.remain_count = Convert.ToInt16(_result.data[23]);

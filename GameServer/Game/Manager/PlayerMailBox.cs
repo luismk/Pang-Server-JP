@@ -8,15 +8,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using _smp = PangyaAPI.Utilities.Log;
+using static GameServer.PangType._Define;
 namespace GameServer.Game.Manager
 {
-    public class PlayerMailBox 
+    public class PlayerMailBox
     {
-        public const uint UPDATE_TIME_INTERVALE_HOUR = 24u;
-        private DateTime m_last_update;
-        public const ulong EXPIRES_CACHE_TIME = 3 * 1000Ul; // 3 Segundos
-        public const uint NUM_OF_EMAIL_PER_PAGE = 20u; // 20 Emails por p�gina
-        public const uint LIMIT_OF_UNREAD_EMAIL = 300u; // 300 Emails n�o lidos que pode enviar para o player                                                                                                   
+        private DateTime m_last_update;                                                                                          
         protected uint m_uid;                                                                           
         protected Dictionary<uint, EmailInfoEx> m_emails = new Dictionary<uint, EmailInfoEx>();    
 
@@ -234,7 +231,7 @@ namespace GameServer.Game.Manager
 
 
         // Método para obter informações sobre um email específico
-        public EmailInfo getEmailInfo(uint _id, bool _ler)
+        public EmailInfo getEmailInfo(uint _id, bool _ler = true)
         {
             var emailInfo = new EmailInfo();
 

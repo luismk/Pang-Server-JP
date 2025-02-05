@@ -76,9 +76,14 @@
     <Compile Include="PangyaSession\SessionBase.cs" />
     <Compile Include="PangyaSession\SessionManager.cs" />
     <Compile Include="PangyaSt\Pangya_St.cs" />
+    <Compile Include="PangyaSt\sIff.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\PangLib.IFF.JP\PangLib.IFF.JP.csproj">
+      <Project>{ec517392-61f2-43f6-834d-8adc69924a22}</Project>
+      <Name>PangLib.IFF.JP</Name>
+    </ProjectReference>
     <ProjectReference Include="..\PangyaAPI.Cryptor\PangyaAPI.Cryptor.csproj">
       <Project>{bccd991f-699a-4915-b533-074babcd3dec}</Project>
       <Name>PangyaAPI.Cryptor</Name>

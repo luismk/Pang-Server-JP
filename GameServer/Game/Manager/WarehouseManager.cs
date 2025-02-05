@@ -3,8 +3,7 @@ using PangyaAPI.Utilities;
 using System.Collections.Generic;
 using GameServer.PangType;
 using System;
-using System.Linq;
-
+using System.Linq;           
 namespace GameServer.Game.Manager
 {
     public class WarehouseManager   : Dictionary<uint/*ID*/, WarehouseItemEx>
@@ -12,42 +11,35 @@ namespace GameServer.Game.Manager
         public WarehouseManager()
         {                                                                                 
         }
-
-        /// <summary>
-        /// WAREHOUSE REBUILD ACRISIO OK
-        /// </summary>
-        /// <returns></returns>
-        public byte[] Build()
-        {
-            var p = new PangyaBinaryWriter();
+                                
+        protected PangyaBinaryWriter Build(List<WarehouseItemEx> list)
+        {                                       
             try
-            {
-                p.WriteUInt16((short)Count);
-                p.WriteUInt16((short)Count);
-                foreach (var item in Values)
-                {
-                    p.WriteBytes(item.Build());
-                }
-                return p.GetBytes;
+            {                                   
+                return PacketFunc.packet_func.pacote073(list);
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                return new byte[0];
+                return PacketFunc.packet_func.pacote073(new List<WarehouseItemEx>());
             }
-        }
+        }                                                                  
 
-        public byte[] GetInfo(uint _id)
+        public List<PangyaBinaryWriter> Build(uint itensPerPacket = 20)
         {
-            var wi_info = findWarehouseItemById(_id);
-            if (wi_info == null)
-                return new byte[0];
+            var responses = new List<PangyaBinaryWriter>();
+            if (Count * 196 < (1000 - 100))//envio normal
+            {
+                responses.Add(Build(Values.ToList()));
+            }
             else
             {
-                var p = new PangyaBinaryWriter();
-                p.WriteBytes(wi_info.Build());
-                return p.GetBytes;
+                var splitList = this.Values.ToList().Split((int)itensPerPacket); //ChunkBy(this.ToList(), totalBySplit);
+
+                //Percorre lista e adiciona ao resultado
+                splitList.ForEach(lista => responses.Add(Build(lista)));
             }
-        }
+            return responses;
+        }                                 
 
         public List<KeyValuePair<uint, WarehouseItemEx>>  GetValues(uint _id)
         {

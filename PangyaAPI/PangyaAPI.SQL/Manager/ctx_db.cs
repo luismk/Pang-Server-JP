@@ -14,9 +14,9 @@
             switch (engine)
             {
                 case "REMOTE":
-                    return "Server=" + ip + "," + port + ";DATABASE=" + db_name + ";UID=" + db_name + ";PWD=" + pass + "; Min Pool Size=27;Max Pool Size=250;";
+                    return "Server=" + ip + "," + port + ";DATABASE=" + db_name + ";UID=" + user + ";PWD=" + pass + "; Min Pool Size=27;Max Pool Size=250;";
                 default:
-                    return "Data Source=" + ip + "," + port + ";DATABASE=" + db_name + ";UID=" + db_name + ";PWD=" + pass + "; Min Pool Size=27;Max Pool Size=250;";
+                    return "Data Source=" + ip + "," + port + ";DATABASE=" + db_name + ";UID=" + user + ";PWD=" + pass + "; Min Pool Size=27;Max Pool Size=250;";
             }
         }
     }

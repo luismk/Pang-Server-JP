@@ -18,6 +18,7 @@ using SYSTEMTIME = GameServer.PangType.PangyaTime;
 using static GameServer.PangType._Define;
 using System.Xml.Linq;
 using System.IO;
+using System.Diagnostics;
 
 namespace GameServer.PacketFunc
 {
@@ -32,9 +33,9 @@ namespace GameServer.PacketFunc
             {
                 gs.requestLogin((Player)_arg1._session, _arg1._packet);
             }
-            catch (Exception ex)
+            catch (exception ex)
             {
-                Console.WriteLine($"[packet_func_gs::packet002][StError]: {ex.Message}");
+                Console.WriteLine($"[packet_func_gs::packet002][StError]: {ex.getFullMessageError()}");
             }
         }
 
@@ -219,11 +220,11 @@ namespace GameServer.PacketFunc
 
             //    var p = new PangyaBinaryWriter((ushort)0xA1);
 
-            //    p.addUint8(error);
+            //    p.WriteUint8(error);
 
             //    if (error == 0 && nc == NICK_IN_USE)
             //    {
-            //        p.addInt32(mi.uid);
+            //        p.WriteInt32(mi.uid);
 
             //        p.WriteBuffer(mi, sizeof(MemberInfo)); // esse aqui no antigo enviar sem o número da sala
             //    }
@@ -3181,7 +3182,7 @@ namespace GameServer.PacketFunc
 
                 //p.WriteUInt32(1); // Option
 
-                //p.addUint16((ushort)((Player)pd._session).m_pi.v_mri.size());
+                //p.WriteUint16((ushort)((Player)pd._session).m_pi.v_mri.size());
 
                 //for (var i = 0u; i < ((Player)pd._session).m_pi.v_mri.size(); ++i)
                 //{
@@ -6176,7 +6177,7 @@ namespace GameServer.PacketFunc
                 if (pi == null)
                     throw new Exception("Erro PlayerInfo *pi is null. packet_func::InitialLogin()");
 
-                p.WritePStr("PM.R7.960.01");
+                p.WritePStr(_si.version_client);
 
                 // member info
                 p.WriteUInt16(ushort.MaxValue);//num the room
@@ -6190,56 +6191,54 @@ namespace GameServer.PacketFunc
                 p.WriteBytes(pi.ti_current_season.Build());
                 // User Equip
                 p.WriteBytes(pi.ue.Build());
-                #region MapStatic Caution 
-                //---------------------------- DATA CORRECT? not finish analize -------------------------------\\
-                if (File.Exists("MapStatic.hex"))
+                #region MapStatic Work 
+                //---------------------------- MAP STATISTIC -------------------------------\\
+                // Map Statistics Normal
+                for (byte st_i = 0; st_i < MS_NUM_MAPS; st_i++)
                 {
-                    var maps = File.ReadAllBytes("MapStatic.hex");
-                    p.WriteBytes(maps);
+                    p.WriteBytes(pi.a_ms_normal[st_i].Build());
                 }
-                else
+
+                // Map Statistics Natural
+                for (byte st_i = 0; st_i < MS_NUM_MAPS; st_i++)
                 {
+                    p.WriteBytes(pi.a_ms_natural[st_i].Build());
+                }
 
-                    // Map Statistics Normal
-                    for (var st_i = 0; st_i < MS_NUM_MAPS; st_i++)
-                    {
-                        p.WriteBytes(pi.a_ms_normal[st_i].Build());
-                    }
+                // Map Statistics Grand Prix
+                for (byte st_i = 0; st_i < MS_NUM_MAPS; st_i++)
+                {
+                    p.WriteBytes(pi.a_ms_grand_prix[st_i].Build());
+                }
 
-                    // Map Statistics Natural
-                    for (var st_i = 0; st_i < MS_NUM_MAPS; st_i++)
+                // Map Statistics Normal for all seasons
+                for (int j = 0; j < 9; j++)
+                {
+                    for (var st_i = 0; st_i < MS_NUM_MAPS; st_i++)        //talvez algum problema aqui!
                     {
-                        p.WriteBytes(pi.a_ms_natural[st_i].Build());
-                    }
-
-                    // Map Statistics Grand Prix
-                    for (var st_i = 0; st_i < MS_NUM_MAPS; st_i++)
-                    {
-                        p.WriteBytes(pi.a_ms_grand_prix[st_i].Build());
-                    }
-
-                    // Map Statistics Normal for all seasons
-                    for (int j = 0; j < 9; j++)
-                    {
-                        for (var st_i = 0; st_i < MS_NUM_MAPS; st_i++)        //talvez algum problema aqui!
-                        {
-                            p.WriteBytes(pi.aa_ms_normal_todas_season[j][st_i].Build());
-                        }
+                        p.WriteBytes(pi.aa_ms_normal_todas_season[st_i].Build());
                     }
                 }
-                //---------------------------- DATA CORRECT? -------------------------------\\
+                //---------------------------- MAP STATIC CORRECT -------------------------------\\
                 #endregion fim
+                //Equiped Items
                 p.WriteBytes(pi.ei.Build());
-                // Adiciona o buffer de tempo do Pangya
+                // Write Time, 16 Bytes
                 p.WriteTime();
 
                 // Config do Server
-                p.WriteUInt16(pi.mi.flag_login_time); // Valor padrão, 1 na primeira vez, 2 para logins subsequentes
+                p.WriteUInt16(2); // Valor padrão, 1 na primeira vez, 2 para logins subsequentes
                 p.WriteStruct(pi.mi.papel_shop, pi.mi.papel_shop);
-                p.WriteInt32(0); // Valor novo no JP, indicado como 0 em novas contas
+                p.WriteInt32(1); // Valor novo no JP, indicado como 0 em novas contas
                 p.WriteUInt64(pi.block_flag.m_flag.ullFlag); // Flag do server para bloquear sistemas
                 p.WriteUInt32(pi.ari.counter); // Quantidade de vezes que logou
-                p.WriteUInt32(_si.propriedade.ulProperty); 
+                p.WriteUInt32(_si.propriedade.ulProperty);
+
+                if (p.GetSize == 12800)
+                    Debug.WriteLine("InitialLogin Size Okay");
+                else
+                    Debug.WriteLine($"InitialLogin Size Bug: Correct = {12800}, Incorrect = {p.GetSize} => packet_func.InitialLogin()");
+ 
                 return p.GetBytes;
             }
             catch (Exception e)
@@ -6323,7 +6322,7 @@ namespace GameServer.PacketFunc
         public static byte[] pacote156(uint _uid, UserEquip _ue, byte season)
         {
             var p = new PangyaBinaryWriter();
-            p.init_plain(0x157);
+            p.init_plain(0x156);
 
             p.WriteByte(season);
 
@@ -6392,7 +6391,7 @@ namespace GameServer.PacketFunc
             return p.GetBytes;
         }
 
-        public static byte[] pacote15C(uint uid, List<MapStatistics> vMs, List<MapStatistics> vMsa, byte season)
+        public static byte[] pacote15C(uint uid, List<MapStatisticsEx> vMs, List<MapStatisticsEx> vMsa, byte season)
         {
             var p = new PangyaBinaryWriter(0x15C);
             p.WriteByte(season);
@@ -6414,7 +6413,7 @@ namespace GameServer.PacketFunc
         {
             var p = new PangyaBinaryWriter(0x15D);
             p.WriteUInt32(uid);
-            p.WriteStruct(gi, new GuildInfo());
+            p.WriteBytes(gi.Build());
             return p.GetBytes;
         }
 
@@ -6428,26 +6427,19 @@ namespace GameServer.PacketFunc
 
         public static byte[] pacote096(PlayerInfo pi)
         {
-            var p = new PangyaBinaryWriter();
             if (pi == null)
                 throw new Exception("Erro PlayerInfo *pi is nullptr. packet_func::pacote096()");
-
-            p.Write(new byte[] { 0x96, 0x00 });
-
-            p.WriteUInt64(pi.cookie);
-
-            // throw new NotImplementedException();
-            return p.GetBytes;
+            using (var p = new PangyaBinaryWriter(0x96))
+            {                          
+                p.WriteUInt64(pi.cookie);
+                return p.GetBytes;
+            }     
         }
 
         public static byte[] pacote181(List<ItemBuffEx> v_element, int option = 0)
         {
-            using (var p = new PangyaBinaryWriter())
-            {
-
-
-                p.init_plain(0x181);
-
+            using (var p = new PangyaBinaryWriter(0x181))
+            {                                             
                 p.WriteInt32(option);
 
                 if (option == 0)
@@ -6543,20 +6535,24 @@ namespace GameServer.PacketFunc
             p.init_plain(0xE1);
             p.Write(v_element.Build());
             return p.GetBytes;
-        }
-
-        public static byte[] pacote073(WarehouseManager v_element, int option = 0)
+        }                
+        public static PangyaBinaryWriter pacote073(List<WarehouseItemEx> v_element, int option = 0)
         {
             var p = new PangyaBinaryWriter();
             try
             {
                 p.Write(new byte[] { 0x73, 0x00 });
-                p.WriteBytes(v_element.Build());
-                return p.GetBytes;
+                p.WriteUInt16((short)v_element.Count);
+                p.WriteUInt16((short)v_element.Count);
+                foreach (var item in v_element)
+                {
+                    p.WriteBytes(item.Build());
+                }
+                return p;
             }
             catch (Exception)
             {
-                return p.GetBytes;
+                return p;
             }
         }
 
@@ -6645,7 +6641,7 @@ namespace GameServer.PacketFunc
             {
                 p.Write(new byte[] { 0x48, 0x02 });
                 p.WriteInt32(option);
-                p.WriteStruct(ari, new AttendanceRewardInfo());
+                p.WriteBytes(ari.Build());
                 return p.GetBytes;
             }
         }
@@ -6658,7 +6654,7 @@ namespace GameServer.PacketFunc
             {
                 p.Write(new byte[] { 0x49, 0x02 });
                 p.WriteInt32(option);
-                p.WriteStruct(ari, new AttendanceRewardInfo());
+                p.WriteBytes(ari.Build());
                 return p.GetBytes;
             }
         }
@@ -6705,11 +6701,8 @@ namespace GameServer.PacketFunc
             if ((option == 0 || option == 0x80) && pi == null)
                 throw  new exception("Error PlayerInfo *pi is nullptr. packet_func::pacote040()");
 
-            using (var p = new PangyaBinaryWriter())
-            {
-
-                p.init_plain(0x40);
-
+            using (var p = new PangyaBinaryWriter(0x40))
+            {                                          
                 p.WriteByte(option);
 
                 if (option == 0 || option == 0x80)
@@ -6724,19 +6717,15 @@ namespace GameServer.PacketFunc
 
         public static byte[] pacote044(ServerInfoEx _si, int option, PlayerInfo pi = null, int valor = 0)
         {
-            var p = new PangyaBinaryWriter();
+            var p = new PangyaBinaryWriter(0x44);
 
             if (option == 0 && pi == null)
                 throw new Exception("Erro PlayerInfo *pi is nullptr. packet_func::pacote044()");
-
-            p.Write(new byte[] { 0x44, 0x00 });
-
+                                            
             p.WriteByte(option);   // Option
 
             if (option == 0)
-            {
                 p.Write(InitialLogin(pi, _si));
-            }
             else if (option == 1)
                 p.WriteByte(0);
             else if (option == 0xD3)
@@ -6890,8 +6879,142 @@ int option = 0)
                     p.WriteByte(season);
                     p.WriteUInt32(_uid);
                 }
+                return p.GetBytes;                      
+            }
+        }                                                                     
+
+        public static byte[] pacote211(List<MailBox> v_element, uint pagina, uint paginas, uint error = 0)
+        {
+
+            using (var p = new PangyaBinaryWriter(0x211))
+            {
+                p.WriteUInt32(error);
+
+                if (error == 0)
+                {
+                    p.WriteUInt32(pagina);
+                    p.WriteUInt32(paginas);
+                    p.WriteInt32(v_element.Count);
+
+                    for (int i = 0; i < v_element.Count; ++i)
+                    {
+                        p.WriteBytes(v_element[i].Build());
+                    }
+                }
+
                 return p.GetBytes;
             }
+        }
+
+        public static byte[] pacote212(EmailInfo ei, uint error = 0)
+        {
+
+            using (var p = new PangyaBinaryWriter(0x212))
+            {
+                p.WriteUInt32(error);
+
+                if (error == 0)
+                {
+                    p.WriteBytes(ei.Build());  
+                }
+
+                return p.GetBytes;
+            }
+        }
+
+
+        public static byte[] pacote06B(PlayerInfo pi, byte type, byte err_code = 4)
+        {
+
+            if (pi == null)
+            {
+                throw new exception("Erro PlayerInfo *pi is nullptr. packet_func::pacote06B()", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PACKET_FUNC_SV,
+                    1, 0));
+            }
+            var p = new PangyaBinaryWriter(0x6B);
+
+            p.WriteByte(err_code); // Error Code, 4 Sucesso, diferente é erro
+            p.WriteByte(type);
+
+            if (err_code == 4)
+            {
+                switch (type)
+                {
+                    case 0: // Character Equipado Com os Parts Equipado
+                        if (pi.ei.char_info != null)
+                        {
+                            p.WriteBytes(pi.ei.char_info.Build());//, sizeof(CharacterInfo));
+                        }
+                        else
+                        {
+                            p.WriteZero(513);
+                        }
+                        break;
+                    case 1: // Caddie Equipado
+                        if (pi.ei.cad_info != null)
+                        {
+                            p.WriteUInt32(pi.ei.cad_info.id);
+                        }
+                        else
+                        {
+                            p.WriteZero(4);
+                        }
+                        break;
+                    case 2: // Itens Equipáveis
+                        p.WriteUInt32(pi.ue.item_slot);//, sizeof(pi.ue.item_slot));
+                        break;
+                    case 3: // Ball e Clubset Equipado
+                        if (pi.ei.comet != null) // Ball
+                        {
+                            p.WriteUInt32(pi.ei.comet._typeid);
+                        }
+                        else
+                        {
+                            p.WriteZero(4);
+                        }
+                        p.WriteUInt32(pi.ei.csi.id); // ClubSet ID
+                        break;
+                    case 4: // Skins
+                        p.WriteUInt32(pi.ue.skin_typeid);//, sizeof(pi.ue.skin_typeid));
+                        break;
+                    case 5: // Only Chracter Equipado
+                        if (pi.ei.char_info != null)
+                        {
+                            p.WriteUInt32(pi.ei.char_info.id);
+                        }
+                        else
+                        {
+                            p.WriteZero(4);
+                        }
+                        break;
+                    case 8: // Mascot Equipado
+                        if (pi.ei.mascot_info != null)
+                        {
+                            p.WriteBytes(pi.ei.mascot_info.Build());//, sizeof(MascotInfo));
+                        }
+                        else
+                        {
+                            p.WriteZero(62);
+                        }
+                        break;
+                    case 9: // Character Cutin Equipado
+                        if (pi.ei.char_info != null)
+                        {
+                            p.WriteUInt32(pi.ei.char_info.id);
+                            p.WriteUInt32(pi.ei.char_info.Cut_in);//, sizeof(pi.ei.char_info.cut_in));
+                        }
+                        else
+                        {
+                            p.WriteZero(20);
+                        }
+                        break;
+                    case 10: // Poster Equipado
+                        p.WriteUInt32(pi.ue.poster);//, sizeof(pi.ue.poster));
+                        break;
+                }
+            }
+
+            return p.GetBytes;
         }
         #endregion
 

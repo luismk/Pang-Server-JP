@@ -202,7 +202,8 @@ namespace GameServer.GameServerTcp
                 else
                 {                                                 
                     //is low :/
-                    _session.SendLobby_broadcast(packet_func.pacote040(_session.m_pi, msg, (byte)(_session.IsGM ? 0x80 : 0)));                   
+                    _session.SendLobby_broadcast(packet_func.pacote040(_session.m_pi, msg, (byte)(_session.m_pi.m_cap.stBit.game_master ? 0x80 : 0)));
+                                                   
                 }
 
             }
@@ -251,7 +252,7 @@ namespace GameServer.GameServerTcp
             catch (exception e)
             {
 
-                // _smp::message_pool.push(new mesa("[game_server::requestEnterOtherChannelAndLobby][ErrorSystem] " + e.getFullMessageError(), CL_FILE_LOG_AND_CONSOLE));
+                _smp::message_pool.push(new message("[game_server::requestEnterOtherChannelAndLobby][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
 
             }
         }
@@ -283,66 +284,230 @@ namespace GameServer.GameServerTcp
 
                 if (uid == _session.m_pi.uid)
                 {
+
                     pi = _session.m_pi;
+
                 }
                 else if ((s = findPlayer(uid)) != null)
-                {
-                    pi = s.m_pi;
-                }
-
-                var cmdMi = new CmdMemberInfo(uid);
-                NormalManagerDB.add(0, cmdMi, null, null);
-
-                if (cmdMi.getException().getCodeError() != 0)
-                    throw cmdMi.getException();
-
-                var mi = cmdMi.getInfo();
-
-                if (uid != _session.m_pi.uid && !_session.m_pi.m_cap.stBit.game_master.IsTrue() && mi.capability.stBit.game_master.IsTrue())
-                {
-                    _session.Send(packet_func.pacote089(uid, season, 3));
+                {                                                                
+                    pi = s.m_pi;                                                
                 }
                 else
                 {
-                    List<MapStatistics> v_ms_n = new List<MapStatistics>();
-                    List<MapStatistics> v_msa_n = new List<MapStatistics>();
-                    List<MapStatistics> v_ms_na = new List<MapStatistics>();
-                    List<MapStatistics> v_msa_na = new List<MapStatistics>();
-                    List<MapStatistics> v_ms_g = new List<MapStatistics>();
-                    List<MapStatistics> v_msa_g = new List<MapStatistics>();
 
-                    var cmdCi = new CmdCharacterInfo(uid, CmdCharacterInfo.TYPE.ONE, int.MaxValue);
-                    NormalManagerDB.add(0, cmdCi, null, null);
+                    var cmd_mi = new CmdMemberInfo(uid);
 
-                    if (cmdCi.getException().getCodeError() != 0)
-                        throw cmdCi.getException();
+                    NormalManagerDB.add(0, cmd_mi, null, null);   
 
-                    ci = cmdCi.getInfo();
+                    if (cmd_mi.getException().getCodeError() != 0)
+                        throw cmd_mi.getException();
 
-                    var cmdUe = new CmdUserEquip(uid);
-                    NormalManagerDB.add(0, cmdUe, null, null);
+                    MemberInfoEx mi = cmd_mi.getInfo();
 
-                    if (cmdUe.getException().getCodeError() != 0)
-                        throw cmdUe.getException();
+                    // Verifica se não é o mesmo UID, pessoas diferentes
+                    // Quem quer ver a info não é GM aí verifica se o player é GM
+                    if (uid != _session.m_pi.uid && !mi.capability.stBit.game_master/* & 4/*(GM)*/)
+                    {
 
-                    var ue = cmdUe.getInfo();
+                        _session.Send(packet_func.pacote089(uid, season, 3)); 
 
-                    var cmdUi = new CmdUserInfo(uid);
-                    NormalManagerDB.add(0, cmdUi, null, null);
+                    }
+                    else
+                    {
 
-                    if (cmdUi.getException().getCodeError() != 0)
-                        throw cmdUi.getException();
+                        List<MapStatisticsEx> v_ms_n, v_msa_n, v_ms_na, v_msa_na, v_ms_g, v_msa_g;
 
-                    var ui = cmdUi.getInfo();
+                       var cmd_ci = new CmdCharacterInfo(uid, CmdCharacterInfo.TYPE.ONE, -1);
 
-                    var cmdGi = new CmdGuildInfo(uid, 0);
-                    NormalManagerDB.add(0, cmdGi, null, null);
+                        NormalManagerDB.add(0, cmd_ci, null, null);
 
-                    if (cmdGi.getException().getCodeError() != 0)
-                        throw cmdGi.getException();
+                        if (cmd_ci.getException().getCodeError() != 0)
+                            throw cmd_ci.getException();
 
-                    var gi = cmdGi.getInfo();
-                    _session.Send(packet_func.pacote157(pi.mi, season), true);
+                        ci = cmd_ci.getInfo();
+
+                        var cmd_ue = new CmdUserEquip(uid);
+
+                        NormalManagerDB.add(0, cmd_ue, null, null);
+
+                        if (cmd_ue.getException().getCodeError() != 0)
+                            throw cmd_ue.getException();
+
+                        UserEquip ue = cmd_ue.getInfo();
+
+                        var cmd_ui = new CmdUserInfo(uid);
+
+                        NormalManagerDB.add(0, cmd_ui, null, null);
+
+                        if (cmd_ui.getException().getCodeError() != 0)
+                            throw cmd_ui.getException();
+
+                        UserInfoEx ui = cmd_ui.getInfo();
+
+                        var cmd_gi= new  CmdGuildInfo(uid, 0);
+
+                        NormalManagerDB.add(0, cmd_gi, null, null);
+
+                        if (cmd_gi.getException().getCodeError() != 0)
+                            throw cmd_gi.getException();
+
+                        var gi = cmd_gi.getInfo();
+
+                      var cmd_ms = new  CmdMapStatistics(uid, (CmdMapStatistics.TYPE_SEASON)(season), CmdMapStatistics.TYPE.NORMAL, CmdMapStatistics.TYPE_MODO.M_NORMAL);
+
+                        NormalManagerDB.add(0, cmd_ms, null, null);
+
+                        if (cmd_ms.getException().getCodeError() != 0)
+                            throw cmd_ms.getException();
+
+                        v_ms_n = cmd_ms.getMapStatistics();
+
+                        cmd_ms.setType(CmdMapStatistics.TYPE.ASSIST);
+
+                        NormalManagerDB.add(0, cmd_ms, null, null);
+
+                        if (cmd_ms.getException().getCodeError() != 0)
+                            throw cmd_ms.getException();
+
+                        v_msa_n = cmd_ms.getMapStatistics();
+
+                        cmd_ms.setType(CmdMapStatistics.TYPE.NORMAL);
+                        cmd_ms.setModo(CmdMapStatistics.TYPE_MODO.M_NATURAL);
+
+                        NormalManagerDB.add(0, cmd_ms, null, null);
+
+                        if (cmd_ms.getException().getCodeError() != 0)
+                            throw cmd_ms.getException();
+
+                        v_ms_na = cmd_ms.getMapStatistics();
+
+                        cmd_ms.setType(CmdMapStatistics.TYPE.ASSIST);
+
+                        NormalManagerDB.add(0, cmd_ms, null, null);
+
+                        if (cmd_ms.getException().getCodeError() != 0)
+                            throw cmd_ms.getException();
+
+                        v_msa_na = cmd_ms.getMapStatistics();
+
+                        cmd_ms.setType(CmdMapStatistics.TYPE.NORMAL);
+                        cmd_ms.setModo(CmdMapStatistics.TYPE_MODO.M_GRAND_PRIX);
+
+                        NormalManagerDB.add(0, cmd_ms, null, null);
+
+                        if (cmd_ms.getException().getCodeError() != 0)
+                            throw cmd_ms.getException();
+
+                        v_ms_g = cmd_ms.getMapStatistics();
+
+                        cmd_ms.setType(CmdMapStatistics.TYPE.ASSIST);
+
+                        NormalManagerDB.add(0, cmd_ms, null, null);
+
+                        if (cmd_ms.getException().getCodeError() != 0)
+                            throw cmd_ms.getException();
+
+                        v_msa_g = cmd_ms.getMapStatistics();
+
+                        var cmd_tei = new CmdTrophySpecial(uid, (CmdTrophySpecial.TYPE_SEASON)(season), CmdTrophySpecial.TYPE.NORMAL);
+
+                        NormalManagerDB.add(0, cmd_tei, null, null);
+
+                        if (cmd_tei.getException().getCodeError() != 0)
+                            throw cmd_tei.getException();
+
+                        List<TrofelEspecialInfo> v_tei = cmd_tei.getInfo();
+
+                       var cmd_ti = new CmdTrofelInfo(uid, (CmdTrofelInfo.TYPE_SEASON)(season));
+
+                        NormalManagerDB.add(0, cmd_ti, null, null);
+
+                        if (cmd_ti.getException().getCodeError() != 0)
+                            throw cmd_ti.getException();
+
+                        TrofelInfo ti = cmd_ti.getInfo();
+
+                        cmd_tei.setType(CmdTrophySpecial.TYPE.GRAND_PRIX);
+
+                        NormalManagerDB.add(0, cmd_tei, null, null);
+
+                        if (cmd_tei.getException().getCodeError() != 0)
+                            throw cmd_tei.getException();
+
+                        List<TrofelEspecialInfo> v_tegi = cmd_tei.getInfo();
+
+                        _session.Send(packet_func.pacote157(mi, season));
+
+                        _session.Send(packet_func.pacote15E(uid, ci));
+
+                        _session.Send(packet_func.pacote156(uid, ue, season));
+
+                        _session.Send(packet_func.pacote158(uid, ui, season));
+
+                        _session.Send(packet_func.pacote15D(uid, gi));
+
+                        _session.Send(packet_func.pacote15C(uid, v_ms_na, v_msa_na, Convert.ToByte((season != 0) ? 0x33 : 0x0A)));
+
+                        _session.Send(packet_func.pacote15C(uid, v_ms_g, v_msa_g, Convert.ToByte((season != 0) ? 0x34 : 0x0B)));
+
+                        _session.Send(packet_func.pacote15B(uid, season));
+
+                        _session.Send(packet_func.pacote15A(uid, v_tei, season));
+
+                        _session.Send(packet_func.pacote159(uid, ti, season));
+
+                        _session.Send(packet_func.pacote15C(uid, v_ms_n.ToList(), v_msa_n.ToList(), season));
+
+                        _session.Send(packet_func.pacote257(uid, v_tegi, season));
+
+                        _session.Send(packet_func.pacote089(uid, season));
+                    }
+
+                    return;
+                }
+
+                // Verifica se não é o mesmo UID, pessoas diferentes
+                // Quem quer ver a info não é GM aí verifica se o player é GM
+                if (uid != _session.m_pi.uid && !pi.m_cap.stBit.game_master/* & 4/*(GM)*/)
+                {                                                      
+                    _session.Send(packet_func.pacote089(uid, season, 3));
+
+                }
+                else
+                {
+
+                    var pCi = pi.findCharacterById(pi.ue.character_id);
+
+                    if (pCi != null)
+                        ci = pCi;
+
+                    List<MapStatisticsEx> v_ms_n = new List<MapStatisticsEx>(), v_msa_n = new List<MapStatisticsEx>(), v_ms_na = new List<MapStatisticsEx>(), v_msa_na = new List<MapStatisticsEx>(), v_ms_g = new List<MapStatisticsEx>(), v_msa_g = new List<MapStatisticsEx>();
+
+                    for (byte i = 0; i < MS_NUM_MAPS; ++i)
+                        if (pi.a_ms_normal[i].best_score != 127)
+                            v_ms_n.Add(pi.a_ms_normal[i]);
+
+                    for (byte i = 0; i < MS_NUM_MAPS; ++i)
+                        if (pi.a_msa_normal[i].best_score != 127)
+                            v_msa_n.Add(pi.a_msa_normal[i]);
+
+                    for (byte i = 0; i < MS_NUM_MAPS; ++i)
+                        if (pi.a_ms_natural[i].best_score != 127)
+                            v_ms_na.Add(pi.a_ms_natural[i]);
+
+                    for (byte i = 0; i < MS_NUM_MAPS; ++i)
+                        if (pi.a_msa_natural[i].best_score != 127)
+                            v_msa_na.Add(pi.a_msa_natural[i]);
+
+                    for (byte i = 0; i < MS_NUM_MAPS; ++i)
+                        if (pi.a_ms_grand_prix[i].best_score != 127)
+                            v_ms_g.Add(pi.a_ms_grand_prix[i]);
+
+                    for (byte i = 0; i < MS_NUM_MAPS; ++i)
+                        if (pi.a_msa_grand_prix[i].best_score != 127)
+                            v_msa_g.Add(pi.a_msa_grand_prix[i]);
+
+                    _session.Send(packet_func.pacote157(pi.mi, season));
 
                     _session.Send(packet_func.pacote15E(pi.uid, ci));
 
@@ -352,9 +517,9 @@ namespace GameServer.GameServerTcp
 
                     _session.Send(packet_func.pacote15D(pi.uid, pi.gi));
 
-                    _session.Send(packet_func.pacote15C(pi.uid, v_ms_na, v_msa_na, (season != 0) ? (byte)0x33 : (byte)0x0A));
+                    _session.Send(packet_func.pacote15C(pi.uid, v_ms_na, v_msa_na, (byte)((season != 0) ? 0x33 : 0x0A)));
 
-                    _session.Send(packet_func.pacote15C(pi.uid, v_ms_g, v_msa_g, (season != 0) ? (byte)0x34 : (byte)0x0B));
+                    _session.Send(packet_func.pacote15C(pi.uid, v_ms_g, v_msa_g, (byte)((season != 0) ? 0x34 : 0x0B)));
 
                     _session.Send(packet_func.pacote15B(uid, season));
 
@@ -366,18 +531,16 @@ namespace GameServer.GameServerTcp
 
                     _session.Send(packet_func.pacote257(pi.uid, (season != 0) ? pi.v_tgp_current_season : pi.v_tgp_rest_season, season));
 
+
                     _session.Send(packet_func.pacote089(uid, season));
 
                 }
-
             }
             catch (Exception e)
             {
                 message_pool.push(new message($"[GameServer::RequestPlayerInfo][ErrorSystem] {e.Message}", type_msg.CL_ONLY_CONSOLE));
-                _session.Send(packet_func.pacote089(0));
-
-            }
-
+                _session.Send(packet_func.pacote089(0));                          
+            }                                                                                                                                                       
         }
 
         public void requestPrivateMessage(Player _session, Packet _packet)

@@ -20,7 +20,7 @@ namespace GameServer
     {
         public static GameServerTcp.GameServer gs;
         static void Main(string[] args)
-        {                                                   
+        {
             gs = new GameServerTcp.GameServer();//chama a class com servidor imbutido   
             for (; ; )
             {

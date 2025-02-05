@@ -72,7 +72,6 @@ namespace PangyaAPI.Network.PangyaSession
                 session.m_tick = Environment.TickCount;
 
                 session.SetState(true);
-                session.SetConnected(true);
                 m_count++;
             }
 

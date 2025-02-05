@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace GameServer.PangDefinition
+﻿namespace GameServer.PangDefinition
 {
-    public enum PacketGame
+    /// <summary>
+    /// Names of Packets Client
+    /// </summary>
+    public enum PacketIDClient
     {
         PLAYER_LOGIN = 0x0002,
         PLAYER_CHAT = 0x0003,
@@ -95,6 +92,7 @@ namespace GameServer.PangDefinition
         PLAYER_ENTER_TO_SHOP = 0x0140,
         PLAYER_CHECK_USER_FOR_GIFT = 0x0007,
 
+        PLAYER_UCC_COMPRESS = 0x00FE,
         PLAYER_SAVE_BAR = 0x000B,
         PLAYER_CHANGE_EQUIPMENT = 0x000C,
         PLAYER_CHANGE_EQUIPMENTS = 0x0020,

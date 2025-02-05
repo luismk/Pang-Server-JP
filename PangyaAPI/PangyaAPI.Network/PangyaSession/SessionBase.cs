@@ -13,13 +13,15 @@ using PangyaAPI.Utilities;
 using System.Threading;
 using PangyaAPI.Network.PangyaServer;
 using System.Runtime.CompilerServices;
+using System.Diagnostics;
+using static System.Collections.Specialized.BitVector32;
+using System.Runtime.InteropServices.WindowsRuntime;
 
 namespace PangyaAPI.Network.PangyaSession
 {
     public abstract partial class SessionBase : IDisposeable
     {
-        #region Public Fields
-         
+        #region Public Fields     
         /// <summary>
         /// Servidor em que o cliente está conectado
         /// </summary>
@@ -41,11 +43,8 @@ namespace PangyaAPI.Network.PangyaSession
 
         // Contexto de sincronização
         private readonly object _lockSync = new object();
-
-        private bool m_connected;
-        private bool m_state;
-        private bool m_connectedToSend;
-        private string m_ip;
+                                           
+        private bool m_state;             
         private bool disposing = false;
 
         #endregion
@@ -55,9 +54,7 @@ namespace PangyaAPI.Network.PangyaSession
         public SessionBase()
         {
             m_oid = uint.MaxValue;
-            m_connected = false;
             m_state = true;
-            m_connectedToSend = false;
         }
         #endregion
 
@@ -75,18 +72,7 @@ namespace PangyaAPI.Network.PangyaSession
             try
             {
                 disposing = true; // Marca como tentativa de limpeza
-                m_state = false;
-                m_connected = false;
-                m_connectedToSend = false;
-
-                m_key = byte.MaxValue;
-                Address = null;
-
-                m_start_time = int.MaxValue;
-                m_tick = int.MaxValue;
-                m_oid = uint.MaxValue;
-                m_is_authorized = false;                                 
-
+               
                 Dispose();
                 return true;
             }
@@ -136,24 +122,12 @@ namespace PangyaAPI.Network.PangyaSession
             return ret;
         }
 
-        public int GetConnectTime()
-        {
-            return (Environment.TickCount - m_start_time);
-        }
+        public int GetConnectTime() => (Environment.TickCount - m_start_time);
 
         // Métodos de estado
         public bool GetState() => m_state;     
 
-        public void SetState(bool state)
-        {
-            m_state = state;
-        }
-
-        public void SetConnected(bool connected)
-        {
-            m_connected = connected;
-            MakeIP();
-        }
+        public void SetState(bool state) => m_state = state;
 
         public bool getConnected()
         {
@@ -161,17 +135,22 @@ namespace PangyaAPI.Network.PangyaSession
             {
                 if (_client != null && _client.Client != null && _client.Client.Connected)
                 {
-                    // Use o socket para verificar a conectividade
                     return !(_client.Client.Poll(1, SelectMode.SelectRead) && _client.Client.Available == 0);
                 }
                 return false;
             }
-            catch
+            catch (SocketException ex)
             {
+                Console.WriteLine($"Erro de socket ao verificar conexão: {ex.Message} | Código: {ex.SocketErrorCode}");
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro inesperado ao verificar conexão: {ex.Message}");
                 return false;
             }
         }
-
+                               
         public abstract uint getUID();
 
         public abstract uint getCapability();
@@ -179,27 +158,12 @@ namespace PangyaAPI.Network.PangyaSession
         public abstract string getNickname();
 
         public abstract string getID();
-
-        // Métodos privados
-        public void MakeIP()
-        {
-            if (Address != null)
-            {
-                m_ip = Address.Address.ToString();
-            }
-        }
+              
 
         public void Disconnect()
         {
             try
-            {
-                if (_client != null)
-                {
-                    _client.Close();
-                    _client.Dispose();
-                }
-                m_connected = false;
-
+            {    
                 if (Server != null)
                 {
                     Server.DisconnectSession(this);
@@ -213,17 +177,17 @@ namespace PangyaAPI.Network.PangyaSession
         #endregion
 
         #region Player Send Packets 
-        public virtual void Send(PangyaBinaryWriter packet, bool debug = true)
+        public virtual void Send(PangyaBinaryWriter packet, bool debug_log = true)
         {
-            if (debug)
-                Console.WriteLine("[SessionBase::Send1][HexLog]: " + packet.GetBytes.HexDump() + Environment.NewLine);
+            if (debug_log)
+                Debug.WriteLine("[SessionBase::Send1][HexLog]: " + packet.GetBytes.HexDump() + Environment.NewLine);
             SafeSend(packet.GetBytes.ServerEncrypt(m_key));
         }
 
-        public virtual void Send(byte[] Data, bool debug = true)
+        public virtual void Send(byte[] Data, bool debug_log = true)
         {
-            if (debug)
-                Console.WriteLine("[SessionBase::Send2][HexLog]: " + Data.HexDump() + Environment.NewLine);
+            if (debug_log)
+                Debug.WriteLine("[SessionBase::Send2][HexLog]: " + Data.HexDump() + Environment.NewLine);
                                                
             SafeSend(Data.ServerEncrypt(m_key));
         }
@@ -256,16 +220,11 @@ namespace PangyaAPI.Network.PangyaSession
                 if (getConnected())
                 {
                     SendBytes(buffer);
-                }
-                else
-                {
-                    Disconnect();
-                }
+                }    
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Erro ao enviar dados: {ex.Message} | StackTrace: {ex.StackTrace}");
-                Disconnect();
             }
         }
 
@@ -288,8 +247,17 @@ namespace PangyaAPI.Network.PangyaSession
                 if (disposing)
                 {
                     // Liberando recursos gerenciados
-                    this.m_connected = false;
                     Server = null;
+                    m_state = false;            
+                    m_key = byte.MaxValue;
+                    Address = null;
+
+                    m_start_time = int.MaxValue;
+                    m_tick = int.MaxValue;
+                    m_oid = uint.MaxValue;
+                    m_is_authorized = false;
+
+                    this._client.Dispose();
                 }
 
                 // Seta a variável booleana para true,

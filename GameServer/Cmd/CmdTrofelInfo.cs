@@ -8,9 +8,9 @@ namespace GameServer.Cmd
     public class CmdTrofelInfo : Pangya_DB
     {
         private uint m_uid;
-        TYPE m_season;
+        TYPE_SEASON m_season;
         TrofelInfo m_ti = new TrofelInfo();
-        public  enum TYPE : byte
+        public  enum TYPE_SEASON : byte
         {
             ALL,        // Todas SEASON
             ONE,        // 1
@@ -20,7 +20,7 @@ namespace GameServer.Cmd
             CURRENT     // Atual
         }
         protected override string _getName { get; } = "CmdTrofelInfo";
-        public CmdTrofelInfo(uint _uid, TYPE _season)
+        public CmdTrofelInfo(uint _uid, TYPE_SEASON _season)
         {
             m_uid = (_uid);
             m_season = (_season);
@@ -29,7 +29,7 @@ namespace GameServer.Cmd
         public CmdTrofelInfo(uint _uid, uint _season)
         {
             m_uid = (_uid);
-            m_season = (TYPE)(_season);
+            m_season = (TYPE_SEASON)(_season);
             m_ti = new TrofelInfo();
         }
 
@@ -101,12 +101,12 @@ namespace GameServer.Cmd
 			m_uid = _uid;
 		}
 
-		public TYPE getSeason()
+		public TYPE_SEASON getSeason()
 		{
 			return m_season;
 		}
 
-		public void getSeason(TYPE _type)
+		public void getSeason(TYPE_SEASON _type)
 		{
 			m_season = _type;
 		}

@@ -15,6 +15,7 @@ using PangyaAPI.Network.PangyaSession;
 using System.IO;
 using System.Linq;
 using System.Diagnostics;
+using static System.Collections.Specialized.BitVector32;
 
 namespace PangyaAPI.Network.PangyaServer
 {
@@ -130,6 +131,7 @@ namespace PangyaAPI.Network.PangyaServer
                 {
 
                     // Inicia Escuta de novas conexões (Quando player se conecta).
+
                     TcpClient newClient = _server.AcceptTcpClient();
 
                     newClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
@@ -173,7 +175,7 @@ namespace PangyaAPI.Network.PangyaServer
                         DisconnectSession(Session);
                         break;
                     }
-
+                    
                     byte[] message = ReceivePacket(client.GetStream());
 
                     if (message.Length >= 5)
@@ -184,8 +186,15 @@ namespace PangyaAPI.Network.PangyaServer
                     else
                     {
                         DisconnectSession(Session);
+                        Session.Dispose();
                         break;
                     }
+                }
+                catch (SocketException ex)
+                {
+                    _smp.message_pool.push(new message("[server::HandleSession][IOError] " + ex.Message, type_msg.CL_FILE_LOG_AND_CONSOLE));
+                    DisconnectSession(Session);
+                    break; 
                 }
                 catch (IOException ioEx)
                 {
@@ -238,11 +247,13 @@ namespace PangyaAPI.Network.PangyaServer
                     // Verifica e atualiza os arquivos de log caso o dia tenha mudado
                     if (_smp.message_pool.checkUpdateDayLog())
                     {
-                        _smp.message_pool.push("[AppServer::Monitor::UpdateLogFiles][Log] Atualizou os arquivos de Log porque trocou de dia.");
+                        _smp.message_pool.push("[Server::Monitor::UpdateLogFiles][Log] Atualizou os arquivos de Log porque trocou de dia.");
                     }
 
                     try
                     {
+                      ///  m_session_manager.CheckSessionLive();
+
                         // Atualiza o número de sessões conectadas
                         m_si.curr_user = (int)m_session_manager.NumSessionConnected();
                         NormalManagerDB.add(0, new CmdRegisterServer(m_si), SQLDBResponse, this);
@@ -583,11 +594,10 @@ namespace PangyaAPI.Network.PangyaServer
                 return false;
             }
 
-            Console.WriteLine($"[server::DisconnectSession][Log] PLAYER[IP: {_session.getIP()}, Key: {_session.m_key}, Hora: {DateTime.Now}]");
+            message_pool.push(new message($"[server::DisconnectSession][Log] PLAYER[IP: {_session.getIP()}, Key: {_session.m_key}, Time: {DateTime.Now}]", type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-            // Notifica que a desconexão ocorreu
-            if (_session.getConnected())
-                onDisconnected(_session);
+            // Notifica que a desconexão ocorreu       
+            onDisconnected(_session);
 
             bool result;
             try

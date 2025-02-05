@@ -2,6 +2,8 @@
 using response = PangyaAPI.SQL.Response;
 using PangyaAPI.SQL.Manager;
 using System;
+using System.Runtime.CompilerServices;
+
 namespace PangyaAPI.SQL
 {
     public abstract partial class Pangya_DB
@@ -102,7 +104,7 @@ namespace PangyaAPI.SQL
         }
 
 
-        public static uint IFNULL(object value)
+        public uint IFNULL(object value)
         {
             if (value == null || value is DBNull)
             {
@@ -119,15 +121,16 @@ namespace PangyaAPI.SQL
                 return Convert.ToUInt32(value);
             }
             catch
-            {
-                throw new InvalidCastException("[Pangya_DB::IFNULL][Error] The provided value cannot be converted to uint.");
+            {                                     
+                throw new InvalidCastException($"[{_getName}::IFNULL][Error] The provided value cannot be converted to uint.");
             }
-        }                                                            
-        public static T IFNULL<T>(object value)
+        }
+
+        public T IFNULL<T>(object value)
         {
             if (value == null || value is DBNull)
             {
-                return (T)value;
+                return default; // Retorna o valor padrão de T (ex: 0 para int, null para string)
             }
 
             try
@@ -137,13 +140,14 @@ namespace PangyaAPI.SQL
                     return default;
                 }
 
-                return (T)value;
+                return (T)Convert.ChangeType(value, typeof(T)); // Conversão segura para o tipo T
             }
-            catch
+            catch (Exception ex)
             {
-                throw new InvalidCastException("[Pangya_DB::IFNULL][Error] The provided value cannot be converted to uint.");
+                throw new InvalidCastException($"[{_getName}::IFNULL][Error] The provided value cannot be converted to {typeof(T).Name}.", ex);
             }
         }
+
 
         public static DateTime _translateDate(object value)
         {

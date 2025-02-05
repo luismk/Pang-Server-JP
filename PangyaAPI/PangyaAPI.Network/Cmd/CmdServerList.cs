@@ -51,7 +51,7 @@ namespace PangyaAPI.Network.Cmd
                 si.event_map = short.Parse(_result.data[9].ToString());
                 si.img_no = short.Parse(_result.data[10].ToString());
                 si.app_rate = short.Parse(_result.data[11].ToString());
-                si.unknown = short.Parse(_result.data[12].ToString());    // Estava o rate_scratchy mas realoquei ele para o ServerInfoEx::Rate
+                si.scratch_rate = short.Parse(_result.data[12].ToString());    // Estava o rate_scratchy mas realoquei ele para o ServerInfoEx::Rate
                     v_server_list.Add(si);
             }
             catch (Exception ex)

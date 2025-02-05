@@ -11,6 +11,11 @@ using GameServer.Session;
 using PangyaAPI.Utilities.BinaryModels;
 using PangyaAPI.Utilities.Log;
 using GameServer.Game.System;
+using GameServer.Game.Manager;
+using static GameServer.PangType.PlayerInfo;
+using PangyaAPI.Network.Pangya_St;
+using PangyaAPI.SQL.Manager;
+using System.Runtime.InteropServices;
 
 namespace GameServer.Game
 {
@@ -30,16 +35,16 @@ namespace GameServer.Game
 
         void removeSession(Player _session)
         {
-            if (_session == null)
-                throw new exception("[channel::removeSession][Error] _session is nullptr.");
+            if (_session == null || !v_sessions.Any(c => c == _session))
+                return;//retorna, ele nao esta na lista mais!
 
-            int index = -1;
+            int index;
             if ((index = findIndexSession(_session)) == -1)
             {
                 throw new exception("[channel::removeSession][Error] _session not exists on vector sessions.");
             }
 
-            v_sessions.Remove(_session);
+            v_sessions.RemoveAt(index);
 
             m_ci.curr_user--;
 
@@ -105,9 +110,6 @@ namespace GameServer.Game
 
         protected int findIndexSession(Player _session)
         {
-            if (_session == null)
-                throw new exception("[channel::findIndexSession][Error] _session is null.");
-
             for (var i = 0; i < v_sessions.Count(); ++i)
                 if (v_sessions[i] == _session)
                     return i;
@@ -242,7 +244,7 @@ namespace GameServer.Game
 
                 //if (r == null)
                 //    throw new exception("[channel::_enter_left_time_is_over][Error] Channel[ID=" + (c->getId())
-                //        + "] Sala[NUMERO=" + (numero) + "] nao encontrou a sala no canal", STDA_MAKE_ERROR(STDA_ERROR_TYPE::CHANNEL, 1202, 0));
+                //        + "] Sala[NUMERO=" + (numero) + "] nao encontrou a sala no canal",ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.CHANNEL, 1202, 0));
 
                 //r->setState(0);
                 //r->setFlag(0);
@@ -293,13 +295,13 @@ namespace GameServer.Game
             _session.Send(p);
 
             //// Verifica se o tempo do ticket premium user acabou e manda a mensagem para o player, e exclui o ticket do player no SERVER, DB e GAME
-            //sPremiumSystem::getInstance().checkEndTimeTicket(_session);
+            //sPremiumSystem.checkEndTimeTicket(_session);
         }
         public void leaveChannel(Player _session)
         {
             //!@ As vezes o player sai antes e não tem mais como deletar ele do canal
             //if (!_session.getState())
-            //throw exception("Error player não conectar. Em channel::leaveChannel()", STDA_MAKE_ERROR(STDA_ERROR_TYPE::CHANNEL, 1, 0));
+            //throw exception("Error player não conectar. Em channel::leaveChannel()",ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.CHANNEL, 1, 0));
 
             try
             {
@@ -335,38 +337,38 @@ namespace GameServer.Game
             //    throw new exception("[channel::checkEnterChannel][Error] player nao esta conectado.");
 
             // Não é GM verifica se o player pode entrar nesse canal
-            if (!Convert.ToBoolean(_session.m_pi.m_cap.stBit.game_master))
+            if (!_session.m_pi.m_cap.stBit.game_master)
             {
 
-                //if (_session.m_pi.level < 0 || _session.m_pi.level > 70)
-                //    throw new exception("[channel::checkEnterChannel][Error] Player[UID=" + (_session.m_pi.uid) + ", LEVEL=" + (_session.m_pi.level)
-                //        + "] nao tem o level necessario para entrar no canal[ID=" + (m_ci.id) + ", MIN=" + (0)
-                //        + ", MAX=" + (70) + "].");
+                if (_session.m_pi.level < 0 || _session.m_pi.level > 70)
+                    throw new exception("[channel::checkEnterChannel][Error] Player[UID=" + (_session.m_pi.uid) + ", LEVEL=" + (_session.m_pi.level)
+                        + "] nao tem o level necessario para entrar no canal[ID=" + (m_ci.id) + ", MIN=" + (0)
+                        + ", MAX=" + (70) + "].");
 
-                //if (m_ci.flag.stBit.only_rookie && Convert.ToBoolean(_session.m_pi.level > enLEVEL.ROOKIE_A))
-                //    throw new exception("[channel::checkEnterChannel][Error] Player[UID=" + (_session.m_pi.uid) + ", LEVEL=" + (_session.m_pi.level)
-                //        + "] nao tem o level necessario para entrar no canal[ID=" + (m_ci.id) + ", MIN=" + (0)
-                //        + ", MAX=" + (70) + "] com a flag So Rookie.");
+                if (m_ci.flag.stBit.only_rookie && Convert.ToBoolean(_session.m_pi.level > (short)enLEVEL.ROOKIE_A))
+                    throw new exception("[channel::checkEnterChannel][Error] Player[UID=" + (_session.m_pi.uid) + ", LEVEL=" + (_session.m_pi.level)
+                        + "] nao tem o level necessario para entrar no canal[ID=" + (m_ci.id) + ", MIN=" + (0)
+                        + ", MAX=" + (70) + "] com a flag So Rookie.");
 
-                //if (m_ci.flag.stBit.junior_bellow && _session.m_pi.level > enLEVEL::JUNIOR_A)
-                //    throw new exception("[channel::checkEnterChannel][Error] Player[UID=" + (_session.m_pi.uid) + ", LEVEL=" + (_session.m_pi.level)
-                //        + "] nao tem o level necessario para entrar no canal[ID=" + (m_ci.id) + ", MIN=" + (0)
-                //        + ", MAX=" + (70) + "] com a flag Junior A pra baixo.");
+                if (m_ci.flag.stBit.junior_bellow && _session.m_pi.level > (short)enLEVEL.JUNIOR_A)
+                    throw new exception("[channel::checkEnterChannel][Error] Player[UID=" + (_session.m_pi.uid) + ", LEVEL=" + (_session.m_pi.level)
+                        + "] nao tem o level necessario para entrar no canal[ID=" + (m_ci.id) + ", MIN=" + (0)
+                        + ", MAX=" + (70) + "] com a flag Junior A pra baixo.");
 
-                //if (m_ci.flag.stBit.junior_above && _session.m_pi.level < enLEVEL.JUNIOR_E)
-                //    throw new exception("[channel::checkEnterChannel][Error] Player[UID=" + (_session.m_pi.uid) + ", LEVEL=" + (_session.m_pi.level)
-                //        + "] nao tem o level necessario para entrar no canal[ID=" + (m_ci.id) + ", MIN=" + (0)
-                //        + ", MAX=" + (70) + "] com a flag Junior E pra cima.");
+                if (m_ci.flag.stBit.junior_above && _session.m_pi.level < (short)enLEVEL.JUNIOR_E)
+                    throw new exception("[channel::checkEnterChannel][Error] Player[UID=" + (_session.m_pi.uid) + ", LEVEL=" + (_session.m_pi.level)
+                        + "] nao tem o level necessario para entrar no canal[ID=" + (m_ci.id) + ", MIN=" + (0)
+                        + ", MAX=" + (70) + "] com a flag Junior E pra cima.");
 
-                //if (m_ci.flag.stBit.junior_between_senior && (_session.m_pi.level < enLEVEL.JUNIOR_E || _session.m_pi.level > enLEVEL.SENIOR_A))
-                //    throw new exception("[channel::checkEnterChannel][Error] Player[UID=" + (_session.m_pi.uid) + ", LEVEL=" + (_session.m_pi.level)
-                //        + "] nao tem o level necessario para entrar no canal[ID=" + (m_ci.id) + ", MIN=" + (0)
-                //        + ", MAX=" + (70) + "] com a flag junior E a Senior A.");
+                if (m_ci.flag.stBit.junior_between_senior && (_session.m_pi.level < (short)enLEVEL.JUNIOR_E || _session.m_pi.level > (short)enLEVEL.SENIOR_A))
+                    throw new exception("[channel::checkEnterChannel][Error] Player[UID=" + (_session.m_pi.uid) + ", LEVEL=" + (_session.m_pi.level)
+                        + "] nao tem o level necessario para entrar no canal[ID=" + (m_ci.id) + ", MIN=" + (0)
+                        + ", MAX=" + (70) + "] com a flag junior E a Senior A.");
 
-                //if (m_ci.flag.stBit.beginner_between_junior && (_session.m_pi.level < enLEVEL.BEGINNER_E || _session.m_pi.level > enLEVEL.JUNIOR_A))
-                //    throw new exception("[channel::checkEnterChannel][Error] Player[UID=" + (_session.m_pi.uid) + ", LEVEL=" + (_session.m_pi.level)
-                //        + "] nao tem o level necessario para entrar no canal[ID=" + (m_ci.id) + ", MIN=" + (0)
-                //        + ", MAX=" + (70) + "] com a flag Beginner E a Junior A.");
+                if (m_ci.flag.stBit.beginner_between_junior && (_session.m_pi.level < (short)enLEVEL.BEGINNER_E || _session.m_pi.level > (short)enLEVEL.JUNIOR_A))
+                    throw new exception("[channel::checkEnterChannel][Error] Player[UID=" + (_session.m_pi.uid) + ", LEVEL=" + (_session.m_pi.level)
+                        + "] nao tem o level necessario para entrar no canal[ID=" + (m_ci.id) + ", MIN=" + (0)
+                        + ", MAX=" + (70) + "] com a flag Beginner E a Junior A.");
             }
         }
 
@@ -453,7 +455,7 @@ namespace GameServer.Game
         {/// !@tem que tira isso aqui por que tem que enviar para os outros player da lobby que ele sai,
          /// mesmo que o sock dele não pode mais enviar
             //if (!_session.getState())
-            //throw exception("[channel::leaveLobby][Error] player nao esta conectado.", STDA_MAKE_ERROR(STDA_ERROR_TYPE::CHANNEL, 1, 0));
+            //throw exception("[channel::leaveLobby][Error] player nao esta conectado.",ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.CHANNEL, 1, 0));
 
             // Sai da sala se estiver em uma sala
             //try
@@ -462,7 +464,7 @@ namespace GameServer.Game
             //}
             //catch (exception&e) {
 
-            //    _smp::message_pool::getInstance().push(new message("[channel::leaveLobby][Error] " + e.getFullMessageError(), CL_FILE_LOG_AND_CONSOLE));
+            //    _smp::message_pool.push(new message("[channel::leaveLobby][Error] " + e.getFullMessageError(), CL_FILE_LOG_AND_CONSOLE));
             //}
 
             _session.m_pi.lobby = DEFAULT_CHANNEL; //correct ;)
@@ -665,7 +667,578 @@ namespace GameServer.Game
         public void requestExecCCGDestroy(Player _session, packet _packet) { }
 
         // MyRoom
-        public void requestChangePlayerItemMyRoom(Player _session, packet _packet) { }
+        public void requestChangePlayerItemMyRoom(Player _session, packet _packet) 
+        {
+
+            _smp::message_pool.push(new message("Packet 0x20.\n\rHex Dump.\n\r" + _packet.Log(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+            
+            
+            _session.Send(packet_func.pacote06B(_session.m_pi, _packet.ReadByte(), 4));//teste
+
+            //            byte type = 0;
+            //            uint item_id;
+            //            int error = 4;
+
+            //            try
+            //            {
+
+            //                type = _packet.ReadByte();
+
+            //                switch (type)
+            //                {
+            //                    case 0: // Character Equipado Parts Complete
+            //                        {
+            //                            CharacterInfo ci, pCe = null;
+
+            //                            ci =  (CharacterInfo)_packet.Read(new CharacterInfo());
+            //                            if (ci.id != 0 && (pCe = _session.m_pi.findCharacterById(ci.id)) != null
+            //                                    && (sIff.getItemGroupIdentify(pCe._typeid) == iff::CHARACTER && sIff.getItemGroupIdentify(ci._typeid) == iff::CHARACTER))
+            //                            {
+
+            //                                // Checks Parts Equiped
+            //                                //_session.checkCharacterEquipedPart(ci);
+
+            //                                // Check AuxPart Equiped
+            //                                _session.checkCharacterEquipedAuxPart(ci);
+
+            //                                pCe = ci;
+
+            //                                //NormalManagerDB.add(0, new CmdUpdateCharacterAllPartEquiped(_session.m_pi.uid, ci), channel::SQLDBResponse, this);
+
+            //                            }
+            //                            else
+            //                            {
+
+            //                                error = (ci.id == 0) ? 1/*Invalid Item Id*/ : (pCe == null ? 2/*Not Found Item*/ : 3/*Item Typeid is Wrong*/);
+
+            //                                _smp::message_pool.push(new message("[channel::requestChangePlayerItemMyRoom][Error] player[UID=" + (_session.m_pi.uid)
+            //                                        + "] tentou Atualizar os Parts do Character[ID=" + (ci.id) + "], mas deu Error[VALUE=" + (error)
+            //                                        + "]. Hacker ou Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
+            //                            }
+
+
+
+            //                            _session.Send(packet_func.pacote06B(p, &_session, &_session.m_pi, type, error));
+            //                            break;
+            //                        }
+            //                    case 1: // Caddie
+            //                        {
+            //                            if ((item_id = _packet.ReadUInt32()) != 0)
+            //                            {
+            //                                var pCi = _session.m_pi.findCaddieById(item_id);
+
+            //                                if (pCi != null && sIff.getItemGroupIdentify(pCi._typeid) == iff::CADDIE)
+            //                                {
+
+            //                                    _session.m_pi.ei.cad_info = pCi;
+            //                                    _session.m_pi.ue.caddie_id = item_id;
+
+            //                                    // Verifica se o Caddie pode ser equipado
+            //                                    if (_session.checkCaddieEquiped(_session.m_pi.ue))
+            //                                        item_id = _session.m_pi.ue.caddie_id;   // Desequipa caddie
+
+            //                                    // Update ON DB
+            //                                    NormalManagerDB.add(0, new CmdUpdateCaddieEquiped(_session.m_pi.uid, item_id), channel::SQLDBResponse, this);
+
+            //                                }
+            //                                else
+            //                                {
+
+            //                                    error = (pCi == null ? 2/*Not Found Item*/ : 3/*Item Typeid is Wrong*/);
+
+            //                                    _smp::message_pool.push(new message("[channel::requestChangePlayerItemMyRoom][Error] player[UID=" + (_session.m_pi.uid)
+            //                                            + "] tentou equipar Caddie[ID=" + (item_id) + "], mas deu Error[VALUE=" + (error)
+            //                                            + "]. Hacker ou Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
+            //                                }
+
+            //                            }
+            //                            else if (_session.m_pi.ue.caddie_id > 0 && _session.m_pi.ei.char_info != null)
+            //                            {   // Desequipa Caddie
+
+            //                                _session.m_pi.ei.cad_info = null;
+            //                                _session.m_pi.ue.caddie_id = 0;
+
+            //                                // Update ON DB
+            //                                NormalManagerDB.add(0, new CmdUpdateCaddieEquiped(_session.m_pi.uid, item_id), channel::SQLDBResponse, this);
+
+            //                            }// else Não tem nenhum caddie equipado, para desequipar, então o cliente só quis atualizar o estado
+
+
+            //                            _session.Send(packet_func.pacote06B(p, &_session, &_session.m_pi, type, error));
+            //                            break;
+            //                        }
+            //                    case 2: // Itens Equipáveis
+            //                        {
+            //                            // Aqui tenho que copiar para uma struct temporaria antes,
+            //                            // para verificar os itens que ele está equipando.
+            //                            // Se está tudo certo, Salva na struct da session dele, e depois manda pra salvar no db por meio do Asyc query update
+            //                            // Se não da mensagem de erro
+            //                            // Error: 0 = "código 'errado(tenho que traduzir direito ainda)'", 1 = "DB Item Errado", 2, 3 = "Unknown ainda",
+            //                            // 4 = "Sucesso"
+
+            //                            UserEquip ue;
+            //                            _packet.ReadBuffer(&ue.item_slot, Marshal.SizeOf(ue.item_slot));
+
+
+            //                            _smp::message_pool.push(new message(hex_util::BufferToHexString((unsigned char *)ue.item_slot, Marshal.SizeOf(ue.item_slot)), CL_ONLY_FILE_LOG));
+
+
+            //                            try
+            //                            {
+
+            //                                Dictionary<uint/*TYPEID*/, uint/*Count*/ > mp_same_item_count;
+            //                                Dictionary<uint/*TYPEID*/, uint/*Count*/ > c_it;
+
+            //                                for (size_t i = 0; i < (Marshal.SizeOf(ue.item_slot) / Marshal.SizeOf(int)); ++i)
+            //                                {
+
+            //                                    if (ue.item_slot[i] != 0)
+            //                                    {
+
+            //                                        if (!sIff.ItemEquipavel(ue.item_slot[i]))
+            //                                            throw exception("[channel::requestChangePlayerItemMyRoom][Error] player[UID=" + (_session.m_pi.uid) + "] tentou atualizar item[TYPEID="
+            //                                                    + (ue.item_slot[i]) + "] equipaveis, mas nao eh um item equipavel. Hacker ou Bug", 0);
+
+            //                                        // Verifica se esse item existe pela chave do map se não lança uma exception se nao existir
+            //                                        if (sIff.findItem(ue.item_slot[i]) == null)
+            //                                            throw std::out_of_range("[channel::requestChangePlayerItemMyRoom][Error] player[UID=" + (_session.m_pi.uid) + "] tentou atualizar item[TYPEID="
+            //                                                    + (ue.item_slot[i]) + "] equipaveis, mas nao tem o item no iff Item do IFF_STRUCT do Server. Hacker ou Bug");
+
+            //                                        // E se não tiver quantidade para equipar lança outra exception
+            //                                        var pWi = _session.m_pi.findWarehouseItemByTypeid(ue.item_slot[i]);
+
+            //                                        if (pWi == null)
+            //                                            throw exception("[channel::requestChangePlayerItemMyRoom][Error] player[UID=" + (_session.m_pi.uid) + "] tentou atualizar item[TYPEID="
+            //                                                    + (ue.item_slot[i]) + "] equipaveis, mas ele nao tem esse item. Hacker ou Bug", 2);
+            //                                        else
+            //                                        {
+
+            //                                            if ((c_it = mp_same_item_count.find(pWi._typeid)) != mp_same_item_count.end())
+            //                                            {
+
+            //                                                if (std::find(active_item_cant_have_2_inveroty, LAST_ELEMENT_IN_ARRAY(active_item_cant_have_2_inveroty), pWi._typeid) != LAST_ELEMENT_IN_ARRAY(active_item_cant_have_2_inveroty))
+            //                                                {
+
+            //                                                    throw exception("[channel::requestChangePlayerItemMyRoom][Error] player[UID=" + (_session.m_pi.uid) + "] tentou equipar item[TYPEID=" + (ue.item_slot[i])
+            //                                                            + "] mas ele ja tem 1 item desse equipado, so e permitido equipar 1, nao pode equipar mais do que 1. Hacker ou Bug", 2);
+
+            //                                                }
+            //                                                else if (pWi.STDA_C_ITEM_QNTD < (int)(c_it.second + 1)/*Count*/)
+            //                                                    throw exception("[channel::requestChangePlayerItemMyRoom][Error] player[UID=" + (_session.m_pi.uid) + "] tentou atualizar item[TYPEID="
+            //                                                            + (ue.item_slot[i]) + "] equipaveis, mas ele nao tem quantidade dele. Hacker ou Bug", 2);
+            //                                                else    // Increase Count Same Item
+            //                                                    c_it.second++;  // Count
+
+            //                                            }
+            //                                            else
+            //                                            {
+
+            //                                                if (pWi.STDA_C_ITEM_QNTD < 1/*Count*/)
+            //                                                    throw exception("[channel::requestChangePlayerItemMyRoom][Error] player[UID=" + (_session.m_pi.uid) + "] tentou atualizar item[TYPEID="
+            //                                                            + (ue.item_slot[i]) + "] equipaveis, mas ele nao tem quantidade dele. Hacker ou Bug", 2);
+
+            //                                                // insert
+            //                                                mp_same_item_count.insert(std::make_pair(pWi._typeid, 1/*Count*/));
+            //                                            }
+
+            //                                        }
+            //                                    }
+            //                                }
+
+            //#if defined(_WIN32)
+            //				memcpy_s(_session.m_pi.ue.item_slot, Marshal.SizeOf(_session.m_pi.ue.item_slot), ue.item_slot, Marshal.SizeOf(_session.m_pi.ue.item_slot));
+            //#elif defined(__linux__)
+            //				memcpy(_session.m_pi.ue.item_slot, ue.item_slot, Marshal.SizeOf(_session.m_pi.ue.item_slot));
+            //#endif
+
+            //                                // Update ON DB
+            //                                NormalManagerDB.add(25, new CmdUpdateItemSlot(_session.m_pi.uid, (uint*)ue.item_slot), channel::SQLDBResponse, this);
+
+            //                            }
+            //                            catch (exception&e) {
+
+            //                                _smp::message_pool.push(new message("[channel::requestChangePlayerItemMyRoom][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+
+            //                                if (e.getCodeError() == 0)
+            //                                    error = 0;
+            //                                else if (e.getCodeError() == 1)
+            //                                    error = 1;
+            //                                else // System Error
+            //                                    error = 10;
+
+            //                            }catch (std::out_of_range&e) {
+
+            //                                _smp::message_pool.push(new message(std::string("[channel::requestChangePlayerItemMyRoom][ErrorSystem] ") + e.what(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+
+            //                                // Item Não existe no Server
+            //                                error = 1;
+
+            //                            }catch (std::exception&e) {
+
+            //                                _smp::message_pool.push(new message(std::string("[channel::requestChangePlayerItemMyRoom][ErrorSystem] ") + e.what(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+
+            //                                // System Error
+            //                                error = 10;
+
+            //                            }catch (...) {
+
+            //                                _smp::message_pool.push(new message("[channel::requestChangePlayerItemMyRoom][ErrorSystem] Unknown Error", type_msg.CL_FILE_LOG_AND_CONSOLE));
+
+            //                                // System Error
+            //                                error = 10;
+            //                            }
+
+
+            //                            _session.Send(packet_func.pacote06B(p, &_session, &_session.m_pi, type, error));
+            //                            break;
+            //                            }
+
+            //        case 3: // Bola e Taqueira
+            //                                {
+            //                                    // Ball(COMET)
+            //                                    WarehouseItemEx* pWi = null;
+
+            //                                    if ((item_id = _packet.ReadUInt32()) != 0 && (pWi = _session.m_pi.findWarehouseItemByTypeid(item_id)) != null
+            //                                            && sIff.getItemGroupIdentify(pWi._typeid) == iff::BALL)
+            //                                    {
+
+            //                                        _session.m_pi.ei.comet = pWi;
+            //                                        _session.m_pi.ue.ball_typeid = item_id;     // Ball(Comet) é o typeid que o cliente passa
+
+            //                                        // Verifica se a Bola pode ser equipada
+            //                                        if (_session.checkBallEquiped(_session.m_pi.ue))
+            //                                            item_id = _session.m_pi.ue.ball_typeid;
+
+            //                                        // Update ON DB
+            //                                        NormalManagerDB.add(0, new CmdUpdateBallEquiped(_session.m_pi.uid, item_id), channel::SQLDBResponse, this);
+
+            //                                    }
+            //                                    else if (item_id == 0)
+            //                                    { // Bola 0 coloca a bola padrão para ele, se for premium user coloca a bola de premium user
+
+            //                                        // Zera para equipar a bola padrão
+            //                                        _session.m_pi.ei.comet = null;
+            //                                        _session.m_pi.ue.ball_typeid = 0l;
+
+            //                                        // Verifica se a Bola pode ser equipada (Coloca para equipar a bola padrão
+            //                                        if (_session.checkBallEquiped(_session.m_pi.ue))
+            //                                            item_id = _session.m_pi.ue.ball_typeid;
+
+            //                                        // Update ON DB
+            //                                        NormalManagerDB.add(0, new CmdUpdateBallEquiped(_session.m_pi.uid, item_id), channel::SQLDBResponse, this);
+
+            //                                    }
+            //                                    else
+            //                                    {
+
+            //                                        error = (pWi == null ? 2/*Not Found Item*/ : 3/*Item Typeid is Wrong*/);
+
+            //                                        _smp::message_pool.push(new message("[channel::requestChangePlayerItemMyRoom][Error] player[UID=" + (_session.m_pi.uid)
+            //                                                + "] tentou equipar Ball[TYPEID=" + (item_id) + "], mas deu Error[VALUE=" + (error)
+            //                                                + "]. Hacker ou Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
+            //                                    }
+
+            //                                    // ClubSet
+            //                                    if ((item_id = _packet.ReadUInt32()) != 0 && (pWi = _session.m_pi.findWarehouseItemById(item_id)) != null
+            //                                            && sIff.getItemGroupIdentify(pWi._typeid) == iff::CLUBSET)
+            //                                    {
+
+            //                                        // Update ClubSet
+            //                                        _session.m_pi.ei.clubset = pWi;
+
+            //                                        // Esse C do WarehouseItem, que pega do DB, não é o ja updado inicial da taqueira é o que fica tabela enchant, 
+            //                                        // que no original fica no warehouse msm, eu só confundi quando fiz
+            //                                        _session.m_pi.ei.csi = { pWi.id, pWi._typeid, pWi.c };
+
+            //                                        IFF::ClubSet* cs = sIff.findClubSet(pWi._typeid);
+
+            //                                        if (cs != null)
+            //                                        {
+
+            //                                            for (var j = 0u; j < (Marshal.SizeOf(_session.m_pi.ei.csi.enchant_c) / Marshal.SizeOf(short)); ++j)
+            //                                                _session.m_pi.ei.csi.enchant_c[j] = cs.slot[j] + pWi.clubset_workshop.c[j];
+
+            //                                            _session.m_pi.ue.clubset_id = item_id;
+
+            //                                            // Verifica se o ClubSet pode ser equipado
+            //                                            if (_session.checkClubSetEquiped(_session.m_pi.ue))
+            //                                                item_id = _session.m_pi.ue.clubset_id;
+
+            //                                            // Update ON DB
+            //                                            NormalManagerDB.add(0, new CmdUpdateClubsetEquiped(_session.m_pi.uid, item_id), channel::SQLDBResponse, this);
+
+            //                                        }
+            //                                        else // O Cliente é que tem que saber do erro, não posso passa essa excessão para função anterior
+            //                                            _smp::message_pool.push(new message("[channel::requestChangePlayerItemMyRoom][Error] player[UID=" + (_session.m_pi.uid) + "] tentou atualizar o ClubSet[TYPEID="
+            //                                                    + (pWi._typeid) + ", ID=" + (pWi.id) + "] equipado, mas ClubSet Not exists on IFF_STRUCT do Server. Hacker ou Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
+
+            //                                    }
+            //                                    else
+            //                                    {
+
+            //                                        error = (item_id == 0) ? 1/*Invalid Item Id*/ : (pWi == null ? 2/*Not Found Item*/ : 3/*Item Typeid is Wrong*/);
+
+            //                                        _smp::message_pool.push(new message("[channel::requestChangePlayerItemMyRoom][Error] player[UID=" + (_session.m_pi.uid)
+            //                                                + "] tentou equipar ClubSet[ID=" + (item_id) + "], mas deu Error[VALUE=" + (error)
+            //                                                + "]. Hacker ou Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
+            //                                    }
+
+
+            //                                    _session.Send(packet_func.pacote06B(p, &_session, &_session.m_pi, type, error));
+            //                                    break;
+            //                                }
+            //                            case 4: // Skins
+            //                                {
+            //                                    for (var i = 0u; i < (Marshal.SizeOf(UserEquip::skin_typeid) / Marshal.SizeOf(UserEquip::skin_typeid[0])); ++i)
+            //                                    {
+
+            //                                        if ((item_id = _packet.ReadUInt32()) != 0)
+            //                                        {
+
+            //                                            var pWi = _session.m_pi.findWarehouseItemByTypeid(item_id);
+
+            //                                            if (pWi != null && sIff.getItemGroupIdentify(pWi._typeid) == iff::SKIN)
+            //                                            {
+
+            //                                                _session.m_pi.ue.skin_id[i] = pWi.id;
+            //                                                _session.m_pi.ue.skin_typeid[i] = pWi._typeid;
+
+            //                                                // Update ON DB
+            //                                                NormalManagerDB.add(0, new CmdUpdateSkinEquiped(_session.m_pi.uid, _session.m_pi.ue), channel::SQLDBResponse, this);
+
+            //                                            }
+            //                                            else
+            //                                            {
+
+            //                                                error = (pWi == null ? 2/*Not Found Item*/ : 3/*Item Typeid is Wrong*/);
+
+            //                                                _smp::message_pool.push(new message("[channel::requestChangePlayerItemMyRoom][Error] player[UID=" + (_session.m_pi.uid)
+            //                                                        + "] tentou equipar SKIN[TYPEID=" + (item_id) + ", SLOT=" + (i)
+            //                                                        + "], mas deu Error[VALUE=" + (error) + "]. Hacker ou Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
+            //                                            }
+
+            //                                        }
+            //                                        else
+            //                                        { // Zera o Skin equipado
+
+            //                                            _session.m_pi.ue.skin_id[i] = 0u;
+            //                                            _session.m_pi.ue.skin_typeid[i] = 0u;
+
+            //                                            // Update ON DB
+            //                                            NormalManagerDB.add(0, new CmdUpdateSkinEquiped(_session.m_pi.uid, _session.m_pi.ue), channel::SQLDBResponse, this);
+            //                                        }
+            //                                    }
+
+            //                                    // Verifica se a Skin pode ser equipada
+            //                                    if (_session.checkSkinEquiped(_session.m_pi.ue))
+            //                                        // Update ON DB
+            //                                        NormalManagerDB.add(0, new CmdUpdateSkinEquiped(_session.m_pi.uid, _session.m_pi.ue), channel::SQLDBResponse, this);
+
+
+            //                                    _session.Send(packet_func.pacote06B(p, &_session, &_session.m_pi, type, error));
+            //                                    break;
+            //                                }
+            //                            case 5: // only Character ID EQUIPADO
+            //                                {
+            //                                    CharacterInfo* pCe = null;
+
+            //                                    if ((item_id = _packet.ReadUInt32()) != 0 && (pCe = _session.m_pi.findCharacterById(item_id)) != null
+            //                                            && sIff.getItemGroupIdentify(pCe._typeid) == iff::CHARACTER)
+            //                                    {
+
+            //                                        _session.m_pi.ei.char_info = pCe;
+            //                                        _session.m_pi.ue.character_id = item_id;
+
+            //                                        updatePlayerInfo(_session);
+
+            //                                        PlayerCanalInfo* pci = getPlayerInfo(&_session);
+
+
+            //                                        _session.Send(packet_func.pacote06B(p, &_session, &_session.m_pi, type, error));
+
+            //                                        // Update ON DB
+            //                                        NormalManagerDB.add(0, new CmdUpdateCharacterEquiped(_session.m_pi.uid, item_id), channel::SQLDBResponse, this);
+
+            //                                    }
+            //                                    else
+            //                                    {
+
+            //                                        error = (item_id == 0) ? 1/*Invalid Item Id*/ : (pCe == null ? 2/*Not Found Item*/ : 3/*Item Typeid is Wrong*/);
+
+            //                                        _smp::message_pool.push(new message("[channel::requestChangePlayerItemMyRoom][Error] player[UID=" + (_session.m_pi.uid)
+            //                                                + "] tentou equipar o Character[ID=" + (item_id) + "], mas deu Error[VALUE=" + (error)
+            //                                                + "]. Hacker ou Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
+            //                                    }
+
+
+            //                                    _session.Send(packet_func.pacote06B(p, &_session, &_session.m_pi, type, error));
+            //                                    break;
+            //                                }
+            //                            case 8: // Mascot Equipado
+            //                                {
+            //                                    if ((item_id = _packet.ReadUInt32()) != 0)
+            //                                    {
+
+            //                                        var pMi = _session.m_pi.findMascotById(item_id);
+
+            //                                        if (pMi != null && sIff.getItemGroupIdentify(pMi._typeid) == iff::MASCOT)
+            //                                        {
+
+            //                                            _session.m_pi.ei.mascot_info = pMi;
+            //                                            _session.m_pi.ue.mascot_id = item_id;
+
+            //                                            // Verifica se o Mascot pode ser equipado
+            //                                            if (_session.checkMascotEquiped(_session.m_pi.ue))
+            //                                                item_id = _session.m_pi.ue.mascot_id;
+
+            //                                            // Update ON DB
+            //                                            NormalManagerDB.add(0, new CmdUpdateMascotEquiped(_session.m_pi.uid, item_id), channel::SQLDBResponse, this);
+
+            //                                        }
+            //                                        else
+            //                                        {
+
+            //                                            error = (pMi == null ? 2/*Not Found Item*/ : 3/*Item Typeid is Wrong*/);
+
+            //                                            _smp::message_pool.push(new message("[channel::requestChangePlayerItemMyRoom][Error] player[UID=" + (_session.m_pi.uid)
+            //                                                    + "] tentou equipar Mascot[ID=" + (item_id) + "], mas deu Error[VALUE=" + (error)
+            //                                                    + "]. Hacker ou Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
+            //                                        }
+
+            //                                    }
+            //                                    else if (_session.m_pi.ue.mascot_id > 0 && _session.m_pi.ei.mascot_info != null)
+            //                                    {   // Desequipa Mascot
+
+            //                                        _session.m_pi.ei.mascot_info = null;
+            //                                        _session.m_pi.ue.mascot_id = 0;
+
+            //                                        // Att No DB
+            //                                        NormalManagerDB.add(0, new CmdUpdateMascotEquiped(_session.m_pi.uid, item_id), channel::SQLDBResponse, this);
+
+            //                                    }// else Não tem nenhum mascot equipado, para desequipar, então o cliente só quis atualizar o estado
+
+
+            //                                    _session.Send(packet_func.pacote06B(p, &_session, &_session.m_pi, type, error));
+            //                                    break;
+            //                                }
+            //                            case 9: // Character Cutin
+            //                                {
+            //                                    CharacterInfo* pCe = null;
+
+            //                                    // Só atualizar o cuttin se for o do character equipado, para não da conflito depois
+            //                                    // O pangya deveria passa todos os cutin que foram alterado, mas ele só passa o do character equipado
+            //                                    if ((item_id = _packet.ReadUInt32()) != 0 && (pCe = _session.m_pi.findCharacterById(item_id)) != null
+            //                                            && (sIff.getItemGroupIdentify(pCe._typeid) == iff::CHARACTER && _session.m_pi.ei.char_info != null && _session.m_pi.ei.char_info.id == pCe.id))
+            //                                    {
+
+            //                                        int32_t cc[4]{ 0 };
+
+            //                                        _packet.ReadBuffer(&cc, Marshal.SizeOf(cc));
+
+            //                                        for (var i = 0u; i < (Marshal.SizeOf(cc) / Marshal.SizeOf(cc[0])); i++)
+            //                                        {
+
+            //                                            if (cc[i] != 0)
+            //                                            {
+
+            //                                                var pWi = _session.m_pi.findWarehouseItemById(cc[i]);
+
+            //                                                if (pWi != null && sIff.getItemGroupIdentify(pWi._typeid) == iff::SKIN)
+            //                                                    pCe.cut_in[i] = pWi.id;
+            //                                                else
+            //                                                {
+
+            //                                                    error = (pWi == null ? 2/*Not Found Item*/ : 3/*Item Typeid is Wrong*/);
+
+            //                                                    _smp::message_pool.push(new message("[channel::requestChangePlayerItemMyRoom][Error] player[UID=" + (_session.m_pi.uid)
+            //                                                            + "] tentou equipar Equipar Cutin do Character[ID=" + (item_id) + ", CUTTIN_TYPEID=" + (cc[i])
+            //                                                            + ", SLOT=" + (i) + "], mas deu Error[VALUE=" + (error) + "]. Hacker ou Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
+            //                                                }
+
+            //                                            }
+            //                                            else // Zera o Cutin que o valor que o cliente passou é 0, para desequipar o cutin
+            //                                                pCe.cut_in[i] = cc[i];
+            //                                        }
+
+            //                                        // Verifica se o Cutin pode ser equipado
+            //                                        _session.checkCharacterEquipedCutin(*pCe);
+
+            //                                        // Update ON DB
+            //                                        NormalManagerDB.add(0, new CmdUpdateCharacterCutinEquiped(_session.m_pi.uid, *pCe), channel::SQLDBResponse, this);
+
+            //                                    }
+            //                                    else
+            //                                    {
+
+            //                                        error = 1; // Invalid Item Id 
+
+            //                                        if (item_id == 0)
+            //                                            error = 1; // Invalid Item Id
+            //                                        else if (pCe == null)
+            //                                            error = 2; // Not Found Item
+            //                                        else if (_session.m_pi.ei.char_info == null)
+            //                                            error = 4; // Não tem nenhum character
+            //                                        else if (_session.m_pi.ei.char_info.id != pCe.id)
+            //                                            error = 5;  // Não é o mesmo character que está equipado
+            //                                        else
+            //                                            error = 3; // Item Typeid is Wrong
+
+            //                                        _smp::message_pool.push(new message("[channel::requestChangePlayerItemMyRoom][Error] player[UID=" + (_session.m_pi.uid)
+            //                                                + "] tentou equipar Equipar Cutin do Character[ID=" + (item_id) + "], mas deu Error[VALUE=" + (error)
+            //                                                + "]. Hacker ou Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
+            //                                    }
+
+
+            //                                    _session.Send(packet_func.pacote06B(p, &_session, &_session.m_pi, type, error));
+            //                                    break;
+            //                                }
+            //                            case 10: // Poster
+            //                                {
+            //                                    for (var i = 0u; i < 2u; ++i)
+            //                                    {
+
+            //                                        if ((item_id = _packet.ReadUInt32()) != 0)
+            //                                        {
+
+            //                                            var pMri = _session.m_pi.findMyRoomItemByTypeid(item_id);
+
+            //                                            if (pMri != null && sIff.getItemGroupIdentify(pMri._typeid) == iff::FURNITURE)
+            //                                                _session.m_pi.ue.poster[i] = item_id;
+            //                                            else
+            //                                            {
+
+            //                                                error = (pMri == null ? 2/*Not Found Item*/ : 3/*Item Typeid is Wrong*/);
+
+            //                                                _smp::message_pool.push(new message("[channel::requestChangePlayerItemMyRoom][Error] player[UID=" + (_session.m_pi.uid)
+            //                                                        + "] tentou equipar Poster[TYPEID=" + (item_id) + ", SLOT=" + (i)
+            //                                                        + "], mas deu Error[VALUE=" + (error) + "]. Hacker ou Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
+            //                                            }
+            //                                        }
+            //                                        else
+            //                                            _session.m_pi.ue.poster[i] = 0; // Zera o poster[i] = 0 (Desequipa)
+            //                                    }
+
+            //                                    // Update ON DB, Verifica se o Poster pode ser equipado
+            //                                    if (_session.checkPosterEquiped(_session.m_pi.ue) || error == 4/*sucesso*/)
+            //                                        NormalManagerDB.add(0, new CmdUpdatePosterEquiped(_session.m_pi.uid, _session.m_pi.ue), channel::SQLDBResponse, this);
+
+
+            //                                    _session.Send(packet_func.pacote06B(p, &_session, &_session.m_pi, type, error));
+            //                                    break;
+            //                                }
+            //                            }
+
+            //                            updatePlayerInfo(_session);
+
+            //                        }catch (exception e)
+            //            {
+
+            //                packet_func.pacote06B(p, &_session, &_session.m_pi, type, 1);   // Error
+            //                _session.Send(packet_func.pacote06B(p, &_session, &_session.m_pi, type, error));
+
+            //                _smp::message_pool.push(new message("[channel::requestChangePlayerItemMyRoom][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+            //            }
+        }
         public void requestOpenTicketReportScroll(Player _session, packet _packet) { }
         public void requestChangeMascotMessage(Player _session, packet _packet) { }
 
@@ -785,8 +1358,137 @@ namespace GameServer.Game
         public void requestCometRefill(Player _session, packet _packet) { }
 
         // MailBox
-        public void requestOpenMailBox(Player _session, packet _packet) { }
-        public void requestInfoMail(Player _session, packet _packet) { }
+        public void requestOpenMailBox(Player _session, packet _packet)
+        {
+
+            PangyaBinaryWriter p = new PangyaBinaryWriter();
+
+            try
+            {
+
+                if (_session.m_pi.block_flag.m_flag.stBit.mail_box)
+                    throw new exception("[channel::requestOpenMailBox][Error] player[UID=" + (_session.m_pi.uid)
+                            + "] tentou abrir Mail Box, mas ele nao pode. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.CHANNEL, 5, 0x790001));
+
+                var pagina = _packet.ReadUInt32();
+
+                if (pagina <= 0)
+                    throw new exception("[channel::requestOpenMailBox][Error] Player[UID=" + (_session.m_pi.uid)
+                            + "] tentou abrir Mail Box[Pagina=" + (pagina)
+                            + "], mas a pagina eh invalida.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.CHANNEL, 6, 0x790002)); ;
+
+                _smp::message_pool.push(new message("[channel::requestOpenMailBox][Log] Player[UID=" + (_session.m_pi.uid) + "]\tRequest Pagina: " + (pagina) + " MailBox", type_msg.CL_FILE_LOG_AND_CONSOLE));
+
+                // Verifica se session está autorizada para executar esse ação, 
+                // se ele não fez o login com o Server ele não pode fazer nada até que ele faça o login
+
+                var mails = _session.m_pi.m_mail_box.GetPage(pagina);
+
+                /*CmdMailBoxInfo cmd_mbi(_session.m_pi.uid, CmdMailBoxInfo::NORMAL, pagina, true);
+
+                snmdb::NormalManagerDB.add(0, &cmd_mbi, nullptr, nullptr);
+
+                cmd_mbi.waitEvent();
+
+                if (cmd_mbi.getException().getCodeError() != 0)
+                    throw cmd_mbi.getException();
+
+                auto mails = cmd_mbi.getInfo();
+
+                if (mails.empty() && cmd_mbi.getTotalPage() > 0)
+                    throw exception("[channel::requestOpenMailBox][Error] Player[UID=" + (_session.m_pi.uid) + "] tentou abrir MailBox[Pagina="
+                            + (pagina) + "] mas ela nao existe. Hacker ou Bug",ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.CHANNEL, 0x7900001, 1));*/
+
+                if (mails.Any())
+                {
+
+                    //Log
+                    _smp::message_pool.push(new message("[channel::requestOpenMailBox][Log] Player[UID=" + (_session.m_pi.uid)
+                                              + "] abriu o MailBox[Pagina=" + (pagina) + "] com sucesso.", type_msg.CL_FILE_LOG_AND_CONSOLE));
+                    // pagina existe, envia ela
+                    _session.Send(packet_func.pacote211(mails, pagina, _session.m_pi.m_mail_box.getTotalPages()/*cmd_mbi.getTotalPage()*/));
+
+                }
+                else
+                { // MailBox Vazio                                                  
+                    _session.Send(packet_func.pacote211(new List<MailBox>(), pagina, 1));
+                }
+
+            }
+            catch (exception e)
+            {
+
+                _smp::message_pool.push(new message("[channel::requestOpenMailBox][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+
+                p.init_plain(0x211);
+
+                p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE(e.getCodeError()) == (uint)STDA_ERROR_TYPE.CHANNEL) ? ExceptionError.STDA_SOURCE_ERROR_DECODE(e.getCodeError()) : 0x5500200);
+
+                _session.Send(p);
+            }
+        }
+        public void requestInfoMail(Player _session, packet _packet)
+        {
+            PangyaBinaryWriter p = new PangyaBinaryWriter();
+
+            try
+            {
+
+                var email_id = _packet.ReadUInt32();
+
+                _smp::message_pool.push(new message("[channel::requestInfoMail][Log] Player[UID=" + (_session.m_pi.uid) + "]\tRequest Email Info: " + (email_id), type_msg.CL_FILE_LOG_AND_CONSOLE));
+
+                // Verifica se session está autorizada para executar esse ação, 
+                // se ele não fez o login com o Server ele não pode fazer nada até que ele faça o login
+                //CHECK_SESSION_IS_AUTHORIZED("InfoMail");
+
+                var email = _session.m_pi.m_mail_box.getEmailInfo(email_id);
+
+                /*CmdEmailInfo cmd_ei(_session.m_pi.uid, email_id, true);	// waitable
+
+                snmdb::NormalManagerDB.add(0, &cmd_ei, nullptr, nullptr);
+
+                cmd_ei.waitEvent();
+
+                if (cmd_ei.getException().getCodeError() != 0)
+                    throw cmd_ei.getException();
+
+                auto email = cmd_ei.getInfo();*/
+
+                if (email.id == 0)
+                    throw new exception("[channel::requestInfoMail][Error] Player[UID=" + (_session.m_pi.uid) + "] pediu para ver o info do Mail[ID=" + (email_id)
+                            + "], mais ele nao existe no banco de dados. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.CHANNEL, 0x5500251, 1));
+
+                try
+                {
+                    ItemManager.checkSetItemOnEmail(_session, email);
+                }
+                catch (exception e)
+                {
+                    // Se não for item vector vazio, relança a exception
+                    if (!ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(), STDA_ERROR_TYPE._ITEM_MANAGER, 20))
+                        throw;
+                }
+
+                // Log
+
+                _smp::message_pool.push(new message("[channel::requestInfoMail][Log] Player[UID=" + (_session.m_pi.uid) + "] pediu info do Mail[ID="
+                        + (email.id) + "] com sucesso.", type_msg.CL_FILE_LOG_AND_CONSOLE));
+                _session.Send(packet_func.pacote212(email), true);
+
+            }
+            catch (exception e)
+            {
+
+                _smp::message_pool.push(new message("[channel::requestInfoMail][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+
+                //p.init_plain(0x212);
+
+                //p.addUint32((STDA_SOURCE_ERROR_DECODE(e.getCodeError()) == STDA_ERROR_TYPE::CHANNEL) ? STDA_SYSTEM_ERROR_DECODE(e.getCodeError()) : 0x5500250);
+
+                //packet_func::session_send(p, &_session, 1);
+            }
+        }
         public void requestSendMail(Player _session, packet _packet) { }
         public void requestTakeItemFomMail(Player _session, packet _packet) { }
         public void requestDeleteMail(Player _session, packet _packet) { }

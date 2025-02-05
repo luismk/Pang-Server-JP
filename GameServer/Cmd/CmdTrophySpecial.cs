@@ -44,11 +44,6 @@ namespace GameServer.Cmd
             this.m_type = _type;
             this.v_tei = new List<TrofelEspecialInfo>();
         }
-
-        public List<TrofelEspecialInfo> getInfo()
-        {
-            return v_tei;
-        }
         protected override void lineResult(ctx_res _result, uint _index_result)
         {
             checkColumnNumber(3);
@@ -75,6 +70,17 @@ namespace GameServer.Cmd
 
             return r;
         }
+
+        public void setType(TYPE type)
+        {
+            m_type = type;
+        }
+
+        public List<TrofelEspecialInfo> getInfo()
+        {
+            return v_tei;
+        }
+
         private string[] m_szConsulta = { "pangya.ProcGetTrofelSpecial", "pangya.ProcGetTrofelGrandPrix" };
 
     }

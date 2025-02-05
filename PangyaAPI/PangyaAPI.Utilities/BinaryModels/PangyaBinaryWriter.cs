@@ -220,7 +220,18 @@ namespace PangyaAPI.Utilities.BinaryModels
             }
             return true;
         }
-
+        public bool WriteSByte(sbyte value)
+        {
+            try
+            {
+                Write(value);
+            }
+            catch
+            {
+                return false;
+            }
+            return true;
+        }
 
         public bool WriteByte(byte value)
         {
@@ -266,6 +277,20 @@ namespace PangyaAPI.Utilities.BinaryModels
             try
             {
                 Write(value);
+            }
+            catch
+            {
+                return false;
+            }
+            return true;
+        }
+
+        public bool WriteUInt32(uint[] values)
+        {
+            try
+            {
+                for (uint i = 0; i < values.Count(); i++)      
+                Write(values[i]);
             }
             catch
             {

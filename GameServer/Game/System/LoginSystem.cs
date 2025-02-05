@@ -20,6 +20,7 @@ using CmdChatMacroUser = GameServer.Cmd.CmdChatMacroUser;
 using System.Diagnostics;
 using GameServer.Game.System;
 using System.Threading;
+using GameServer.Game.Manager;
 
 namespace GameServer.Game.System
 {
@@ -232,7 +233,7 @@ namespace GameServer.Game.System
                 _pi.mi.state_flag.stFlagBit.whisper = _pi.whisper;
                 _pi.mi.state_flag.stFlagBit.channel = (byte)~_pi.whisper;
 
-                if (_pi.m_cap.stBit.game_master.IsTrue())
+                if (_pi.m_cap.stBit.game_master)
                 {
                     _session.m_gi.setGMUID(_pi.uid);    // Set o UID do GM dados
 
@@ -242,11 +243,11 @@ namespace GameServer.Game.System
                 }
 
                 // Verifica se o player tem a capacidade e level para entrar no gs
-                if (Program.gs.m_si.propriedade.stBit.only_rookie.IsTrue() && _pi.level >= 6/*Beginner E maior*/)
+                if (Program.gs.m_si.propriedade.stBit.only_rookie && _pi.level >= 6/*Beginner E maior*/)
                     throw new exception("Player[UID=" + (_pi.uid) + ", LEVEL="
                             + ((short)_pi.level) + "] nao pode entrar no gs por que o gs eh so para rookie.");
                 /*Nega ele não pode ser nenhum para lançar o erro*/
-                if (Program.gs.m_si.propriedade.stBit.mantle.IsTrue() && !(_pi.m_cap.stBit.mantle.IsTrue() || _pi.m_cap.stBit.game_master.IsTrue()))
+                if (Program.gs.m_si.propriedade.stBit.mantle && !(_pi.m_cap.stBit.mantle|| _pi.m_cap.stBit.game_master))
                     throw new exception("Player[UID=" + (_pi.uid) + ", CAP=" + (_pi.m_cap.ulCapability)
                             + "] nao tem a capacidade para entrar no gs mantle.");
                 // Verifica se o Player já está logado
@@ -278,8 +279,8 @@ namespace GameServer.Game.System
                 // Resgistra o Login do Player no gs
                 NormalManagerDB.add(7, new CmdRegisterLogonServer(_pi.uid, Program.gs.m_si.uid), Program.gs.SQLDBResponse, Program.gs);
 
-                _smp.message_pool.push("[LoginSystem::requestLogin][Log] Player[OID=" + (_session.m_oid) + ", UID=" + (_pi.uid) + ", NICKNAME="
-                        + (_pi.nickname) + "] Autenticou com sucesso.");
+                _smp.message_pool.push("[LoginSystem::requestLogin][Log] Player[OID=" + (_session.m_oid) + ", UID=" + (_pi.uid) + ", NICK="
+                        + (_pi.nickname) + "] Sucess.");
 
                 //// Verifica se o papel tem limite por dia, se não anula o papel shop do player
                 //sPapelShopSystem.init_player_papel_shop_info(_session);
@@ -319,7 +320,7 @@ namespace GameServer.Game.System
         {
             if (_arg == null)
             {
-                _smp.message_pool.push("[SQLDBResponse][Error] _arg is null na msg_id = " + (_msg_id));
+                _smp.message_pool.push("[LoginSystem.SQLDBResponse][Error] _arg is null na msg_id = " + (_msg_id));
                 return;
             }
             // if (_arg is LoginTask && (_session = (LoginTask)_arg) != null)
@@ -329,7 +330,7 @@ namespace GameServer.Game.System
             try
             {
                 // Verifica se a session ainda é valida, essas funções já é thread-safe
-                if (!_session.getConnected())
+                if (_session == null || !_session.getConnected())
                     throw new exception("[SQLDBResponse][Error] session is invalid, para tratar o pangya_db");
 
                 // Por Hora só sai, depois faço outro tipo de tratamento se precisar
@@ -373,7 +374,7 @@ namespace GameServer.Game.System
 
                             NormalManagerDB.add(10, new CmdCookie(pi.uid), SQLDBResponse, _session);
 
-                            NormalManagerDB.add(11, new CmdTrofelInfo(pi.uid, CmdTrofelInfo.TYPE.CURRENT), SQLDBResponse, _session);
+                            NormalManagerDB.add(11, new CmdTrofelInfo(pi.uid, CmdTrofelInfo.TYPE_SEASON.CURRENT), SQLDBResponse, _session);
 
                             // Esses que estavam aqui coloquei no resposta do CmdUserEquip, por que eles precisam da resposta do User Equip
 
@@ -681,7 +682,7 @@ namespace GameServer.Game.System
                             else
                             {
 
-                                it = pi.findWarehouseItemByTypeid((int)AIR_KNIGHT_SET);
+                                it = pi.findWarehouseItemByTypeid(AIR_KNIGHT_SET);
 
                                 if (it == null)
                                 {
@@ -769,7 +770,7 @@ namespace GameServer.Game.System
 
                                 pi.ue.ball_typeid = DEFAULT_COMET_TYPEID;
 
-                                it = pi.findWarehouseItemByTypeid((int)DEFAULT_COMET_TYPEID);
+                                it = pi.findWarehouseItemByTypeid(DEFAULT_COMET_TYPEID);
 
                                 if (it != pi.mp_wi.Last().Value)
                                 {
@@ -898,11 +899,18 @@ namespace GameServer.Game.System
                         {
                             var v_ms = ((CmdMapStatistics)(_pangya_db)).getMapStatistics(); // cmd_ms.getMapStatistics();
 
-                            foreach (var i in v_ms)
+                            try
                             {
-                                _session.m_pi.a_ms_normal[i.course] = i;
-                            }
+                                foreach (var i in v_ms)
+                                {
+                                    _session.m_pi.a_ms_normal[i.course] = i;
+                                }
 
+                            }
+                            catch (Exception ex)
+                            {           
+                                throw ex;
+                            }
                             break;
                         }
                     case 27:    // MapStatistics Normal, assist, atual
@@ -1067,7 +1075,8 @@ namespace GameServer.Game.System
                 else if (getCount() > 0)
                 {
                     _session.Send(packet_func.pacote044(Program.gs.m_si, 0xD2, _session.m_pi, _msg_id == 10? _msg_id + 2 : _msg_id + 1)); // send bar loading server!
-                }                                                                     
+                }                
+               
             }
             catch (Exception ex)
             {
@@ -1085,7 +1094,7 @@ namespace GameServer.Game.System
             if (!_session.getConnected())
             {
 
-                _smp.message_pool.push("[LoginTask::sendCompleteData][Error] session is invalid.");
+                _smp.message_pool.push("[LoginSystem.sendCompleteData][Error] session is invalid.");
                 _session.Disconnect();
                 return;
             }
@@ -1108,13 +1117,13 @@ namespace GameServer.Game.System
 
                 var pi = _session.m_pi;
                 // Envia todos pacotes aqui, alguns envia antes, por que agora estou usando o jeito o pangya original   
-                _session.Send(packet_func.pacote044(Program.gs.m_si, 0, pi), true);
+                _session.Send(packet_func.pacote044(Program.gs.m_si, 0, pi));
                                                
                 _session.Send(packet_func.pacote070(pi.mp_ce)); // characters
                                                               
                 _session.Send(packet_func.pacote071(pi.mp_ci)); //caddies   
 
-               _session.Send(packet_func.pacote073(pi.mp_wi)); //inventory(warehouse)   
+               _session.Send(pi.mp_wi.Build(), true); //inventory(warehouse)   
 
                 _session.Send(packet_func.pacote0E1(pi.mp_mi)); //mascots
 
@@ -1170,14 +1179,16 @@ namespace GameServer.Game.System
                 //// Login Reward System - verifica se o player ganhou algum item por logar
                 //if (sgs::gs::getInstance().getInfo().rate.login_reward_event)
                 //    sLoginRewardSystem::getInstance().checkRewardLoginAndSend(_session);
+                //test stresss
+                sPremiumSystem.getInstance().updatePremiumUser(_session);   //test develp
 
                 stopwatch.Stop();
-                Console.WriteLine($"[LoginTask::sendCompleteData][Log] Function executed in {stopwatch.ElapsedMilliseconds}ms");
+                Console.WriteLine($"[LoginSystem.sendCompleteData][Log] Function executed in {stopwatch.ElapsedMilliseconds}ms");
 
             }
             catch (Exception ex)
             {
-                _smp.message_pool.push(new message($"[LoginTask::sendCompleteData][ErrorSystem] {ex.Message}\nStack Trace: {ex.StackTrace}", type_msg.CL_FILE_LOG_AND_CONSOLE));
+                _smp.message_pool.push(new message($"[LoginSystem.sendCompleteData][ErrorSystem] {ex.Message}\nStack Trace: {ex.StackTrace}", type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
 
         }

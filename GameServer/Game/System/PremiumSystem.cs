@@ -483,7 +483,8 @@ namespace GameServer.Game.System
             //    List<stItem> add_itens = new List<stItem>();
 
             // Flag Premium User
-            _session.m_pi.m_cap.stBit.premium_user = 1u;
+            _session.m_pi.mi.capability.stBit.premium_user = true;
+            _session.m_pi.mi.capability.ulCapability = 16384;
 
             //    // Add Ball
             //    var new_ball = addPremiumBall(_session);
@@ -497,7 +498,7 @@ namespace GameServer.Game.System
             //    add_itens.Add(new_ball);
 
             // Atualiza Capability do player
-            var p = new PangyaBinaryWriter((ushort)0x9A);
+            var p = new PangyaBinaryWriter(0x9A);
 
             p.WriteUInt32(_session.m_pi.m_cap.ulCapability);
 

@@ -1,10 +1,12 @@
-﻿using PangyaAPI.SQL;
-using System;
-using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using PangyaAPI.Utilities;
 using PangyaAPI.Utilities.BinaryModels;
+using System.Diagnostics;
+using PangyaAPI.Network.PangyaPacket;
+using Part = PangLib.IFF.JP.Models.Data.Part;
+using GameServer.PangType;
 
 namespace PangyaAPI.Network.Pangya_St
 {
@@ -35,23 +37,23 @@ namespace PangyaAPI.Network.Pangya_St
             switch (ulProperty)
             {
                 case 16:
-                    stBit.mantle = 1;
+                    stBit.mantle = true;
                     break;
                 case 64:
-                    stBit.only_rookie = 1;
+                    stBit.only_rookie = true;
                     break;
                 case 128:
-                    stBit.natural = 1;
+                    stBit.natural = true;
                     break;
                 case 512:
-                    stBit.verde = 1;
+                    stBit.verde = true;
                     break;
                 case 1024:
-                    stBit.azul = 1;
+                    stBit.azul = true;
                     break;
                 case 2048:
-                    stBit.grand_prix = 1;
-                    break; 
+                    stBit.grand_prix = true;
+                    break;
                 default:
                     break;
             }
@@ -62,12 +64,12 @@ namespace PangyaAPI.Network.Pangya_St
         public _stBit stBit { get; set; } = new _stBit();
         public class _stBit
         {
-            public uint mantle; // = 0; // Só GM ou pessoas autorizadas pode ver esse server
-            public uint only_rookie; // = 0; // Só Rookie(Iniciante) Pode entrar
-            public uint natural; // = 0; // Natural modo
-            public uint verde; // = 0; // Cor Verde
-            public uint azul; // = 0; // Cor Azul
-            public uint grand_prix; // = 0; // Grand Prix
+            public bool mantle; // = 0; // Só GM ou pessoas autorizadas pode ver esse server
+            public bool only_rookie; // = 0; // Só Rookie(Iniciante) Pode entrar
+            public bool natural; // = 0; // Natural modo
+            public bool verde; // = 0; // Cor Verde
+            public bool azul; // = 0; // Cor Azul
+            public bool grand_prix; // = 0; // Grand Prix
         }
     }
     // que guarda a estrutura de bits do event flag do server
@@ -101,7 +103,7 @@ namespace PangyaAPI.Network.Pangya_St
 
             //stBit = new _stBit()
             //{
-            //    unknown = bits.Get(0),
+            //    scratch_rate = bits.Get(0),
             //    pang_x_plus = bits.Get(1),
             //    exp_x2 = bits.Get(2),
             //    angel_wing = bits.Get(3),
@@ -119,7 +121,7 @@ namespace PangyaAPI.Network.Pangya_St
 
             //stBit = new _stBit()
             //{
-            //    unknown = bits.Get(0),
+            //    scratch_rate = bits.Get(0),
             //    pang_x_plus = bits.Get(1),
             //    exp_x2 = bits.Get(2),
             //    angel_wing = bits.Get(3),
@@ -139,34 +141,34 @@ namespace PangyaAPI.Network.Pangya_St
         public ulong ullFlag;
         public class _stBit
         {
-            public ulong all_game { get; set; } = 0; // Não pode jogar nada
-            public ulong buy_and_gift_shop { get; set; } = 0; // Não pode comprar no shop
-            public ulong gift_shop { get; set; } = 0; // Não pode enviar presente
-            public ulong papel_shop { get; set; } = 0; // Não pode jogar no Papel Shop
-            public ulong personal_shop { get; set; } = 0; // Não pode vender no personal shop
-            public ulong stroke { get; set; } = 0; // Não pode jogar Stroke
-            public ulong match { get; set; } = 0; // Não pode jogar Match
-            public ulong tourney { get; set; } = 0; // Não pode jogar Tourney
-            public ulong team_tourney { get; set; } = 0; // Não pode jogar Team Tourney(Agora é Short Game)
-            public ulong guild_battle { get; set; } = 0; // Não pode jogar Guild Battle
-            public ulong pang_battle { get; set; } = 0; // Não pode jogar Pang Battle
-            public ulong approach { get; set; } = 0; // Não pode jogar Approach
-            public ulong lounge { get; set; } = 0; // Não pode criar sala lounge e entrar sala lounge
-            public ulong scratchy { get; set; } = 0; // Não pode jogar no Scratchy System
-            public ulong rank_server { get; set; } = 0; // Não pode abrir o rank server
-            public ulong ticker { get; set; } = 0; // Não pode mandar ticker
-            public ulong mail_box { get; set; } = 0; // Desabilita Mail Box
-            public ulong grand_zodiac { get; set; } = 0; // Acho que é o grand zodiac, se não for vai ser
-            public ulong single_play { get; set; } = 0; // Acho que é o Single Play, se não for vai ser
-            public ulong grand_prix { get; set; } = 0; // Acho que é o Grand Prix, se não for vai ser
-            public ulong guild { get; set; } = 0; // Desabilita Guild
-            public ulong ssc { get; set; } = 0; // Não pode jogar Special Shuffle Course
-            public ulong memorial_shop { get; set; } = 0; // Não pode jogar no Memorial Shop
-            public ulong short_game { get; set; } = 0; // Não pode jogar Short Game
-            public ulong char_mastery { get; set; } = 0; // Não pode mexer no Character Mastery System
-            public ulong lolo_copound_card { get; set; } = 0; // Não pode jogar no Lolo Copound Card System
-            public ulong cadie_recycle { get; set; } = 0; // Não pode usar o Caddie Recycle Item System
-            public ulong legacy_tiki_shop { get; set; } = 0; // Não pode usar o Legacy Tiki Shop System }
+            public bool all_game { get; set; } = false; // Não pode jogar nada
+            public bool buy_and_gift_shop { get; set; } = false; // Não pode comprar no shop
+            public bool gift_shop { get; set; } = false; // Não pode enviar presente
+            public bool papel_shop { get; set; } = false; // Não pode jogar no Papel Shop
+            public bool personal_shop { get; set; } = false; // Não pode vender no personal shop
+            public bool stroke { get; set; } = false; // Não pode jogar Stroke
+            public bool match { get; set; } = false; // Não pode jogar Match
+            public bool tourney { get; set; } = false; // Não pode jogar Tourney
+            public bool team_tourney { get; set; } = false; // Não pode jogar Team Tourney(Agora é Short Game)
+            public bool guild_battle { get; set; } = false; // Não pode jogar Guild Battle
+            public bool pang_battle { get; set; } = false; // Não pode jogar Pang Battle
+            public bool approach { get; set; } = false; // Não pode jogar Approach
+            public bool lounge { get; set; } = false; // Não pode criar sala lounge e entrar sala lounge
+            public bool scratchy { get; set; } = false; // Não pode jogar no Scratchy System
+            public bool rank_server { get; set; } = false; // Não pode abrir o rank server
+            public bool ticker { get; set; } = false; // Não pode mandar ticker
+            public bool mail_box { get; set; } = false; // Desabilita Mail Box
+            public bool grand_zodiac { get; set; } = false; // Acho que é o grand zodiac, se não for vai ser
+            public bool single_play { get; set; } = false; // Acho que é o Single Play, se não for vai ser
+            public bool grand_prix { get; set; } = false; // Acho que é o Grand Prix, se não for vai ser
+            public bool guild { get; set; } = false; // Desabilita Guild
+            public bool ssc { get; set; } = false; // Não pode jogar Special Shuffle Course
+            public bool memorial_shop { get; set; } = false; // Não pode jogar no Memorial Shop
+            public bool short_game { get; set; } = false; // Não pode jogar Short Game
+            public bool char_mastery { get; set; } = false; // Não pode mexer no Character Mastery System
+            public bool lolo_copound_card { get; set; } = false; // Não pode jogar no Lolo Copound Card System
+            public bool cadie_recycle { get; set; } = false; // Não pode usar o Caddie Recycle Item System
+            public bool legacy_tiki_shop { get; set; } = false; // Não pode usar o Legacy Tiki Shop System
         }
         public _stBit stBit { get; set; }
     }
@@ -191,7 +193,7 @@ namespace PangyaAPI.Network.Pangya_St
         public uEventFlag event_flag = new uEventFlag();
         public short event_map { get; set; }
         public short app_rate { get; set; }
-        public short unknown { get; set; } // pode ser scratchy rate ou não
+        public short scratch_rate { get; set; } // pode ser scratchy rate ou não
         public short img_no { get; set; }
         public ServerInfo()
         {
@@ -201,19 +203,19 @@ namespace PangyaAPI.Network.Pangya_St
         public byte[] Build()
         {
             using (var p = new PangyaBinaryWriter())
-            {            
+            {
                 p.WriteStr(nome, 40);
                 p.WriteInt32(uid);
                 p.WriteInt32(max_user);
                 p.WriteInt32(curr_user);
                 p.WriteStr(ip, 18);
                 p.WriteInt32(port);
-                p.WriteUInt32(propriedade.ulProperty);             
+                p.WriteUInt32(propriedade.ulProperty);
                 p.WriteInt32(angelic_wings_num);
                 p.WriteInt16(event_flag.usEventFlag);
                 p.WriteInt16(event_map);
                 p.WriteInt16(app_rate);
-                p.WriteInt16(unknown); // pode ser scratchy rate ou não
+                p.WriteInt16(scratch_rate); // pode ser scratchy rate ou não
                 p.WriteInt16(img_no);
                 return p.GetBytes;
             }
@@ -223,7 +225,7 @@ namespace PangyaAPI.Network.Pangya_St
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public class ServerInfoEx : ServerInfo
     {
-        public uint packet_version;
+        public uint packet_version { get; set; }
 
         public sbyte tipo { get; set; }
         [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 40)]
@@ -402,13 +404,19 @@ namespace PangyaAPI.Network.Pangya_St
     }
 
 
-    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    [StructLayout(LayoutKind.Sequential, Pack = 1, Size = 513)]
     public class CharacterInfo
     {
         public CharacterInfo()
         {
             clear();
         }
+
+        public CharacterInfo(Packet packet)
+        {
+
+        }
+
         public enum Stats : byte
         {
             S_POWER,
@@ -497,11 +505,11 @@ namespace PangyaAPI.Network.Pangya_St
         }
         public byte AngelEquiped()
         { return 0; }
+
         public sbyte getSlotOfStatsFromsbyteEquipedPartItem(Stats __stat)
         {   // Get Slot of stats from Character equiped item
 
             sbyte value = 0;
-            // IFF.Part part = null;
 
             // Invalid Stats type, Unknown type Stats
             if (__stat > Stats.S_CURVE)
@@ -509,9 +517,9 @@ namespace PangyaAPI.Network.Pangya_St
 
             for (var i = 0; i < (Marshal.SizeOf(parts_typeid) / Marshal.SizeOf(parts_typeid[0])); ++i)
             {
-
-                //if (parts_id[i] != 0 && (part = sIff.findPart(parts_typeid[i])) != null)
-                //    value += (sbyte)part.Slot[(int)__stat];
+                Part part;
+                if (parts_id[i] != 0 && (part = sIff.getInstance().findPart(parts_typeid[i])) != null)
+                    value += (sbyte)part.SlotStats.getSlot[(int)__stat];
             }
 
             return value;
@@ -523,14 +531,12 @@ namespace PangyaAPI.Network.Pangya_St
             if (_typeid == 0)
                 return;
 
-            uint part_typeid = 0;
-
             for (var i = 0; i < (Marshal.SizeOf(parts_typeid) / Marshal.SizeOf(parts_typeid[0])); ++i)
             {
-                part_typeid = Convert.ToUInt32((((_typeid << 5) | i) << 13) | 0x8000400);
+                var part_typeid = Convert.ToUInt32((((_typeid << 5) | i) << 13) | 0x8000400);
 
-                //if (sIff.findPart(part_typeid) != null)
-                //    parts_typeid[i] = part_typeid;
+                if (sIff.getInstance().findPart(part_typeid) != null)
+                    parts_typeid[i] = part_typeid;
             }
         }
         /// <summary>
@@ -547,36 +553,36 @@ namespace PangyaAPI.Network.Pangya_St
                 p.Write(default_shirts);
                 p.Write(gift_flag);
                 p.Write(Purchase);
-                
+
                 for (var Index = 0; Index < 24; Index++)
                     p.Write(parts_typeid[Index]);
-                
+
                 for (var Index = 0; Index < 24; Index++)
                     p.Write(parts_id[Index]);
 
                 p.WriteZero(216); //deve ser algum objeto ainda nao terminado
-                
+
                 for (int i = 0; i < 5; i++)
                     p.WriteUInt32(AuxPart[i]);
-                
+
                 for (int i = 0; i < 4; i++)
                     p.WriteUInt32(Cut_in[i]);
-                
+
                 for (int i = 0; i < 5; i++)
                     p.WriteByte(PCL[i]);
 
                 p.WriteUInt32(MasteryPoint);
-                
+
                 for (int i = 0; i < 4; i++)
                     p.WriteUInt32(Card_Caddie[i]);
-                
+
                 for (int i = 0; i < 4; i++)
                     p.WriteUInt32(Card_Character[i]);
-                
+
                 for (int i = 0; i < 4; i++)
                     p.WriteUInt32(Card_NPC[i]);
                 if (p.GetSize == 513)
-                    Console.WriteLine("GetCharacterInfo Size Okay");
+                    Debug.WriteLine("GetCharacterInfo Size Okay");
 
                 return p.GetBytes;
             }
@@ -597,7 +603,7 @@ namespace PangyaAPI.Network.Pangya_St
 
             m_id_state = new IDStateBlockFlag(0);
         }
-        public void setIDState(UInt64 _id_state)
+        public void setIDState(ulong _id_state)
         {
             if (m_flag == null || (m_flag.ullFlag == 0))
             {
@@ -608,19 +614,19 @@ namespace PangyaAPI.Network.Pangya_St
 
             // Block Recursos do player
             if ((m_id_state.id_state.st_IDState.L_BLOCK_LOUNGE/* & 4*/)) // Block Lounge
-                m_flag.ullFlag = m_flag.stBit.lounge = 1u; // Block Lounge
+                m_flag.stBit.lounge = true; // Block Lounge
             if ((m_id_state.id_state.st_IDState.L_BLOCK_SHOP_LOUNGE/* & 8*/)) // Block Shop Lounge
-                m_flag.stBit.personal_shop = 1u; // Block Shop Lounge
+                m_flag.stBit.personal_shop = true; // Block Shop Lounge
             if ((m_id_state.id_state.st_IDState.L_BLOCK_GIFT_SHOP/* & 16*/)) // Block Gift Shop
-                m_flag.stBit.gift_shop = 1u; // Block Gift Shop
+                m_flag.stBit.gift_shop = true; // Block Gift Shop
             if ((m_id_state.id_state.st_IDState.L_BLOCK_PAPEL_SHOP/* & 32*/)) // Block Papel Shop
-                m_flag.stBit.papel_shop = 1u; // Block Papel Shop
+                m_flag.stBit.papel_shop = true; // Block Papel Shop
             if ((m_id_state.id_state.st_IDState.L_BLOCK_SCRATCHY/* & 64*/)) // Block Scratchy
-                m_flag.stBit.scratchy = 1u; // Block Scratchy
+                m_flag.stBit.scratchy = true; // Block Scratchy
             if ((m_id_state.id_state.st_IDState.L_BLOCK_TICKER/* & 128*/)) // Block Ticker
-                m_flag.stBit.ticker = 1u; // Block Ticker
+                m_flag.stBit.ticker = true; // Block Ticker
             if ((m_id_state.id_state.st_IDState.L_BLOCK_MEMORIAL_SHOP/* & 256*/)) // Block Memorial Shop
-                m_flag.stBit.memorial_shop = 1u; // Block Memorial Shop
+                m_flag.stBit.memorial_shop = true; // Block Memorial Shop
         }
 
         public IDStateBlockFlag m_id_state;
@@ -645,42 +651,61 @@ namespace PangyaAPI.Network.Pangya_St
         public class _uIDState
         {
             public _uIDState(ulong _ull = 0u)
-            { ull_IDState = _ull; setState(); }
+            { ull_IDState = _ull; st_IDState = new _stIDState(); setState(); }
             public _uIDState()
-            { ull_IDState = 0; setState(); }
+            {
+                ull_IDState = 0;
+                st_IDState = new _stIDState(); setState();
+            }
             public void setState()
             {
-                BitArray bits = new BitArray(BitConverter.GetBytes(ull_IDState));
-                bits = EngineTools.PadToFullByte(bits);
 
-                st_IDState = new _stIDState()
+                switch (ull_IDState)
                 {
-                    L_BLOCK_TEMPORARY = bits.Get(0),
-                    L_BLOCK_FOREVER = bits.Get(1),
-                    L_BLOCK_LOUNGE = bits.Get(2),
-                    L_BLOCK_SHOP_LOUNGE = bits.Get(3),
-                    L_BLOCK_GIFT_SHOP = bits.Get(4),
-                    L_BLOCK_PAPEL_SHOP = bits.Get(5),
-                    L_BLOCK_SCRATCHY = bits.Get(6),
-                    L_BLOCK_TICKER = bits.Get(7),
-                    L_BLOCK_MEMORIAL_SHOP = ull_IDState == 256,
-                    L_BLOCK_ALL_IP = false,
-                    L_BLOCK_MAC_ADDRESS = false
-                };
+                    case 4:
+                        st_IDState.L_BLOCK_LOUNGE = true;///* & 4*/)) // Block Lounge
+                        break;
+
+                    case 8:
+                        st_IDState.L_BLOCK_SHOP_LOUNGE = true; ///* & 8*/)) // Block Shop Lounge
+                        break;
+
+                    case 16:
+                        st_IDState.L_BLOCK_GIFT_SHOP = true; ///* & 16*/)) // Block Gift Shop 
+
+                        break;
+
+                    case 32:
+                        st_IDState.L_BLOCK_PAPEL_SHOP = true; ///* & 32*/)) // Block Papel Shop 
+                        break;
+
+                    case 64:
+                        st_IDState.L_BLOCK_SCRATCHY = true; ///* & 64*/)) // Block Scratchy 
+                        break;
+
+                    case 128:
+                        st_IDState.L_BLOCK_TICKER = true; ///* & 128*/)) // Block Ticker 
+                        break;
+                    case 256:
+                        st_IDState.L_BLOCK_MEMORIAL_SHOP = true; ///* & 256*/)) // Block Memorial Shop 
+                        break;
+                    default:
+                        break;
+                }
             }
             public class _stIDState
             {
-                public bool L_BLOCK_TEMPORARY { get; set; } = true;
-                public bool L_BLOCK_FOREVER { get; set; } = true;
-                public bool L_BLOCK_LOUNGE { get; set; } = true;
-                public bool L_BLOCK_SHOP_LOUNGE { get; set; } = true;
-                public bool L_BLOCK_GIFT_SHOP { get; set; } = true;
-                public bool L_BLOCK_PAPEL_SHOP { get; set; } = true;
-                public bool L_BLOCK_SCRATCHY { get; set; } = true;
-                public bool L_BLOCK_TICKER { get; set; } = true;
-                public bool L_BLOCK_MEMORIAL_SHOP { get; set; } = true;
-                public bool L_BLOCK_ALL_IP { get; set; } = true;           // Bloquea todo IP que o player logar
-                public bool L_BLOCK_MAC_ADDRESS { get; set; } = true;      // Bloquea o MAC Address
+                public bool L_BLOCK_TEMPORARY { get; set; }
+                public bool L_BLOCK_FOREVER { get; set; }
+                public bool L_BLOCK_LOUNGE { get; set; }
+                public bool L_BLOCK_SHOP_LOUNGE { get; set; }
+                public bool L_BLOCK_GIFT_SHOP { get; set; }
+                public bool L_BLOCK_PAPEL_SHOP { get; set; }
+                public bool L_BLOCK_SCRATCHY { get; set; }
+                public bool L_BLOCK_TICKER { get; set; }
+                public bool L_BLOCK_MEMORIAL_SHOP { get; set; }
+                public bool L_BLOCK_ALL_IP { get; set; }           // Bloquea todo IP que o player logar
+                public bool L_BLOCK_MAC_ADDRESS { get; set; }      // Bloquea o MAC Address
             }
             public ulong ull_IDState;
             public _stIDState st_IDState;
