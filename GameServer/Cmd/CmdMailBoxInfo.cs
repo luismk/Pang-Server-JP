@@ -1,7 +1,8 @@
-using GameServer.TYPE;
 using System;
 using System.Collections.Generic;
 using PangyaAPI.SQL;
+using GameServer.GameType;
+
 namespace GameServer.Cmd
 {
     public class CmdMailBoxInfo : Pangya_DB

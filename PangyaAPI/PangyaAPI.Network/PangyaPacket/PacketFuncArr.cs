@@ -1,7 +1,9 @@
 ﻿using PangyaAPI.Network.PangyaSession;
+using PangyaAPI.Utilities;
 using PangyaAPI.Utilities.Log;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
@@ -34,34 +36,46 @@ namespace PangyaAPI.Network.PangyaPacket
         public class func_arr_ex
         {
             public func_arr_ex()
-            {
-                Param = new object();
+            {                                
             }
-            public Action<ParamDispatch> cf;
-
-            public object Param { get; set; }
+            public Func<ParamDispatch, int> cf;
 
             public int ExecCmd(ParamDispatch pd)
             {
+                // Captura o nome do método atual
+                string methodName = cf != null ? cf.Method.Name : "NULL";
+
+                // Cria um stopwatch para medir o tempo
+                Stopwatch stopwatch = new Stopwatch();
+                stopwatch.Start(); // Inicia a contagem do tempo
+
                 try
                 {
                     if (cf == null)
                     {
                         return 1; // Retorna 1 se o ID não existir (cf é nulo).
                     }
-                    if (pd._session.getConnected())
-                    {
-                        cf.Invoke(pd);
-                        return 0;
-                    }
-                    else
-                    {
-                        return 1; // Retorna 1 se ocorrer uma exceção.
-                    }
+
+                    // Invoca a função callback e pega o resultado
+                    int result = cf.Invoke(pd);
+
+                    // Parar o stopwatch
+                    stopwatch.Stop();
+
+                    // Exibe o nome da função e o tempo que demorou para ser executada
+                    Console.WriteLine($"Function: {methodName}, Execution Time: {stopwatch.ElapsedMilliseconds} ms");
+
+                    return result; // Retorna o resultado do callback
                 }
-                catch
+                catch (Exception e)
                 {
-                    return 1; // Retorna 1 se ocorrer uma exceção.
+                    // Parar o stopwatch em caso de exceção
+                    stopwatch.Stop();
+
+                    // Exibe o erro e o tempo gasto até a exceção
+                    Console.WriteLine($"Function: {methodName}, Error: {e.Message}, Execution Time: {stopwatch.ElapsedMilliseconds} ms");
+
+                    throw; // Re-throw the exception
                 }
             }
         }
@@ -72,7 +86,7 @@ namespace PangyaAPI.Network.PangyaPacket
         /// <param db_name="_tipo">id do pacote</param>
         /// <param db_name="_func"> funcao a ser chamada</param>
         public void addPacketCall(short _tipo,
-            Action<ParamDispatch> _func)
+            Func<ParamDispatch, int> _func)
         {
             m_func[_tipo].cf = _func;
         }

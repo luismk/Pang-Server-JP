@@ -1,4 +1,4 @@
-﻿using GameServer.PangType;
+﻿using GameServer.GameType;
 using PangyaAPI.SQL;
 using PangyaAPI.Utilities;
 using System.Collections.Generic;
@@ -83,7 +83,7 @@ namespace GameServer.Cmd
 
                 if (uid_req != m_uid)
                 {
-                    throw new exception("[CmdMyRoomItem::lineResult][Error] o uid do my room item requisitado do player e diferente. UID_req: " + Convert.ToString(uid_req) + " != " + Convert.ToString(m_uid));
+                    throw new exception("[CmdMyRoomItem::lineResult][Error] o m_uid do my room item requisitado do player e diferente. UID_req: " + Convert.ToString(uid_req) + " != " + Convert.ToString(m_uid));
                 }
             }
             catch (Exception e)

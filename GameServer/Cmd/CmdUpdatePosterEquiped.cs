@@ -18,15 +18,15 @@
 //// C++ TO C# CONVERTER WARNING: The following #include directive was ignored:
 ////#include "../../Projeto IOCP/PANGYA_DB/pangya_db.h"
 //// C++ TO C# CONVERTER NOTE: The following #define macro was replaced in-line:
-//// ORIGINAL LINE: #define m_title skin_typeid[5]
+// #define m_title skin_typeid[5]
 //// C++ TO C# CONVERTER NOTE: The following #define macro was replaced in-line:
-//// ORIGINAL LINE: #define GameServer.Cmd_C_ITEM_QNTD c[0]
+// #define GameServer.Cmd_C_ITEM_QNTD c[0]
 //// C++ TO C# CONVERTER NOTE: The following #define macro was replaced in-line:
-//// ORIGINAL LINE: #define GameServer.Cmd_C_ITEM_TICKET_REPORT_ID_HIGH c[1]
+// #define GameServer.Cmd_C_ITEM_TICKET_REPORT_ID_HIGH c[1]
 //// C++ TO C# CONVERTER NOTE: The following #define macro was replaced in-line:
-//// ORIGINAL LINE: #define GameServer.Cmd_C_ITEM_TICKET_REPORT_ID_LOW c[2]
+// #define GameServer.Cmd_C_ITEM_TICKET_REPORT_ID_LOW c[2]
 //// C++ TO C# CONVERTER NOTE: The following #define macro was replaced in-line:
-//// ORIGINAL LINE: #define GameServer.Cmd_C_ITEM_TIME c[3]
+// #define GameServer.Cmd_C_ITEM_TIME c[3]
 
 //namespace GameServer.Cmd
 //{
@@ -43,8 +43,8 @@
 //				)
 //				{
 //// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
-//// ORIGINAL LINE: this.m_uid = _uid;
-//				this.m_uid.CopyFrom(_uid);
+// this.m_uid = _uid;
+//				//this.
 //				this.m_ue = new GameServer.Cmd.UserEquip(_ue);
 //				}
 
@@ -54,27 +54,27 @@
 
 //			public uint getUID()
 //			{
-//				return new uint(m_uid);
+//				return (m_uid);
 //			}
 
 //			public void setUID(uint _uid)
 //			{
 //// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
-//// ORIGINAL LINE: m_uid = _uid;
-//				m_uid.CopyFrom(_uid);
+// m_uid = _uid;
+//				
 //			}
 
 //			public UserEquip getInfo()
 //			{
 //// C++ TO C# CONVERTER TASK: The following line was determined to contain a copy constructor call - this should be verified and a copy constructor should be created:
-//// ORIGINAL LINE: return m_ue;
+// return m_ue;
 //				return new GameServer.Cmd.UserEquip(m_ue);
 //			}
 
 //			public void setInfo(UserEquip _ue)
 //			{
 //// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
-//// ORIGINAL LINE: m_ue = _ue;
+// m_ue = _ue;
 //				m_ue.CopyFrom(_ue);
 //			}
 

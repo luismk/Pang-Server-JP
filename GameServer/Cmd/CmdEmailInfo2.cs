@@ -1,4 +1,4 @@
-﻿using GameServer.PangType;
+﻿using GameServer.GameType;
 using PangyaAPI.SQL;
 using PangyaAPI.Utilities.Log;
 using PangyaAPI.Utilities;

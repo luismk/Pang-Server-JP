@@ -8,186 +8,158 @@ namespace GameServer.Game.Utils
 {
     public class Lottery
     {
-        public class LotteryCtx
+        private ulong m_probLimit;
+        private List<ulong> m_randValues;
+        private List<LotteryCtx> m_ctx;
+        private Dictionary<ulong, LotteryCtx> m_roleta;
+
+        public Lottery(ulong valueRand)
         {
-            public void clear()
-            {
-            }
-            public uint prob = new uint(); // Probabilidade
-            public object value = new object();
-            public ulong[] offset = new ulong[2]; // 0 start, 1 end
-            public bool active; // 0 ou 1 ativo
+            m_probLimit = 0;
+            m_randValues = new List<ulong>();
+            m_ctx = new List<LotteryCtx>();
+            m_roleta = new Dictionary<ulong, LotteryCtx>();
+
+            Initialize(valueRand);
         }
 
-        public Lottery(ulong _value_rand)
+        public void Initialize(ulong valueRand)
         {
-            this.m_prob_limit = 0Ul;
-
-            initialize(_value_rand);
-        }
-
-
-        public void clear()
-        { // Clear Ctx
-
-            if (m_ctx.Count > 0)
-            {
-                m_ctx.Clear();
-            }
-        }
-
-        public void push(LotteryCtx _lc)
-        {
-            m_ctx.Add(_lc);
-        }
-
-        public void push(uint _prob, object _value)
-        {
-            LotteryCtx lc = new LotteryCtx
-            {
-                active = false,
-                prob = _prob,
-                value = _value
-            };
-            push(lc);
-        }
-
-        public ulong getLimitProbilidade()
-        {
-
-            // Preenche roleta, para poder pegar o limite da probabilidade
-            fill_roleta();
-
-            return m_prob_limit;
-        }
-
-        // Retorna a quantidade de itens que tem para sortear
-        public uint getCountItem()
-        {
-            return (uint)m_ctx.Count;
-        }
-
-        // Deleta o Item Sorteado, para não sair ele de novo, se for passado true
-        public Lottery.LotteryCtx spinRoleta(bool _remove_item_draw = false)
-        {
-
-            try
-            {
-
-                LotteryCtx lc = null;
-
-                // Preencha a Roleta
-                fill_roleta();
-
-                ulong lucky = 0Ul;
-
-                shuffle_values_rand();
-                lucky = m_rand_values[Convert.ToInt32(new Random().Next(0, 4) * new Random().Next() % (int)(m_prob_limit == 0 ? 1 : m_prob_limit + 1))];
-
-                var bound = m_roleta.Where(c => c.Key == lucky);
-
-                lc = bound.First().Value;
-
-                // Deleta o Item Sorteado, para n�o sair ele de novo, se for passado true
-                if (_remove_item_draw)
-                {
-                    remove_draw_item(lc);
-                }
-
-                 return lc;
-
-            }
-            catch (exception e)
-            {
-
-                message_pool.push(new message("[Lottery::spinRoleta][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
-
-                throw;
-            }
-
-         }
-
-        protected void initialize(ulong _value_rand)
-        {
-
-            // 5 Rands Values
+            // Simulando o preenchimento com 5 valores randômicos
+            Random random = new Random();
             for (var i = 0u; i < 5u; ++i)
-            {
-                m_rand_values.Add((ulong)new Random().Next());
-            }
+                m_randValues.Add(sRandomGen.getInstance().rIbeMt19937_64_chrono());
 
-#if DEBUG
-            message_pool.push(new message("[Lottery][Test] Values RAND: L=" + Convert.ToString(m_rand_values[0]) + " R=" + Convert.ToString(m_rand_values[1]) + " T=" + Convert.ToString(m_rand_values[2]) + " E=" + Convert.ToString(m_rand_values[3]) + " S=" + Convert.ToString(m_rand_values[4]) + "", type_msg.CL_ONLY_FILE_LOG));
-#endif // _DEBUG
-
-            shuffle_values_rand();
+            ShuffleValuesRand();
         }
 
-        protected void fill_roleta()
+        public void FillRoleta()
         {
+            if (!m_ctx.Any())
+                throw new Exception("[Lottery::fill_roleta][Error] nao tem lottery ctx, por favor popule o lottery primeiro.");
 
-            if (m_ctx.Count == 0)
+            // Limpa a roleta
+            ClearRoleta();
+
+            // Embaralha a lista m_ctx usando o algoritmo Fisher-Yates
+            var rand = new Random((int)sRandomGen.getInstance().rIbeMt19937_64_chrono());  // Gerador baseado no chrono
+            int n = m_ctx.Count;
+            for (int i = n - 1; i > 0; i--)
             {
-                throw new exception("[Lottery::fill_roleta][Error] nao tem lottery ctx, por favor popule o lottery primeiro.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.LOTTERY,
-                    1, 0));
+                // Escolhe um índice aleatório entre 0 e i
+                int j = rand.Next(i + 1);
+
+                // Troca os elementos m_ctx[i] e m_ctx[j]
+                var temp = m_ctx[i];
+                m_ctx[i] = m_ctx[j];
+                m_ctx[j] = temp;
             }
 
-            // Limpa Roleta
-            clear_roleta();
+            // Embaralha a lista m_ctx                                    
+            m_probLimit = 0;
 
-            // Shuffle Ctx                                                                                  
-            m_ctx.Last().prob = (uint)new Random().Next(0, 1000);
-            m_prob_limit = 0Ul;
-
-            // Preenche Roleta
+            // Preenche a roleta
             foreach (var el in m_ctx)
             {
-                if (el.active)
+                if (el.Active)
                 {
-                    el.offset[0] = (m_prob_limit == 0 ? m_prob_limit : m_prob_limit + 1);
-                    el.offset[1] = m_prob_limit += (el.prob <= 0) ? 100 : el.prob;
-                    m_roleta[el.offset[0]] = el;
-                    m_roleta[el.offset[1]] = el;
+                    el.Offset[0] = (m_probLimit == 0 ? m_probLimit : m_probLimit + 1);
+                    el.Offset[1] = m_probLimit += (el.Prob <= 0) ? 100 : el.Prob;
+
+                    m_roleta[el.Offset[0]] = el;
+                    m_roleta[el.Offset[1]] = el;
                 }
             }
         }
 
-        protected void clear_roleta()
+        public void ClearRoleta()
         {
-
-            if (m_roleta.Count > 0)
+            if (m_roleta.Any())
             {
                 m_roleta.Clear();
             }
         }
 
-        protected void remove_draw_item(LotteryCtx _lc)
+        public void Push(LotteryCtx lc)
         {
+            m_ctx.Add(lc);
+        }
 
-            if (_lc != null)
+        public void Push(uint prob, object value, uint typeid = 0)
+        {     
+            Push(new LotteryCtx
             {
-                _lc.active = false;
-                //auto it = std::find_if(m_ctx.begin(), m_ctx.end(), [](auto el) {
-                //	return el.offset[0] == _lc->offset[0]  el.offset[1] == _lc->offset[1];
-                //});
+                Active = true,
+                Prob = prob,
+                Value = value, _typeid = typeid
+                
+            });
+        }      
+        public ulong GetLimitProbilidade()
+        {
+            FillRoleta();
+            return m_probLimit;
+        }
 
-                //// Remove from vector
-                //if (it != m_ctx.end())
-                //	//m_ctx.erase(it);
-                //	it->active = 0;
+        public int GetCountItem()
+        {
+            return m_ctx.Count;
+        }
+                                      
+        public void RemoveDrawItem(LotteryCtx lc)
+        {
+            if (lc != null)
+            {
+                lc.Active = false;
             }
         }
 
-        protected void shuffle_values_rand()
-        {                                                            
-            m_rand_values[m_rand_values.Count - 1] = (ulong)new Random().Next(0, 1000);
+        private void ShuffleValuesRand()
+        {
+            Random rng = new Random();
+            m_randValues = m_randValues.OrderBy(x => sRandomGen.getInstance().RDevice()).ToList();
         }
 
-        private SortedDictionary<ulong, LotteryCtx> m_roleta = new SortedDictionary<ulong, LotteryCtx>();
+        public LotteryCtx SpinRoleta(uint typeid = 0 ,bool removeItemDraw = false)
+        {
+            try
+            {
+                LotteryCtx lc = null;
 
-        private List<LotteryCtx> m_ctx = new List<LotteryCtx>();
-        private List<ulong> m_rand_values = new List<ulong>();
+                // Preenche a roleta
+                FillRoleta();
+                // Gera um número aleatório entre 0 e m_probLimit
+                var high = m_roleta.OrderByDescending(c => c.Key).FirstOrDefault().Key;//ideia é pega a chave maior
+                var low = m_roleta.OrderBy(c => c.Key).FirstOrDefault().Key; //pegar a chave menor
+            trycode:
+                ulong lucky = m_randValues[(int)sRandomGen.getInstance().RIbeMt19937_64ChronoRange(0, 4)] * sRandomGen.getInstance().RDevice() % (m_probLimit == 0 ? 1 : m_probLimit + 1);
 
-        private ulong m_prob_limit = new ulong();
+                // Encontra o item que corresponde ao intervalo sorteado  
+                lc = m_roleta.FirstOrDefault(kvp => lucky >= kvp.Key && lucky < kvp.Key + (kvp.Value.Prob <= 0 ? 100 : kvp.Value.Prob)).Value;
+                if (typeid != 0 && lc != null && lc._typeid == typeid)
+                    goto trycode;
+                // Se removeItemDraw for true, deleta o item sorteado
+                if (removeItemDraw && lc != null)
+                {
+                    RemoveDrawItem(lc);
+                }               
+                return lc;
+            }
+            catch (Exception e)
+            {
+                throw new Exception("[Lottery::SpinRoleta][ErrorSystem] " + e.Message);
+            }
+        }
+
+
+        public class LotteryCtx
+        {
+            public bool Active { get; set; }
+            public uint Prob { get; set; }
+            public uint _typeid { get; set; }
+            public object Value { get; set; }
+            public ulong[] Offset { get; set; } = new ulong[2];
+        }
+
     }
 }

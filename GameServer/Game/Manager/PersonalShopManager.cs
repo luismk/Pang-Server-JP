@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace GameServer.Game.Manager
 {
-    internal class PersonalShopManager
+    public class PersonalShopManager
     {
     }
 }

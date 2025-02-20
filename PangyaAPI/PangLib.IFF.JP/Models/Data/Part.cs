@@ -19,8 +19,10 @@ namespace PangLib.IFF.JP.Models.Data
         [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 40)]
         public string MPet { get; set; }
         public PART_TYPE type_item { get; set; }// o tipo do item, 0, 2 normal, 8 e 9 UCC, 5 acho que é base ou commom Item
-        public uint PosMask { get; set; }
-        public uint HideMask { get; set; }
+        [field: MarshalAs(UnmanagedType.Struct)]
+        public u_part_type position_mask { get; set; }  //aqui saõ slot das roupa
+        [field: MarshalAs(UnmanagedType.Struct)]
+        public u_part_type HideMask { get; set; } //aqui são slot das roupas
         [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 40)]
         public string Texture1 { get; set; }
         [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 40)]
@@ -144,8 +146,8 @@ namespace PangLib.IFF.JP.Models.Data
             Load(ref reader, strlen);
             MPet = reader.ReadPStr(40);
             type_item = (PART_TYPE)reader.ReadUInt32();
-            PosMask = reader.ReadUInt32();
-            HideMask = reader.ReadUInt32();         
+            position_mask = (u_part_type)reader.ReadStruct<u_part_type>();
+            HideMask = (u_part_type)reader.ReadStruct<u_part_type>();         
             Texture1 = reader.ReadPStr(40);
             Texture2 = reader.ReadPStr(40);
             Texture3 = reader.ReadPStr(40);
@@ -184,8 +186,8 @@ namespace PangLib.IFF.JP.Models.Data
         {       
             MPet = "";
             type_item = PART_TYPE.TOP; // Aqui você pode definir o valor padrão desejado
-            PosMask = 0;
-            HideMask = 0;
+            position_mask = new u_part_type();
+            HideMask = new u_part_type();
             Texture1 = "";
             Texture2 = "";
             Texture3 = "";
@@ -203,7 +205,7 @@ namespace PangLib.IFF.JP.Models.Data
         {
             MPet = part.MPet;
             type_item = part.type_item; // Aqui você pode definir o valor padrão desejado
-            PosMask = part.PosMask;
+            position_mask = part.position_mask;
             HideMask = part.HideMask;
             Texture1 = part.Texture1;
             Texture2 = part.Texture2;
@@ -217,6 +219,26 @@ namespace PangLib.IFF.JP.Models.Data
             SubPart = part.SubPart;
             _CardSlot = part._CardSlot;
         }
+
+        public bool IsUCC()
+        {
+          return  type_item == PART_TYPE.UCC_DRAW_ONLY || type_item == PART_TYPE.UCC_COPY_ONLY;
+        }
     }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    public class u_part_type
+    {                                                              
+        public uint ul_part_type;                                     
+        public bool getSlot(int index)
+        {
+            if (index < 0 || index > 23)
+                return false;
+
+            
+            return (ul_part_type & (1 << index)) != 0;
+        }
+    }
+
     #endregion
 }

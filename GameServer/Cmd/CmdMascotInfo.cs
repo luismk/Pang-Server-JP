@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using _smp = PangyaAPI.Utilities.Log;
-using GameServer.PangType;
+using GameServer.GameType;
 using GameServer.Game.Manager;
 
 namespace GameServer.Cmd

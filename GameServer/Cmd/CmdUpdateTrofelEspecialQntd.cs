@@ -37,37 +37,37 @@
 
 //			public uint getUID()
 //			{
-//				return new uint(m_uid);
+//				return (m_uid);
 //			}
 
 //			public void setUID(uint _uid)
 //			{
 //// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
-//// ORIGINAL LINE: m_uid = _uid;
-//				m_uid.CopyFrom(_uid);
+// m_uid = _uid;
+//				
 //			}
 
-//			public int32_t getId()
+//			public int getId()
 //			{
-//				return new int32_t(m_id);
+//				return (m_id);
 //			}
 
-//			public void setId(int32_t _id)
+//			public void setId(int _id)
 //			{
 //// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
-//// ORIGINAL LINE: m_id = _id;
+// m_id = _id;
 //				m_id.CopyFrom(_id);
 //			}
 
 //			public uint getQntd()
 //			{
-//				return new uint(m_qntd);
+//				return (m_qntd);
 //			}
 
 //			public void setQntd(uint _qntd)
 //			{
 //// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
-//// ORIGINAL LINE: m_qntd = _qntd;
+// m_qntd = _qntd;
 //				m_qntd.CopyFrom(_qntd);
 //			}
 
@@ -127,7 +127,7 @@
 
 //			private uint m_uid = new uint();
 //			private uint m_qntd = new uint();
-//			private int32_t m_id = new int32_t();
+//			private int m_id = new int();
 //			private eTYPE m_type;
 
 //			private const string m_szConsulta = new char({ "UPDATE pangya.pangya_trofel_especial SET qntd = ", " WHERE UID = ", " AND item_id = " }, { "UPDATE pangya.pangya_trofel_grandprix SET qntd = ", " WHERE UID = ", " AND item_id = " });

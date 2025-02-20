@@ -49,7 +49,7 @@ namespace PangyaAPI.Network.Cmd
         protected override Response prepareConsulta()
         {
 
-            if (m_uid == 0 || m_uid == -1)
+            if (m_uid == 0 || m_uid == uint.MaxValue)
                 throw new Exception("[CmdAuthKeyGameInfo::prepareConsulta][Error] m_uid is invalid(zero).");
 
             var r = procedure("pangya.ProcGetAuthKeyGame", m_uid.ToString() + "," + m_server_uid.ToString());

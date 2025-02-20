@@ -69,8 +69,11 @@
     <Compile Include="Cmd\CmdVerifyID.cs" />
     <Compile Include="Cmd\CmdVerifyNick.cs" />
     <Compile Include="Cmd\CmdVerifyPass.cs" />
+    <Compile Include="Cryptor\Cipher.cs" />
+    <Compile Include="Cryptor\CryptoOracle.cs" />
+    <Compile Include="Cryptor\MiniLzo.cs" />
+    <Compile Include="Cryptor\ToServerBuffer.cs" />
     <Compile Include="PangyaPacket\Packet.cs" />
-    <Compile Include="PangyaPacket\PacketBase.cs" />
     <Compile Include="PangyaPacket\PacketFuncArr.cs" />
     <Compile Include="PangyaServer\Server.cs" />
     <Compile Include="PangyaSession\SessionBase.cs" />
@@ -83,10 +86,6 @@
     <ProjectReference Include="..\PangLib.IFF.JP\PangLib.IFF.JP.csproj">
       <Project>{ec517392-61f2-43f6-834d-8adc69924a22}</Project>
       <Name>PangLib.IFF.JP</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\PangyaAPI.Cryptor\PangyaAPI.Cryptor.csproj">
-      <Project>{bccd991f-699a-4915-b533-074babcd3dec}</Project>
-      <Name>PangyaAPI.Cryptor</Name>
     </ProjectReference>
     <ProjectReference Include="..\PangyaAPI.SQL\PangyaAPI.SQL.csproj">
       <Project>{a3fe3da6-5099-4a65-8734-d43513e23ffb}</Project>

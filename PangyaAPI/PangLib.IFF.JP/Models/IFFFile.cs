@@ -225,7 +225,7 @@ namespace PangLib.IFF.JP.Models
         public virtual bool IsBuyable(uint TypeID)
         {
             var item = GetItemCommon(TypeID);
-            if (item.Active == 1 && item.Shop.flag_shop.MoneyFlag == 0 || (int)item.Shop.flag_shop.MoneyFlag == 1 || (int)item.Shop.flag_shop.MoneyFlag == 2)
+            if (item.Active && item.Shop.flag_shop.MoneyFlag == 0 || (int)item.Shop.flag_shop.MoneyFlag == 1 || (int)item.Shop.flag_shop.MoneyFlag == 2)
             {
                 return true;
             }

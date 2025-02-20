@@ -1,4 +1,4 @@
-﻿using GameServer.PangType;           
+﻿using GameServer.GameType;           
 using PangyaAPI.SQL;                
 using System;                      
 namespace GameServer.Cmd
@@ -31,8 +31,7 @@ namespace GameServer.Cmd
 
                 m_mi.nick_NT = "@NT_" + m_mi.nick_name;
                 m_mi.school = Convert.ToUInt32(_result.data[5]);
-                m_mi.capability.ulCapability = Convert.ToUInt32(_result.data[6]);
-                m_mi.capability.setState();
+                m_mi.capability.ulCapability = Convert.ToInt32(_result.data[6]);
                 m_mi.manner_flag = Convert.ToUInt32(_result.data[9]);
 
                 if (_result.IsNotNull(11))
@@ -49,7 +48,7 @@ namespace GameServer.Cmd
                 m_mi.flag_login_time = 2;
 
                 // Sexo do player
-                m_mi.state_flag.stFlagBit.sexo = m_mi.sexo; //tem que setar uma identidade aqui.
+                m_mi.state_flag.sexo = m_mi.sexo == 1 ? true : false; //tem que setar uma identidade aqui.
                 m_mi.state_flag.ucByte = m_mi.sexo;
                 m_mi.papel_shop.limit_count = Convert.ToInt16(_result.data[18]);
                 m_mi.papel_shop.current_count = Convert.ToInt16(_result.data[22]);

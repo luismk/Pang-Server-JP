@@ -19,15 +19,15 @@
 //// C++ TO C# CONVERTER WARNING: The following #include directive was ignored:
 ////#include "../../Projeto IOCP/PANGYA_DB/pangya_db.h"
 //// C++ TO C# CONVERTER NOTE: The following #define macro was replaced in-line:
-//// ORIGINAL LINE: #define m_title skin_typeid[5]
+// #define m_title skin_typeid[5]
 //// C++ TO C# CONVERTER NOTE: The following #define macro was replaced in-line:
-//// ORIGINAL LINE: #define GameServer.Cmd_C_ITEM_QNTD c[0]
+// #define GameServer.Cmd_C_ITEM_QNTD c[0]
 //// C++ TO C# CONVERTER NOTE: The following #define macro was replaced in-line:
-//// ORIGINAL LINE: #define GameServer.Cmd_C_ITEM_TICKET_REPORT_ID_HIGH c[1]
+// #define GameServer.Cmd_C_ITEM_TICKET_REPORT_ID_HIGH c[1]
 //// C++ TO C# CONVERTER NOTE: The following #define macro was replaced in-line:
-//// ORIGINAL LINE: #define GameServer.Cmd_C_ITEM_TICKET_REPORT_ID_LOW c[2]
+// #define GameServer.Cmd_C_ITEM_TICKET_REPORT_ID_LOW c[2]
 //// C++ TO C# CONVERTER NOTE: The following #define macro was replaced in-line:
-//// ORIGINAL LINE: #define GameServer.Cmd_C_ITEM_TIME c[3]
+// #define GameServer.Cmd_C_ITEM_TIME c[3]
 
 //namespace GameServer.Cmd
 //{
@@ -44,8 +44,8 @@
 //				)
 //				{
 //// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
-//// ORIGINAL LINE: this.m_uid = _uid;
-//				this.m_uid.CopyFrom(_uid);
+// this.m_uid = _uid;
+//				//this.
 //				this.m_ti = new GameServer.Cmd.TutorialInfo(_ti);
 //				}
 
@@ -55,27 +55,27 @@
 
 //			public uint getUID()
 //			{
-//				return new uint(m_uid);
+//				return (m_uid);
 //			}
 
 //			public void setUID(uint _uid)
 //			{
 //// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
-//// ORIGINAL LINE: m_uid = _uid;
-//				m_uid.CopyFrom(_uid);
+// m_uid = _uid;
+//				
 //			}
 
 //			public TutorialInfo getInfo()
 //			{
 //// C++ TO C# CONVERTER TASK: The following line was determined to contain a copy constructor call - this should be verified and a copy constructor should be created:
-//// ORIGINAL LINE: return m_ti;
+// return m_ti;
 //				return new GameServer.Cmd.TutorialInfo(m_ti);
 //			}
 
 //			public void setInfo(TutorialInfo _ti)
 //			{
 //// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
-//// ORIGINAL LINE: m_ti = _ti;
+// m_ti = _ti;
 //				m_ti.CopyFrom(_ti);
 //			}
 
@@ -86,7 +86,7 @@
 //				return;
 //			}
 
-//			protected override response prepareConsulta(database _db)
+//			protected override Response prepareConsulta()
 //			{
 
 //				if(m_uid == 0)
@@ -95,7 +95,7 @@
 //						4, 0));
 //				}
 
-//				var r = _update(_db, m_szConsulta[0] + Convert.ToString(m_ti.rookie) + m_szConsulta[1] + Convert.ToString(m_ti.beginner) + m_szConsulta[2] + Convert.ToString(m_ti.advancer) + m_szConsulta[3] + Convert.ToString(m_uid));
+//				var r = _update(m_szConsulta[0] + Convert.ToString(m_ti.rookie) + m_szConsulta[1] + Convert.ToString(m_ti.beginner) + m_szConsulta[2] + Convert.ToString(m_ti.advancer) + m_szConsulta[3] + Convert.ToString(m_uid));
 
 //				checkResponse(r, "nao conseguiu Atualizar o Tutorial[Rookie=" + Convert.ToString(m_ti.rookie) + ", Beginner=" + Convert.ToString(m_ti.beginner) + ", Advancer=" + Convert.ToString(m_ti.advancer) + "] do player[UID=" + Convert.ToString(m_uid) + "]");
 

@@ -8,8 +8,9 @@ using PangLib.IFF.JP.Models.Flags;
 using System.Diagnostics;
 using PangLib.IFF.JP.Models;
 using System.Runtime.CompilerServices;
-using System.Linq;
-
+using System.Linq;                        
+using _smp = PangyaAPI.Utilities.Log;    
+using PangyaAPI.Utilities;
 namespace PangLib.IFF.JP.Extensions
 {
     public class IFFHandle
@@ -73,11 +74,11 @@ namespace PangLib.IFF.JP.Extensions
         string PATH_PANGYA_IFF = "data/pangya_jp.iff";
         bool m_loaded;
         ZipFileEx Zip { get; set; }
-       public IFFHandle()
+        public IFFHandle()
         {
-            m_loaded = false;          
+            m_loaded = false;
             load();
-        }      
+        }
         ~IFFHandle()
         {
             m_loaded = false;
@@ -91,7 +92,7 @@ namespace PangLib.IFF.JP.Extensions
             {
                 if (!File.Exists(PATH_PANGYA_IFF))
                     throw new Exception($"[IFFHandle::MakeUnzipLoad][StError]: Falha ao ler arquivo: {PATH_PANGYA_IFF}");
-                
+
                 if (Zip == null)
                     Zip = new ZipFileEx(PATH_PANGYA_IFF);
 
@@ -161,11 +162,11 @@ namespace PangLib.IFF.JP.Extensions
                 Set_item = load_set_item();
                 Part = load_part();
                 m_loaded = true;
-                Debug.WriteLine($"[IFFHandle::Load][Log]: Sucess");
-
+                _smp.message_pool.push("[IFFHandle::Load][Log]: Sucess");
             }
-            catch (Exception ex)
+            catch (exception ex)
             {
+                _smp.message_pool.push($"[IFFHandle::Load][Error]: {ex.getFullMessageError()}");
                 throw ex;
             }
         }
@@ -715,7 +716,7 @@ namespace PangLib.IFF.JP.Extensions
             var commom = findCommomItem(_typeid);
 
             if (commom != null)
-                return (commom.Active == 1 && commom.Shop.flag_shop.IsSale);
+                return (commom.Active && commom.Shop.flag_shop.IsSale);
 
             return false;
         }
@@ -889,7 +890,7 @@ namespace PangLib.IFF.JP.Extensions
             {
                 return common.Name;
             }
-            return "";
+            return "null";
         }
 
 
@@ -979,7 +980,7 @@ namespace PangLib.IFF.JP.Extensions
             // Ex: 0 + 1 = 1 OK
             // Ex: 0 + 0 = 0 Não é
             if (commom != null)
-                return (commom.Active == 1 && commom.Shop.flag_shop.IsCash
+                return (commom.Active && commom.Shop.flag_shop.IsCash
                     && (commom.Shop.flag_shop.IsSale ^ commom.Shop.flag_shop.IsGift));
 
             return false;
@@ -990,7 +991,7 @@ namespace PangLib.IFF.JP.Extensions
             var commom = findCommomItem(_typeid);
 
             if (commom != null)
-                return (commom.Active == 1 && commom.Shop.flag_shop.IsDisplay);
+                return (commom.Active && commom.Shop.flag_shop.IsDisplay);
 
             return false;
         }
@@ -1000,7 +1001,7 @@ namespace PangLib.IFF.JP.Extensions
             var commom = findCommomItem(_typeid);
 
             if (commom != null)
-                return (commom.Active == 1 && commom.Shop.flag_shop.IsSale
+                return (commom.Active && commom.Shop.flag_shop.IsSale
                     && commom.Shop.flag_shop.IsGift);
 
             return false;
@@ -1011,13 +1012,16 @@ namespace PangLib.IFF.JP.Extensions
             var commom = findCommomItem(_typeid);
 
             if (commom != null)
-                return (commom.Active == 1 && commom.Shop.flag_shop.IsCash
+                return (commom.Active && commom.Shop.flag_shop.IsCash
                     && commom.Shop.flag_shop.IsGift && commom.Shop.flag_shop.IsSale);
 
             return false;
         }
 
-
+        public IFF_GROUP _getItemGroupIdentify(uint _typeid)
+        {
+            return (IFF_GROUP)((_typeid & 0xFC000000) >> 26);
+        }
         public uint getItemGroupIdentify(uint _typeid)
         {
             return (uint)((_typeid & 0xFC000000) >> 26);
@@ -1081,7 +1085,7 @@ namespace PangLib.IFF.JP.Extensions
 
         public uint getItemTitleNum(uint _typeid)
         {
-            var restul = (_typeid & 0x3FFFFF);  
+            var restul = (_typeid & 0x3FFFFF);
             return restul;
         }
 
@@ -1093,7 +1097,7 @@ namespace PangLib.IFF.JP.Extensions
             {
                 return 0;
             }
-            
+
             if (restul == 4194304)
             {
                 return 1;
@@ -1113,7 +1117,7 @@ namespace PangLib.IFF.JP.Extensions
             {
                 return 4;
             }
-            
+
             if (restul == 25165824)
             {
                 restul = 5;
@@ -1141,14 +1145,14 @@ namespace PangLib.IFF.JP.Extensions
         public uint getEnchantSlotStat(uint _typeid)
         {
             return (uint)((_typeid & 0x03FF0000) >> 20);
-        }       
+        }
 
         public uint setItemAuxPartNumber(byte type, uint group, uint nextId)
         {
             // Define uma baseTypeId para o grupo, mantendo bits mais significativos
             uint baseTypeId = 0;
             if (type == 0)
-                baseTypeId = 1879113857 & 0xFFFF0000; 
+                baseTypeId = 1879113857 & 0xFFFF0000;
             else
                 baseTypeId = 1881210884 & 0xFFFF0000;
             // Incrementa o próximo identificador específico
@@ -1160,7 +1164,7 @@ namespace PangLib.IFF.JP.Extensions
 
             return newTypeId;
         }
- 
+
         public uint getItemAuxPartNumber(uint _typeid)
         {
             return (uint)((_typeid & 0x0003FF00) >> 16);
@@ -1682,8 +1686,8 @@ namespace PangLib.IFF.JP.Extensions
             }
 
             return v_clubset;
-        }             
-                     
+        }
+
         public void Log(string v)
         {
             File.WriteAllText($"IF_{DateTime.Now.Millisecond}.Log", v);
@@ -1693,6 +1697,16 @@ namespace PangLib.IFF.JP.Extensions
         {
             return m_loaded;
         }
+
+        public bool EMPTY_ARRAY_PRICE(ushort[] price)
+        {
+            return !price.Any(el => el != 0);
+        }
+
+        public uint SUM_ARRAY_PRICE_ULONG(ushort[] price)
+        {
+            return (uint)price.Sum(el => (uint)el);
+        }
     }
-   
+
 }

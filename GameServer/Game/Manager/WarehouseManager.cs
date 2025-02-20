@@ -1,7 +1,7 @@
 ﻿using PangyaAPI.Utilities.BinaryModels;
 using PangyaAPI.Utilities;
 using System.Collections.Generic;
-using GameServer.PangType;
+using GameServer.GameType;
 using System;
 using System.Linq;           
 namespace GameServer.Game.Manager
@@ -16,11 +16,11 @@ namespace GameServer.Game.Manager
         {                                       
             try
             {                                   
-                return PacketFunc.packet_func.pacote073(list);
+                return PacketFunc.packet_func_sv.pacote073(list);
             }
             catch (Exception e)
             {
-                return PacketFunc.packet_func.pacote073(new List<WarehouseItemEx>());
+                return PacketFunc.packet_func_sv.pacote073(new List<WarehouseItemEx>());
             }
         }                                                                  
 

@@ -1,5 +1,5 @@
 ﻿using GameServer.Cmd;
-using GameServer.PangType;
+using GameServer.GameType;
 using PangyaAPI.SQL;
 using PangyaAPI.SQL.Manager;
 using PangyaAPI.Utilities;
@@ -8,7 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using _smp = PangyaAPI.Utilities.Log;
-using static GameServer.PangType._Define;
+using static GameServer.GameType._Define;
 namespace GameServer.Game.Manager
 {
     public class PlayerMailBox
@@ -60,7 +60,7 @@ namespace GameServer.Game.Manager
         void update()
         {
             if (m_uid == 0u)
-                throw new exception("[PlayerMailBox::update][Error] m_uid is invalid(0), call init method to set uid of player.");
+                throw new exception("[PlayerMailBox::update][Error] m_uid is invalid(0), call init method to set m_uid of player.");
 
             var cmd_mbi2 = new CmdMailBoxInfo2(m_uid);  // Waiter
 

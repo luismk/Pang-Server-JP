@@ -12,11 +12,9 @@ namespace PangLib.IFF.JP.Models.Data
         public string MPet { get; set; }
         public byte horizontal_scroll { get; set; }    // By TH S4 - (HScroll)    
         public byte vertical_scroll { get; set; }      // By TH S4 - (VScroll) 256 efeito de rolagem vertical
-        public ushort Price1Day { get; set; }
-        public ushort Price7Day { get; set; }
-        public ushort Price15Day { get; set; }
-        public ushort Price30Day { get; set; }
-        public ushort Price365Day { get; set; }
+        [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 5)]
+        public ushort[] price { get; set; }
+             
     }
     #endregion        
 }

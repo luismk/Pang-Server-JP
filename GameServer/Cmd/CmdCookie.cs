@@ -1,4 +1,4 @@
-﻿using GameServer.PangType;
+﻿using GameServer.GameType;
 using PangyaAPI.SQL;
 using System;
 using System.Data;
@@ -23,7 +23,7 @@ namespace GameServer.Cmd
                 var uid_req = _result.GetUInt32(0);
                 m_cookie = _result.GetUInt64(1);
                 if (uid_req != m_uid)
-                    throw new Exception("[CmdCookie::lineResult][Error] retornou outro uid do que foi requisitado. uid_req: " + (uid_req) + " != " +(m_uid));
+                    throw new Exception("[CmdCookie::lineResult][Error] retornou outro m_uid do que foi requisitado. uid_req: " + (uid_req) + " != " +(m_uid));
             }
             catch (Exception ex)
             {

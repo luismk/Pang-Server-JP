@@ -3,29 +3,29 @@
 
 namespace PangyaAPI.Network.Cmd
 {
-    public class CmdAddItemBase: Pangya_DB
+    public class CmdAddItemBase : Pangya_DB
     {
-       public int m_uid = -1;
-      public  byte m_purchase;
-       public byte m_gift_flag;
-        public CmdAddItemBase(int _uid, byte _purchase, byte _gift_flag)
+        public uint m_uid = 0;
+        public byte m_purchase;
+        public byte m_gift_flag;
+        public CmdAddItemBase(uint _uid, byte _purchase, byte _gift_flag)
         {
             m_purchase = _purchase;
             m_gift_flag = _gift_flag;
             m_uid = _uid;
         }
-      
-       public int getUID()
+
+        public uint getUID()
         {
             return m_uid;
         }
 
-        public void setUID(int _uid)
+        public void setUID(uint _uid)
         {
             m_uid = _uid;
         }
 
-       public byte getPurchase()
+        public byte getPurchase()
         {
             return m_purchase;
         }
@@ -35,7 +35,7 @@ namespace PangyaAPI.Network.Cmd
             m_purchase = _purchase;
         }
 
-       public byte getGiftFlag()
+        public byte getGiftFlag()
         {
             return m_gift_flag;
         }

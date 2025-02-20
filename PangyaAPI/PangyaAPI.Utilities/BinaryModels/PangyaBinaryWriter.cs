@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.IO;
@@ -28,6 +29,10 @@ namespace PangyaAPI.Utilities.BinaryModels
             //this.OutStream = new MemoryStream();
             //this._Encoding = Encoding.GetEncoding("Shift_JIS"); // Japan!         
         }
+        public PangyaBinaryWriter(byte[] id) : base(new MemoryStream())
+        {
+            Write(id);
+        }
         public PangyaBinaryWriter(ushort id) : base(new MemoryStream())
         {
             init_plain(id);
@@ -42,15 +47,90 @@ namespace PangyaAPI.Utilities.BinaryModels
 
         public void Clear()
         {
-            this.Flush();
-            this.Close();
-            this.OutStream = new MemoryStream();
+            if (GetSize > 0)
+            {
+                this.Flush();
+                this.Close();
+                this.OutStream = new MemoryStream();
+            }                                        
         }
 
         public void init_plain(ushort value)
         {
+            if (GetSize > 0)
+                this.OutStream = new MemoryStream();
+
             WriteUInt16(value);                                                             
         }
+
+
+        public void Write(ArrayList values)
+        {
+            try
+            {
+                foreach (var item in values)
+                {
+                    switch (Type.GetTypeCode(item.GetType()))
+                    {
+                        case TypeCode.Boolean: Write((bool)item); break;
+                        case TypeCode.Char: Write((char)item); break;
+                        case TypeCode.SByte: Write((sbyte)item); break;
+                        case TypeCode.Byte: Write((byte)item); break;
+                        case TypeCode.Int16: Write((short)item); break;
+                        case TypeCode.UInt16: Write((ushort)item); break;
+                        case TypeCode.Int32: Write((int)item); break;
+                        case TypeCode.UInt32: Write((uint)item); break;
+                        case TypeCode.Int64: Write((long)item); break;
+                        case TypeCode.UInt64: Write((ulong)item); break;
+                        case TypeCode.Single: Write((Single)item); break;
+                        case TypeCode.Double: Write((double)item); break;
+                        case TypeCode.Decimal: Write((decimal)item); break;
+                        case TypeCode.DateTime: WriteTime((DateTime)item); break;
+                        case TypeCode.String: WritePStr((string)item); break;
+
+                        case TypeCode.Empty:
+                        case TypeCode.Object:
+                        case TypeCode.DBNull:
+                        default: throw new Exception("Tipo não implementado");
+                    }
+                }
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
+        public void WriteParams(params object[] values)
+        {
+            foreach (var value in values)
+            {
+                switch (Type.GetTypeCode(value.GetType()))
+                {
+                    case TypeCode.Boolean: Write((bool)value); break;
+                    case TypeCode.Char: Write((char)value); break;
+                    case TypeCode.SByte: Write((sbyte)value); break;
+                    case TypeCode.Byte: Write((byte)value); break;
+                    case TypeCode.Int16: Write((short)value); break;
+                    case TypeCode.UInt16: Write((ushort)value); break;
+                    case TypeCode.Int32: Write((int)value); break;
+                    case TypeCode.UInt32: Write((uint)value); break;
+                    case TypeCode.Int64: Write((long)value); break;
+                    case TypeCode.UInt64: Write((ulong)value); break;
+                    case TypeCode.Single: Write((Single)value); break;
+                    case TypeCode.Double: Write((double)value); break;
+                    case TypeCode.Decimal: Write((decimal)value); break;
+                    case TypeCode.DateTime: WriteTime((DateTime)value); break;
+                    case TypeCode.String: WritePStr((string)value); break;
+
+                    case TypeCode.Empty:
+                    case TypeCode.Object:
+                    case TypeCode.DBNull:
+                    default: throw new Exception("Tipo não implementado");
+                }
+            }
+        }
+
 
         public void WriteInt16(short value)
         {

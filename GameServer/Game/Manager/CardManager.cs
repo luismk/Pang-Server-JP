@@ -1,4 +1,4 @@
-﻿using GameServer.PangType;
+﻿using GameServer.GameType;
 using PangyaAPI.Utilities.BinaryModels;
 using System;
 using System.Collections.Generic;

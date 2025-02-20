@@ -39,6 +39,11 @@ namespace PangyaAPI.SQL
             }
             return array;
         }
+
+        public static bool Contains(this string s, string value)
+        {
+            return s.Contains(value);
+        }
         public static string ToStrings(this sbyte s)
         {
             return $"'{s}'";

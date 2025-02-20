@@ -1,0 +1,84 @@
+﻿using GameServer.GameType;
+using PangyaAPI.SQL;
+using PangyaAPI.Utilities;
+using System;
+
+namespace GameServer.Cmd
+{
+	public class CmdUpdateItemBuff : Pangya_DB
+	{
+			public CmdUpdateItemBuff()
+			{
+				this.m_uid = 0u;
+ 			}
+
+			public CmdUpdateItemBuff(uint _uid,
+				ItemBuffEx _ib)
+				{
+// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+ this.m_uid = _uid;
+				//this.
+				this.m_ib = (_ib);
+				}
+					 
+			public uint getUID()
+			{
+				return (m_uid);
+			}
+
+			public void setUID(uint _uid)
+			{
+// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+ m_uid = _uid;
+				
+			}
+
+			public ItemBuffEx getInfo()
+			{
+// C++ TO C# CONVERTER TASK: The following line was determined to contain a copy constructor call - this should be verified and a copy constructor should be created:
+ return m_ib;
+			}
+
+			public void setInfo(ItemBuffEx _ib)
+			{
+// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+ m_ib = _ib;
+			}
+
+			protected override void lineResult(ctx_res _result, uint _index_result)
+			{
+
+				// N�o usa por que � um UPDATE
+				return;
+			}
+
+			protected override Response prepareConsulta()
+			{
+
+				if(m_uid == 0)
+				{
+					throw new exception("[CmdUpdateItemBuff::prepareConsulta][Error] m_uid is invalid(zero)", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PANGYA_DB,
+						4, 0));
+				}
+
+				if(m_ib.index <= 0 || m_ib._typeid == 0)
+				{
+					throw new exception("[CmdUpdateItemBuff::prepareConsulta][Error] m_ib[index=" + Convert.ToString(m_ib.index) + ", TYPEID=" + Convert.ToString(m_ib._typeid) + "] is invalid", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PANGYA_DB,
+						4, 0));
+				}
+
+				var r = procedure(
+					m_szConsulta,
+					Convert.ToString(m_uid) + ", " + Convert.ToString(m_ib.index) + ", " + Convert.ToString(m_ib._typeid) + ", " + Convert.ToString(m_ib.tipo) + ", " + _db.makeText(_formatDate(m_ib.end_date.ConvertTime())));
+
+				checkResponse(r, "nao conseguiu atualizar o tempo do item buff[INDEX=" + Convert.ToString(m_ib.index) + ", TYPEID=" + Convert.ToString(m_ib._typeid) + ", TIPO=" + Convert.ToString(m_ib.tipo) + ", DATE{REG_DT: " + _formatDate(m_ib.use_date.ConvertTime()) + ", END_DT: " + _formatDate(m_ib.end_date.ConvertTime()) + "}] do player[UID=" + Convert.ToString(m_uid) + "]");
+
+				return r;
+			}
+					  
+			private uint m_uid = new uint();
+			private ItemBuffEx m_ib = new ItemBuffEx();
+
+			private const string m_szConsulta = "pangya.ProcUpdateItemBuffTime";
+	}
+}

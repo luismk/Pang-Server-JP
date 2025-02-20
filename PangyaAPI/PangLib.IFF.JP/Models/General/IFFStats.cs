@@ -9,8 +9,11 @@ namespace PangLib.IFF.JP.Models.General
         public ushort Control { get; set; }
         public ushort Impact { get; set; }
         public ushort Spin { get; set; }
-        public ushort Curve { get; set; }     
-
+        public ushort Curve { get; set; }
+        public byte[] getSlot()
+        { 
+        return new byte[] { (byte)Power, (byte)Control, (byte)Impact, (byte)Spin, (byte)Curve};
+        }
         public void Log()
         {
             if (Power >0)

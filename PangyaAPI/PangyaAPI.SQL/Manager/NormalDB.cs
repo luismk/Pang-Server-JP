@@ -37,7 +37,7 @@ namespace PangyaAPI.SQL
                 {
                     if (_pangya_db == null)
                     {
-                        throw new System.Exception("_pangya_db is nullptr");
+                        throw new System.Exception("_pangya_db is null");
                     }
 
                     func.Invoke(id, _pangya_db, arg);
@@ -55,7 +55,7 @@ namespace PangyaAPI.SQL
                 {
                     if (_pangya_db == null)
                     {
-                        throw new System.Exception("[NormalDB::mgs_t::execQuery][Error] _pangya_db is nullptr");
+                        throw new System.Exception("[NormalDB::mgs_t::execQuery][Error] _pangya_db is null");
                     }
                     sucess = false;
                     _pangya_db.exec();

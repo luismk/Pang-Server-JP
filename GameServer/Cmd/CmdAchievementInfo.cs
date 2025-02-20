@@ -2,7 +2,7 @@
 // Criado em 21/03/2018 às 21:56 por Acrisio
 // Implementação da classe CmdAchievementInfo
 
-using GameServer.PangType;
+using GameServer.GameType;
 using PangyaAPI.SQL;
 using System;
 using System.Collections.Generic;
@@ -80,7 +80,7 @@ namespace GameServer.Cmd
             //}
             //else
             //{
-            //    // Handle duplicate TypeId logic here
+            //    // requestCommonCmdGM duplicate TypeId logic here
             //}
         }
 

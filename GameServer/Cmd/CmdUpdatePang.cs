@@ -10,14 +10,7 @@ namespace GameServer.Cmd
             INCREASE,
             DECREASE
         }
-
-        public CmdUpdatePang()
-        {
-            this.m_uid = 0u;
-            this.m_pang = 0Ul;
-            this.m_type_update = T_UPDATE_PANG.INCREASE;
-        }
-
+                             
         public CmdUpdatePang(uint _uid, ulong _pang, T_UPDATE_PANG _type_update)
         {
             this.m_uid = _uid;
@@ -63,8 +56,7 @@ namespace GameServer.Cmd
         }
 
         protected override Response prepareConsulta()
-        {
-
+        {        
             var r = _update(m_szConsulta[0] + (m_type_update == T_UPDATE_PANG.INCREASE ? " + " : " - ") + Convert.ToString(m_pang) + m_szConsulta[1] + Convert.ToString(m_uid));
 
             checkResponse(r, "nao conseguiu atualizar o pang[value=" + (m_type_update == T_UPDATE_PANG.INCREASE ? " + " : " - ") + Convert.ToString(m_pang) + "] do player: " + Convert.ToString(m_uid));

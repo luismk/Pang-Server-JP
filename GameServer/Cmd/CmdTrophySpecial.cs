@@ -1,49 +1,20 @@
-﻿using GameServer.PangType;
+﻿using GameServer.GameType;
 using System.Collections.Generic;
 using System;
 using PangyaAPI.SQL;
 
 namespace GameServer.Cmd
 {
-    internal class CmdTrophySpecial : Pangya_DB
-    {
-        private uint m_uid; 
-        private TYPE m_type;
-        private TYPE_SEASON m_season;
-        private List<TrofelEspecialInfo> v_tei = new List<TrofelEspecialInfo>();
-        public enum TYPE_SEASON : byte
-        {
-            ALL,
-            ONE,
-            TWO,
-            THREE,
-            FOUR,
-            CURRENT
-        }
-
-        public enum TYPE : byte
-        {
-            NORMAL,
-            GRAND_PRIX
-        }
-
-        public CmdTrophySpecial()
-        {
-            this.m_uid = 0;
-            this.m_type = CmdTrophySpecial.TYPE.NORMAL;
-            this.m_season = CmdTrophySpecial.TYPE_SEASON.CURRENT;
-            this.v_tei = new List<TrofelEspecialInfo>();
-        }
-
-        public CmdTrophySpecial(uint _uid,
-            TYPE_SEASON _season,
-            TYPE _type)
+    public class CmdTrophySpecial : Pangya_DB
+    {            
+        public CmdTrophySpecial(uint _uid, TYPE_SEASON _season, TYPE _type)
         {                                        
-            this.m_uid = (_uid);
+            this.m_uid = _uid;
             this.m_season = _season;
             this.m_type = _type;
             this.v_tei = new List<TrofelEspecialInfo>();
         }
+
         protected override void lineResult(ctx_res _result, uint _index_result)
         {
             checkColumnNumber(3);
@@ -58,8 +29,7 @@ namespace GameServer.Cmd
         }
 
         protected override Response prepareConsulta()
-        {
-
+        {              
             v_tei.Clear(); 
 
             var r = procedure(
@@ -81,7 +51,28 @@ namespace GameServer.Cmd
             return v_tei;
         }
 
+        private uint m_uid;
+        private TYPE m_type;
+        private TYPE_SEASON m_season;
+        private List<TrofelEspecialInfo> v_tei = new List<TrofelEspecialInfo>();
+
         private string[] m_szConsulta = { "pangya.ProcGetTrofelSpecial", "pangya.ProcGetTrofelGrandPrix" };
+
+        public enum TYPE_SEASON : byte
+        {
+            ALL,
+            ONE,
+            TWO,
+            THREE,
+            FOUR,
+            CURRENT
+        }
+
+        public enum TYPE : byte
+        {
+            NORMAL,
+            GRAND_PRIX
+        }
 
     }
 }

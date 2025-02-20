@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Net;
 using PangyaAPI.Network.PangyaServer;
+using System.Threading;
 
 namespace PangyaAPI.Network.PangyaSession
 {
@@ -17,7 +18,7 @@ namespace PangyaAPI.Network.PangyaSession
         public uint m_count = 0;
         private static bool _isInit = false;
         private readonly IniHandle m_reader_ini;
-        private readonly object _lockObject = new object();
+        public readonly object _lockObject = new object();
 
         public SessionManager(uint maxSession)
         {
@@ -72,6 +73,7 @@ namespace PangyaAPI.Network.PangyaSession
                 session.m_tick = Environment.TickCount;
 
                 session.SetState(true);
+
                 m_count++;
             }
 
@@ -95,9 +97,9 @@ namespace PangyaAPI.Network.PangyaSession
 
                 session.Lock();
                                                 
-                if ((ret = session.Clear()))
+                if (ret = session.Clear())
                 {                                            
-                    m_count--;
+                    m_count--; 
                 }
                 session.Unlock();
             }
@@ -105,39 +107,54 @@ namespace PangyaAPI.Network.PangyaSession
             return ret;
         }
 
-        
 
-        public SessionBase FindSessionByOid(uint oid)
+        public List<SessionBase> findAllGM()
+        {
+            List<SessionBase> v_gm = new List<SessionBase>();
+
+            foreach (SessionBase el in m_sessions)
+            {
+                if ((el.getCapability() & 4) != 0 || (el.getCapability() & 128 ) != 0)    // GM
+                    v_gm.Add(el);
+            }
+
+            return v_gm;
+        }
+        public virtual SessionBase FindSessionByOid(uint oid)
         {
             SessionBase session = null;
             lock (_lockObject)
             {
-                session = m_sessions.FirstOrDefault(el => el._client != null && el.m_oid == oid);
+                foreach (var el in m_sessions.Where(el=> el._client != null))
+                {
+                    if (el.m_oid == oid)
+                        session = el;    
+                }
             }
             return session;
         }
 
-        public SessionBase FindSessionByUid(uint uid)
+        public virtual SessionBase FindSessionByUid(uint uid)
         {
             SessionBase session = null;
             lock (_lockObject)
             {
-                session = m_sessions.FirstOrDefault(el => el._client != null && el.Uid == uid);
+                session = m_sessions.FirstOrDefault(el => el._client != null && el.getUID() == uid);
             }
             return session;
         }
 
-        public List<SessionBase> FindAllSessionByUid(uint uid)
+        public virtual List<SessionBase> FindAllSessionByUid(uint uid)
         {
             List<SessionBase> sessions = new List<SessionBase>();
             lock (_lockObject)
             {
-                sessions = m_sessions.Where(el => el._client != null && el.Uid == uid).ToList();
+                sessions = m_sessions.Where(el => el._client != null && el.getUID() == uid).ToList();
             }
             return sessions;
         }
 
-        public SessionBase FindSessionByNickname(string nickname)
+        public virtual SessionBase FindSessionByNickname(string nickname)
         {
             SessionBase session = null;
             lock (_lockObject)
@@ -173,7 +190,7 @@ namespace PangyaAPI.Network.PangyaSession
             {
                 if (session._client != null)
                 {
-                    int connTime = SocketUtils.GetConnectTime(session._client);
+                    int connTime = session._client.GetConnectTime();
                     if (!session.IsCreated())
                     {
                         m_session_del.Add(session);
@@ -216,13 +233,15 @@ namespace PangyaAPI.Network.PangyaSession
         }
 
         public virtual uint findSessionFree()
-        {
-            for (uint i = 0; i < m_sessions.Count; i++)
+        {           
+            uint i = 0;
+            foreach (var _session in m_sessions)
             {
-                if (m_sessions[(int)i].m_oid == uint.MaxValue)
+                if (_session.m_oid == uint.MaxValue)
                 {
                     return i;
                 }
+                i++;
             }
             return uint.MaxValue;
         }

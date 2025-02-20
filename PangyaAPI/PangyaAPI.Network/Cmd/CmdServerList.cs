@@ -47,7 +47,7 @@ namespace PangyaAPI.Network.Cmd
                 si.curr_user = int.Parse(_result.data[5].ToString());
                 si.propriedade = new uProperty(uint.Parse(_result.data[6].ToString()));
                 si.angelic_wings_num = int.Parse(_result.data[7].ToString());
-                si.event_flag = new uEventFlag(short.Parse(_result.data[8].ToString()));
+                si.event_flag = new uEventFlag(ushort.Parse(_result.data[8].ToString()));
                 si.event_map = short.Parse(_result.data[9].ToString());
                 si.img_no = short.Parse(_result.data[10].ToString());
                 si.app_rate = short.Parse(_result.data[11].ToString());

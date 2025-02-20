@@ -1,4 +1,4 @@
-﻿using GameServer.PangType;
+﻿using GameServer.GameType;
 using PangyaAPI.SQL;
 using System;
 using System.Data;
@@ -38,38 +38,47 @@ namespace GameServer.Cmd
 			checkColumnNumber(39);
 			try
 			{
-				int i =0;
-                // AMA 6~1
+                short i = 0, j = 0;
 
-                for (i = 0; i < 3; i++)
-                    m_ti.ama_6[i] = (short)Convert.ToUInt32(_result.data[0 + i]);   // 0 + 3
-                for (i = 0; i < 3; i++)
-                    m_ti.ama_5[i] = (short)Convert.ToUInt32(_result.data[3 + i]);   // 3 + 3
-                for (i = 0; i < 3; i++)
-                    m_ti.ama_4[i] = (short)Convert.ToUInt32(_result.data[6 + i]);   // 6 + 3
-                for (i = 0; i < 3; i++)
-                    m_ti.ama_3[i] = (short)Convert.ToUInt32(_result.data[9 + i]);   // 9 + 3
-                for (i = 0; i < 3; i++)
-                    m_ti.ama_2[i] = (short)Convert.ToUInt32(_result.data[12 + i]);  // 12 + 3
-                for (i = 0; i < 3; i++)
-                    m_ti.ama_1[i] = (short)Convert.ToUInt32(_result.data[15 + i]);  // 15 + 3
-                for (i = 0; i < 3; i++)
-                    m_ti.pro_1[i] = (short)Convert.ToUInt32(_result.data[18 + i]);  // 18 + 3
-                for (i = 0; i < 3; i++)
-                    m_ti.pro_2[i] = (short)Convert.ToUInt32(_result.data[21 + i]);  // 21 + 3
-                for (i = 0; i < 3; i++)
-                    m_ti.pro_3[i] = (short)Convert.ToUInt32(_result.data[24 + i]);  // 24 + 3
-                for (i = 0; i < 3; i++)
-                    m_ti.pro_4[i] = (short)Convert.ToUInt32(_result.data[27 + i]);  // 27 + 3
-                for (i = 0; i < 3; i++)
-                    m_ti.pro_5[i] = (short)Convert.ToUInt32(_result.data[30 + i]);  // 30 + 3
-                for (i = 0; i < 3; i++)
-                    m_ti.pro_6[i] = (short)Convert.ToUInt32(_result.data[33 + i]);  // 33 + 3
-                for (i = 0; i < 3; i++)
-                    m_ti.pro_7[i] = (short)Convert.ToUInt32(_result.data[36 + i]);  // 36 + 3
+                // AMA 6~1
+                for (i = 0; i < 6; ++i)
+                    for (j = 0; j < 3; ++j)
+                        m_ti.ama_6_a_1[i, j] = IFNULL<short>(_result.data[(i * 3) + j]); // 0 a (3 * 6) = 18
+
+                // PRO 1~7
+                for (i = 0; i < 7; ++i)
+                    for (j = 0; j < 3; ++j)
+                        m_ti.pro_1_a_7[i, j] = IFNULL<short>(_result.data[18 + (i * 3) + j]);    // 18 a (3 * 7) = 39
+                                               
+                //            for (i = 0; i < 3; i++)
+                //                m_ti.ama_6[i] = (short)Convert.ToUInt32(_result.data[0 + i]);   // 0 + 3
+                //            for (i = 0; i < 3; i++)
+                //                m_ti.ama_5[i] = (short)Convert.ToUInt32(_result.data[3 + i]);   // 3 + 3
+                //            for (i = 0; i < 3; i++)
+                //                m_ti.ama_4[i] = (short)Convert.ToUInt32(_result.data[6 + i]);   // 6 + 3
+                //            for (i = 0; i < 3; i++)
+                //                m_ti.ama_3[i] = (short)Convert.ToUInt32(_result.data[9 + i]);   // 9 + 3
+                //            for (i = 0; i < 3; i++)
+                //                m_ti.ama_2[i] = (short)Convert.ToUInt32(_result.data[12 + i]);  // 12 + 3
+                //            for (i = 0; i < 3; i++)
+                //                m_ti.ama_1[i] = (short)Convert.ToUInt32(_result.data[15 + i]);  // 15 + 3
+                //            for (i = 0; i < 3; i++)
+                //                m_ti.pro_1[i] = (short)Convert.ToUInt32(_result.data[18 + i]);  // 18 + 3
+                //            for (i = 0; i < 3; i++)
+                //                m_ti.pro_2[i] = (short)Convert.ToUInt32(_result.data[21 + i]);  // 21 + 3
+                //            for (i = 0; i < 3; i++)
+                //                m_ti.pro_3[i] = (short)Convert.ToUInt32(_result.data[24 + i]);  // 24 + 3
+                //            for (i = 0; i < 3; i++)
+                //                m_ti.pro_4[i] = (short)Convert.ToUInt32(_result.data[27 + i]);  // 27 + 3
+                //            for (i = 0; i < 3; i++)
+                //                m_ti.pro_5[i] = (short)Convert.ToUInt32(_result.data[30 + i]);  // 30 + 3
+                //            for (i = 0; i < 3; i++)
+                //                m_ti.pro_6[i] = (short)Convert.ToUInt32(_result.data[33 + i]);  // 33 + 3
+                //            for (i = 0; i < 3; i++)
+                //                m_ti.pro_7[i] = (short)Convert.ToUInt32(_result.data[36 + i]);  // 36 + 3
 
             }
-			catch (Exception ex)
+            catch (Exception ex)
 			{
 				Console.WriteLine(ex.Message);
 

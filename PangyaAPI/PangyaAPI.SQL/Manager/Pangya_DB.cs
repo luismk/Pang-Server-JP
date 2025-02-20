@@ -47,11 +47,7 @@ namespace PangyaAPI.SQL
         {
             return m_exception ?? new exception("");
         }
-
-
-
-        public virtual void ExecCmd() { exec(); }
-
+                   
         public virtual response _insert(string _query)
         {
             return _db.ExecQuery(_query);
@@ -88,6 +84,14 @@ namespace PangyaAPI.SQL
 
         protected virtual string _getName { get => GetType().Name; }
 
+        public static string _formatDate(DateTime date)
+        {
+            return UtilTime.FormatDate(date);
+        }
+        public static string formatDateLocal(long date)
+        {
+            return UtilTime.FormatDateLocal(date);
+        }
         public static bool is_valid_c_string(object value)
         {
             if (value == null || value is DBNull || (value is string && string.IsNullOrEmpty((string)value)))
@@ -134,12 +138,7 @@ namespace PangyaAPI.SQL
             }
 
             try
-            {
-                if (value is int intValue && intValue == -1)
-                {
-                    return default;
-                }
-
+            {                  
                 return (T)Convert.ChangeType(value, typeof(T)); // Conversão segura para o tipo T
             }
             catch (Exception ex)

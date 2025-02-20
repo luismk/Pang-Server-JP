@@ -5,12 +5,7 @@ using System;
 namespace GameServer.Cmd
 {
 	public class CmdPang : Pangya_DB
-	{
-			public CmdPang()
-			{
-				this.m_uid = 0u;
-				this.m_pang = 0Ul;
-			}
+	{	    
 
 			public CmdPang(uint _uid)
 			{						  
@@ -48,7 +43,7 @@ namespace GameServer.Cmd
 			m_pang = IFNULL<ulong>( _result.data[1]); 
 				if(uid_req != m_uid)
 				{
-					throw new exception("[CmdPang::lineResult][Error] retornou outro uid do que foi requisitado. uid_req " + Convert.ToString(uid_req) + " != " + Convert.ToString(m_uid), ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PANGYA_DB,
+					throw new exception("[CmdPang::lineResult][Error] retornou outro m_uid do que foi requisitado. uid_req " + Convert.ToString(uid_req) + " != " + Convert.ToString(m_uid), ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PANGYA_DB,
 						3, 0));
 				}
 			}

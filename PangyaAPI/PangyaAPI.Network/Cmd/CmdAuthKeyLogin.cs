@@ -1,12 +1,5 @@
-﻿using PangyaAPI.Network.Pangya_St;
-using PangyaAPI.SQL;
-
+﻿using PangyaAPI.SQL;   
 using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PangyaAPI.Network.Cmd
 {
@@ -14,11 +7,8 @@ namespace PangyaAPI.Network.Cmd
     {
         string m_auth_key_game;
         uint m_uid;
-        int m_server_uid;
-
-        protected override string _getName { get; } = "CmdAuthKeyGame";
-
-        public CmdAuthKeyGame(uint _uid, int _server_uid)
+        uint m_server_uid;                                               
+        public CmdAuthKeyGame(uint _uid, uint _server_uid)
         {
             m_auth_key_game = "";
             m_uid = _uid;

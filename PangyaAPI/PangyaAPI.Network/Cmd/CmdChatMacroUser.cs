@@ -12,13 +12,11 @@ namespace PangyaAPI.Network.Cmd
 {
     public class CmdChatMacroUser: Pangya_DB
     {
-        readonly int m_uid = -1;
-        chat_macro_user m_macro_user;
-        protected override string _getName { get; } = "CmdChatMacroUser";
-
-        public CmdChatMacroUser(int _uid) 
+        uint m_uid = 0;
+        chat_macro_user m_macro_user;                
+        public CmdChatMacroUser(uint _uid) 
         {
-            m_macro_user = new chat_macro_user().Init();
+            m_macro_user = new chat_macro_user();
             m_uid = _uid;
         }
 

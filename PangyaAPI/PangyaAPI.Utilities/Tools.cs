@@ -11,10 +11,11 @@ using System.Runtime.InteropServices;
 using System.Data;
 using System.Web.UI.WebControls.WebParts;
 using System.Net.Sockets;
+using System.Globalization;
 
 namespace PangyaAPI.Utilities
 {
-    public class SocketUtils
+    public static class SocketUtils
     {
         // Definir as constantes para os parâmetros do getsockopt
         private const int SOL_SOCKET = 1;
@@ -34,7 +35,7 @@ namespace PangyaAPI.Utilities
         private static extern int getsockopt(IntPtr s, int level, int optname, ref int optval, ref int optlen);
 
         // Função para obter o tempo de conexão
-        public static int GetConnectTime(TcpClient socket)
+        public static int GetConnectTime(this TcpClient socket)
         {
             // Verifica se o socket é válido
             if (socket == null || !socket.Connected)
@@ -285,7 +286,11 @@ namespace PangyaAPI.Utilities
         public static long GetLocalDateDiffDESC(DateTime st)
         {
             DateTime local = DateTime.Now;
-            TimeSpan diff = local.Date - st.Date;
+
+            // Se st for anterior a local, a diferença será negativa
+            TimeSpan diff = st - local;
+
+            // Retorna a diferença em milissegundos
             return diff.Ticks / TimeSpan.TicksPerMillisecond;
         }
 
@@ -320,6 +325,80 @@ namespace PangyaAPI.Utilities
             ft.dwLowDateTime = (int)fileTime;
             ft.dwHighDateTime = (int)(fileTime >> 32);
             return ft;
+        }
+                  
+        public static long TzLocalUnixToUnixUTC(long localUnixTime)
+        {
+            DateTimeOffset localTime = DateTimeOffset.FromUnixTimeSeconds(localUnixTime);
+            DateTimeOffset utcTime = localTime.ToUniversalTime();
+            return utcTime.ToUnixTimeSeconds();
+        }
+
+        public static string FormatDate(DateTime date)
+        {
+            return date.ToString("yyyy-MM-dd HH:mm:ss.fff");
+        }              
+        // Função para traduzir data de Unix para SYSTEMTIME (UTC)
+        public static int TranslateDateSystem(long timeUnix, out DateTime dateDst)
+        {
+            if (timeUnix == 0)
+            {
+                dateDst = DateTime.UtcNow; // Data atual no UTC
+            }
+            else
+            {
+                dateDst = DateTimeOffset.FromUnixTimeSeconds(timeUnix).UtcDateTime;
+            }
+
+            return 0;
+        }
+
+        // Função para traduzir data de Unix para SYSTEMTIME (Local)
+        public static int TranslateDateLocal(long timeUnix, out DateTime dateDst)
+        {
+            if (timeUnix == 0)
+            {
+                dateDst = DateTime.Now; // Data atual no local da máquina
+            }
+            else
+            {
+                dateDst = DateTimeOffset.FromUnixTimeSeconds(timeUnix).LocalDateTime;
+            }
+
+            return 0;
+        }
+                            
+
+        // Função para formatar hora para string
+        public static string FormatTime(DateTime date)
+        {
+            return date.ToString("HH:mm:ss.fff");
+        }
+
+        // Função para formatar data do sistema para string (UTC)
+        public static string FormatDateSystem(long timeUnix)
+        {
+            DateTime date;
+            TranslateDateSystem(timeUnix, out date);
+            return date.ToString("yyyy-MM-dd HH:mm:ss.fff");
+        }
+
+        // Função para formatar data local para string
+        public static string FormatDateLocal(long timeUnix)
+        {
+            DateTime date;
+            TranslateDateLocal(timeUnix, out date);
+            return date.ToString("yyyy-MM-dd HH:mm:ss.fff");
+        }
+        // Função para converter System Time para Unix Timestamp
+        public static long SystemTimeToUnix(DateTime st)
+        {
+            return (long)(st.ToUniversalTime() - new DateTime(1970, 1, 1)).TotalSeconds;
+        }
+        // Função para obter o sistema como Unix Timestamp
+        public static long GetSystemTimeAsUnix()
+        {
+            return SystemTimeToUnix(DateTime.UtcNow);
         }
     }
     public static class Tools

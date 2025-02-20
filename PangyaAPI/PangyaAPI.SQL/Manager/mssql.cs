@@ -10,17 +10,17 @@ using _smp = PangyaAPI.Utilities.Log;
 namespace PangyaAPI.SQL.Manager
 {
     public class mssql : database
-    {                                                
+    {
 
         ~mssql()
-        {     
+        {
             init();
         }
-            /// <summary>
-            ///recria dados da conexao em uma unica linha de string
-            /// </summary>
-            /// <returns></returns>
-      
+        /// <summary>
+        ///recria dados da conexao em uma unica linha de string
+        /// </summary>
+        /// <returns></returns>
+
         public override void init()
         {
             m_ctx.hDbc = new SqlConnection();
@@ -29,7 +29,7 @@ namespace PangyaAPI.SQL.Manager
             m_state = true;
         }
 
-        public virtual void destroy() 
+        public virtual void destroy()
         {
 
             if (is_connected())
@@ -60,7 +60,7 @@ namespace PangyaAPI.SQL.Manager
                     init();
 
                 if (is_connected())
-                    throw new exception("[mssql::connect][Error] Ja esta connectado."); 
+                    throw new exception("[mssql::connect][Error] Ja esta connectado.");
 
                 if (m_error)
                     throw new exception(m_error_string);
@@ -77,16 +77,17 @@ namespace PangyaAPI.SQL.Manager
             {
                 _smp.message_pool.push("[mssql::Connect][Error] " + ex.Message + "]", _smp.type_msg.CL_FILE_LOG_AND_CONSOLE);
                 m_connected = false;
-            }  
+            }
         }
-                    
+
         public override void reconnect()
         {
             disconnect();
             connect();
         }
 
-        public override void disconnect() {
+        public override void disconnect()
+        {
             if (is_connected())
             {
 
@@ -110,7 +111,7 @@ namespace PangyaAPI.SQL.Manager
                 HandleDiagnosticRecord(_query);
                 if (m_ctx.hStmt != null)
                 {
-                    var _data = m_ctx.hStmt.Tables[ m_ctx_db.db_name];
+                    var _data = m_ctx.hStmt.Tables[m_ctx_db.db_name];
                     if (_data == null)
                     {
                         res = new response();
@@ -152,7 +153,7 @@ namespace PangyaAPI.SQL.Manager
             {
 
                 // Montar a string de comando para execução do procedimento
-                var commandText = $"{_query}";   
+                var commandText = $"{_query}";
 
                 // A mensagem completa da exceção
                 string mensagemErro = string.Format(
@@ -169,19 +170,19 @@ namespace PangyaAPI.SQL.Manager
             response res = new response();
             uint numResults = 0;
             int numRows = 0;
-             try
+            try
             {
                 HandleDiagnosticRecord(_proc_name, valor);
-                if (m_ctx.hStmt != null && m_ctx.hStmt.Tables[ m_ctx_db.db_name] != null)
+                if (m_ctx.hStmt != null && m_ctx.hStmt.Tables[m_ctx_db.db_name] != null)
                 {
-                    var _data = m_ctx.hStmt.Tables[ m_ctx_db.db_name];
+                    var _data = m_ctx.hStmt.Tables[m_ctx_db.db_name];
                     if (_data != null && _data.Rows.Count == 1)
                     {
                         numResults = 1;
                     }
                     if (_data.Rows.Count > 1)
                     {
-                        numResults = (uint)_data.Rows.Count  - 1;
+                        numResults = (uint)_data.Rows.Count - 1;
                     }
                     numRows = _data.Columns.Count;
                     res.setRowsAffected(numRows);
@@ -193,7 +194,7 @@ namespace PangyaAPI.SQL.Manager
                             result.addLine();   // Adiciona linha
                             result.setRow(item);
                             res.addResultSet(result);
-                        }    
+                        }
                     }
                 }
                 return res;
@@ -201,7 +202,7 @@ namespace PangyaAPI.SQL.Manager
             catch (Exception ex)
             {
                 // Montar a string de comando para execução do procedimento
-                var commandText = $"EXEC { m_ctx_db.db_name}.{_proc_name} ";
+                var commandText = $"EXEC {m_ctx_db.db_name}.{_proc_name} ";
 
                 if (!string.IsNullOrEmpty(valor))
                 {
@@ -234,14 +235,9 @@ namespace PangyaAPI.SQL.Manager
         {
             return "[" + _value + "]";
         }
-                                                                   
+
         protected class ctx_db
-        {
-
-            public void clear()
-            {
-
-            }
+        {           
             public SqlCommand hEnv;
             public SqlConnection hDbc;
             public DataSet hStmt;
@@ -250,9 +246,9 @@ namespace PangyaAPI.SQL.Manager
         protected ctx_db m_ctx = new ctx_db();
         protected void HandleDiagnosticRecord(string query)
         {
-            
+
             try
-            {                
+            {
                 if (m_ctx.hDbc != null)
                 {
                     m_ctx.hDbc = new SqlConnection(m_ctx_db.CreateStrConnection());
@@ -272,15 +268,24 @@ namespace PangyaAPI.SQL.Manager
         {
             try
             {
-                if (m_ctx.hDbc != null)
+                m_ctx.hDbc = new SqlConnection(m_ctx_db.CreateStrConnection());
+                m_ctx.hDbc.Open();
+                // Montar a string de comando para execução do procedimento
+                var commandText = $"EXEC {m_ctx_db.db_name}.{_proc_name} ";
+
+                if (!string.IsNullOrEmpty(valores))
                 {
-                    m_ctx.hDbc = new SqlConnection(m_ctx_db.CreateStrConnection());
-                    m_ctx.hDbc.Open();
+                    // Verifica se os valores estão no formato de uma sequência separada por '|'
+                    if (valores.Contains("|"))
+                    {
+                        var valorArray = valores.Split(',') // Dividindo corretamente pelos pipes
+                                              .Select(v => v.Trim()) // Remover espaços em branco
+                                              .Select(v => $"'{v}'") // Adiciona aspas simples     
+                                              .ToArray();
 
-                    // Montar a string de comando para execução do procedimento
-                    var commandText = $"EXEC { m_ctx_db.db_name}.{_proc_name} ";
-
-                    if (!string.IsNullOrEmpty(valores))
+                        commandText += string.Join(", ", valorArray);
+                    }
+                    else
                     {
                         // Divide os valores com base na vírgula
                         var valorArray = valores.Split(',')
@@ -291,20 +296,16 @@ namespace PangyaAPI.SQL.Manager
                         // Junta os valores formatados de volta em uma string
                         commandText += string.Join(", ", valorArray);
                     }
-
-                    m_ctx.hEnv = new SqlCommand(commandText, m_ctx.hDbc);
-                    var da = new SqlDataAdapter(m_ctx.hEnv);
-                    da.Fill(m_ctx.hStmt,  m_ctx_db.db_name);
                 }
+
+
+                m_ctx.hEnv = new SqlCommand(commandText, m_ctx.hDbc);
+                var da = new SqlDataAdapter(m_ctx.hEnv);
+                da.Fill(m_ctx.hStmt, m_ctx_db.db_name);
             }
             catch (exception ex)
             {
                 _smp.message_pool.push("[mssql::HandleDiagnosticQuery][Error] " + ex.getFullMessageError() + "]", _smp.type_msg.CL_FILE_LOG_AND_CONSOLE);
-            }
-
-            finally
-            {
-                m_ctx.hDbc?.Dispose();
             }
         }
     }

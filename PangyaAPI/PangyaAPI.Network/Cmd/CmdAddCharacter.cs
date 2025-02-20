@@ -7,10 +7,8 @@ namespace PangyaAPI.Network.Cmd
 {
     public class CmdAddCharacter : CmdAddItemBase
     {
-        CharacterInfo m_ci;
-
-        protected override string _getName { get; } = "CmdAddCharacter";
-        public CmdAddCharacter(int _uid, CharacterInfo _ci, byte _purchase, byte _gift_flag) : base(_uid, _purchase, _gift_flag)
+        CharacterInfo m_ci;                                                 
+        public CmdAddCharacter(uint _uid, CharacterInfo _ci, byte _purchase, byte _gift_flag) : base(_uid, _purchase, _gift_flag)
         {
             m_uid = _uid;
             m_ci = _ci;

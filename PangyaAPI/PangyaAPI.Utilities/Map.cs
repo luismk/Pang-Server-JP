@@ -25,9 +25,9 @@ namespace PangyaAPI.Utilities
 
         public void OrderBy()
         {
-            var auto = this.OrderBy(c => c.Key).ToList();//retorna valores ordenados
+            var var = this.OrderBy(c => c.Key).ToList();//retorna valores ordenados
             this.Clear();//limpo tudo primeiro
-            foreach (var item in auto)//faco um laco para percorrer todos os valores adicionados
+            foreach (var item in var)//faco um laco para percorrer todos os valores adicionados
             {
                 base.Add(item.Key, item.Value);//refaço o add com valores ja ordenados
             }

@@ -1,5 +1,5 @@
 ﻿using GameServer.Game.Manager;
-using GameServer.PangType;
+using GameServer.GameType;
 using PangyaAPI.SQL;
 using System;
 using System.Collections.Generic;
@@ -16,6 +16,7 @@ namespace GameServer.Cmd
         {
             ALL,
             ONE,
+            FERIAS
         }
         TYPE m_type;
         int m_caddie_id;
@@ -28,63 +29,12 @@ namespace GameServer.Cmd
             m_type = _type;
             m_caddie_id = _caddie_id;
             v_ci = new CaddieManager();
-
-        } 
-		
-        protected override void lineResult(ctx_res _result, uint _index_result)
-        { 
-			checkColumnNumber(11);
-
-            try
-            {
-                if (_result.cols == 1)    
-                    return;
-
-                CaddieInfoEx ci = new CaddieInfoEx
-                {
-                    id = _result.GetUInt32(0),
-                    _typeid = _result.GetUInt32(2),
-                    parts_typeid = _result.GetUInt32(3),
-                    level = _result.GetByte(4),
-                    exp = _result.GetUInt32(5),
-                    rent_flag = _result.GetByte(6)
-                };
-
-                if (_result.IsNotNull(7))
-                    ci.end_date.CreateTime(_result.GetDateTime(7));
-
-                ci.purchase = _result.GetByte(8);
-				
-                if (_result.IsEmptyObject(9))
-                    ci.end_parts_date.CreateTime(_result.GetDateTime(9));
-				
-                ci.check_end = _result.GetByte(10);
-				
-				v_ci.Add(ci.id, ci);
-                
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-
-            }
         }
-
-        protected override Response prepareConsulta()
-        {
-            var m_szConsulta = new string[] { "pangya.ProcGetCaddieInfo ", "pangya.ProcGetCaddieInfo_One " };  
-            var r = procedure(m_type == TYPE.ALL ? m_szConsulta[0] + m_uid.ToString() : m_szConsulta[1] + m_uid.ToString() + ", "+ m_caddie_id.ToString());
-            checkResponse(r, "nao conseguiu pegar o member info do player: " + (m_uid));
-            return r;
-        }
-
 
         public CaddieManager getInfo()
         {
             return v_ci;
         }
-
-
 
         public uint getUID()
         {
@@ -115,5 +65,51 @@ namespace GameServer.Cmd
         {
             m_caddie_id = _caddie_id;
         }
+        protected override void lineResult(ctx_res _result, uint _index_result)
+        { 
+			checkColumnNumber(11);
+
+            try
+            {
+                if (_result.data_row == null || _result.data_row.ItemArray.Length == 0)    
+                    return;
+
+                CaddieInfoEx ci = new CaddieInfoEx
+                {
+                    id = _result.GetUInt32(0),
+                    _typeid = _result.GetUInt32(2),
+                    parts_typeid = _result.GetUInt32(3),
+                    level = _result.GetByte(4),
+                    exp = _result.GetUInt32(5),
+                    rent_flag = _result.GetByte(6)
+                };
+
+                if (_result.IsEmptyObject(7))
+                    ci.end_date.CreateTime(_result.GetDateTime(7));
+
+                ci.purchase = _result.GetByte(8);
+				
+                if (_result.IsEmptyObject(9))
+                    ci.end_parts_date.CreateTime(_result.GetDateTime(9));
+				
+                ci.check_end = _result.GetByte(10);
+				
+				v_ci.Add(ci.id, ci);
+                
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);  
+            }
+        }
+
+        protected override Response prepareConsulta()
+        {
+            var r = procedure((m_type == TYPE.ALL) ? m_szConsulta[0] : ((m_type == TYPE.ONE) ? m_szConsulta[1] : m_szConsulta[2]),
+                    Convert.ToString(m_uid) + (m_type == TYPE.ONE ? ", " + Convert.ToString(m_caddie_id) : ""));
+            checkResponse(r, "nao conseguiu pegar o member info do player: " + (m_uid));
+            return r;
+        }
+        private string[] m_szConsulta = { "pangya.ProcGetCaddieInfo", "pangya.ProcGetCaddieInfo_One", "pangya.ProcGetCaddieFerias" };
     }
 }

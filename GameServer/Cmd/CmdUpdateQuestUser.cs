@@ -18,15 +18,15 @@
 //// C++ TO C# CONVERTER WARNING: The following #include directive was ignored:
 ////#include "../../Projeto IOCP/PANGYA_DB/pangya_db.h"
 //// C++ TO C# CONVERTER NOTE: The following #define macro was replaced in-line:
-//// ORIGINAL LINE: #define m_title skin_typeid[5]
+// #define m_title skin_typeid[5]
 //// C++ TO C# CONVERTER NOTE: The following #define macro was replaced in-line:
-//// ORIGINAL LINE: #define GameServer.Cmd_C_ITEM_QNTD c[0]
+// #define GameServer.Cmd_C_ITEM_QNTD c[0]
 //// C++ TO C# CONVERTER NOTE: The following #define macro was replaced in-line:
-//// ORIGINAL LINE: #define GameServer.Cmd_C_ITEM_TICKET_REPORT_ID_HIGH c[1]
+// #define GameServer.Cmd_C_ITEM_TICKET_REPORT_ID_HIGH c[1]
 //// C++ TO C# CONVERTER NOTE: The following #define macro was replaced in-line:
-//// ORIGINAL LINE: #define GameServer.Cmd_C_ITEM_TICKET_REPORT_ID_LOW c[2]
+// #define GameServer.Cmd_C_ITEM_TICKET_REPORT_ID_LOW c[2]
 //// C++ TO C# CONVERTER NOTE: The following #define macro was replaced in-line:
-//// ORIGINAL LINE: #define GameServer.Cmd_C_ITEM_TIME c[3]
+// #define GameServer.Cmd_C_ITEM_TIME c[3]
 
 //namespace GameServer.Cmd
 //{
@@ -43,8 +43,8 @@
 //				)
 //				{
 //// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
-//// ORIGINAL LINE: this.m_uid = _uid;
-//				this.m_uid.CopyFrom(_uid);
+// this.m_uid = _uid;
+//				//this.
 //				this.m_qsi = new GameServer.Cmd.QuestStuffInfo(_qsi);
 //				}
 
@@ -54,27 +54,27 @@
 
 //			public uint getUID()
 //			{
-//				return new uint(m_uid);
+//				return (m_uid);
 //			}
 
 //			public void setUID(uint _uid)
 //			{
 //// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
-//// ORIGINAL LINE: m_uid = _uid;
-//				m_uid.CopyFrom(_uid);
+// m_uid = _uid;
+//				
 //			}
 
 //			public QuestStuffInfo getInfo()
 //			{
 //// C++ TO C# CONVERTER TASK: The following line was determined to contain a copy constructor call - this should be verified and a copy constructor should be created:
-//// ORIGINAL LINE: return m_qsi;
+// return m_qsi;
 //				return new GameServer.Cmd.QuestStuffInfo(m_qsi);
 //			}
 
 //			public void setInfo(QuestStuffInfo _qsi)
 //			{
 //// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
-//// ORIGINAL LINE: m_qsi = _qsi;
+// m_qsi = _qsi;
 //				m_qsi.CopyFrom(_qsi);
 //			}
 
@@ -85,7 +85,7 @@
 //				return;
 //			}
 
-//			protected override response prepareConsulta(database _db)
+//			protected override Response prepareConsulta()
 //			{
 
 //				if(m_qsi.id <= 0
@@ -103,7 +103,7 @@
 //					clear_dt = _db.makeText(formatDateLocal(m_qsi.clear_date_unix));
 //				}
 
-//				var r = procedure(_db,
+//				var r = procedure(
 //					m_szConsulta,
 //					Convert.ToString(m_uid) + ", " + Convert.ToString(m_qsi.id) + ", " + Convert.ToString(m_qsi.counter_item_id) + ", " + clear_dt);
 

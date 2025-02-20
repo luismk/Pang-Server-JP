@@ -2,7 +2,7 @@
 using System;
 using PangyaAPI.SQL;
 using PangyaAPI.Utilities;
-using GameServer.PangType;
+using GameServer.GameType;
 
 namespace GameServer.Cmd
 {

@@ -15,20 +15,15 @@ namespace PangLib.IFF.JP.Models.Data
         public string MPet { get; set; }     
         [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 40)]
         public string TexTure { get; set; }
-        public UInt16 Price1Day { get; set; }
-        public UInt16 Price7Day { get; set; }
-        public UInt16 Price15Day { get; set; }
-        public UInt16 Price30Day { get; set; }
+        [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
+        public ushort[] price { get; set; }
+        
         public uint unit_power_guage_start { get; set; }
         public CaddieItem(PangyaBinaryReader reader)
         {
             Load(ref reader, 40);
             MPet = reader.ReadPStr(40);
-            TexTure = reader.ReadPStr(40);
-            Price1Day = reader.ReadUInt16();
-            Price7Day = reader.ReadUInt16();
-            Price15Day = reader.ReadUInt16();
-            Price30Day = reader.ReadUInt16();
+            TexTure = reader.ReadPStr(40);     
             unit_power_guage_start = reader.ReadUInt32(); 
         }
         enum CaddieType : byte {

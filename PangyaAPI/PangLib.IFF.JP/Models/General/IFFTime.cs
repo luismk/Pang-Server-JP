@@ -143,7 +143,52 @@ namespace PangLib.IFF.JP.Models.General
         {
             return TimeGP.ToString();
         }
+        public DateTime ConvertTime()
+        {
+            return new DateTime(Year, Month, Day, Hour, Minute, Second, MilliSecond);
+        }
 
+        public void CreateTime(string format)
+        {
+            var date = DateTime.Parse(format);
+
+            Year = (ushort)date.Year;
+            Month = (ushort)date.Month;
+            Minute = (ushort)date.Minute;
+            Day = (ushort)date.Day;
+            Hour = (ushort)date.Hour;
+            Second = (ushort)date.Second;
+            MilliSecond = (ushort)date.Millisecond;
+        }
+
+        public void CreateTime()
+        {
+            var date = DateTime.Now;
+
+            Year = (ushort)date.Year;
+            Month = (ushort)date.Month;
+            Minute = (ushort)date.Minute;
+            Day = (ushort)date.Day;
+            Hour = (ushort)date.Hour;
+            Second = (ushort)date.Second;
+            MilliSecond = (ushort)date.Millisecond;
+        }
+
+        public void CreateTime(DateTime date)
+        {
+            if (date != DateTime.MinValue)
+            {
+
+                Year = (ushort)date.Year;
+                Month = (ushort)date.Month;
+                Minute = (ushort)date.Minute;
+                Day = (ushort)date.Day;
+                Hour = (ushort)date.Hour;
+                Second = (ushort)date.Second;
+                MilliSecond = (ushort)date.Millisecond;
+
+            }
+        }
 
         public IFFTime()
         { }

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using PangyaAPI.Utilities;
 using PangyaAPI.Network.PangyaSession;
+using GameServer.GameType;
 
 namespace GameServer.Session
 {
@@ -45,48 +46,73 @@ namespace GameServer.Session
                 m_indexes.Clear();
         }
 
-        public Player findPlayer(uint? _uid, bool _oid = false)
+        public Player findPlayer(uint? _uid, bool _oid = true)
         {
-            Player _player = null;
 
-            foreach (var el in m_sessions)
+            foreach (Player el in m_sessions)
             {
-                if ((!Convert.ToBoolean(_oid) ? (uint)el.getUID() : el.m_oid) == _uid)
+                if ((_oid ? el.getUID() : el.m_oid) == _uid)
                 {
-                    _player = (Player)el;
-                    break;
+                    return el;
                 }
             }
 
 
-            return _player;
+            return null;
         }
-
-        public List<Player> findAllGM()
+             
+        public override SessionBase FindSessionByOid(uint oid)
         {
-            List<Player> v_gm = new List<Player>();
-
-            foreach (var el in m_sessions)
+            SessionBase session = null;
+            foreach (var el in m_sessions.Where(el => el._client != null))
             {
-                if (Convert.ToBoolean(((Player)el).getCapability() & 4) || Convert.ToBoolean(((Player)el).getCapability() & 128/*GM Player Normal*/))    // GM
-                    v_gm.Add((Player)el);
+                if (el.m_oid == oid)
+                    session = el;
             }
-
-            return v_gm;
+            return session;
         }
 
+        public override SessionBase FindSessionByUid(uint uid)
+        {
+            SessionBase session = null;
+            lock (_lockObject)
+            {
+                session = m_sessions.FirstOrDefault(el => el._client != null && el.getUID() == uid);
+            }
+            return session;
+        }
+
+        public override List<SessionBase> FindAllSessionByUid(uint uid)
+        {
+            List<SessionBase> sessions = new List<SessionBase>();
+            lock (_lockObject)
+            {
+                sessions = m_sessions.Where(el => el._client != null && el.getUID() == uid).ToList();
+            }
+            return sessions;
+        }
+
+        public override SessionBase FindSessionByNickname(string nickname)
+        {
+            SessionBase session = null;
+            lock (_lockObject)
+            {
+                session = m_sessions.FirstOrDefault(el => el._client != null && el.Nickname == nickname);
+            }
+            return session;
+        }
         // Override methods
         public override bool DeleteSession(SessionBase _session)
         {
 
             if (_session == null)
-                throw new exception("[player_manager::deleteSession][ERR_SESSION] _session is nullptr.");
+                throw new exception("[player_manager::deleteSession][ERR_SESSION] _session is null.");
 
 
 
             // Block SessionBase
 
-            uint tmp_oid = _session.m_oid;    
+            uint tmp_oid = _session.m_oid;
 
             bool ret;
             if ((ret = _session.Clear()))
@@ -121,7 +147,50 @@ namespace GameServer.Session
 
         public static void checkItemBuff(Player _session) { }
         public static void checkCardSpecial(Player _session) { }
-        public static void checkCaddie(Player _session) { }
+        public static void checkCaddie(Player _session)
+        {
+            // Caddie
+            foreach (var el in _session.m_pi.mp_ci.Values)
+            {      
+                // Caddie por tempo
+                if (el.rent_flag == 2 && UtilTime.GetLocalDateDiffDESC(el.end_date.ConvertTime()) <= 0)
+                {
+
+                    // Put Update Item on vector update item of player
+                    if ((_session.m_pi.findUpdateItemByTypeidAndType(el.id, UpdateItem.UI_TYPE.CADDIE).Values) != null)
+                    {
+                        _session.m_pi.mp_ui.Add(new PlayerInfo.stIdentifyKey(el._typeid, el.id), new UpdateItem(UpdateItem.UI_TYPE.CADDIE, el._typeid, el.id));
+
+                        // Verifica se o Caddie está equipado e desequipa
+                        if ((_session.m_pi.ei.cad_info != null && _session.m_pi.ei.cad_info.id == el.id) || _session.m_pi.ue.caddie_id == el.id)
+                        {
+
+                            _session.m_pi.ei.cad_info = null;
+                            _session.m_pi.ue.caddie_id = 0;
+                        }
+                    }
+                }
+
+                // Parts Caddie End Date
+                if (el.parts_typeid != 0u && !el.end_parts_date.IsEmpty && UtilTime.GetLocalDateDiffDESC(el.end_parts_date.ConvertTime()) <= 0)
+                {
+
+                    // Put Update Item on vector update item of player
+                    if (_session.m_pi.findUpdateItemByTypeidAndType(el.id, UpdateItem.UI_TYPE.CADDIE_PARTS) != null)
+                    {
+
+                        _session.m_pi.mp_ui.Add(new PlayerInfo.stIdentifyKey(el._typeid, el.id), new UpdateItem(UpdateItem.UI_TYPE.CADDIE_PARTS, el._typeid, el.id));
+
+                        el.parts_typeid = 0u;
+                        el.parts_end_date_unix = 0;
+                        el.end_parts_date = new PangyaTime();
+
+                        //snmdb::NormalManagerDB::getInstance().add(1, new CmdUpdateCaddieInfo(_session.m_pi.uid, el.second), player_manager::SQLDBResponse, nullptr);
+                    }
+                }
+            }
+
+        }
         public static void checkMascot(Player _session) { }
         public static void checkWarehouse(Player _session) { }
 
@@ -184,7 +253,7 @@ namespace GameServer.Session
             if (_arg == null)
             {
                 // Static Functions of Class
-                _smp.message_pool.push(("[player_manager::SQLDBResponse]WARNING] _arg is nullptr"));
+                _smp.message_pool.push(("[player_manager::SQLDBResponse]WARNING] _arg is null"));
                 return;
             }
 
@@ -195,7 +264,7 @@ namespace GameServer.Session
                 return;
             }
 
-            //auto pm = reinterpret_cast< player_manager* >(_arg);
+            //var pm = reinterpret_cast< player_manager* >(_arg);
 
             switch (_msg_id)
             {
@@ -203,9 +272,9 @@ namespace GameServer.Session
                     {
                         //var cmd_uci = (CmdUpdateCaddieInfo)(_pangya_db);
 
-                        //_smp.message_pool.push(("[player_manager::SQLDBResponse][Log] player[UID=" + std::to_string(cmd_uci->getUID()) + "] Atualizou Caddie Info[TYPEID="
-                        //        + std::to_string(cmd_uci->getInfo()._typeid) + ", ID=" + std::to_string(cmd_uci->getInfo().id) + ", PARTS_TYPEID=" + std::to_string(cmd_uci->getInfo().parts_typeid)
-                        //        + ", END_DATE=" + _formatDate(cmd_uci->getInfo().end_date) + ", PARTS_END_DATE=" + _formatDate(cmd_uci->getInfo().end_parts_date) + "] com sucesso!", CL_FILE_LOG_AND_CONSOLE));
+                        //_smp.message_pool.push(("[player_manager::SQLDBResponse][Log] player[UID=" + (cmd_uci.getUID()) + "] Atualizou Caddie Info[TYPEID="
+                        //        + (cmd_uci.getInfo()._typeid) + ", ID=" + (cmd_uci.getInfo().id) + ", PARTS_TYPEID=" + (cmd_uci.getInfo().parts_typeid)
+                        //        + ", END_DATE=" + _formatDate(cmd_uci.getInfo().end_date) + ", PARTS_END_DATE=" + _formatDate(cmd_uci.getInfo().end_parts_date) + "] com sucesso!", CL_FILE_LOG_AND_CONSOLE));
 
                         break;
                     }

@@ -1,5 +1,5 @@
 ﻿using GameServer.Game;
-using GameServer.PangType;
+using GameServer.GameType;
 using GameServer.Session;
 using PangyaAPI.Network.PangyaServer;
 using PangyaAPI.Utilities;
@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using PangyaAPI.Network.Pangya_St;
 using GameServer.Cmd;
 using PangyaAPI.Network.PangyaPacket;
+using GameServer.Game.System;
 
 namespace GameServer
 {

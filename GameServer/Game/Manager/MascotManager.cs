@@ -1,4 +1,4 @@
-﻿using GameServer.PangType;
+﻿using GameServer.GameType;
 using PangyaAPI.Utilities.BinaryModels;
 using System;
 using System.Collections.Generic;
@@ -27,9 +27,8 @@ namespace GameServer.Game.Manager
                 p.WriteByte((byte)(Count & 0xFF));
 
                 foreach (var item in Values)
-                {
                     p.WriteBytes(item.Build());
-                }
+
                 return p.GetBytes;
             }
             catch (Exception)
@@ -37,19 +36,7 @@ namespace GameServer.Game.Manager
                 return new byte[0];
             }
         }
-
-        public byte[] GetInfo(uint _id)
-        {
-            var char_info = findMascotById(_id);
-            if (char_info == null)
-                return new byte[0x3E];
-            else
-            {
-                var p = new PangyaBinaryWriter();
-                p.WriteBytes(char_info.Build());
-                return p.GetBytes;
-            }
-        }
+                                                                      
         public MascotInfo findMascotById(uint _id)
         {
             return this.Values.FirstOrDefault(c => c.id == _id);

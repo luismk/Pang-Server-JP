@@ -1,10 +1,8 @@
-﻿using GameServer.PangType;
+﻿using GameServer.GameType;
 using PangyaAPI.Utilities;
 using System.Collections.Generic;
 using System.Linq;
-using packet = PangyaAPI.Network.PangyaPacket.Packet;
-using packet_func = GameServer.PacketFunc.packet_func;
-using static GameServer.PangType._Define;
+using static GameServer.GameType._Define;
 using System;
 using _smp = PangyaAPI.Utilities.Log;
 using GameServer.Session;
@@ -12,17 +10,51 @@ using PangyaAPI.Utilities.BinaryModels;
 using PangyaAPI.Utilities.Log;
 using GameServer.Game.System;
 using GameServer.Game.Manager;
-using static GameServer.PangType.PlayerInfo;
+using GameServer.PangDefinition;
+using GameServer.PacketFunc;
+using PangyaAPI.Network.PangyaPacket;
 using PangyaAPI.Network.Pangya_St;
 using PangyaAPI.SQL.Manager;
+using GameServer.Cmd;
 using System.Runtime.InteropServices;
 
 namespace GameServer.Game
 {
-    public class Channel : Ex.ChannelBase
+    public class Channel
     {
-        public Channel(ChannelInfo _ci, uint _type) : base(_ci, (int)_type)
+
+        protected enum ESTADO : byte
         {
+            UNITIALIZED,
+            INITIALIZED
+        }
+
+        protected enum LEAVE_ROOM_STATE : int
+        {
+            DO_NOTHING = -1,        // Faz nada
+            SEND_UPDATE_CLIENT = 0, // bug arm g++
+            ROOM_DESTROYED,
+        }
+
+        protected ChannelInfo m_ci;
+        //RoomManager m_rm;
+
+        protected uint m_type;           // Type GrandPrix, Natural, Normal
+
+        protected int m_state;
+
+        protected List<Player> v_sessions;
+        protected Dictionary<Player, PlayerCanalInfoEx> m_player_info;
+
+        protected List<InviteChannelInfo> v_invite;
+        public Channel(ChannelInfo _ci, uint _type)
+        {
+            m_ci = _ci;
+            m_type = _type;
+            m_state = (int)ESTADO.INITIALIZED;
+            v_sessions = new List<Player>();
+            m_player_info = new Dictionary<Player, PlayerCanalInfoEx>();
+            v_invite = new List<InviteChannelInfo>();
         }
 
         protected void addInviteTimeRequest(InviteChannelInfo _ici) { }
@@ -55,6 +87,7 @@ namespace GameServer.Game
             deletePlayerInfo(_session);
 
         }
+
         void addSession(Player _session)
         {
             if (_session == null)
@@ -76,19 +109,19 @@ namespace GameServer.Game
                 float rate = _session.m_pi.ui.getQuitRate();
 
                 if (rate < GOOD_PLAYER_ICON)
-                    _session.m_pi.mi.state_flag.stFlagBit.azinha = 1;
+                    _session.m_pi.mi.state_flag.azinha = true;
                 else if (rate >= QUITER_ICON_1 && rate < QUITER_ICON_2)
-                    _session.m_pi.mi.state_flag.stFlagBit.quiter_1 = 1;
+                    _session.m_pi.mi.state_flag.quiter_1 = true;
                 else if (rate >= QUITER_ICON_2)
-                    _session.m_pi.mi.state_flag.stFlagBit.quiter_2 = 1;
+                    _session.m_pi.mi.state_flag.quiter_2 = true;
             }
 
             if (_session.m_pi.ei.char_info != null && _session.m_pi.ui.getQuitRate() < GOOD_PLAYER_ICON)
-                _session.m_pi.mi.state_flag.stFlagBit.icon_angel = 0;/*_session.m_pi.ei.char_info.AngelEquiped();*/
+                _session.m_pi.mi.state_flag.icon_angel = Convert.ToBoolean(_session.m_pi.ei.char_info.AngelEquiped());
             else
-                _session.m_pi.mi.state_flag.stFlagBit.icon_angel = 0;
+                _session.m_pi.mi.state_flag.icon_angel = false;
 
-            _session.m_pi.mi.state_flag.stFlagBit.sexo = _session.m_pi.mi.sexo;
+            _session.m_pi.mi.state_flag.sexo = _session.m_pi.mi.sexo == 1 ? true : false;
 
 
 
@@ -127,11 +160,10 @@ namespace GameServer.Game
                 level = (byte)_session.m_pi.level,
                 capability = _session.m_pi.mi.capability,
                 nickname = _session.m_pi.nickname,
-                nickNT = "@" + _session.m_pi.nickname,
-
+                nickNT = "@NT_" + _session.m_pi.nickname,
                 title = _session.m_pi.ue.getTitle(),
                 team_point = 1000,
-                flag_visible_gm = 0
+                flag_visible_gm = (short)(_session.m_pi.mi.state_flag.visible ? 1 : 0)
             };
             // Só faz calculo de Quita rate depois que o player
             // estiver no level Beginner E e jogado 50 games
@@ -168,13 +200,11 @@ namespace GameServer.Game
 
         protected void updatePlayerInfo(Player _session)
         {
-            PlayerCanalInfoEx pci, _pci = new PlayerCanalInfoEx();
+            PlayerCanalInfoEx pci;
 
-            if ((_pci = getPlayerInfo(_session)) == null)
+            if ((pci = getPlayerInfo(_session)) == null)
                 throw new exception("[channel::updatePlayerInfo][Error] nao tem o player[UID=" + (_session.m_pi.uid)
                     + "] info dessa session no canal.");
-            // Copia do que esta no map
-            pci = _pci;
 
             // Player Canal Info Update
             pci.uid = _session.m_pi.uid;
@@ -182,7 +212,7 @@ namespace GameServer.Game
             pci.sala_numero = _session.m_pi.mi.sala_numero;
             pci.level = (byte)_session.m_pi.level;
             pci.team_point = 1000;
-            pci.flag_visible_gm = 0;
+            pci.flag_visible_gm = (short)(_session.m_pi.mi.state_flag.visible ? 1 : 0);
             pci.capability = _session.m_pi.mi.capability;
             pci.title = _session.m_pi.ue.getTitle();
             // Só faz calculo de Quita rate depois que o player
@@ -208,8 +238,6 @@ namespace GameServer.Game
 
             pci.state_flag.stBit.sexo = _session.m_pi.mi.sexo;
 
-            // Salva novamente
-            _pci = pci;
 
             // Update Location Player
             _session.m_pi.updateLocationDB();
@@ -243,19 +271,18 @@ namespace GameServer.Game
                 BEGIN_FIND_ROOM_C(numero);
 
                 //if (r == null)
-                //    throw new exception("[channel::_enter_left_time_is_over][Error] Channel[ID=" + (c->getId())
+                //    throw new exception("[channel::_enter_left_time_is_over][Error] Channel[ID=" + (c.getId())
                 //        + "] Sala[NUMERO=" + (numero) + "] nao encontrou a sala no canal",ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.CHANNEL, 1202, 0));
 
-                //r->setState(0);
-                //r->setFlag(0);
+                //r.setState(0);
+                //r.setFlag(0);
 
                 //// Limpa no Game o Timer
-                //r->requestEndAfterEnter();
+                //r.requestEndAfterEnter();
 
-                packet p;
 
                 //             // Update Room ON LOBBY
-                //             if (packet_func.pacote047(p, List<RoomInfo> { (RoomInfo)r.getInfo() }, 3))
+                //             if (packet_func_sv.pacote047(p, List<RoomInfo> { (RoomInfo)r.getInfo() }, 3))
                 //packet_func.channel_broadcast(c, p, 1);
 
             }
@@ -288,11 +315,8 @@ namespace GameServer.Game
 
             addSession(_session);
 
-            var p = packet_func.pacote095(0x102);
-            _session.Send(p);
-
-            p = packet_func.pacote04E(1);
-            _session.Send(p);
+            _session.Send(packet_func_sv.pacote095(0x102));
+            _session.Send(packet_func_sv.pacote04E(1));
 
             //// Verifica se o tempo do ticket premium user acabou e manda a mensagem para o player, e exclui o ticket do player no SERVER, DB e GAME
             //sPremiumSystem.checkEndTimeTicket(_session);
@@ -301,12 +325,12 @@ namespace GameServer.Game
         {
             //!@ As vezes o player sai antes e não tem mais como deletar ele do canal
             //if (!_session.getState())
-            //throw exception("Error player não conectar. Em channel::leaveChannel()",ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.CHANNEL, 1, 0));
+            //throw new exception("Error player não conectar. Em channel::leaveChannel()",ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.CHANNEL, 1, 0));
 
             try
             {
 
-                if (_session.m_pi.lobby != ~0)
+                if (_session.m_pi.lobby != 0)
                     leaveLobby(_session);       // Sai da Lobby
 
                 else // Sai da Sala Practice que não entra na lobby, [SINGLE PLAY]
@@ -320,7 +344,7 @@ namespace GameServer.Game
 
                 removeSession(_session);
 
-                // _smp.message_pool.push("[channel::leaveChannel][Error] " + e.getFullMessageError());
+                _smp.message_pool.push("[channel::leaveChannel][Error] " + e.getFullMessageError());
 
 
             }
@@ -337,7 +361,7 @@ namespace GameServer.Game
             //    throw new exception("[channel::checkEnterChannel][Error] player nao esta conectado.");
 
             // Não é GM verifica se o player pode entrar nesse canal
-            if (!_session.m_pi.m_cap.stBit.game_master)
+            if (!_session.m_pi.m_cap.game_master)
             {
 
                 if (_session.m_pi.level < 0 || _session.m_pi.level > 70)
@@ -345,27 +369,27 @@ namespace GameServer.Game
                         + "] nao tem o level necessario para entrar no canal[ID=" + (m_ci.id) + ", MIN=" + (0)
                         + ", MAX=" + (70) + "].");
 
-                if (m_ci.flag.stBit.only_rookie && Convert.ToBoolean(_session.m_pi.level > (short)enLEVEL.ROOKIE_A))
+                if (m_ci.flag.only_rookie && Convert.ToBoolean(_session.m_pi.level > (short)enLEVEL.ROOKIE_A))
                     throw new exception("[channel::checkEnterChannel][Error] Player[UID=" + (_session.m_pi.uid) + ", LEVEL=" + (_session.m_pi.level)
                         + "] nao tem o level necessario para entrar no canal[ID=" + (m_ci.id) + ", MIN=" + (0)
                         + ", MAX=" + (70) + "] com a flag So Rookie.");
 
-                if (m_ci.flag.stBit.junior_bellow && _session.m_pi.level > (short)enLEVEL.JUNIOR_A)
+                if (m_ci.flag.junior_bellow && _session.m_pi.level > (short)enLEVEL.JUNIOR_A)
                     throw new exception("[channel::checkEnterChannel][Error] Player[UID=" + (_session.m_pi.uid) + ", LEVEL=" + (_session.m_pi.level)
                         + "] nao tem o level necessario para entrar no canal[ID=" + (m_ci.id) + ", MIN=" + (0)
                         + ", MAX=" + (70) + "] com a flag Junior A pra baixo.");
 
-                if (m_ci.flag.stBit.junior_above && _session.m_pi.level < (short)enLEVEL.JUNIOR_E)
+                if (m_ci.flag.junior_above && _session.m_pi.level < (short)enLEVEL.JUNIOR_E)
                     throw new exception("[channel::checkEnterChannel][Error] Player[UID=" + (_session.m_pi.uid) + ", LEVEL=" + (_session.m_pi.level)
                         + "] nao tem o level necessario para entrar no canal[ID=" + (m_ci.id) + ", MIN=" + (0)
                         + ", MAX=" + (70) + "] com a flag Junior E pra cima.");
 
-                if (m_ci.flag.stBit.junior_between_senior && (_session.m_pi.level < (short)enLEVEL.JUNIOR_E || _session.m_pi.level > (short)enLEVEL.SENIOR_A))
+                if (m_ci.flag.junior_between_senior && (_session.m_pi.level < (short)enLEVEL.JUNIOR_E || _session.m_pi.level > (short)enLEVEL.SENIOR_A))
                     throw new exception("[channel::checkEnterChannel][Error] Player[UID=" + (_session.m_pi.uid) + ", LEVEL=" + (_session.m_pi.level)
                         + "] nao tem o level necessario para entrar no canal[ID=" + (m_ci.id) + ", MIN=" + (0)
                         + ", MAX=" + (70) + "] com a flag junior E a Senior A.");
 
-                if (m_ci.flag.stBit.beginner_between_junior && (_session.m_pi.level < (short)enLEVEL.BEGINNER_E || _session.m_pi.level > (short)enLEVEL.JUNIOR_A))
+                if (m_ci.flag.beginner_between_junior && (_session.m_pi.level < (short)enLEVEL.BEGINNER_E || _session.m_pi.level > (short)enLEVEL.JUNIOR_A))
                     throw new exception("[channel::checkEnterChannel][Error] Player[UID=" + (_session.m_pi.uid) + ", LEVEL=" + (_session.m_pi.level)
                         + "] nao tem o level necessario para entrar no canal[ID=" + (m_ci.id) + ", MIN=" + (0)
                         + ", MAX=" + (70) + "] com a flag Beginner E a Junior A.");
@@ -394,22 +418,19 @@ namespace GameServer.Game
         }
 
         // Check Invite Time
-        void checkInviteTime() { }
+        public void checkInviteTime() { }
 
         // stats
         public bool isFull()
         {
-            bool ret = false;
-
-            ret = m_ci.curr_user >= m_ci.max_user;
-            return ret;
+            return m_ci.curr_user >= m_ci.max_user;
         }
 
         // Lobby
         public void enterLobby(Player _session, byte _lobby)
         {
             //if (!_session.get())
-            //    throw new exception("[channel.enterLobby][Error] player[UID_TRASH=" + (_session.m_pi.uid)
+            //    throw new exception("[channel.enterLobby][Error] player[UID_TRASH=" + (_session.m_pi.m_uid)
             //        + "] nao esta conectado.");
 
             if (_session.m_pi.lobby != DEFAULT_CHANNEL)
@@ -431,23 +452,25 @@ namespace GameServer.Game
             for (int i = 0; i < v_sessions.Count; ++i)
             {
                 if ((pci = getPlayerInfo(v_sessions[i])) != null)
+                {
                     v_pci.Add(pci);
+                }
             }
 
             pci = getPlayerInfo(_session);
 
             // Add o primeiro limpando a lobby
-            var p = packet_func.pacote046(v_pci, 4);
+            var p = packet_func_sv.pacote046(v_pci, 4);
             _session.Send(p);
 
             if (v_pci.Count() > 0)
             {
-                _session.Send(packet_func.pacote046(v_pci, 5));
+                _session.Send(packet_func_sv.pacote046(v_pci, 5));
             }
-            //if (packet_func.pacote047(p, v_ri, 0))
+            //if (packet_func_sv.pacote047(p, v_ri, 0)) // e a listagem de salas!
             //    packet_func.session_send(ref p, _session, 0);
 
-            _session.SendChannel_broadcast(packet_func.pacote046(pci == null ? new vector<PlayerCanalInfo>() : new vector<PlayerCanalInfo>(pci), 1));
+            _session.SendChannel_broadcast(packet_func_sv.pacote046(pci == null ? new vector<PlayerCanalInfo>() : new vector<PlayerCanalInfo>(pci), 1));
 
             v_pci.Clear();
         }
@@ -455,7 +478,7 @@ namespace GameServer.Game
         {/// !@tem que tira isso aqui por que tem que enviar para os outros player da lobby que ele sai,
          /// mesmo que o sock dele não pode mais enviar
             //if (!_session.getState())
-            //throw exception("[channel::leaveLobby][Error] player nao esta conectado.",ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.CHANNEL, 1, 0));
+            //throw new exception("[channel::leaveLobby][Error] player nao esta conectado.",ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.CHANNEL, 1, 0));
 
             // Sai da sala se estiver em uma sala
             //try
@@ -468,7 +491,7 @@ namespace GameServer.Game
             //}
 
             _session.m_pi.lobby = DEFAULT_CHANNEL; //correct ;)
-            _session.m_pi.place = DEFAULT_CHANNEL; //correct :)
+            _session.m_pi.place = -1; //correct :)
             updatePlayerInfo(_session);
 
             sendUpdatePlayerInfo(_session, 2);
@@ -483,9 +506,7 @@ namespace GameServer.Game
                 // Enter Lobby
                 enterLobby(_session, 1/*Multi player*/);
 
-                var p = new PangyaBinaryWriter();
-                p.init_plain(0xF5);
-                _session.Send(p);
+                _session.Send(new PangyaBinaryWriter(0xF5));
 
             }
             catch (exception e)
@@ -502,20 +523,69 @@ namespace GameServer.Game
                 // leave Lobby
                 leaveLobby(_session);
 
-                var p = new PangyaBinaryWriter();
-                p.init_plain(0xF6);
-                _session.Send(p);
-
+                _session.Send(new PangyaBinaryWriter(0xF6));
             }
             catch (exception e)
             {
-
+                Console.WriteLine("[Channel::leaveLobbyMultiPlayer][StError]: " + e.getFullMessageError());
             }
         }
 
         // Lobby Grand Prix
-        void enterLobbyGrandPrix(Player _session) { }
-        void leaveLobbyGrandPrix(Player _session) { }
+        public void enterLobbyGrandPrix(Player _session)
+        {
+            try
+            {
+                //falta as outras checagens!
+                if (!Program.gs.getInfo().propriedade.grand_prix)
+                    throw new exception("[channel::enterLobbyGrandPrix][Error] player[UID=" + (_session.m_pi.uid) + "] Channel[ID=" + (m_ci.id)
+                            + "] tentou entrar na lobby Grand Prix, mas ele esta desativo. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.CHANNEL, 1, 0x750001));
+
+                enterLobby(_session, 176/*Grand Prix*/);
+                // entra Lobby Grand Prix
+                using (var p = new PangyaBinaryWriter(0x250))
+                {
+                    p.WriteUInt32(0u);    // OK
+
+                    // Count Type Grand Prix que está ativo
+                    // Tipo 0 é ativo por sem precisar desses valores
+                    p.WriteUInt32(Program.gs.getInfo().rate.countBitGrandPrixEvent());
+
+                    // Grand Prix Event: Types
+                    foreach (var el in Program.gs.getInfo().rate.getValueBitGrandPrixEvent())
+                        p.WriteUInt32(el);
+
+                    // Count de	grand prix clear, (typeid, position)
+                    p.WriteInt32(_session.m_pi.v_gpc.Count());
+
+                    foreach (var el in _session.m_pi.v_gpc)
+                        p.WriteStruct(el, new GrandPrixClear());
+
+                    // Avg. Score do player
+                    p.Write(_session.m_pi.ui.getMediaScore());
+                    _session.Send(p);
+                }
+            }
+            catch (exception e)
+            {
+                _smp::message_pool.push(new message("[channel::enterLobbyGrandPrix][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                using (var p = new PangyaBinaryWriter(0x250))
+                {
+                    p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE(e.getCodeError()) == (uint)STDA_ERROR_TYPE.CHANNEL) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE(e.getCodeError()) : 0x750000);
+                    _session.Send(p);
+                }
+            }
+        }
+        public void leaveLobbyGrandPrix(Player _session)
+        {
+            leaveLobby(_session);
+            // Sai Lobby Grand Prix
+            using (var p = new PangyaBinaryWriter(0x251))
+            {
+                p.WriteUInt32(0u);    // OK
+                _session.Send(p);
+            }
+        }
 
         //// Room
         //LEAVE_ROOM_STATE leaveRoom(Player _session, int _option) { }
@@ -545,720 +615,421 @@ namespace GameServer.Game
 
 
         // Lobby
-        public void requestEnterLobby(Player _session, packet _packet)
+        public void requestEnterLobby(Player _session, Packet _packet)
         {
             enterLobbyMultiPlayer(_session);
         }
-        public void requestExitLobby(Player _session, packet _packet)
+        public void requestExitLobby(Player _session, Packet _packet)
         {
             leaveLobbyMultiPlayer(_session);
         }
-        public void requestEnterLobbyGrandPrix(Player _session, packet _packet) { }
-        public void requestExitLobbyGrandPrix(Player _session, packet _packet) { }
+        public void requestEnterLobbyGrandPrix(Player _session, Packet _packet)
+        {
+            enterLobbyGrandPrix(_session);
+        }
+        public void requestExitLobbyGrandPrix(Player _session, Packet _packet)
+        {
+            leaveLobbyGrandPrix(_session);
+        }
 
         // Spy (GM) observer
-        public void requestEnterSpyRoom(Player _session, packet _packet) { }
+        public void requestEnterSpyRoom(Player _session, Packet _packet) { }
 
         // Room
-        public void requestMakeRoom(Player _session, packet _packet) { }
-        public void requestEnterRoom(Player _session, packet _packet) { }
-        public void requestChangeInfoRoom(Player _session, packet _packet) { }
-        public void requestExitRoom(Player _session, packet _packet) { }
-        public void requestShowInfoRoom(Player _session, packet _packet) { }
-        public void requestPlayerLocationRoom(Player _session, packet _packet) { }
-        public void requestChangePlayerStateReadyRoom(Player _session, packet _packet) { }
-        public void requestKickPlayerOfRoom(Player _session, packet _packet) { }
-        public void requestChangePlayerTeamRoom(Player _session, packet _packet) { }
-        public void requestChangePlayerStateAFKRoom(Player _session, packet _packet) { }
-        public void requestPlayerStateCharacterLounge(Player _session, packet _packet) { }
-        public void requestToggleAssist(Player _session, packet _packet) { }
-        public void requestInvite(Player _session, packet _packet) { }
-        public void requestCheckInvite(Player _session, packet _packet) { } // Esse aqui o O Server Original nao retorna nada para o cliente, acho que é só um check
-        public void requestChatTeam(Player _session, packet _packet) { }
+        public void requestMakeRoom(Player _session, Packet _packet)
+        {
+            using (var p = new PangyaBinaryWriter(0x49))
+            {
+                p.WriteUInt16(2); // Error
 
-        // Request Player sai do Web Guild, verifica se tem alguma atualização para passar para o player no gs
-        public void requestExitedFromWebGuild(Player _session, packet _packet) { }
-
-        // Request Game
-        public void requestStartGame(Player _session, packet _packet) { }
-        public void requestInitHole(Player _session, packet _packet) { }
-        public void requestFinishLoadHole(Player _session, packet _packet) { }
-        public void requestFinishCharIntro(Player _session, packet _packet) { }
-        public void requestFinishHoleData(Player _session, packet _packet) { }
-
-        // Server enviou a resposta do InitShot para o cliente
-        public void requestInitShotSended(Player _session, packet _packet) { }
-
-        public void requestInitShot(Player _session, packet _packet) { }
-        public void requestSyncShot(Player _session, packet _packet) { }
-        public void requestInitShotArrowSeq(Player _session, packet _packet) { }
-        public void requestShotEndData(Player _session, packet _packet) { }
-        public void requestFinishShot(Player _session, packet _packet) { }
-
-        public void requestChangeMira(Player _session, packet _packet) { }
-        public void requestChangeStateBarSpace(Player _session, packet _packet) { }
-        public void requestActivePowerShot(Player _session, packet _packet) { }
-        public void requestChangeClub(Player _session, packet _packet) { }
-        public void requestUseActiveItem(Player _session, packet _packet) { }
-        public void requestChangeStateTypeing(Player _session, packet _packet) { }
-        public void requestMoveBall(Player _session, packet _packet) { }
-        public void requestChangeStateChatBlock(Player _session, packet _packet) { }
-        public void requestActiveBooster(Player _session, packet _packet) { }
-        public void requestActiveReplay(Player _session, packet _packet) { }
-        public void requestActiveCutin(Player _session, packet _packet) { }
-        public void requestActiveAutoCommand(Player _session, packet _packet) { }
-        public void requestActiveAssistGreen(Player _session, packet _packet) { }
-
-        // VersusBase
-        public void requestLoadGamePercent(Player _session, packet _packet) { }
-        public void requestMarkerOnCourse(Player _session, packet _packet) { }
-        public void requestStartTurnTime(Player _session, packet _packet) { }
-        public void requestUnOrPauseGame(Player _session, packet _packet) { }
-        public void requestLastPlayerFinishVersus(Player _session, packet _packet) { }
-        public void requestReplyContinueVersus(Player _session, packet _packet) { }
-
-        // Match
-        public void requestTeamFinishHole(Player _session, packet _packet) { }
-
-        // Practice
-        public void requestLeavePractice(Player _session, packet _packet) { }
-
-        // Tourney
-        public void requestUseTicketReport(Player _session, packet _packet) { }
-
-        // Grand Zodiac
-        public void requestLeaveChipInPractice(Player _session, packet _packet) { }
-        public void requestStartFirstHoleGrandZodiac(Player _session, packet _packet) { }
-        public void requestReplyInitialValueGrandZodiac(Player _session, packet _packet) { }
-
-        // Ability Item
-        public void requestActiveRing(Player _session, packet _packet) { }
-        public void requestActiveRingGround(Player _session, packet _packet) { }
-        public void requestActiveRingPawsRainbowJP(Player _session, packet _packet) { }
-        public void requestActiveRingPawsRingSetJP(Player _session, packet _packet) { }
-        public void requestActiveRingPowerGagueJP(Player _session, packet _packet) { }
-        public void requestActiveRingMiracleSignJP(Player _session, packet _packet) { }
-        public void requestActiveWing(Player _session, packet _packet) { }
-        public void requestActivePaws(Player _session, packet _packet) { }
-        public void requestActiveGlove(Player _session, packet _packet) { }
-        public void requestActiveEarcuff(Player _session, packet _packet) { }
-
-        // Request Enter Game After Started
-        public void requestEnterGameAfterStarted(Player _session, packet _packet) { }
-
-        public void requestFinishGame(Player _session, packet _packet) { }
-
-        public void requestChangeWindNextHoleRepeat(Player _session, packet _packet) { }
-
-        // Grand Prix
-        public void requestEnterRoomGrandPrix(Player _session, packet _packet) { }
-        public void requestExitRoomGrandPrix(Player _session, packet _packet) { }
-
-        // Player Report Chat Game
-        public void requestPlayerReportChatGame(Player _session, packet _packet) { }
-
-        // Common Command GM
-        public void requestExecCCGVisible(Player _session, packet _packet) { }
-        public void requestExecCCGChangeWindVersus(Player _session, packet _packet) { }
-        public void requestExecCCGChangeWeather(Player _session, packet _packet) { }
-        public void requestExecCCGGoldenBell(Player _session, packet _packet) { }
-        public void requestExecCCGIdentity(Player _session, packet _packet) { }
-        public void requestExecCCGKick(Player _session, packet _packet) { }
-        public void requestExecCCGDestroy(Player _session, packet _packet) { }
-
-        // MyRoom
-        public void requestChangePlayerItemMyRoom(Player _session, packet _packet) 
+                _session.Send(p);
+            }
+        }
+        public void requestEnterRoom(Player _session, Packet _packet) { }
+        public void requestChangeInfoRoom(Player _session, Packet _packet)
         {
 
-            _smp::message_pool.push(new message("Packet 0x20.\n\rHex Dump.\n\r" + _packet.Log(), type_msg.CL_FILE_LOG_AND_CONSOLE));
-            
-            
-            _session.Send(packet_func.pacote06B(_session.m_pi, _packet.ReadByte(), 4));//teste
-
-            //            byte type = 0;
-            //            uint item_id;
-            //            int error = 4;
-
-            //            try
-            //            {
-
-            //                type = _packet.ReadByte();
-
-            //                switch (type)
-            //                {
-            //                    case 0: // Character Equipado Parts Complete
-            //                        {
-            //                            CharacterInfo ci, pCe = null;
-
-            //                            ci =  (CharacterInfo)_packet.Read(new CharacterInfo());
-            //                            if (ci.id != 0 && (pCe = _session.m_pi.findCharacterById(ci.id)) != null
-            //                                    && (sIff.getItemGroupIdentify(pCe._typeid) == iff::CHARACTER && sIff.getItemGroupIdentify(ci._typeid) == iff::CHARACTER))
-            //                            {
-
-            //                                // Checks Parts Equiped
-            //                                //_session.checkCharacterEquipedPart(ci);
-
-            //                                // Check AuxPart Equiped
-            //                                _session.checkCharacterEquipedAuxPart(ci);
-
-            //                                pCe = ci;
-
-            //                                //NormalManagerDB.add(0, new CmdUpdateCharacterAllPartEquiped(_session.m_pi.uid, ci), channel::SQLDBResponse, this);
-
-            //                            }
-            //                            else
-            //                            {
-
-            //                                error = (ci.id == 0) ? 1/*Invalid Item Id*/ : (pCe == null ? 2/*Not Found Item*/ : 3/*Item Typeid is Wrong*/);
-
-            //                                _smp::message_pool.push(new message("[channel::requestChangePlayerItemMyRoom][Error] player[UID=" + (_session.m_pi.uid)
-            //                                        + "] tentou Atualizar os Parts do Character[ID=" + (ci.id) + "], mas deu Error[VALUE=" + (error)
-            //                                        + "]. Hacker ou Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
-            //                            }
-
-
-
-            //                            _session.Send(packet_func.pacote06B(p, &_session, &_session.m_pi, type, error));
-            //                            break;
-            //                        }
-            //                    case 1: // Caddie
-            //                        {
-            //                            if ((item_id = _packet.ReadUInt32()) != 0)
-            //                            {
-            //                                var pCi = _session.m_pi.findCaddieById(item_id);
-
-            //                                if (pCi != null && sIff.getItemGroupIdentify(pCi._typeid) == iff::CADDIE)
-            //                                {
-
-            //                                    _session.m_pi.ei.cad_info = pCi;
-            //                                    _session.m_pi.ue.caddie_id = item_id;
-
-            //                                    // Verifica se o Caddie pode ser equipado
-            //                                    if (_session.checkCaddieEquiped(_session.m_pi.ue))
-            //                                        item_id = _session.m_pi.ue.caddie_id;   // Desequipa caddie
-
-            //                                    // Update ON DB
-            //                                    NormalManagerDB.add(0, new CmdUpdateCaddieEquiped(_session.m_pi.uid, item_id), channel::SQLDBResponse, this);
-
-            //                                }
-            //                                else
-            //                                {
-
-            //                                    error = (pCi == null ? 2/*Not Found Item*/ : 3/*Item Typeid is Wrong*/);
-
-            //                                    _smp::message_pool.push(new message("[channel::requestChangePlayerItemMyRoom][Error] player[UID=" + (_session.m_pi.uid)
-            //                                            + "] tentou equipar Caddie[ID=" + (item_id) + "], mas deu Error[VALUE=" + (error)
-            //                                            + "]. Hacker ou Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
-            //                                }
-
-            //                            }
-            //                            else if (_session.m_pi.ue.caddie_id > 0 && _session.m_pi.ei.char_info != null)
-            //                            {   // Desequipa Caddie
-
-            //                                _session.m_pi.ei.cad_info = null;
-            //                                _session.m_pi.ue.caddie_id = 0;
-
-            //                                // Update ON DB
-            //                                NormalManagerDB.add(0, new CmdUpdateCaddieEquiped(_session.m_pi.uid, item_id), channel::SQLDBResponse, this);
-
-            //                            }// else Não tem nenhum caddie equipado, para desequipar, então o cliente só quis atualizar o estado
-
-
-            //                            _session.Send(packet_func.pacote06B(p, &_session, &_session.m_pi, type, error));
-            //                            break;
-            //                        }
-            //                    case 2: // Itens Equipáveis
-            //                        {
-            //                            // Aqui tenho que copiar para uma struct temporaria antes,
-            //                            // para verificar os itens que ele está equipando.
-            //                            // Se está tudo certo, Salva na struct da session dele, e depois manda pra salvar no db por meio do Asyc query update
-            //                            // Se não da mensagem de erro
-            //                            // Error: 0 = "código 'errado(tenho que traduzir direito ainda)'", 1 = "DB Item Errado", 2, 3 = "Unknown ainda",
-            //                            // 4 = "Sucesso"
-
-            //                            UserEquip ue;
-            //                            _packet.ReadBuffer(&ue.item_slot, Marshal.SizeOf(ue.item_slot));
-
-
-            //                            _smp::message_pool.push(new message(hex_util::BufferToHexString((unsigned char *)ue.item_slot, Marshal.SizeOf(ue.item_slot)), CL_ONLY_FILE_LOG));
-
-
-            //                            try
-            //                            {
-
-            //                                Dictionary<uint/*TYPEID*/, uint/*Count*/ > mp_same_item_count;
-            //                                Dictionary<uint/*TYPEID*/, uint/*Count*/ > c_it;
-
-            //                                for (size_t i = 0; i < (Marshal.SizeOf(ue.item_slot) / Marshal.SizeOf(int)); ++i)
-            //                                {
-
-            //                                    if (ue.item_slot[i] != 0)
-            //                                    {
-
-            //                                        if (!sIff.ItemEquipavel(ue.item_slot[i]))
-            //                                            throw exception("[channel::requestChangePlayerItemMyRoom][Error] player[UID=" + (_session.m_pi.uid) + "] tentou atualizar item[TYPEID="
-            //                                                    + (ue.item_slot[i]) + "] equipaveis, mas nao eh um item equipavel. Hacker ou Bug", 0);
-
-            //                                        // Verifica se esse item existe pela chave do map se não lança uma exception se nao existir
-            //                                        if (sIff.findItem(ue.item_slot[i]) == null)
-            //                                            throw std::out_of_range("[channel::requestChangePlayerItemMyRoom][Error] player[UID=" + (_session.m_pi.uid) + "] tentou atualizar item[TYPEID="
-            //                                                    + (ue.item_slot[i]) + "] equipaveis, mas nao tem o item no iff Item do IFF_STRUCT do Server. Hacker ou Bug");
-
-            //                                        // E se não tiver quantidade para equipar lança outra exception
-            //                                        var pWi = _session.m_pi.findWarehouseItemByTypeid(ue.item_slot[i]);
-
-            //                                        if (pWi == null)
-            //                                            throw exception("[channel::requestChangePlayerItemMyRoom][Error] player[UID=" + (_session.m_pi.uid) + "] tentou atualizar item[TYPEID="
-            //                                                    + (ue.item_slot[i]) + "] equipaveis, mas ele nao tem esse item. Hacker ou Bug", 2);
-            //                                        else
-            //                                        {
-
-            //                                            if ((c_it = mp_same_item_count.find(pWi._typeid)) != mp_same_item_count.end())
-            //                                            {
-
-            //                                                if (std::find(active_item_cant_have_2_inveroty, LAST_ELEMENT_IN_ARRAY(active_item_cant_have_2_inveroty), pWi._typeid) != LAST_ELEMENT_IN_ARRAY(active_item_cant_have_2_inveroty))
-            //                                                {
-
-            //                                                    throw exception("[channel::requestChangePlayerItemMyRoom][Error] player[UID=" + (_session.m_pi.uid) + "] tentou equipar item[TYPEID=" + (ue.item_slot[i])
-            //                                                            + "] mas ele ja tem 1 item desse equipado, so e permitido equipar 1, nao pode equipar mais do que 1. Hacker ou Bug", 2);
-
-            //                                                }
-            //                                                else if (pWi.STDA_C_ITEM_QNTD < (int)(c_it.second + 1)/*Count*/)
-            //                                                    throw exception("[channel::requestChangePlayerItemMyRoom][Error] player[UID=" + (_session.m_pi.uid) + "] tentou atualizar item[TYPEID="
-            //                                                            + (ue.item_slot[i]) + "] equipaveis, mas ele nao tem quantidade dele. Hacker ou Bug", 2);
-            //                                                else    // Increase Count Same Item
-            //                                                    c_it.second++;  // Count
-
-            //                                            }
-            //                                            else
-            //                                            {
-
-            //                                                if (pWi.STDA_C_ITEM_QNTD < 1/*Count*/)
-            //                                                    throw exception("[channel::requestChangePlayerItemMyRoom][Error] player[UID=" + (_session.m_pi.uid) + "] tentou atualizar item[TYPEID="
-            //                                                            + (ue.item_slot[i]) + "] equipaveis, mas ele nao tem quantidade dele. Hacker ou Bug", 2);
-
-            //                                                // insert
-            //                                                mp_same_item_count.insert(std::make_pair(pWi._typeid, 1/*Count*/));
-            //                                            }
-
-            //                                        }
-            //                                    }
-            //                                }
-
-            //#if defined(_WIN32)
-            //				memcpy_s(_session.m_pi.ue.item_slot, Marshal.SizeOf(_session.m_pi.ue.item_slot), ue.item_slot, Marshal.SizeOf(_session.m_pi.ue.item_slot));
-            //#elif defined(__linux__)
-            //				memcpy(_session.m_pi.ue.item_slot, ue.item_slot, Marshal.SizeOf(_session.m_pi.ue.item_slot));
-            //#endif
-
-            //                                // Update ON DB
-            //                                NormalManagerDB.add(25, new CmdUpdateItemSlot(_session.m_pi.uid, (uint*)ue.item_slot), channel::SQLDBResponse, this);
-
-            //                            }
-            //                            catch (exception&e) {
-
-            //                                _smp::message_pool.push(new message("[channel::requestChangePlayerItemMyRoom][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
-
-            //                                if (e.getCodeError() == 0)
-            //                                    error = 0;
-            //                                else if (e.getCodeError() == 1)
-            //                                    error = 1;
-            //                                else // System Error
-            //                                    error = 10;
-
-            //                            }catch (std::out_of_range&e) {
-
-            //                                _smp::message_pool.push(new message(std::string("[channel::requestChangePlayerItemMyRoom][ErrorSystem] ") + e.what(), type_msg.CL_FILE_LOG_AND_CONSOLE));
-
-            //                                // Item Não existe no Server
-            //                                error = 1;
-
-            //                            }catch (std::exception&e) {
-
-            //                                _smp::message_pool.push(new message(std::string("[channel::requestChangePlayerItemMyRoom][ErrorSystem] ") + e.what(), type_msg.CL_FILE_LOG_AND_CONSOLE));
-
-            //                                // System Error
-            //                                error = 10;
-
-            //                            }catch (...) {
-
-            //                                _smp::message_pool.push(new message("[channel::requestChangePlayerItemMyRoom][ErrorSystem] Unknown Error", type_msg.CL_FILE_LOG_AND_CONSOLE));
-
-            //                                // System Error
-            //                                error = 10;
-            //                            }
-
-
-            //                            _session.Send(packet_func.pacote06B(p, &_session, &_session.m_pi, type, error));
-            //                            break;
-            //                            }
-
-            //        case 3: // Bola e Taqueira
-            //                                {
-            //                                    // Ball(COMET)
-            //                                    WarehouseItemEx* pWi = null;
-
-            //                                    if ((item_id = _packet.ReadUInt32()) != 0 && (pWi = _session.m_pi.findWarehouseItemByTypeid(item_id)) != null
-            //                                            && sIff.getItemGroupIdentify(pWi._typeid) == iff::BALL)
-            //                                    {
-
-            //                                        _session.m_pi.ei.comet = pWi;
-            //                                        _session.m_pi.ue.ball_typeid = item_id;     // Ball(Comet) é o typeid que o cliente passa
-
-            //                                        // Verifica se a Bola pode ser equipada
-            //                                        if (_session.checkBallEquiped(_session.m_pi.ue))
-            //                                            item_id = _session.m_pi.ue.ball_typeid;
-
-            //                                        // Update ON DB
-            //                                        NormalManagerDB.add(0, new CmdUpdateBallEquiped(_session.m_pi.uid, item_id), channel::SQLDBResponse, this);
-
-            //                                    }
-            //                                    else if (item_id == 0)
-            //                                    { // Bola 0 coloca a bola padrão para ele, se for premium user coloca a bola de premium user
-
-            //                                        // Zera para equipar a bola padrão
-            //                                        _session.m_pi.ei.comet = null;
-            //                                        _session.m_pi.ue.ball_typeid = 0l;
-
-            //                                        // Verifica se a Bola pode ser equipada (Coloca para equipar a bola padrão
-            //                                        if (_session.checkBallEquiped(_session.m_pi.ue))
-            //                                            item_id = _session.m_pi.ue.ball_typeid;
-
-            //                                        // Update ON DB
-            //                                        NormalManagerDB.add(0, new CmdUpdateBallEquiped(_session.m_pi.uid, item_id), channel::SQLDBResponse, this);
-
-            //                                    }
-            //                                    else
-            //                                    {
-
-            //                                        error = (pWi == null ? 2/*Not Found Item*/ : 3/*Item Typeid is Wrong*/);
-
-            //                                        _smp::message_pool.push(new message("[channel::requestChangePlayerItemMyRoom][Error] player[UID=" + (_session.m_pi.uid)
-            //                                                + "] tentou equipar Ball[TYPEID=" + (item_id) + "], mas deu Error[VALUE=" + (error)
-            //                                                + "]. Hacker ou Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
-            //                                    }
-
-            //                                    // ClubSet
-            //                                    if ((item_id = _packet.ReadUInt32()) != 0 && (pWi = _session.m_pi.findWarehouseItemById(item_id)) != null
-            //                                            && sIff.getItemGroupIdentify(pWi._typeid) == iff::CLUBSET)
-            //                                    {
-
-            //                                        // Update ClubSet
-            //                                        _session.m_pi.ei.clubset = pWi;
-
-            //                                        // Esse C do WarehouseItem, que pega do DB, não é o ja updado inicial da taqueira é o que fica tabela enchant, 
-            //                                        // que no original fica no warehouse msm, eu só confundi quando fiz
-            //                                        _session.m_pi.ei.csi = { pWi.id, pWi._typeid, pWi.c };
-
-            //                                        IFF::ClubSet* cs = sIff.findClubSet(pWi._typeid);
-
-            //                                        if (cs != null)
-            //                                        {
-
-            //                                            for (var j = 0u; j < (Marshal.SizeOf(_session.m_pi.ei.csi.enchant_c) / Marshal.SizeOf(short)); ++j)
-            //                                                _session.m_pi.ei.csi.enchant_c[j] = cs.slot[j] + pWi.clubset_workshop.c[j];
-
-            //                                            _session.m_pi.ue.clubset_id = item_id;
-
-            //                                            // Verifica se o ClubSet pode ser equipado
-            //                                            if (_session.checkClubSetEquiped(_session.m_pi.ue))
-            //                                                item_id = _session.m_pi.ue.clubset_id;
-
-            //                                            // Update ON DB
-            //                                            NormalManagerDB.add(0, new CmdUpdateClubsetEquiped(_session.m_pi.uid, item_id), channel::SQLDBResponse, this);
-
-            //                                        }
-            //                                        else // O Cliente é que tem que saber do erro, não posso passa essa excessão para função anterior
-            //                                            _smp::message_pool.push(new message("[channel::requestChangePlayerItemMyRoom][Error] player[UID=" + (_session.m_pi.uid) + "] tentou atualizar o ClubSet[TYPEID="
-            //                                                    + (pWi._typeid) + ", ID=" + (pWi.id) + "] equipado, mas ClubSet Not exists on IFF_STRUCT do Server. Hacker ou Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
-
-            //                                    }
-            //                                    else
-            //                                    {
-
-            //                                        error = (item_id == 0) ? 1/*Invalid Item Id*/ : (pWi == null ? 2/*Not Found Item*/ : 3/*Item Typeid is Wrong*/);
-
-            //                                        _smp::message_pool.push(new message("[channel::requestChangePlayerItemMyRoom][Error] player[UID=" + (_session.m_pi.uid)
-            //                                                + "] tentou equipar ClubSet[ID=" + (item_id) + "], mas deu Error[VALUE=" + (error)
-            //                                                + "]. Hacker ou Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
-            //                                    }
-
-
-            //                                    _session.Send(packet_func.pacote06B(p, &_session, &_session.m_pi, type, error));
-            //                                    break;
-            //                                }
-            //                            case 4: // Skins
-            //                                {
-            //                                    for (var i = 0u; i < (Marshal.SizeOf(UserEquip::skin_typeid) / Marshal.SizeOf(UserEquip::skin_typeid[0])); ++i)
-            //                                    {
-
-            //                                        if ((item_id = _packet.ReadUInt32()) != 0)
-            //                                        {
-
-            //                                            var pWi = _session.m_pi.findWarehouseItemByTypeid(item_id);
-
-            //                                            if (pWi != null && sIff.getItemGroupIdentify(pWi._typeid) == iff::SKIN)
-            //                                            {
-
-            //                                                _session.m_pi.ue.skin_id[i] = pWi.id;
-            //                                                _session.m_pi.ue.skin_typeid[i] = pWi._typeid;
-
-            //                                                // Update ON DB
-            //                                                NormalManagerDB.add(0, new CmdUpdateSkinEquiped(_session.m_pi.uid, _session.m_pi.ue), channel::SQLDBResponse, this);
-
-            //                                            }
-            //                                            else
-            //                                            {
-
-            //                                                error = (pWi == null ? 2/*Not Found Item*/ : 3/*Item Typeid is Wrong*/);
-
-            //                                                _smp::message_pool.push(new message("[channel::requestChangePlayerItemMyRoom][Error] player[UID=" + (_session.m_pi.uid)
-            //                                                        + "] tentou equipar SKIN[TYPEID=" + (item_id) + ", SLOT=" + (i)
-            //                                                        + "], mas deu Error[VALUE=" + (error) + "]. Hacker ou Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
-            //                                            }
-
-            //                                        }
-            //                                        else
-            //                                        { // Zera o Skin equipado
-
-            //                                            _session.m_pi.ue.skin_id[i] = 0u;
-            //                                            _session.m_pi.ue.skin_typeid[i] = 0u;
-
-            //                                            // Update ON DB
-            //                                            NormalManagerDB.add(0, new CmdUpdateSkinEquiped(_session.m_pi.uid, _session.m_pi.ue), channel::SQLDBResponse, this);
-            //                                        }
-            //                                    }
-
-            //                                    // Verifica se a Skin pode ser equipada
-            //                                    if (_session.checkSkinEquiped(_session.m_pi.ue))
-            //                                        // Update ON DB
-            //                                        NormalManagerDB.add(0, new CmdUpdateSkinEquiped(_session.m_pi.uid, _session.m_pi.ue), channel::SQLDBResponse, this);
-
-
-            //                                    _session.Send(packet_func.pacote06B(p, &_session, &_session.m_pi, type, error));
-            //                                    break;
-            //                                }
-            //                            case 5: // only Character ID EQUIPADO
-            //                                {
-            //                                    CharacterInfo* pCe = null;
-
-            //                                    if ((item_id = _packet.ReadUInt32()) != 0 && (pCe = _session.m_pi.findCharacterById(item_id)) != null
-            //                                            && sIff.getItemGroupIdentify(pCe._typeid) == iff::CHARACTER)
-            //                                    {
-
-            //                                        _session.m_pi.ei.char_info = pCe;
-            //                                        _session.m_pi.ue.character_id = item_id;
-
-            //                                        updatePlayerInfo(_session);
-
-            //                                        PlayerCanalInfo* pci = getPlayerInfo(&_session);
-
-
-            //                                        _session.Send(packet_func.pacote06B(p, &_session, &_session.m_pi, type, error));
-
-            //                                        // Update ON DB
-            //                                        NormalManagerDB.add(0, new CmdUpdateCharacterEquiped(_session.m_pi.uid, item_id), channel::SQLDBResponse, this);
-
-            //                                    }
-            //                                    else
-            //                                    {
-
-            //                                        error = (item_id == 0) ? 1/*Invalid Item Id*/ : (pCe == null ? 2/*Not Found Item*/ : 3/*Item Typeid is Wrong*/);
-
-            //                                        _smp::message_pool.push(new message("[channel::requestChangePlayerItemMyRoom][Error] player[UID=" + (_session.m_pi.uid)
-            //                                                + "] tentou equipar o Character[ID=" + (item_id) + "], mas deu Error[VALUE=" + (error)
-            //                                                + "]. Hacker ou Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
-            //                                    }
-
-
-            //                                    _session.Send(packet_func.pacote06B(p, &_session, &_session.m_pi, type, error));
-            //                                    break;
-            //                                }
-            //                            case 8: // Mascot Equipado
-            //                                {
-            //                                    if ((item_id = _packet.ReadUInt32()) != 0)
-            //                                    {
-
-            //                                        var pMi = _session.m_pi.findMascotById(item_id);
-
-            //                                        if (pMi != null && sIff.getItemGroupIdentify(pMi._typeid) == iff::MASCOT)
-            //                                        {
-
-            //                                            _session.m_pi.ei.mascot_info = pMi;
-            //                                            _session.m_pi.ue.mascot_id = item_id;
-
-            //                                            // Verifica se o Mascot pode ser equipado
-            //                                            if (_session.checkMascotEquiped(_session.m_pi.ue))
-            //                                                item_id = _session.m_pi.ue.mascot_id;
-
-            //                                            // Update ON DB
-            //                                            NormalManagerDB.add(0, new CmdUpdateMascotEquiped(_session.m_pi.uid, item_id), channel::SQLDBResponse, this);
-
-            //                                        }
-            //                                        else
-            //                                        {
-
-            //                                            error = (pMi == null ? 2/*Not Found Item*/ : 3/*Item Typeid is Wrong*/);
-
-            //                                            _smp::message_pool.push(new message("[channel::requestChangePlayerItemMyRoom][Error] player[UID=" + (_session.m_pi.uid)
-            //                                                    + "] tentou equipar Mascot[ID=" + (item_id) + "], mas deu Error[VALUE=" + (error)
-            //                                                    + "]. Hacker ou Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
-            //                                        }
-
-            //                                    }
-            //                                    else if (_session.m_pi.ue.mascot_id > 0 && _session.m_pi.ei.mascot_info != null)
-            //                                    {   // Desequipa Mascot
-
-            //                                        _session.m_pi.ei.mascot_info = null;
-            //                                        _session.m_pi.ue.mascot_id = 0;
-
-            //                                        // Att No DB
-            //                                        NormalManagerDB.add(0, new CmdUpdateMascotEquiped(_session.m_pi.uid, item_id), channel::SQLDBResponse, this);
-
-            //                                    }// else Não tem nenhum mascot equipado, para desequipar, então o cliente só quis atualizar o estado
-
-
-            //                                    _session.Send(packet_func.pacote06B(p, &_session, &_session.m_pi, type, error));
-            //                                    break;
-            //                                }
-            //                            case 9: // Character Cutin
-            //                                {
-            //                                    CharacterInfo* pCe = null;
-
-            //                                    // Só atualizar o cuttin se for o do character equipado, para não da conflito depois
-            //                                    // O pangya deveria passa todos os cutin que foram alterado, mas ele só passa o do character equipado
-            //                                    if ((item_id = _packet.ReadUInt32()) != 0 && (pCe = _session.m_pi.findCharacterById(item_id)) != null
-            //                                            && (sIff.getItemGroupIdentify(pCe._typeid) == iff::CHARACTER && _session.m_pi.ei.char_info != null && _session.m_pi.ei.char_info.id == pCe.id))
-            //                                    {
-
-            //                                        int32_t cc[4]{ 0 };
-
-            //                                        _packet.ReadBuffer(&cc, Marshal.SizeOf(cc));
-
-            //                                        for (var i = 0u; i < (Marshal.SizeOf(cc) / Marshal.SizeOf(cc[0])); i++)
-            //                                        {
-
-            //                                            if (cc[i] != 0)
-            //                                            {
-
-            //                                                var pWi = _session.m_pi.findWarehouseItemById(cc[i]);
-
-            //                                                if (pWi != null && sIff.getItemGroupIdentify(pWi._typeid) == iff::SKIN)
-            //                                                    pCe.cut_in[i] = pWi.id;
-            //                                                else
-            //                                                {
-
-            //                                                    error = (pWi == null ? 2/*Not Found Item*/ : 3/*Item Typeid is Wrong*/);
-
-            //                                                    _smp::message_pool.push(new message("[channel::requestChangePlayerItemMyRoom][Error] player[UID=" + (_session.m_pi.uid)
-            //                                                            + "] tentou equipar Equipar Cutin do Character[ID=" + (item_id) + ", CUTTIN_TYPEID=" + (cc[i])
-            //                                                            + ", SLOT=" + (i) + "], mas deu Error[VALUE=" + (error) + "]. Hacker ou Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
-            //                                                }
-
-            //                                            }
-            //                                            else // Zera o Cutin que o valor que o cliente passou é 0, para desequipar o cutin
-            //                                                pCe.cut_in[i] = cc[i];
-            //                                        }
-
-            //                                        // Verifica se o Cutin pode ser equipado
-            //                                        _session.checkCharacterEquipedCutin(*pCe);
-
-            //                                        // Update ON DB
-            //                                        NormalManagerDB.add(0, new CmdUpdateCharacterCutinEquiped(_session.m_pi.uid, *pCe), channel::SQLDBResponse, this);
-
-            //                                    }
-            //                                    else
-            //                                    {
-
-            //                                        error = 1; // Invalid Item Id 
-
-            //                                        if (item_id == 0)
-            //                                            error = 1; // Invalid Item Id
-            //                                        else if (pCe == null)
-            //                                            error = 2; // Not Found Item
-            //                                        else if (_session.m_pi.ei.char_info == null)
-            //                                            error = 4; // Não tem nenhum character
-            //                                        else if (_session.m_pi.ei.char_info.id != pCe.id)
-            //                                            error = 5;  // Não é o mesmo character que está equipado
-            //                                        else
-            //                                            error = 3; // Item Typeid is Wrong
-
-            //                                        _smp::message_pool.push(new message("[channel::requestChangePlayerItemMyRoom][Error] player[UID=" + (_session.m_pi.uid)
-            //                                                + "] tentou equipar Equipar Cutin do Character[ID=" + (item_id) + "], mas deu Error[VALUE=" + (error)
-            //                                                + "]. Hacker ou Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
-            //                                    }
-
-
-            //                                    _session.Send(packet_func.pacote06B(p, &_session, &_session.m_pi, type, error));
-            //                                    break;
-            //                                }
-            //                            case 10: // Poster
-            //                                {
-            //                                    for (var i = 0u; i < 2u; ++i)
-            //                                    {
-
-            //                                        if ((item_id = _packet.ReadUInt32()) != 0)
-            //                                        {
-
-            //                                            var pMri = _session.m_pi.findMyRoomItemByTypeid(item_id);
-
-            //                                            if (pMri != null && sIff.getItemGroupIdentify(pMri._typeid) == iff::FURNITURE)
-            //                                                _session.m_pi.ue.poster[i] = item_id;
-            //                                            else
-            //                                            {
-
-            //                                                error = (pMri == null ? 2/*Not Found Item*/ : 3/*Item Typeid is Wrong*/);
-
-            //                                                _smp::message_pool.push(new message("[channel::requestChangePlayerItemMyRoom][Error] player[UID=" + (_session.m_pi.uid)
-            //                                                        + "] tentou equipar Poster[TYPEID=" + (item_id) + ", SLOT=" + (i)
-            //                                                        + "], mas deu Error[VALUE=" + (error) + "]. Hacker ou Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
-            //                                            }
-            //                                        }
-            //                                        else
-            //                                            _session.m_pi.ue.poster[i] = 0; // Zera o poster[i] = 0 (Desequipa)
-            //                                    }
-
-            //                                    // Update ON DB, Verifica se o Poster pode ser equipado
-            //                                    if (_session.checkPosterEquiped(_session.m_pi.ue) || error == 4/*sucesso*/)
-            //                                        NormalManagerDB.add(0, new CmdUpdatePosterEquiped(_session.m_pi.uid, _session.m_pi.ue), channel::SQLDBResponse, this);
-
-
-            //                                    _session.Send(packet_func.pacote06B(p, &_session, &_session.m_pi, type, error));
-            //                                    break;
-            //                                }
-            //                            }
-
-            //                            updatePlayerInfo(_session);
-
-            //                        }catch (exception e)
-            //            {
-
-            //                packet_func.pacote06B(p, &_session, &_session.m_pi, type, 1);   // Error
-            //                _session.Send(packet_func.pacote06B(p, &_session, &_session.m_pi, type, error));
-
-            //                _smp::message_pool.push(new message("[channel::requestChangePlayerItemMyRoom][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
-            //            }
         }
-        public void requestOpenTicketReportScroll(Player _session, packet _packet) { }
-        public void requestChangeMascotMessage(Player _session, packet _packet) { }
+        public void requestExitRoom(Player _session, Packet _packet) { }
+        public void requestShowInfoRoom(Player _session, Packet _packet) { }
+        public void requestPlayerLocationRoom(Player _session, Packet _packet) { }
+        public void requestChangePlayerStateReadyRoom(Player _session, Packet _packet) { }
+        public void requestKickPlayerOfRoom(Player _session, Packet _packet) { }
+        public void requestChangePlayerTeamRoom(Player _session, Packet _packet) { }
+        public void requestChangePlayerStateAFKRoom(Player _session, Packet _packet) { }
+        public void requestPlayerStateCharacterLounge(Player _session, Packet _packet) { }
+        public void requestToggleAssist(Player _session, Packet _packet) { }
+        public void requestInvite(Player _session, Packet _packet) { }
+        public void requestCheckInvite(Player _session, Packet _packet) { } // Esse aqui o O Server Original nao retorna nada para o cliente, acho que é só um check
+        public void requestChatTeam(Player _session, Packet _packet) { }
 
-        // Caddie Extend Days and Set Notice Holyday Caddie
-        public void requestPayCaddieHolyDay(Player _session, packet _packet) { }
-        public void requestSetNoticeBeginCaddieHolyDay(Player _session, packet _packet) { }
+        // Request Player sai do Web Guild, verifica se tem alguma atualização para passar para o player no gs
+        public void requestExitedFromWebGuild(Player _session, Packet _packet) { }
 
-        // Shop
-        public void requestBuyItemShop(Player _session, packet _packet) { }
-        public void requestGiftItemShop(Player _session, packet _packet) { }
+        // Request Game
+        public void requestStartGame(Player _session, Packet _packet) { }
+        public void requestInitHole(Player _session, Packet _packet) { }
+        public void requestFinishLoadHole(Player _session, Packet _packet) { }
+        public void requestFinishCharIntro(Player _session, Packet _packet) { }
+        public void requestFinishHoleData(Player _session, Packet _packet) { }
 
-        // MyRoom Extend or Remove Part Rental
-        public void requestExtendRental(Player _session, packet _packet) { }
-        public void requestDeleteRental(Player _session, packet _packet) { }
+        // Server enviou a resposta do InitShot para o cliente
+        public void requestInitShotSended(Player _session, Packet _packet) { }
 
-        // Attendance reward, Premios por logar no pangya
-        public void requestCheckAttendanceReward(Player _session, packet _packet)
+        public void requestInitShot(Player _session, Packet _packet) { }
+        public void requestSyncShot(Player _session, Packet _packet) { }
+        public void requestInitShotArrowSeq(Player _session, Packet _packet) { }
+        public void requestShotEndData(Player _session, Packet _packet) { }
+        public void requestFinishShot(Player _session, Packet _packet) { }
+
+        public void requestChangeMira(Player _session, Packet _packet) { }
+        public void requestChangeStateBarSpace(Player _session, Packet _packet) { }
+        public void requestActivePowerShot(Player _session, Packet _packet) { }
+        public void requestChangeClub(Player _session, Packet _packet) { }
+        public void requestUseActiveItem(Player _session, Packet _packet) { }
+        public void requestChangeStateTypeing(Player _session, Packet _packet) { }
+        public void requestMoveBall(Player _session, Packet _packet) { }
+        public void requestChangeStateChatBlock(Player _session, Packet _packet) { }
+        public void requestActiveBooster(Player _session, Packet _packet) { }
+        public void requestActiveReplay(Player _session, Packet _packet) { }
+        public void requestActiveCutin(Player _session, Packet _packet) { }
+        public void requestActivevarCommand(Player _session, Packet _packet) { }
+        public void requestActiveAssistGreen(Player _session, Packet _packet) { }
+
+        // VersusBase
+        public void requestLoadGamePercent(Player _session, Packet _packet) { }
+        public void requestMarkerOnCourse(Player _session, Packet _packet) { }
+        public void requestStartTurnTime(Player _session, Packet _packet) { }
+        public void requestUnOrPauseGame(Player _session, Packet _packet) { }
+        public void requestLastPlayerFinishVersus(Player _session, Packet _packet) { }
+        public void requestReplyContinueVersus(Player _session, Packet _packet) { }
+
+        // Match
+        public void requestTeamFinishHole(Player _session, Packet _packet) { }
+
+        // Practice
+        public void requestLeavePractice(Player _session, Packet _packet) { }
+
+        // Tourney
+        public void requestUseTicketReport(Player _session, Packet _packet) { }
+
+        // Grand Zodiac
+        public void requestLeaveChipInPractice(Player _session, Packet _packet) { }
+        public void requestStartFirstHoleGrandZodiac(Player _session, Packet _packet) { }
+        public void requestReplyInitialValueGrandZodiac(Player _session, Packet _packet) { }
+
+        // Ability Item
+        public void requestActiveRing(Player _session, Packet _packet) { }
+        public void requestActiveRingGround(Player _session, Packet _packet) { }
+        public void requestActiveRingPawsRainbowJP(Player _session, Packet _packet) { }
+        public void requestActiveRingPawsRingSetJP(Player _session, Packet _packet) { }
+        public void requestActiveRingPowerGagueJP(Player _session, Packet _packet) { }
+        public void requestActiveRingMiracleSignJP(Player _session, Packet _packet) { }
+        public void requestActiveWing(Player _session, Packet _packet) { }
+        public void requestActivePaws(Player _session, Packet _packet) { }
+        public void requestActiveGlove(Player _session, Packet _packet) { }
+        public void requestActiveEarcuff(Player _session, Packet _packet) { }
+
+        // Request Enter Game After Started
+        public void requestEnterGameAfterStarted(Player _session, Packet _packet) { }
+
+        public void requestFinishGame(Player _session, Packet _packet) { }
+
+        public void requestChangeWindNextHoleRepeat(Player _session, Packet _packet) { }
+
+        // Grand Prix
+        public void requestEnterRoomGrandPrix(Player _session, Packet _packet) { }
+        public void requestExitRoomGrandPrix(Player _session, Packet _packet) { }
+
+        // Player Report Chat Game
+        public void requestPlayerReportChatGame(Player _session, Packet _packet) { }
+
+        // Common Command GM
+        public void requestExecCCGVisible(Player _session, Packet _packet)
         {
             try
             {
+
+                int visible = _packet.ReadInt16();
+
+                //var r = m_rm.findRoom(_session.m_pi.mi.sala_numero);
+                //BEGIN_FIND_ROOM(_session.m_pi.mi.sala_numero);
+
+                //if (r == null && _session.m_pi.mi.sala_numero != -1)
+                //    throw new exception("[channel::requestExecCCGVisible][Error] player[UID=" + (_session.m_pi.m_uid) + "] Channel[ID=" + (m_ci.id)
+                //            + "] tentou executar o comando visible, mas nao encontrou a sala[NUMERO=" + (_session.m_pi.mi.sala_numero)
+                //            + "] que esta nos dados dele. Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.CHANNEL, 10, 0x5700100));
+
+                _session.m_gi.visible = _session.m_pi.mi.state_flag.visible = Convert.ToBoolean(visible);//0 é off, 1 on
+
+                updatePlayerInfo(_session);
+
+                //if (r != null) //update room game
+                //    r.updatePlayerInfo(_session);
+
+                // Log
+                _smp::message_pool.push(new message("[channel::requestExecCCGVisible][Log] player[UID=" + (_session.m_pi.uid) + "] trocou VISIBLE STATUS[STATE="
+                        + (Convert.ToBoolean(visible) ? ("ON") : ("OFF")) + "]", type_msg.CL_FILE_LOG_AND_CONSOLE));
+
+                // UPDATE ON GAME
+                sendUpdatePlayerInfo(_session, 3);
+
+                // if (r != null)
+                // r.sendCharacter(_session, 3);
+
+                // END_FIND_ROOM;
+
+            }
+            catch (exception e)
+            {
+
+                _smp::message_pool.push(new message("[channel::requestExecCCGVisible][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+
+                throw;
+            }
+        }
+        public void requestExecCCGChangeWindVersus(Player _session, Packet _packet) { }
+        public void requestExecCCGChangeWeather(Player _session, Packet _packet) { }
+        public void requestExecCCGGoldenBell(Player _session, Packet _packet) { }
+        public void requestExecCCGIdentity(Player _session, Packet _packet)
+        {
+            try
+            {
+                uCapability cap = new uCapability(_packet.ReadInt32());
+                string nick = _packet.ReadPStr();
+
+                // Verifica se session está varrizada para executar esse ação, 
+                // se ele não fez o login com o Server ele não pode fazer nada até que ele faça o login
+                //CHECK_SESSION_IS_AUTHORIZED("ExecCCGIdentity");
+
+                if (nick.empty())
+                    throw new exception("[channel::requestExecCCGIdentity][Error] player[UID=" + (_session.m_pi.uid)
+                            + "] tentou executar o comando identity, mas o nick is empty. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.CHANNEL, 11, 0x5700100));
+
+                if (string.Compare(nick, _session.m_pi.nickname) != 0)
+                    throw new exception("[channel::requestExecCCGIdentity][Error] player[UID=" + (_session.m_pi.uid) + "] tentou executar o comando identity, mas o nick[NICK="
+                            + nick + "] nao bate com o do player[NICK=" + (_session.m_pi.nickname) + "]. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.CHANNEL, 12, 0x5700100));
+
+                if (!_session.m_pi.m_cap.gm_normal && !_session.m_pi.m_cap.game_master)
+                    throw new exception("[channel::requestExecCCGIdentity][Error] player[UID=" + (_session.m_pi.uid)
+                            + "] tentou executar o comando identity, mas ele nao eh gm e nunca foi. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.CHANNEL, 13, 0x5700100));
+
+                ////var r = m_rm.findRoom(_session.m_pi.mi.sala_numero);
+                //BEGIN_FIND_ROOM(_session.m_pi.mi.sala_numero);
+
+                //if (r == null && _session.m_pi.mi.sala_numero != -1)
+                //    throw new exception("[channel::requestExecCCGIdentity][Error] player[UID=" + (_session.m_pi.uid)
+                //            + "] tentou executar o comando identity, mas nao encontrou a sala[NUMERO=" + (_session.m_pi.mi.sala_numero)
+                //            + "] que esta nos dados dele. Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.CHANNEL, 14, 0x5700100));
+
+                var p = new PangyaBinaryWriter();
+
+                if (cap.ulCapability == -1)// negativo
+                {   // player está tentando voltar a ser GM novament
+
+                    // Valta para o GM
+                    if (_session.m_pi.m_cap.gm_normal)
+                    {
+                        _session.m_pi.m_cap.gm_normal = false;//remove to flag set
+                        _session.m_pi.m_cap.game_master = true; //set flag new
+                        _session.m_pi.m_cap.title_gm = true;
+
+                        updatePlayerInfo(_session);
+
+                        //if (r != null)
+                        //    r.updatePlayerInfo(_session);
+
+                        // Log
+                        _smp::message_pool.push(new message("[channel::requestExecCCGIdentity][Log] player[UID=" + (_session.m_pi.uid) + "] trocou a capacidade dele, para GM Total(Admin)", type_msg.CL_FILE_LOG_AND_CONSOLE));
+
+                        _session.Send(packet_func_sv.pacote09A(_session.m_pi.m_cap.ulCapability));
+
+                        sendUpdatePlayerInfo(_session, 3);
+                    }
+                }
+                else
+                {
+
+                    // [GM] Player Normal
+                    if (cap.gm_normal)
+                    {
+                        _session.m_pi.m_cap.gm_normal = true;
+                        Console.WriteLine("code2:\n" + _session.m_pi.m_cap.ToString());
+
+                        updatePlayerInfo(_session);
+
+                        //if (r != null)
+                        //    r.updatePlayerInfo(_session);
+
+                        // Log
+                        _smp::message_pool.push(new message("[channel::requestExecCCGIdentity][Log] player[UID=" + (_session.m_pi.uid) + "] trocou a capacidade dele, para GM Normal(user normal)", type_msg.CL_FILE_LOG_AND_CONSOLE));
+
+                        // UPDATE ON GAME 
+                        _session.Send(packet_func_sv.pacote09A(_session.m_pi.m_cap.ulCapability));
+
+                        sendUpdatePlayerInfo(_session, 3);
+
+                        //if (r != null)
+                        //    r.sendCharacter(_session, 3);
+                    }
+                }
+
+                //END_FIND_ROOM;
+
+            }
+            catch (exception e)
+            {
+
+                _smp::message_pool.push(new message("[channel::requestExecCCGIdentity][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+
+                throw;
+            }
+        }
+        public void requestExecCCGKick(Player _session, Packet _packet) { }
+        public void requestExecCCGDestroy(Player _session, Packet _packet) { }
+
+        // MyRoom
+        public void requestChangePlayerItemMyRoom(Player _session, Packet _packet)
+        {
+            byte type = 0;
+            uint item_id;
+            int error = 4;
+
+            try
+            {
+
+                type = _packet.ReadByte();
+
+                switch (type)
+                {
+                    case 0: // Character Equipado Parts Complete
+                        {
+                            CharacterInfo ci, pCe = null;
+
+                            ci = (CharacterInfo)_packet.Read(new CharacterInfo());
+                            if (ci.id != 0 && (pCe = _session.m_pi.findCharacterById(ci.id)) != null
+                                    && (sIff.getInstance()._getItemGroupIdentify(pCe._typeid) == PangLib.IFF.JP.Models.Flags.IFF_GROUP.CHARACTER && sIff.getInstance()._getItemGroupIdentify(ci._typeid) == PangLib.IFF.JP.Models.Flags.IFF_GROUP.CHARACTER))
+                            {
+
+                                // Checks Parts Equiped
+                                _session.checkCharacterEquipedPart(ci);
+
+                                // Check auxparts Equiped
+                                _session.checkCharacterEquipedAuxPart(ci);
+
+                                pCe = ci;
+
+                                NormalManagerDB.add(0, new Cmd.CmdUpdateCharacterAllPartEquiped(_session.m_pi.uid, ci), null/*SQLDBResponse*/, /*this*/ null);
+
+                                _session.m_pi.mp_ce[ci.id] = ci;
+                                _session.m_pi.ei.char_info = ci;
+                            }
+                            else
+                            {
+
+                                error = (ci.id == 0) ? 1/*Invalid Item Id*/ : (pCe == null ? 2/*Not Found Item*/ : 3/*Item Typeid is Wrong*/);
+
+                                _smp::message_pool.push(new message("[channel::requestChangePlayerItemMyRoom][Error] player[UID=" + (_session.m_pi.uid)
+                                        + "] tentou Atualizar os Parts do Character[ID=" + (ci.id) + "], mas deu Error[VALUE=" + (error)
+                                        + "]. Hacker ou Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
+                            }
+
+
+
+                            _session.Send(packet_func_sv.pacote06B(_session.m_pi, type, error));
+                            break;
+                        }
+                    case 5: // only Character ID EQUIPADO
+                        {
+                            CharacterInfo pCe = null;
+
+                            if ((item_id = _packet.ReadUInt32()) != 0 && (pCe = _session.m_pi.findCharacterById(item_id)) != null
+                                  && sIff.getInstance()._getItemGroupIdentify(pCe._typeid) == PangLib.IFF.JP.Models.Flags.IFF_GROUP.CHARACTER)
+                            {
+
+                                _session.m_pi.ei.char_info = pCe;
+                                _session.m_pi.ue.character_id = item_id;
+
+                                updatePlayerInfo(_session);
+
+                                PlayerCanalInfo pci = getPlayerInfo(_session);
+                                _session.Send(packet_func_sv.pacote06B(_session.m_pi, type, error));
+
+                                // Update ON DB
+                                NormalManagerDB.add(0, new CmdUpdateCharacterEquiped(_session.m_pi.uid, (int)item_id), null, this);
+
+                            }
+                            else
+                            {
+
+                                error = (item_id == 0) ? 1/*Invalid Item Id*/ : (pCe == null ? 2/*Not Found Item*/ : 3/*Item Typeid is Wrong*/);
+
+                                _smp::message_pool.push(new message("[channel::requestChangePlayerItemMyRoom][Error] player[UID=" + (_session.m_pi.uid)
+                                        + "] tentou equipar o Character[ID=" + (item_id) + "], mas deu Error[VALUE=" + (error)
+                                        + "]. Hacker ou Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
+                            }
+
+                            _session.Send(packet_func_sv.pacote06B(_session.m_pi, type, error));
+
+                            break;
+                        }
+                    default:
+                        _session.Send(packet_func_sv.pacote06B(_session.m_pi, type, error));//teste
+                        break;
+                }
+            }
+            catch (exception e)
+            {
+                _session.Send(packet_func_sv.pacote06B(_session.m_pi, type, 1));
+
+                _smp::message_pool.push(new message("[channel::requestChangePlayerItemMyRoom][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+            }
+        }
+        public void requestOpenTicketReportScroll(Player _session, Packet _packet) { }
+        public void requestChangeMascotMessage(Player _session, Packet _packet) { }
+
+        // Caddie Extend Days and Set Notice Holyday Caddie
+        public void requestPayCaddieHolyDay(Player _session, Packet _packet) { }
+        public void requestSetNoticeBeginCaddieHolyDay(Player _session, Packet _packet) { }
+
+        // Shop
+
+        public void requestEnterShop(Player _session, Packet packet)
+        {
+            try
+            {
+                if (_session.m_pi.block_flag.m_flag.buy_and_gift_shop)
+                    throw new exception("[channel::requestEnterShop][Error] player[UID=" + (_session.m_pi.uid)
+                            + "] tentou jogar no Papel Shop, mas ele nao pode. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.CHANNEL, 3, 0x790002));
+
+
+                var p = new PangyaBinaryWriter((ushort)0x20E);
+
+                p.Write(0);
+                p.Write(0); // Não sei pode ACHO "ser Value acho, ou erro, pode ser dizendo que o shop esta bloqueado"
+
+                _session.Send(p);
+            }
+            catch (exception e)
+            {
+                throw e;
+            }
+        }
+        public void requestBuyItemShop(Player _session, Packet _packet) { }
+        public void requestGiftItemShop(Player _session, Packet _packet) { }
+
+        // MyRoom Extend or Remove Part Rental
+        public void requestExtendRental(Player _session, Packet _packet) { }
+        public void requestDeleteRental(Player _session, Packet _packet) { }
+
+        // Attendance reward, Premios por logar no pangya
+        public void requestCheckAttendanceReward(Player _session, Packet _packet)
+        {
+            try
+            {                   // Attendance Reward System
+                if (!sAttendanceRewardSystem.getInstance().isLoad())
+                    sAttendanceRewardSystem.getInstance().load();
+
                 sAttendanceRewardSystem.getInstance().requestCheckAttendance(_session, _packet);
             }
             catch (exception e)
@@ -1269,10 +1040,13 @@ namespace GameServer.Game
             }
         }
 
-        public void requestAttendanceRewardLoginCount(Player _session, packet _packet)
+        public void requestAttendanceRewardLoginCount(Player _session, Packet _packet)
         {
             try
-            {
+            {                   // Attendance Reward System
+                if (!sAttendanceRewardSystem.getInstance().isLoad())
+                    sAttendanceRewardSystem.getInstance().load();
+
                 sAttendanceRewardSystem.getInstance().requestUpdateCountLogin(_session, _packet);
             }
             catch (exception e)
@@ -1285,80 +1059,500 @@ namespace GameServer.Game
         }
 
         // Daily Quest
-        public void requestDailyQuest(Player _session, packet _packet) { }
-        public void requestAcceptDailyQuest(Player _session, packet _packet) { }
-        public void requestTakeRewardDailyQuest(Player _session, packet _packet) { }
-        public void requestLeaveDailyQuest(Player _session, packet _packet) { }
+        public void requestDailyQuest(Player _session, Packet _packet) { }
+        public void requestAcceptDailyQuest(Player _session, Packet _packet) { }
+        public void requestTakeRewardDailyQuest(Player _session, Packet _packet) { }
+        public void requestLeaveDailyQuest(Player _session, Packet _packet) { }
 
         // Cadie's Cauldron
-        public void requestCadieCauldronExchange(Player _session, packet _packet) { }
+        public void requestCadieCauldronExchange(Player _session, Packet _packet) { }
 
         // Character Stats
-        public void requestCharacterStatsUp(Player _session, packet _packet) { }
-        public void requestCharacterStatsDown(Player _session, packet _packet) { }
-        public void requestCharacterMasteryExpand(Player _session, packet _packet) { }
-        public void requestCharacterCardEquip(Player _session, packet _packet) { }
-        public void requestCharacterCardEquipWithPatcher(Player _session, packet _packet) { }
-        public void requestCharacterRemoveCard(Player _session, packet _packet) { }
+        public void requestCharacterStatsUp(Player _session, Packet _packet) { }
+        public void requestCharacterStatsDown(Player _session, Packet _packet) { }
+        public void requestCharacterMasteryExpand(Player _session, Packet _packet) { }
+        public void requestCharacterCardEquip(Player _session, Packet _packet) { }
+        public void requestCharacterCardEquipWithPatcher(Player _session, Packet _packet) { }
+        public void requestCharacterRemoveCard(Player _session, Packet _packet) { }
 
         // ClubSet Enchant
-        public void requestClubSetStatsUpdate(Player _session, packet _packet) { }
+        public void requestClubSetStatsUpdate(Player _session, Packet _packet) { }
 
         // Tiki's Shop
-        public void requestTikiShopExchangeItem(Player _session, packet _packet) { }
+        public void requestTikiShopExchangeItem(Player _session, Packet _packet) { }
 
         // Item Equipado
-        public void requestChangePlayerItemChannel(Player _session, packet _packet) { }
-        public void requestChangePlayerItemRoom(Player _session, packet _packet) { }
+        public void requestChangePlayerItemChannel(Player _session, Packet _packet)
+        {
+            byte type = 255;
+            uint item_id;
+            int error = 0/*SUCCESS*/;
+            try
+            {
+
+                type = _packet.ReadByte();
+                switch (type)
+                {
+                    case 1: // Caddie
+                        {
+                            CaddieInfoEx pCi = null;
+
+                            // Caddie
+                            if ((item_id = _packet.ReadUInt32()) != 0 && (pCi = _session.m_pi.findCaddieById(item_id)) != null &&
+
+                         sIff.getInstance()._getItemGroupIdentify(pCi._typeid) == PangLib.IFF.JP.Models.Flags.IFF_GROUP.CADDIE)
+                            {
+
+                                // Check if item is in map of update item
+                                var v_it = _session.m_pi.findUpdateItemByTypeidAndType(pCi._typeid, pCi.id);
+
+                                if (v_it.Any())
+                                {
+
+                                    foreach (var el in v_it)
+                                    {
+
+                                        if (el.Value.type == UpdateItem.UI_TYPE.CADDIE)
+                                        {
+
+                                            // Desequipa o caddie
+                                            _session.m_pi.ei.cad_info = null;
+                                            _session.m_pi.ue.caddie_id = 0;
+
+                                            item_id = 0;
+
+                                        }
+                                        else if (el.Value.type == UpdateItem.UI_TYPE.CADDIE_PARTS)
+                                        {
+
+                                            // Limpa o caddie Parts
+                                            pCi.parts_typeid = 0u;
+                                            pCi.parts_end_date_unix = 0;
+                                            pCi.end_parts_date = new PangyaTime();
+
+                                            _session.m_pi.ei.cad_info = pCi;
+                                            _session.m_pi.ue.caddie_id = item_id;
+                                        }
+
+                                        // Tira esse Update Item do map
+                                        _session.m_pi.mp_ui.Remove(el.Key);
+                                    }
+
+                                }
+                                else
+                                {
+
+                                    // Caddie is Good, Update caddie equiped ON SERVER AND DB
+                                    _session.m_pi.ei.cad_info = pCi;
+                                    _session.m_pi.ue.caddie_id = item_id;
+
+                                    // Verifica se o caddie pode ser equipado
+                                    if (_session.checkCaddieEquiped(_session.m_pi.ue))
+                                        item_id = _session.m_pi.ue.caddie_id;
+
+                                }
+
+                                // Update ON DB
+                                NormalManagerDB.add(0, new CmdUpdateCaddieEquiped(_session.m_pi.uid, (int)item_id), null /*channel::SQLDBResponse*/, this);
+
+                            }
+                            else if (_session.m_pi.ue.caddie_id > 0 && _session.m_pi.ei.cad_info != null)
+                            {  // Desequipa Caddie
+
+                                error = (item_id == 0) ? 1/*client give invalid item id*/ : (pCi == null ? 2/*Item Not Found*/ : 3/*Erro item typeid invalid*/);
+
+                                if (error > 1)
+                                {
+                                    _smp::message_pool.push(new message("[channel::requestChangePlayerItemChannel][Log][WARNING] player[UID=" + (_session.m_pi.uid)
+                                            + "] tentou trocar o Caddie[ID=" + (item_id) + "], mas deu Error[VALUE="
+                                            + (error) + "], desequipando o caddie. Hacker ou Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
+                                }
+
+                                // Check if item is in map of update item
+                                var v_it = _session.m_pi.findUpdateItemByTypeidAndType(_session.m_pi.ei.cad_info._typeid, _session.m_pi.ei.cad_info.id);
+
+                                if (v_it.Any())
+                                {
+
+                                    foreach (var el in v_it)
+                                    {
+
+                                        // Caddie já vai se desequipar, só verifica o parts
+                                        if (el.Value.type == UpdateItem.UI_TYPE.CADDIE_PARTS)
+                                        {
+
+                                            // Limpa o caddie Parts
+                                            _session.m_pi.ei.cad_info.parts_typeid = 0u;
+                                            _session.m_pi.ei.cad_info.parts_end_date_unix = 0;
+                                            _session.m_pi.ei.cad_info.end_parts_date = new PangyaTime();
+                                        }
+
+                                        // Tira esse Update Item do map
+                                        _session.m_pi.mp_ui.Remove(el.Key);
+                                    }
+
+                                }
+
+                                _session.m_pi.ei.cad_info = null;
+                                _session.m_pi.ue.caddie_id = 0;
+
+                                item_id = 0;
+
+                                // Zera o Error para o cliente desequipar o caddie que o server desequipou
+                                error = 0;
+
+                                // Att No DB
+                                NormalManagerDB.add(0, new CmdUpdateCaddieEquiped(_session.m_pi.uid, (int)item_id), null /*channel::SQLDBResponse*/, this);
+
+                            } // else Não tem nenhum caddie equipado, para desequipar, então o cliente só quis atualizar o estado
+
+                        }
+                        break;
+                    case 2: // Ball
+                        {
+                            WarehouseItemEx pWi = null;
+
+                            if ((item_id = _packet.ReadUInt32()) != 0 && (pWi = _session.m_pi.findWarehouseItemByTypeid(item_id)) != null
+                                    && sIff.getInstance()._getItemGroupIdentify(pWi._typeid) == PangLib.IFF.JP.Models.Flags.IFF_GROUP.BALL)
+                            {
+
+                                _session.m_pi.ei.comet = pWi;
+                                _session.m_pi.ue.ball_typeid = item_id;     // Ball(Comet) é o typeid que o cliente passa
+
+                                // Verifica se a bola pode ser equipada
+                                //  if (_session.checkBallEquiped(_session.m_pi.ue))
+                                item_id = _session.m_pi.ue.ball_typeid;
+
+                                // Update ON DB
+                                NormalManagerDB.add(0, new CmdUpdateBallEquiped(_session.m_pi.uid, item_id), null, this);
+
+                            }
+                            else if (item_id == 0)
+                            { // Bola 0 coloca a bola padrão para ele, se for premium user coloca a bola de premium user
+
+                                // Zera para equipar a bola padrão
+                                _session.m_pi.ei.comet = null;
+                                _session.m_pi.ue.ball_typeid = 0;
+
+                                // Verifica se a Bola pode ser equipada (Coloca para equipar a bola padrão
+                                //if (_session.checkBallEquiped(_session.m_pi.ue))
+                                item_id = _session.m_pi.ue.ball_typeid;
+
+                                // Update ON DB
+                                NormalManagerDB.add(0, new CmdUpdateBallEquiped(_session.m_pi.uid, item_id), null, this);
+
+                            }
+                            else
+                            {
+
+                                error = (pWi == null ? 2/*Not Found Item*/ : 3/*Item Type is Wrong*/);
+
+                                message_pool.push(new message("[channel::requestChangePlayerItemChannel][Error] player[UID=" + (_session.m_pi.uid)
+                                        + "] tentou trocar Ball[TYPEID=" + (item_id) + "], mas deu Error[VALUE=" + (error)
+                                        + "], Equipando Ball Padrao. Hacker ou Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
+
+                                pWi = _session.m_pi.findWarehouseItemByTypeid(DEFAULT_COMET_TYPEID);
+
+                                if (pWi != null)
+                                {
+
+                                    message_pool.push(new message("[channel::requestChangePlayerItemChannel][Log][WARNING] player[UID=" + (_session.m_pi.uid)
+                                            + "] tentou trocar a Ball[TYPEID=" + (item_id) + "], mas deu Error[VALUE="
+                                            + (error) + "], colocando a Ball Padrao do player. Hacker ou Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
+
+                                    _session.m_pi.ei.comet = pWi;
+                                    item_id = _session.m_pi.ue.ball_typeid = pWi._typeid;
+
+                                    // Zera o Error para o cliente equipar a Ball Padrão que o server equipou
+                                    error = 0;
+
+                                    // Update ON DB
+                                    NormalManagerDB.add(0, new CmdUpdateBallEquiped(_session.m_pi.uid, item_id), null, this);
+
+                                }
+                                else
+                                {
+
+                                }
+                            }
+
+                        }
+                        break;
+                    case 3: // ClubSet
+                        {
+                            WarehouseItemEx pWi = null;
+
+                            // ClubSet
+                            if ((item_id = _packet.ReadUInt32()) != 0 && (pWi = _session.m_pi.findWarehouseItemByTypeid(item_id)) != null
+                                            && sIff.getInstance()._getItemGroupIdentify(pWi._typeid) == PangLib.IFF.JP.Models.Flags.IFF_GROUP.CLUBSET)
+                            {
+
+                                var c_it = _session.m_pi.findUpdateItemByTypeidAndType(item_id, UpdateItem.UI_TYPE.WAREHOUSE);
+
+                                if (c_it.Any())
+                                {
+
+                                    _session.m_pi.ei.clubset = pWi;
+
+                                    // Esse C do WarehouseItem, que pega do DB, não é o ja updado inicial da taqueira é o que fica tabela enchant, 
+                                    // que no original fica no warehouse msm, eu só confundi quando fiz
+                                    _session.m_pi.ei.csi.setValues(pWi.id, pWi._typeid, pWi.c);
+
+                                    var cs = sIff.getInstance().findClubSet(pWi._typeid);
+
+                                    if (cs != null)
+                                    {
+
+                                        for (var j = 0; j < 5; ++j)
+                                            _session.m_pi.ei.csi.enchant_c[j] = (short)(cs.SlotStats.getSlot[j] + pWi.clubset_workshop.c[j]);
+
+                                        _session.m_pi.ue.clubset_id = item_id;
+
+                                        // Verifica se o ClubSet pode ser equipado
+                                        //if (_session.checkClubSetEquiped(_session.m_pi.ue))
+                                        item_id = _session.m_pi.ue.clubset_id;
+
+                                        // Update ON DB
+                                        NormalManagerDB.add(0, new CmdUpdateClubsetEquiped(_session.m_pi.uid, (int)item_id), null/*channel::SQLDBResponse*/, this);
+
+                                    }
+                                }
+                            }
+                        }
+                        break;
+                    case 4:
+                        {
+                            CharacterInfo pCe = null;
+                            if ((item_id = _packet.ReadUInt32()) != 0 && (pCe = _session.m_pi.findCharacterById(item_id)) != null
+                                    && sIff.getInstance()._getItemGroupIdentify(pCe._typeid) == PangLib.IFF.JP.Models.Flags.IFF_GROUP.CHARACTER)
+                            {
+
+                                _session.m_pi.ei.char_info = pCe;
+                                _session.m_pi.ue.character_id = item_id;
+
+                                // Update ON DB
+                                NormalManagerDB.add(0, new CmdUpdateCharacterEquiped(_session.m_pi.uid, (int)item_id), null, null);
+
+                                // Update Player Info Channel and Room
+                                updatePlayerInfo(_session);
+
+                            }
+                            else
+                            {
+
+                                error = (item_id == 0) ? 1/*client give invalid item id*/ : (pCe == null ? 2/*Item Not Found*/ : 3/*Erro item typeid invalid*/);
+
+                                if (_session.m_pi.mp_ce.Count > 0)
+                                {
+
+                                    _smp::message_pool.push(new message("[channel::requestChangePlayerItemChannel][Log][WARNING] player[UID=" + (_session.m_pi.uid)
+                                            + "] tentou trocar o Character[ID=" + (item_id) + "], mas deu Error[VALUE="
+                                            + (error) + "], colocando o primeiro character do player. Hacker ou Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
+
+                                    _session.m_pi.ei.char_info = _session.m_pi.mp_ce.First().Value;
+                                    item_id = _session.m_pi.ue.character_id = _session.m_pi.ei.char_info.id;
+
+                                    // Zera o Error para o cliente equipar o Primeiro Character do map de character do player, que o server equipou
+                                    error = 0;
+
+                                    // Update ON DB
+                                    NormalManagerDB.add(0, new CmdUpdateCharacterEquiped(_session.m_pi.uid, (int)item_id), null, this);
+
+                                    // Update Player Info Channel and Room
+                                    updatePlayerInfo(_session);
+
+                                }
+                            }
+                        }
+                        break;
+                    case 5: // Mascot
+                        {
+                            MascotInfoEx pMi = null;
+
+                            if ((item_id = _packet.ReadUInt32()) != 0)
+                            {
+
+                                if ((pMi = _session.m_pi.findMascotById(item_id)) != null && sIff.getInstance()._getItemGroupIdentify(pMi._typeid) == PangLib.IFF.JP.Models.Flags.IFF_GROUP.MASCOT)
+                                {
+
+                                    var m_it = _session.m_pi.findUpdateItemByTypeidAndType(_session.m_pi.ue.mascot_id, UpdateItem.UI_TYPE.MASCOT);
+
+                                    if (m_it != null)
+                                    {
+
+                                        // Desequipa o Mascot que acabou o tempo dele
+                                        _session.m_pi.ei.mascot_info = null;
+                                        _session.m_pi.ue.mascot_id = 0;
+
+                                        item_id = 0;
+
+                                    }
+                                    else
+                                    {
+
+                                        // Mascot is Good, Update mascot equiped ON SERVER AND DB
+                                        _session.m_pi.ei.mascot_info = pMi;
+                                        _session.m_pi.ue.mascot_id = item_id;
+
+                                        // Verifica se o Mascot pode ser equipado
+                                        //if (_session.checkMascotEquiped(_session.m_pi.ue))
+                                        item_id = _session.m_pi.ue.mascot_id;
+
+                                    }
+
+                                    // Update ON DB
+                                    NormalManagerDB.add(0, new CmdUpdateMascotEquiped(_session.m_pi.uid, (int)item_id), null/*channel::SQLDBResponse*/, this);
+
+                                }
+                                else
+                                {
+
+                                    error = (item_id == 0) ? 1/*client give invalid item id*/ : (pMi == null ? 2/*Item Not Found*/ : 3/*Erro item typeid invalid*/);
+
+                                    if (error > 1)
+                                    {
+                                        _smp::message_pool.push(new message("[channel::requestChangePlayerItemChannel][Log][WARNING] player[UID=" + (_session.m_pi.uid)
+                                                + "] tentou trocar o Mascot[ID=" + (item_id) + "], mas deu Error[VALUE="
+                                                + (error) + "], desequipando o Mascot. Hacker ou Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
+                                    }
+
+                                    _session.m_pi.ei.mascot_info = null;
+                                    _session.m_pi.ue.mascot_id = 0;
+
+                                    item_id = 0;
+
+                                    // Att No DB
+                                    NormalManagerDB.add(0, new CmdUpdateMascotEquiped(_session.m_pi.uid, (int)item_id), null/* channel::SQLDBResponse*/, this);
+                                }
+
+                            }
+                            else if (_session.m_pi.ue.mascot_id > 0 && _session.m_pi.ei.mascot_info != null)
+                            {   // Desequipa Mascot
+
+                                _session.m_pi.ei.mascot_info = null;
+                                _session.m_pi.ue.mascot_id = 0;
+
+                                item_id = 0;
+
+                                // Att No DB
+                                NormalManagerDB.add(0, new CmdUpdateMascotEquiped(_session.m_pi.uid, (int)item_id), null/* channel::SQLDBResponse*/, this);
+
+                            } // else Não tem nenhum mascot equipado, para desequipar, então o cliente só quis atualizar o estado
+
+                            break;
+                        }
+                    default:
+                        break;
+                }
+                _session.Send(packet_func_sv.pacote04B(_session, type, error));
+            }   
+            catch (exception e) {
+
+                message_pool.push(new message("[channel::requestChangePlayerItemChannel][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                                               
+                _session.Send(packet_func_sv.pacote04B(_session, type, (int)(ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) == (uint)STDA_ERROR_TYPE.CHANNEL ? ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) : 1/*Unknown Error*/)));
+
+            }
+        }
+        public void requestChangePlayerItemRoom(Player _session, Packet _packet)
+        {
+            _session.Send(packet_func_sv.pacote04B(_session, _packet.ReadByte(), 0));
+        }
 
         // Delete Active Item
-        public void requestDeleteActiveItem(Player _session, packet _packet) { }
+        public void requestDeleteActiveItem(Player _session, Packet _packet) { }
 
         // ClubSet WorkShop
-        public void requestClubSetWorkShopTransferMasteryPts(Player _session, packet _packet) { }
-        public void requestClubSetWorkShopRecoveryPts(Player _session, packet _packet) { }
-        public void requestClubSetWorkShopUpLevel(Player _session, packet _packet) { }
-        public void requestClubSetWorkShopUpLevelConfirm(Player _session, packet _packet) { }
-        public void requestClubSetWorkShopUpLevelCancel(Player _session, packet _packet) { }
-        public void requestClubSetWorkShopUpRank(Player _session, packet _packet) { }
-        public void requestClubSetWorkShopUpRankTransformConfirm(Player _session, packet _packet) { }
-        public void requestClubSetWorkShopUpRankTransformCancel(Player _session, packet _packet) { }
+        public void requestClubSetWorkShopTransferMasteryPts(Player _session, Packet _packet) { }
+        public void requestClubSetWorkShopRecoveryPts(Player _session, Packet _packet) { }
+        public void requestClubSetWorkShopUpLevel(Player _session, Packet _packet) { }
+        public void requestClubSetWorkShopUpLevelConfirm(Player _session, Packet _packet) { }
+        public void requestClubSetWorkShopUpLevelCancel(Player _session, Packet _packet) { }
+        public void requestClubSetWorkShopUpRank(Player _session, Packet _packet) { }
+        public void requestClubSetWorkShopUpRankTransformConfirm(Player _session, Packet _packet) { }
+        public void requestClubSetWorkShopUpRankTransformCancel(Player _session, Packet _packet) { }
 
         // ClubSet Reset
-        public void requestClubSetReset(Player _session, packet _packet) { }
+        public void requestClubSetReset(Player _session, Packet _packet) { }
 
         // Tutorial
-        public void requestMakeTutorial(Player _session, packet _packet) { }
+        public void requestMakeTutorial(Player _session, Packet _packet) { }
 
         // Web Link
-        public void requestEnterWebLinkState(Player _session, packet _packet) { }
+        public void requestEnterWebLinkState(Player _session, Packet _packet)
+        {
+            try
+            {
+                // Att Lugar que o player está, ele está vendo weblink
+                _session.m_pi.place = _packet.ReadSByte();
+
+            }
+            catch (exception e)
+            {
+
+                message_pool.push(new message("[channel::requestEnterWebLinkState][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+            }
+        }
 
         // Pede o Cookies
-        public void requestCookie(Player _session, packet _packet) { }
+        public void requestCookie(Player _session, Packet _packet)
+        {
+            try
+            {
+
+                // Verifica se session está varrizada para executar esse ação, 
+                // se ele não fez o login com o Server ele não pode fazer nada até que ele faça o login
+                // CHECK_SESSION_IS_AUTHORIZED("Cookie");
+
+                // Sempre atualiza o Cookie do server com o valor que está no banco de dados
+
+                // Update cookie do server com o que está no banco de dados
+                _session.m_pi.updateCookie();
+
+                _session.Send(packet_func_sv.pacote096(_session.m_pi));
+
+                // Vou colocar aqui para atualizar os Grand Zodiac Pontos por que quando eu fazer o evento o Grand Zodiac ele vai consumir os pontos na página web, 
+                // aí vou atualizar aqui com o do banco de dados
+                var cmd_gzp = new CmdGrandZodiacPontos(_session.m_pi.uid, CmdGrandZodiacPontos.eCMD_GRAND_ZODIAC_TYPE.CGZT_GET);
+
+                NormalManagerDB.add(0, cmd_gzp, null, null);
+
+                if (cmd_gzp.getException().getCodeError() != 0)
+                    throw cmd_gzp.getException();
+
+                _session.m_pi.grand_zodiac_pontos = cmd_gzp.getPontos();
+
+            }
+            catch (exception e)
+            {
+
+                _smp::message_pool.push(new message("[channel::requestCookie][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+            }
+        }
 
         // Pede para atualizar Gacha Coupon(s)
-        public void requestUpdateGachaCoupon(Player _session, packet _packet) { }
+        public void requestUpdateGachaCoupon(Player _session, Packet _packet) { }
 
         // Box System, Box que envia para o MailBox e a Box que envia direto para o MyRoom
-        public void requestOpenBoxMail(Player _session, packet _packet) { }
-        public void requestOpenBoxMyRoom(Player _session, packet _packet) { }
+        public void requestOpenBoxMail(Player _session, Packet _packet) { }
+        public void requestOpenBoxMyRoom(Player _session, Packet _packet) { }
 
         // Memorial System
-        public void requestPlayMemorial(Player _session, packet _packet) { }
+        public void requestPlayMemorial(Player _session, Packet _packet) { }
 
         // Card System
-        public void requestOpenCardPack(Player _session, packet _packet) { }
-        public void requestLoloCardCompose(Player _session, packet _packet) { }
+        public void requestOpenCardPack(Player _session, Packet _packet) { }
+        public void requestLoloCardCompose(Player _session, Packet _packet) { }
 
         // Card Special/ Item Buff
-        public void requestUseCardSpecial(Player _session, packet _packet) { }
-        public void requestUseItemBuff(Player _session, packet _packet) { }
+        public void requestUseCardSpecial(Player _session, Packet _packet) { }
+        public void requestUseItemBuff(Player _session, Packet _packet) { }
 
         // Comet Refill
-        public void requestCometRefill(Player _session, packet _packet) { }
+        public void requestCometRefill(Player _session, Packet _packet) { }
 
         // MailBox
-        public void requestOpenMailBox(Player _session, packet _packet)
+        public void requestOpenMailBox(Player _session, Packet _packet)
         {
 
             PangyaBinaryWriter p = new PangyaBinaryWriter();
@@ -1366,9 +1560,9 @@ namespace GameServer.Game
             try
             {
 
-                if (_session.m_pi.block_flag.m_flag.stBit.mail_box)
-                    throw new exception("[channel::requestOpenMailBox][Error] player[UID=" + (_session.m_pi.uid)
-                            + "] tentou abrir Mail Box, mas ele nao pode. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.CHANNEL, 5, 0x790001));
+                //if (_session.m_pi.block_flag.m_flag.mail_box)
+                //    throw new exception("[channel::requestOpenMailBox][Error] player[UID=" + (_session.m_pi.m_uid)
+                //            + "] tentou abrir Mail Box, mas ele nao pode. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.CHANNEL, 5, 0x790001));
 
                 var pagina = _packet.ReadUInt32();
 
@@ -1379,24 +1573,24 @@ namespace GameServer.Game
 
                 _smp::message_pool.push(new message("[channel::requestOpenMailBox][Log] Player[UID=" + (_session.m_pi.uid) + "]\tRequest Pagina: " + (pagina) + " MailBox", type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-                // Verifica se session está autorizada para executar esse ação, 
+                // Verifica se session está varrizada para executar esse ação, 
                 // se ele não fez o login com o Server ele não pode fazer nada até que ele faça o login
 
                 var mails = _session.m_pi.m_mail_box.GetPage(pagina);
 
-                /*CmdMailBoxInfo cmd_mbi(_session.m_pi.uid, CmdMailBoxInfo::NORMAL, pagina, true);
+                /*CmdMailBoxInfo cmd_mbi(_session.m_pi.m_uid, CmdMailBoxInfo::NORMAL, pagina, true);
 
-                snmdb::NormalManagerDB.add(0, &cmd_mbi, nullptr, nullptr);
+                snmdb::NormalManagerDB.add(0, &cmd_mbi, null, null);
 
                 cmd_mbi.waitEvent();
 
                 if (cmd_mbi.getException().getCodeError() != 0)
                     throw cmd_mbi.getException();
 
-                auto mails = cmd_mbi.getInfo();
+                var mails = cmd_mbi.getInfo();
 
                 if (mails.empty() && cmd_mbi.getTotalPage() > 0)
-                    throw exception("[channel::requestOpenMailBox][Error] Player[UID=" + (_session.m_pi.uid) + "] tentou abrir MailBox[Pagina="
+                    throw new exception("[channel::requestOpenMailBox][Error] Player[UID=" + (_session.m_pi.m_uid) + "] tentou abrir MailBox[Pagina="
                             + (pagina) + "] mas ela nao existe. Hacker ou Bug",ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.CHANNEL, 0x7900001, 1));*/
 
                 if (mails.Any())
@@ -1406,12 +1600,12 @@ namespace GameServer.Game
                     _smp::message_pool.push(new message("[channel::requestOpenMailBox][Log] Player[UID=" + (_session.m_pi.uid)
                                               + "] abriu o MailBox[Pagina=" + (pagina) + "] com sucesso.", type_msg.CL_FILE_LOG_AND_CONSOLE));
                     // pagina existe, envia ela
-                    _session.Send(packet_func.pacote211(mails, pagina, _session.m_pi.m_mail_box.getTotalPages()/*cmd_mbi.getTotalPage()*/));
+                    _session.Send(packet_func_sv.pacote211(mails, pagina, _session.m_pi.m_mail_box.getTotalPages()/*cmd_mbi.getTotalPage()*/));
 
                 }
                 else
                 { // MailBox Vazio                                                  
-                    _session.Send(packet_func.pacote211(new List<MailBox>(), pagina, 1));
+                    _session.Send(packet_func_sv.pacote211(new List<MailBox>(), pagina, 1));
                 }
 
             }
@@ -1427,10 +1621,8 @@ namespace GameServer.Game
                 _session.Send(p);
             }
         }
-        public void requestInfoMail(Player _session, packet _packet)
+        public void requestInfoMail(Player _session, Packet _packet)
         {
-            PangyaBinaryWriter p = new PangyaBinaryWriter();
-
             try
             {
 
@@ -1438,22 +1630,22 @@ namespace GameServer.Game
 
                 _smp::message_pool.push(new message("[channel::requestInfoMail][Log] Player[UID=" + (_session.m_pi.uid) + "]\tRequest Email Info: " + (email_id), type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-                // Verifica se session está autorizada para executar esse ação, 
+                // Verifica se session está varrizada para executar esse ação, 
                 // se ele não fez o login com o Server ele não pode fazer nada até que ele faça o login
                 //CHECK_SESSION_IS_AUTHORIZED("InfoMail");
 
                 var email = _session.m_pi.m_mail_box.getEmailInfo(email_id);
 
-                /*CmdEmailInfo cmd_ei(_session.m_pi.uid, email_id, true);	// waitable
+                /*CmdEmailInfo cmd_ei(_session.m_pi.m_uid, email_id, true);	// waitable
 
-                snmdb::NormalManagerDB.add(0, &cmd_ei, nullptr, nullptr);
+                snmdb::NormalManagerDB.add(0, &cmd_ei, null, null);
 
                 cmd_ei.waitEvent();
 
                 if (cmd_ei.getException().getCodeError() != 0)
                     throw cmd_ei.getException();
 
-                auto email = cmd_ei.getInfo();*/
+                var email = cmd_ei.getInfo();*/
 
                 if (email.id == 0)
                     throw new exception("[channel::requestInfoMail][Error] Player[UID=" + (_session.m_pi.uid) + "] pediu para ver o info do Mail[ID=" + (email_id)
@@ -1461,7 +1653,7 @@ namespace GameServer.Game
 
                 try
                 {
-                    ItemManager.checkSetItemOnEmail(_session, email);
+                    item_manager.checkSetItemOnEmail(_session, email);
                 }
                 catch (exception e)
                 {
@@ -1474,7 +1666,7 @@ namespace GameServer.Game
 
                 _smp::message_pool.push(new message("[channel::requestInfoMail][Log] Player[UID=" + (_session.m_pi.uid) + "] pediu info do Mail[ID="
                         + (email.id) + "] com sucesso.", type_msg.CL_FILE_LOG_AND_CONSOLE));
-                _session.Send(packet_func.pacote212(email), true);
+                _session.Send(packet_func_sv.pacote212(email), true);
 
             }
             catch (exception e)
@@ -1482,49 +1674,280 @@ namespace GameServer.Game
 
                 _smp::message_pool.push(new message("[channel::requestInfoMail][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-                //p.init_plain(0x212);
+                PangyaBinaryWriter p = new PangyaBinaryWriter();
 
-                //p.addUint32((STDA_SOURCE_ERROR_DECODE(e.getCodeError()) == STDA_ERROR_TYPE::CHANNEL) ? STDA_SYSTEM_ERROR_DECODE(e.getCodeError()) : 0x5500250);
+                p.init_plain(0x212);
 
-                //packet_func::session_send(p, &_session, 1);
+                p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) == (uint)STDA_ERROR_TYPE.CHANNEL) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE(e.getCodeError()) : 0x5500250);
+
+                _session.Send(p);
             }
         }
-        public void requestSendMail(Player _session, packet _packet) { }
-        public void requestTakeItemFomMail(Player _session, packet _packet) { }
-        public void requestDeleteMail(Player _session, packet _packet) { }
+        public void requestSendMail(Player _session, Packet _packet) { }
+        public void requestTakeItemFomMail(Player _session, Packet _packet) { }
+        public void requestDeleteMail(Player _session, Packet _packet) { }
 
         // Dolfini Locker
-        public void requestMakePassDolfiniLocker(Player _session, packet _packet) { }
-        public void requestCheckDolfiniLockerPass(Player _session, packet _packet) { }
-        public void requestChangeDolfiniLockerPass(Player _session, packet _packet) { }
-        public void requestChangeDolfiniLockerModeEnter(Player _session, packet _packet) { }
-        public void requestDolfiniLockerItem(Player _session, packet _packet) { }
-        public void requestDolfiniLockerPang(Player _session, packet _packet) { }
-        public void requestUpdateDolfiniLockerPang(Player _session, packet _packet) { }
-        public void requestAddDolfiniLockerItem(Player _session, packet _packet) { }
-        public void requestRemoveDolfiniLockerItem(Player _session, packet _packet) { }
+        public void requestMakePassDolfiniLocker(Player _session, Packet _packet) { }
+        public void requestCheckDolfiniLockerPass(Player _session, Packet _packet) { }
+        public void requestChangeDolfiniLockerPass(Player _session, Packet _packet) { }
+        public void requestChangeDolfiniLockerModeEnter(Player _session, Packet _packet) { }
+        public void requestDolfiniLockerItem(Player _session, Packet _packet) { }
+        public void requestDolfiniLockerPang(Player _session, Packet _packet) { }
+        public void requestUpdateDolfiniLockerPang(Player _session, Packet _packet) { }
+        public void requestAddDolfiniLockerItem(Player _session, Packet _packet) { }
+        public void requestRemoveDolfiniLockerItem(Player _session, Packet _packet) { }
 
         // Legacy Tiki Shop (Point Shop)
-        public void requestOpenLegacyTikiShop(Player _session, packet _packet) { }
-        public void requestPointLegacyTikiShop(Player _session, packet _packet) { }
-        public void requestExchangeTPByItemLegacyTikiShop(Player _session, packet _packet) { }
-        public void requestExchangeItemByTPLegacyTikiShop(Player _session, packet _packet) { }
+        public void requestOpenLegacyTikiShop(Player _session, Packet _packet) { }
+        public void requestPointLegacyTikiShop(Player _session, Packet _packet) { }
+        public void requestExchangeTPByItemLegacyTikiShop(Player _session, Packet _packet) { }
+        public void requestExchangeItemByTPLegacyTikiShop(Player _session, Packet _packet) { }
 
         // Personal Shop
-        public void requestOpenEditSaleShop(Player _session, packet _packet) { }
-        public void requestCloseSaleShop(Player _session, packet _packet) { }
-        public void requestChangeNameSaleShop(Player _session, packet _packet) { }
-        public void requestOpenSaleShop(Player _session, packet _packet) { }
-        public void requestVisitCountSaleShop(Player _session, packet _packet) { }
-        public void requestPangSaleShop(Player _session, packet _packet) { }
-        public void requestCancelEditSaleShop(Player _session, packet _packet) { }
-        public void requestViewSaleShop(Player _session, packet _packet) { }
-        public void requestCloseViewSaleShop(Player _session, packet _packet) { }
-        public void requestBuyItemSaleShop(Player _session, packet _packet) { }
+        public void requestOpenEditSaleShop(Player _session, Packet _packet) { }
+        public void requestCloseSaleShop(Player _session, Packet _packet) { }
+        public void requestChangeNameSaleShop(Player _session, Packet _packet) { }
+        public void requestOpenSaleShop(Player _session, Packet _packet) { }
+        public void requestVisitCountSaleShop(Player _session, Packet _packet) { }
+        public void requestPangSaleShop(Player _session, Packet _packet) { }
+        public void requestCancelEditSaleShop(Player _session, Packet _packet) { }
+        public void requestViewSaleShop(Player _session, Packet _packet) { }
+        public void requestCloseViewSaleShop(Player _session, Packet _packet) { }
+        public void requestBuyItemSaleShop(Player _session, Packet _packet) { }
 
         // Papel Shop
-        public void requestOpenPapelShop(Player _session, packet _packet) { }
-        public void requestPlayPapelShop(Player _session, packet _packet) { }
+        public void requestOpenPapelShop(Player _session, Packet _packet)
+        {
+            try
+            {
+                using (var p = new PangyaBinaryWriter(0x10B))
+                {
+                    p.WriteUInt32(0);
+                    p.WriteUInt64((ulong)_session.m_pi.mi.papel_shop.limit_count);
+                    _session.Send(p);
+                }
+            }
+            catch (exception e)
+            {
+                _smp::message_pool.push(new message("[channel::requestOpenPapelShop][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                using (var p = new PangyaBinaryWriter(0x10B))
+                {
+                    p.WriteInt64(-1);
+
+                    p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) == (uint)STDA_ERROR_TYPE.CHANNEL) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE(e.getCodeError()) : 0x5800100);
+                    _session.Send(p);
+                }
+            }
+        }
+        public void requestPlayPapelShop(Player _session, Packet _packet)
+        {
+            PangyaBinaryWriter p = new PangyaBinaryWriter();
+
+            try
+            {
+
+
+                if (_session.m_pi.block_flag.m_flag.papel_shop)
+                    throw new exception("[channel::requestPlayPapelShop][Error] player[UID=" + (_session.m_pi.uid)
+                            + "] tentou jogar no Papel Shop, mas ele nao pode. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.CHANNEL, 3, 0x790001));
+
+                if (_session.m_pi.level < 1)
+                    throw new exception("[channel::requestPlayPapelShop][Error] player[UID=" + (_session.m_pi.uid) + "] tentou jogar o Papel Shop Normal, mas nao tem o level necessario[level="
+                            + (_session.m_pi.level) + ", request=1]", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.CHANNEL, 8, 0x5900108));
+
+                if (!sPapelShopSystem.getInstance().isLoad())
+                    sPapelShopSystem.getInstance().load();
+
+                if (sPapelShopSystem.getInstance().isLimittedPerDay() && _session.m_pi.mi.papel_shop.remain_count <= 0)
+                    throw new exception("[channel::requestPlayPapelShop][Warning] player[UID=" + (_session.m_pi.uid)
+                        + "] tentou jogar o Papel Shop Normal, mas o limite por dia esta ativado, e ele nao tem mais vezes no dia ele ja chegou ao seu limite.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.CHANNEL, 1, 0x5900101));
+
+                var coupon = sPapelShopSystem.getInstance().hasCoupon(_session);
+
+                if ((coupon == null || coupon.STDA_C_ITEM_QNTD < 1) && _session.m_pi.ui.pang < sPapelShopSystem.getInstance().getPriceNormal())
+                    throw new exception("[channel::requestPlayPapelShop][Error] player[UID=" + (_session.m_pi.uid) + "] tentou jogar o Papel Shop Normal, ele nao tem Coupon e nem Pangs suficiente[value="
+                            + (_session.m_pi.ui.pang) + ", request=" + (sPapelShopSystem.getInstance().getPriceNormal()) + "]. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.CHANNEL, 2, 0x5900102));
+
+                var balls = sPapelShopSystem.getInstance().dropBalls(_session);
+
+                if (!balls.Any())
+                    throw new exception("[channel::requestPlayPapelShop][Error] player[UID=" + (_session.m_pi.uid) + "] tentou jogar o Papel Shop Normal, mas nao conseguiu sortear as bolas. Bug",
+                            ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.CHANNEL, 3, 0x5900103));
+
+                List<stItem> v_item = new List<stItem>();
+                stItem item = new stItem();
+                BuyItem bi = new BuyItem();
+
+                //  SysAchievement sys_achieve;
+
+                // Reserva memória para o vector, não realocar depois a cada push_back ou insert
+                //   v_item.Re(balls.Count() + 1/*coupon*/);
+
+                foreach (var el in balls)
+                {
+
+                    item.clear();
+
+                    bi.id = -1;
+                    bi._typeid = el.ctx_psi._typeid;
+                    bi.qntd = el.qntd;
+
+                    item_manager.initItemFromBuyItem(_session.m_pi, ref item, bi, false, 0, 0, 1);
+
+                    if (item._typeid == 0)
+                        throw new exception("[channel::requestPlayPapelShop][Error] player[UID=" + (_session.m_pi.uid) + "] tentou jogar o Papel Shop Normal, mas nao conseguiu inicializar o Item[TYPEID="
+                                + (bi._typeid) + "]. Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.CHANNEL, 4, 0x5900104));
+
+                    var it = v_item.FirstOrDefault(el2 => el2._typeid == item._typeid);
+
+
+                    if (it != null)
+                    {   // Já tem o item soma as quantidades
+                        it.qntd += item.qntd;
+                        it.STDA_C_ITEM_QNTD = (ushort)it.qntd;
+                    }
+                    else    // Não tem, coloca ele na lista
+                    {
+                        v_item.Add(item);
+                        it = v_item.Last();
+                    }
+                }
+
+                // UPDATE ON SERVER
+
+                string ids = "";
+
+                for (var i = 0; i < v_item.Count(); ++i)
+                    ids += ((i == 0) ? ("") : (", ")) + "TYPEID=" + (v_item[i]._typeid) + ", ID=" + (v_item[i].id) + ", QNTD=" + (v_item[i].STDA_C_ITEM_QNTD);
+
+                // Add ao Server e DB
+                //var rai = item_manager.addItem(v_item, _session, 0, 0);
+
+                //    if (rai.fails.Count() > 0 && rai.type != item_manager.RetAddItem.TYPE.T_SUCCESS_PANG_AND_EXP_AND_CP_POUCH)
+                //    throw new exception("[channel::requestPlayPapelShop][Error] player[UID=" + (_session.m_pi.uid) + "] tentou jogar o Papel Shop Normal, mas nao conseguiu adicionar o(s) Item(ns){"
+                //            + ids + "}", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.CHANNEL, 6, 0x5900106));
+
+                // Delete Coupon e coloca no vector de att item, se tiver coupon
+                if (coupon != null)
+                {
+                    item.clear();
+
+                    item.type = 2;
+                    item.id = (int)coupon.id;
+                    item._typeid = coupon._typeid;
+                    item.qntd = 1;
+                    item.STDA_C_ITEM_QNTD = (ushort)((ushort)item.qntd * -1);
+
+                    //if (item_manager.removeItem(item, _session) <= 0)
+                    //    throw new exception("[channel::requestPlayPapelShop][Error] player[UID=" + (_session.m_pi.uid) + "] tentou jogar o Papel Shop Normal, mas nao conseguiu deletar o Coupon[TYPEID="
+                    //        + (coupon._typeid) + ", ID=" + (coupon.id) + "]. Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.CHANNEL, 5, 0x5900105));
+
+                    // Add ao vector
+                    v_item.Add(item);
+
+                }
+                else    // Não tem Coupon Tira Pangs do player
+                    _session.m_pi.consomePang(sPapelShopSystem.getInstance().getPriceNormal());
+
+                // Update Papel Shop Count Player. Se o limite por dia estiver habilitado, decrementa 1 do player
+                sPapelShopSystem.getInstance().updatePlayerCount(_session);
+
+                // Verificar se ganhou item Raro, se sim, cria um log no banco de dados
+                foreach (var el in balls)
+                {
+                    if (el.ctx_psi.tipo == PAPEL_SHOP_TYPE.PST_RARE)
+                    {
+                        Console.WriteLine("[PapelShopSystem::PlayNormal][Log] player[UID=" + (_session.m_pi.uid) + "] ganhou Item Raro[TYPEID="
+                                + (el.ctx_psi._typeid) + ", QNTD=" + (el.qntd) + ", BALL_COLOR=" + (el.color) + ", PROBABILIDADE=" + (el.ctx_psi.probabilidade) + "]");
+
+                        // Adiciona +1 ao contador de item Rare Win no Papel Shop
+                        // sys_achieve.incrementCounter(0x6C400081u/*Rare Win*/);
+
+                        // NormalManagerD.add(19, new CmdInsertPapelShopRareWinLog(_session.m_pi.uid, el), SQLDBResponse, this);
+                    }
+                }
+
+                // UPDATE Achievement ON SERVER, DB and GAME
+
+                // Add +1 ao contador de jogo ao play Palpel Shop
+                //  sys_achieve.incrementCounter(0x6C40004Au/*Play Papel Shop*/);
+
+                // Log
+                Console.WriteLine("[PapelShopSystem::PlayNormal][Log] player[UID=" + (_session.m_pi.uid) + "] jogou Papel Shop Normal e ganhou Item(ns){" + ids + "}");
+
+                // UPDATE ON GAME
+                p.init_plain(0x216);
+
+                p.WriteUInt32((uint)UtilTime.GetSystemTimeAsUnix());
+                p.WriteUInt32((uint)v_item.Count());
+
+                foreach (var el in v_item)
+                {
+                    p.WriteByte(el.type);
+                    p.WriteUInt32(el._typeid);
+                    p.WriteInt32((int)(new Random().Next())/*el.id*/);
+                    p.WriteUInt32(el.flag_time);
+                    p.WriteStruct(el.stat, new stItem.item_stat());
+                    p.WriteUInt32((el.STDA_C_ITEM_TIME > 0) ? el.STDA_C_ITEM_TIME : el.STDA_C_ITEM_QNTD);
+                    p.WriteZero(25);  // C[0~4] 10 Bytes e mais outras coisas, que tem na struct stItem216 explicando
+                }
+                _session.Send(p);
+
+                p.init_plain(0xFB);
+
+                if (sPapelShopSystem.getInstance().isLimittedPerDay())
+                {
+                    p.WriteInt32(_session.m_pi.mi.papel_shop.remain_count);
+                    p.WriteInt32(-2);                                             // Flag
+                }
+                else
+                {
+                    p.WriteInt32(-1);
+                    p.WriteInt32(-3);                                             // Flag
+                }
+
+                _session.Send(p);
+
+                // Resposta para o Play Papel Shop Normal
+                p.init_plain(0x21B);
+
+                p.WriteUInt32(0);     // OK
+
+                p.WriteUInt32((coupon != null) ? coupon.id : 0);
+
+                p.WriteUInt32((uint)balls.Count());
+
+                foreach (var el in balls)
+                {
+                    p.WriteUInt32((uint)el.color);
+                    p.WriteUInt32(el.ctx_psi._typeid);
+                    p.WriteUInt32((uint)((el.item is stItem) ? ((stItem)el.item).id : 0));    // Precisa do ID, se não ele add 2 itens, o do pacote 216 e o desse
+                    p.WriteUInt32(el.qntd);
+                    p.WriteUInt32((uint)el.ctx_psi.tipo);
+                }
+
+                p.WriteUInt64(_session.m_pi.ui.pang);
+                p.WriteUInt64(_session.m_pi.cookie);
+
+                _session.Send(p);
+
+                // UPDATE Achievement ON SERVER, DB and GAME
+                //  sys_achieve.finish_and_update(_session);
+
+            }
+            catch (exception e)
+            {
+
+                _smp::message_pool.push(new message("[channel::requestPlayPapelShop][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+
+                p.init_plain(0x21B);
+
+                p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) == (uint)STDA_ERROR_TYPE.CHANNEL) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE(e.getCodeError()) : 0x5900100);
+
+                _session.Send(p);
+            }
+        }
 
         // Msg Chat da Sala
         public void requestSendMsgChatRoom(Player _session, string _msg) { }
@@ -1534,18 +1957,11 @@ namespace GameServer.Game
         void sendUpdatePlayerInfo(Player _session, int _option)
         {
             PlayerCanalInfo pci = getPlayerInfo(_session);
-            if (_session.m_gi.visible == 0)
-            {
-                pci.capability.ulCapability = 0;
-            }
-            else
-            {
-                updatePlayerInfo(_session);
-            }
-            _session.Send(packet_func.pacote046(new vector<PlayerCanalInfo> { (pci == null) ? new PlayerCanalInfo() : pci }, _option));
+            _session.SendChannel_broadcast(packet_func_sv.pacote046(new vector<PlayerCanalInfo> { (pci == null) ? new PlayerCanalInfo() : pci }, _option));
         }
 
         // Destroy Room
         void destroyRoom(short _number) { }
+
     }
 }

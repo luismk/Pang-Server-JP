@@ -1,4 +1,4 @@
-﻿using GameServer.PangType;       
+﻿using GameServer.GameType;       
 using PangyaAPI.SQL;            
 using System;                  
 namespace GameServer.Cmd

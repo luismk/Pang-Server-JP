@@ -1,5 +1,4 @@
-﻿using PangyaAPI.SQL;
-
+﻿using PangyaAPI.SQL;	 
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -7,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using _smp = PangyaAPI.Utilities.Log;
-using GameServer.PangType;
+using GameServer.GameType;
 using GameServer.Game.Manager;
 using PangyaAPI.Network.Pangya_St;
 
@@ -53,13 +52,13 @@ namespace GameServer.Cmd
 				ce.default_shirts = (byte)Convert.ToUInt32(_result.data[51]);
 				ce.gift_flag = (byte)Convert.ToUInt32(_result.data[52]);
 				for (i = 0; i < 5; i++)
-					ce.PCL[i] = (byte)Convert.ToUInt32(_result.data[53 + i]); // 53 + 5
-				ce.Purchase = (byte)Convert.ToUInt32(_result.data[58]);
+					ce.pcl[i] = (byte)Convert.ToUInt32(_result.data[53 + i]); // 53 + 5
+				ce.purchase = (byte)Convert.ToUInt32(_result.data[58]);
 				for (i = 0; i < 5; i++)
-					ce.AuxPart[i] = 0;// Convert.ToUInt32(_result.data[59 + i]);				// 59 + 5
+					ce.auxparts[i] = 0;// Convert.ToUInt32(_result.data[59 + i]);				// 59 + 5
 				for (i = 0; i < 4; i++)
-					ce.Cut_in[i] = 0;//Convert.ToUInt32(_result.data[64 + i]);					// 64 + 4 Cut-in deveria guarda no db os outros 3 se for msm os 4 que penso q seja, � sim no JP USA os 4
-				ce.MasteryPoint = 0;//Convert.ToUInt32(_result.data[68]);
+					ce.cut_in[i] = 0;//Convert.ToUInt32(_result.data[64 + i]);					// 64 + 4 Cut-in deveria guarda no db os outros 3 se for msm os 4 que penso q seja, � sim no JP USA os 4
+				ce.mastery = 0;//Convert.ToUInt32(_result.data[68]);
 				for (i = 0; i < 4; i++)
 					ce.Card_Character[i] = 0;// Convert.ToUInt32(_result.data[69 + i]);		// 69 + 4
 				for (i = 0; i < 3; i++)

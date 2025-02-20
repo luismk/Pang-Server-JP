@@ -1,5 +1,5 @@
 ﻿using GameServer.Cmd;
-using GameServer.PangType;
+using GameServer.GameType;
 using PangyaAPI.SQL;
 using PangyaAPI.Utilities;
 using System;

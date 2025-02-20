@@ -1,4 +1,4 @@
-﻿using GameServer.PangType;
+﻿using GameServer.GameType;
 using PangyaAPI.SQL;
 using PangyaAPI.Utilities;
 using PangyaAPI.Utilities.Log;
@@ -8,18 +8,12 @@ using _smp = PangyaAPI.Utilities.Log;
 
 namespace GameServer.Cmd
 {
-    internal class CmdFriendInfo : Pangya_DB
-    {
-        public CmdFriendInfo()
-        {
-            m_uid = 0u;
-            m_fi = new SortedList<uint, FriendInfo>();
-        }
-
+    public class CmdFriendInfo : Pangya_DB
+    {     
         public CmdFriendInfo(uint _uid)
         {
             m_uid = _uid;
-            m_fi = new SortedList<uint, FriendInfo>();
+            m_fi = new Dictionary<uint, FriendInfo>();
         }
 
         public uint getUID()
@@ -32,7 +26,7 @@ namespace GameServer.Cmd
             m_uid = _uid;
         }
 
-        public SortedList<uint, FriendInfo> getInfo()
+        public Dictionary<uint, FriendInfo> getInfo()
         {
             return m_fi;
         }
@@ -88,7 +82,7 @@ namespace GameServer.Cmd
         }
          
         private uint m_uid;
-        private SortedList<uint, FriendInfo> m_fi;
+        private Dictionary<uint, FriendInfo> m_fi;
 
         private const string m_szConsulta = "pangya.ProcGetFriendInfo";
     }

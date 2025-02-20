@@ -24,7 +24,8 @@ namespace PangLib.IFF.JP.Models.General
         /// <summary>
         /// Active item
         /// </summary>
-        public uint Active { get; set; }//0 start position
+        [field: MarshalAs(UnmanagedType.Bool, SizeConst = 4)]
+        public bool Active { get; set; }//0 start position
         /// <summary>
         /// Tipo Index do item
         /// </summary>
@@ -68,7 +69,7 @@ namespace PangLib.IFF.JP.Models.General
         public void Load(ref PangyaBinaryReader reader, uint LenghtStr, long recordLength = 0, uint version = 11, bool jump = false)
         {
             //------------------- IFF BASIC ----------------------------\\
-            Active = reader.ReadUInt32();
+            Active = reader.ReadBoolean();
             ID = reader.ReadUInt32();
             Name = reader.ReadPStr(LenghtStr);
             Level = new IFFLevel
@@ -103,7 +104,7 @@ namespace PangLib.IFF.JP.Models.General
         public void Load(ref PangyaBinaryReader reader, uint LenghtStr)
         {
             //------------------- IFF BASIC ----------------------------\\
-            Active = reader.ReadUInt32();
+            Active = reader.ReadBoolean();
             ID = reader.ReadUInt32();
             Name = reader.ReadPStr(LenghtStr);
             Level = new IFFLevel
@@ -159,22 +160,22 @@ namespace PangLib.IFF.JP.Models.General
         
         public bool IsDupItem()
         {
-            return Active == 1 && Shop.flag_shop.IsDuplication;
+            return Active && Shop.flag_shop.IsDuplication;
         }
 
         public bool IsSale()
         {
-            return Active == 1 && Shop.flag_shop.IsShop;
+            return Active && Shop.flag_shop.IsShop;
         }
 
         public bool IsHot()
         {
-            return Shop.flag_shop.IsHot && Active == 1;
+            return Shop.flag_shop.IsHot && Active;
         }
 
         public bool IsNormal()
         {
-            return Active == 1 && (Shop.flag_shop.IsNormal);
+            return Active && (Shop.flag_shop.IsNormal);
         }
 
         public bool IsNew()
@@ -183,7 +184,7 @@ namespace PangLib.IFF.JP.Models.General
             {
                 return false;
             }
-            return Active == 1 && Shop.flag_shop.IsNew;
+            return Active && Shop.flag_shop.IsNew;
         }
 
         public bool IsGiftItem()
@@ -196,7 +197,7 @@ namespace PangLib.IFF.JP.Models.General
             // Ex: 0 + 0 = 0 N�o �
             byte is_giftable = Convert.ToByte(Shop.flag_shop.IsGift);
             byte _is_saleable = Convert.ToByte(Shop.flag_shop.IsSale);
-            if (Active == 1 && Shop.flag_shop.IsCash
+            if (Active && Shop.flag_shop.IsCash
                     && (_is_saleable ^ is_giftable) == 1)
             {
                 return true;
@@ -210,24 +211,24 @@ namespace PangLib.IFF.JP.Models.General
 
         public bool IsOnlyDisplay()
         {
-            return (Active == 1 && Shop.flag_shop.IsDisplay);
+            return (Active && Shop.flag_shop.IsDisplay);
         }
 
         public bool IsOnlyPurchase()
         {
-            return (Active == 1 && Shop.flag_shop.IsSale
+            return (Active && Shop.flag_shop.IsSale
                     && Shop.flag_shop.IsGift);
         }
 
         public bool IsOnlyGift()
         {
-            return (Active == 1 && Shop.flag_shop.IsCash
+            return (Active && Shop.flag_shop.IsCash
                     && Shop.flag_shop.IsSale && Shop.flag_shop.IsGift == false);
         }
 
         public bool IsPSQ()
         {
-            if (Active == 1)
+            if (Active)
             {
                 if (Shop.flag_shop.IsPSQ)
                 {

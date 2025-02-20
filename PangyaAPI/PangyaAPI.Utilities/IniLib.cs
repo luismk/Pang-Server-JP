@@ -166,8 +166,8 @@ namespace PangyaAPI.Utilities
         /// <returns>string</returns>
         public UInt32 ReadUInt32(string section, string key, uint def = 0)
         {
-            return Convert.ToUInt32(ReadString(section, key, def.ToString()));
-
+            var _key = ReadString(section, key, def.ToString());
+            return Convert.ToUInt32(_key);    
         }
         /// <summary>
         /// Ler o arquivo .ini e retorna Int64

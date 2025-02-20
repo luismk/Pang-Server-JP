@@ -1,4 +1,4 @@
-﻿using GameServer.PangType;
+﻿using GameServer.GameType;
 using PangyaAPI.Utilities.BinaryModels;
 using System;
 using System.Collections.Generic;
@@ -37,17 +37,17 @@ namespace GameServer.Game.Manager
             }
         }
                                        
-        public CaddieInfo findCaddieById(uint _id)
+        public CaddieInfoEx findCaddieById(uint _id)
         {
             return this.Values.FirstOrDefault(c => c.id == _id);
         }
 
-        public CaddieInfo findCaddieByTypeid(uint _typeid)
+        public CaddieInfoEx findCaddieByTypeid(uint _typeid)
         {
             return this.Values.FirstOrDefault(c => c._typeid == _typeid);
         }
 
-        public CaddieInfo findCaddieByTypeidAndId(uint _typeid, uint _id)
+        public CaddieInfoEx findCaddieByTypeidAndId(uint _typeid, uint _id)
         {
             return this.Values.FirstOrDefault(c => c.id == _id && c._typeid == _typeid);
         }

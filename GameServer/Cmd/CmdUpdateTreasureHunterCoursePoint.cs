@@ -18,15 +18,15 @@
 //// C++ TO C# CONVERTER WARNING: The following #include directive was ignored:
 ////#include "../../Projeto IOCP/PANGYA_DB/pangya_db.h"
 //// C++ TO C# CONVERTER NOTE: The following #define macro was replaced in-line:
-//// ORIGINAL LINE: #define m_title skin_typeid[5]
+// #define m_title skin_typeid[5]
 //// C++ TO C# CONVERTER NOTE: The following #define macro was replaced in-line:
-//// ORIGINAL LINE: #define GameServer.Cmd_C_ITEM_QNTD c[0]
+// #define GameServer.Cmd_C_ITEM_QNTD c[0]
 //// C++ TO C# CONVERTER NOTE: The following #define macro was replaced in-line:
-//// ORIGINAL LINE: #define GameServer.Cmd_C_ITEM_TICKET_REPORT_ID_HIGH c[1]
+// #define GameServer.Cmd_C_ITEM_TICKET_REPORT_ID_HIGH c[1]
 //// C++ TO C# CONVERTER NOTE: The following #define macro was replaced in-line:
-//// ORIGINAL LINE: #define GameServer.Cmd_C_ITEM_TICKET_REPORT_ID_LOW c[2]
+// #define GameServer.Cmd_C_ITEM_TICKET_REPORT_ID_LOW c[2]
 //// C++ TO C# CONVERTER NOTE: The following #define macro was replaced in-line:
-//// ORIGINAL LINE: #define GameServer.Cmd_C_ITEM_TIME c[3]
+// #define GameServer.Cmd_C_ITEM_TIME c[3]
 
 //namespace GameServer.Cmd
 //{
@@ -49,14 +49,14 @@
 //			public TreasureHunterInfo getInfo()
 //			{
 //// C++ TO C# CONVERTER TASK: The following line was determined to contain a copy constructor call - this should be verified and a copy constructor should be created:
-//// ORIGINAL LINE: return m_thi;
+// return m_thi;
 //				return new GameServer.Cmd.TreasureHunterInfo(m_thi);
 //			}
 
 //			public void setInfo(TreasureHunterInfo _thi)
 //			{
 //// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
-//// ORIGINAL LINE: m_thi = _thi;
+// m_thi = _thi;
 //				m_thi.CopyFrom(_thi);
 //			}
 
