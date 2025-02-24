@@ -146,7 +146,12 @@ namespace PangyaAPI.Network.PangyaSession
                 return false;
             }
         }
-                               
+
+        public bool Devolve()
+        {
+            return getConnected() == false ? true : false;
+        }
+
         public abstract uint getUID();
 
         public abstract uint getCapability();

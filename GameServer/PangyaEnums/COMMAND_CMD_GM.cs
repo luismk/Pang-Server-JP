@@ -1,4 +1,4 @@
-﻿    namespace GameServer.PangDefinition
+﻿    namespace GameServer.PangyaEnums
 {
    public enum COMMON_CMD_GM : short
     {

@@ -74,6 +74,32 @@ namespace PangLib.IFF.JP.Extensions
         string PATH_PANGYA_IFF = "data/pangya_jp.iff";
         bool m_loaded;
         ZipFileEx Zip { get; set; }
+
+        public int CHARACTER = (int)IFF_GROUP.CHARACTER;      // 4
+        public int PART = (int)IFF_GROUP.PART;        // 8
+        public int CLUB = (int)IFF_GROUP.CLUB;        // 12
+        public int CLUBSET = (int)IFF_GROUP.CLUBSET;     // 16
+        public int BALL = (int)IFF_GROUP.BALL;        // 20
+        public int ITEM = (int)IFF_GROUP.ITEM;        // 24
+        public int CADDIE = (int)IFF_GROUP.CADDIE;      // 28
+        public int CAD_ITEM = (int)IFF_GROUP.CAD_ITEM;    // 32
+        public int SET_ITEM = (int)IFF_GROUP.SET_ITEM;    // 36
+        public int COURSE = (int)IFF_GROUP.COURSE;      // 40
+        public int MATCH = (int)IFF_GROUP.MATCH;       // 44 Trofel
+        public int TITLE = (int)IFF_GROUP.TITLE;
+        public int ENCHANT = (int)IFF_GROUP.ENCHANT;       // 52
+        public int SKIN = (int)IFF_GROUP.SKIN;        // 56
+        public int HAIR_STYLE = (int)IFF_GROUP.HAIR_STYLE;  // 60
+        public int MASCOT = (int)IFF_GROUP.MASCOT;      // 64
+        public int CHILDITEM = (int)IFF_GROUP.CHILDITEM;
+        public int FURNITURE = (int)IFF_GROUP.FURNITURE;     // 72
+        public int OFFLINESHOP = (int)IFF_GROUP.OFFLINESHOP;
+        public int ACHIEVEMENT = (int)IFF_GROUP.ACHIEVEMENT; // 76
+        public int COUNTER_ITEM = (int)IFF_GROUP.COUNTER_ITEM;  // 108
+        public int AUX_PART = (int)IFF_GROUP.AUX_PART;    // 112
+        public int QUEST_STUFF = (int)IFF_GROUP.QUEST_STUFF; // 116
+        public int QUEST_ITEM = (int)IFF_GROUP.QUEST_ITEM;  // 120
+        public int CARD = (int)IFF_GROUP.CARD;        // 124
         public IFFHandle()
         {
             m_loaded = false;

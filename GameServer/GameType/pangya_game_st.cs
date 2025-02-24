@@ -1252,6 +1252,18 @@ namespace GameServer.GameType
             Second = _Second;
             MilliSecond = _Millisecond;
         }
+        public PangyaTime(ushort _Year, ushort _Month = 0, ushort _Day = 0, ushort _DayOfWeek = 0, ushort _Hour = 0, ushort _Minute = 0, ushort _Second = 0, ushort _Millisecond = 0)
+        {
+            Year = _Year;
+            Month = _Month;
+            Minute = _Minute;
+            Day = _Day;
+            DayOfWeek = _DayOfWeek;
+            Hour = _Hour;
+            Second = _Second;
+            MilliSecond = _Millisecond;
+        }
+
     }
 
     public class CouponGacha
@@ -2272,16 +2284,52 @@ namespace GameServer.GameType
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public class RoomGuildInfo
     {
-        public uint guild_1_uid;
+        public RoomGuildInfo()
+        {
+            clear();
+        }
+
+        public void clear(int type  = 0)
+        {
+            if (type ==0)
+            {
+                guild_1_uid = 0;
+                guild_1_index_mark = 0;
+                guild_1_mark = "";
+                guild_1_nome = "";
+
+                guild_2_uid = 0;
+                guild_2_index_mark = 0;
+                guild_2_mark = "";
+                guild_2_nome = "";
+            }
+            if (type == 1)
+            {
+                guild_1_uid = 0;
+                guild_1_index_mark = 0;
+                guild_1_mark = "";
+                guild_1_nome = "";
+            }
+            if (type == 2)
+            {
+                guild_2_uid = 0;
+                guild_2_index_mark = 0;
+                guild_2_mark = "";
+                guild_2_nome = "";
+            }
+        }
+         public uint guild_1_uid;
         public uint guild_2_uid;
-        [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 17)]
-        public string guild_1_nome;// [17];
-        [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 17)]
-        public string guild_2_nome;// [17];
         [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 12)]
-        public string guild_1_mark;// [12];              // mark string o pangya JP não usa aqui fica 0
+        public string guild_1_mark;             // mark string o pangya JP não usa aqui fica 0
         [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 12)]
-        public string guild_2_mark;// [12];              // mark string o pangya JP não usa aqui fica 0
+        public string guild_2_mark;             // mark string o pangya JP não usa aqui fica 0
+        public ushort guild_1_index_mark;
+        public ushort guild_2_index_mark;
+        [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 20)]
+        public string guild_1_nome;
+        [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 20)]
+        public string guild_2_nome;
     }
 
     //    // Sala Grand Prix Info
@@ -2296,15 +2344,36 @@ namespace GameServer.GameType
 
     [StructLayout(LayoutKind.Sequential, Pack = 4, Size = 4)]
     public class NaturalAndShortGame
-    {
-        public uint ulNaturalAndShortGame { get; set; }
-        public _stBit stBit = new _stBit();
-        public class _stBit
+    {                          
+        public NaturalAndShortGame(uint _ul = 0)
         {
-
-            public uint natural;           // Natural Modo
-            public uint short_game;    // Short Game Modo
+            ulNaturalAndShortGame = _ul;
         }
+        
+        public uint ulNaturalAndShortGame { get; set; }  
+        public uint natural;           // Natural Modo
+        public uint short_game;    // Short Game Modo
+    }
+
+
+    // Treasure Hunter Info
+   public class TreasureHunterInfo
+    {
+        public void clear()
+        {
+        }
+        public byte course;
+        public uint point;
+    }
+
+   public class TreasureHunterItem
+    {
+       public void clear() {  }
+        public uint _typeid;
+        public uint qntd;
+        public uint probabilidade;
+       public byte flag;
+        public byte active = 1;
     }
 
     // SalaInfo
@@ -2336,6 +2405,7 @@ namespace GameServer.GameType
             MYSTIC_RUINS,
             GRAND_ZODIAC = 64,
             RANDOM = 127,
+            UNK = 0x7F
         }
         public enum TIPO : uint
         {
@@ -2388,26 +2458,27 @@ namespace GameServer.GameType
         protected void clear()
         {
 
-            numero = -1;
-            senha_flag = true;
-            state = true;
+            numero = ushort.MaxValue;
+            senha_flag = 1;
+            state = 1;
             _30s = 30;
 
             guilds = new RoomGuildInfo(); // Valores inicias
+            key = new byte[17];
         }
         [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 64)]
         public string nome;// [64];
-        public bool senha_flag;  // Sala sem senha = 1, Sala com senha = 0
-        public bool state;       // Sala em espera = 1, Sala em Game = 0
+        public byte senha_flag;  // Sala sem senha = 1, Sala com senha = 0
+        public byte state;       // Sala em espera = 1, Sala em Game = 0
         public byte flag;                 // Sala que pode entrar depois que começou = 1
-        public byte max_player;
-        public byte num_player;
+        public byte max_Player;
+        public byte num_Player;
         [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 17)]
         public byte[] key;
         public byte _30s;                 // Modo Multiplayer do pangya acho, sempre 0x1E (dec: 30) no pangya
         public byte qntd_hole;
         public byte tipo_show;            // esse é o tipo que mostra no pacote, esse pode mudar dependendo do tipo real da sala, fica ou camp, ou VS ou especial, não coloca todos os tipos aqui
-        public short numero;
+        public ushort numero;
         public byte modo;
         public eCOURSE course;
         public uint time_vs;
@@ -2417,7 +2488,7 @@ namespace GameServer.GameType
         public RoomGuildInfo guilds;
         public uint rate_pang;
         public uint rate_exp;
-        public uint master;         // Tem valores negativos, por que a sala usa ele para grand prix e etc
+        public int master;         // Tem valores negativos, por que a sala usa ele para grand prix e etc
         public byte tipo_ex;          // tipo extended, que fala o tipo da sala certinho
         public uint artefato;          // Aqui usa pra GP efeitos especiais do GP
                                        //int natural;			// Aqui usa para Short Game Também
@@ -2427,7 +2498,7 @@ namespace GameServer.GameType
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public class RoomInfoEx : RoomInfo
     {
-        RoomInfoEx()
+       public RoomInfoEx()
         {
 
             base.clear();
@@ -2435,7 +2506,7 @@ namespace GameServer.GameType
             hole_repeat = 0;
             fixed_hole = 0;
             tipo = 0;
-            state_afk = false;
+            state_afk = 0;
             channel_rookie = false;
             angel_event = false;
         }
@@ -2445,7 +2516,7 @@ namespace GameServer.GameType
         public byte tipo;                 // Tipo real da sala
         public byte hole_repeat;          // Número do hole que vai ser repetido
         public uint fixed_hole;            // Aqui é 1 Para Hole(Pin"Beam") Fixo, e 0 para aleatório
-        public bool state_afk;   // Estado afk da sala, usar para depois começar a sala, já que o pangya não mostra se a sala está afk
+        public byte state_afk;   // Estado afk da sala, usar para depois começar a sala, já que o pangya não mostra se a sala está afk
         public bool channel_rookie;   // Flag que guarda, se o channel é rookie ou não, onde a sala foi criada, vem da Flag do channel
         public bool angel_event;      // Flag que guarda se o Angel Event está ligado
         public byte flag_gm;
@@ -2732,7 +2803,7 @@ namespace GameServer.GameType
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public struct InviteChannelInfo
     {
-        public short room_number;
+        public ushort room_number;
         public uint invite_uid;
         public uint invited_uid;
         public PangyaTime time;
@@ -3549,6 +3620,13 @@ namespace GameServer.GameType
     {
         public uint index;     // Index Sequência do item no shop
         public TradeItem item;
+        public PersonalShopItem()
+        { clear(); }
+        public void clear()
+        {
+            item = new TradeItem();
+           
+        }              
     }
 
     // Tutorial Info
@@ -3892,67 +3970,37 @@ namespace GameServer.GameType
     public class GuildInfo
     {
 
-        public uint uid;
-        [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 17)]
+        public uint uid;                                          
+        public byte leadder;
+        [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 31)]
         public byte[] name_Bytes;
         public string name
         {
             get => name_Bytes.GetString();
             set => name_Bytes.SetString(value);
         }
+        public uint index_mark_emblem;
+        public ulong ull_unknown;
+        public ulong pang;
+        [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)]
+        public byte[] _16unknown;
         public uint point;
-        public uint pang;
-        public uint total_member;
-        [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 12)]
-        public string Image;
-        [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 101)]
-        public byte[] Notice_Bytes;
-        public string Notice
-        {
-            get => Notice_Bytes.GetString();
-            set => Notice_Bytes.SetString(value);
-        }
-        [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 101)]
-        protected byte[] Introducting_Bytes;
-        public string Introducting
-        {
-            get => Introducting_Bytes.GetString();
-            set => Introducting_Bytes.SetString(value);
-        }
-        public uint Position;
-        public uint LeaderUID;
-        [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 22)]
-        public byte[] LeaderNickname_Bytes;
-        public string LeaderNickname
-        {
-            get => LeaderNickname_Bytes.GetString();
-            set => LeaderNickname_Bytes.SetString(value);
-        }
-
         public GuildInfo()
         {
-            name_Bytes = new byte[17];
-            Notice_Bytes = new byte[101];
-            Introducting_Bytes = new byte[101];
-            LeaderNickname_Bytes = new byte[22];
+            clear();
+        }
+
+        public void clear()
+        {
+            name_Bytes = new byte[31];
+            _16unknown = new byte[16];
         }
 
         public byte[] Build()
         {
             using (var p = new PangyaBinaryWriter())
             {
-                p.WriteUInt32(uid);
-                p.WriteStr(name, 17);
-                p.WriteUInt32(point);
-                p.WriteUInt32(pang);
-                p.WriteUInt32(total_member);
-                p.WriteStr(Image, 12);
-                p.WriteStr(Notice, 101);
-                p.WriteStr(Introducting, 101);
-                p.WriteUInt32(Position);
-                p.WriteUInt32(LeaderUID);
-                p.WriteStr(LeaderNickname, 22);
-
+                p.WriteStruct(this, new GuildInfo()); 
                 return p.GetBytes;
             }
         }
@@ -3962,7 +4010,13 @@ namespace GameServer.GameType
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public class GuildInfoEx : GuildInfo
     {
-        public PangyaTime create_time;
+        [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 12)]
+        public string mark_emblem;
+        public GuildInfoEx()
+        {
+            clear();
+         }
+
     }
 
     // Canal Info

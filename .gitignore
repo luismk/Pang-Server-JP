@@ -1,3 +1,5 @@
 .gitattributes.bak
 GameServer/GameServer/server.ini
 GameServer/GameServer/server.ini
+/.vs
+/PangyaAPI/PangyaAPI.Utilities/obj

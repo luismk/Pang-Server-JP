@@ -380,7 +380,7 @@ namespace PangyaAPI.Utilities.BinaryModels
             return true;
         }
 
-        public T Read<T>() where T : struct
+        public T Read<T>() where T : new()
         {
             T local;
             int count = (typeof(T) == typeof(bool)) ? 1 : Marshal.SizeOf(typeof(T));

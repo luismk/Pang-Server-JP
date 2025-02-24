@@ -1219,7 +1219,7 @@ namespace GameServer.GameType
                 .ToDictionary(it => it.Key, it => it.Value);
         }
 
-        public Dictionary<stIdentifyKey/*int/*ID*/, UpdateItem> findUpdateItemByTypeidAndType(uint _typeid, uint _id)
+        public Dictionary<stIdentifyKey/*int/*ID*/, UpdateItem> findUpdateItemByTypeidAndId(uint _typeid, uint _id)
         {
             return mp_ui
                 .Where(it => it.Value._typeid == _typeid && it.Value.id == _id)

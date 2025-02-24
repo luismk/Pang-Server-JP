@@ -24,8 +24,8 @@ namespace GameServer.PacketFunc
     public static class packet_func_sv
     {
         static int MAX_BUFFER_PACKET = 1000;
-        
-        static GameServerTcp.GameServer gs = Program.gs;              
+
+        static GameServerTcp.GameServer gs = Program.gs;
         #region Response Packet
         public static byte[] InitialLogin(PlayerInfo pi, ServerInfoEx _si)
         {
@@ -96,7 +96,7 @@ namespace GameServer.PacketFunc
                 //    Debug.WriteLine("InitialLogin Size Okay");
                 //else
                 //    Debug.WriteLine($"InitialLogin Size Bug: Correct = {12800}, Incorrect = {p.GetSize} => packet_func.InitialLogin()");
- 
+
                 return p.GetBytes;
             }
             catch (Exception e)
@@ -155,7 +155,7 @@ namespace GameServer.PacketFunc
 
         public static byte[] pacote1A9(int ttl_milliseconds/*time to live*/, int option = 1)
         {
-            var p = new PangyaBinaryWriter(0x1A9); 
+            var p = new PangyaBinaryWriter(0x1A9);
 
             p.WriteByte((byte)option);
 
@@ -165,7 +165,7 @@ namespace GameServer.PacketFunc
 
         public static byte[] pacote095(short sub_tipo, int option = 0, PlayerInfo pi = null)
         {
-            var p = new PangyaBinaryWriter(0x95); 
+            var p = new PangyaBinaryWriter(0x95);
 
             p.WriteInt16(sub_tipo);
 
@@ -187,7 +187,7 @@ namespace GameServer.PacketFunc
             }
             return p.GetBytes;
         }
-                                              
+
         public static List<PangyaBinaryWriter> pacote25D(List<TrofelEspecialInfo> v_element, int option)
         {
             var responses = new List<PangyaBinaryWriter>();
@@ -205,7 +205,7 @@ namespace GameServer.PacketFunc
             // Gera pacotes corretamente
             foreach (var lista in splitList)
             {
-                var p = new PangyaBinaryWriter(0x25D); 
+                var p = new PangyaBinaryWriter(0x25D);
                 p.WriteByte((byte)option);
                 p.WriteUInt32((uint)lista.Count);
                 p.WriteUInt32((uint)lista.Count);
@@ -222,19 +222,19 @@ namespace GameServer.PacketFunc
         }
         public static byte[] pacote156(uint _uid, UserEquip _ue, byte season)
         {
-            var p = new PangyaBinaryWriter(0x156); 
+            var p = new PangyaBinaryWriter(0x156);
 
             p.WriteByte(season);
 
-            p.WriteUInt32(_uid);             
-            p.WriteBytes(_ue.Build());     
+            p.WriteUInt32(_uid);
+            p.WriteBytes(_ue.Build());
             return p.GetBytes;
         }
 
 
         public static byte[] pacote157(MemberInfoEx _mi, byte season)
         {
-            var p = new PangyaBinaryWriter(0x157); 
+            var p = new PangyaBinaryWriter(0x157);
 
             p.WriteByte(season);
 
@@ -243,18 +243,18 @@ namespace GameServer.PacketFunc
             p.WriteBytes(_mi.Build());
             p.WriteUInt32(_mi.uid);
             p.WriteUInt32(_mi.guild_point);
-             return p.GetBytes;
+            return p.GetBytes;
         }
 
         public static byte[] pacote158(uint _uid, UserInfoEx _ui, byte season)
         {
-            var p = new PangyaBinaryWriter(0x158); 
+            var p = new PangyaBinaryWriter(0x158);
 
             p.WriteByte((byte)season);
 
             p.WriteUInt32(_uid);
 
-            p.WriteBytes(_ui.Build());                                     
+            p.WriteBytes(_ui.Build());
             return p.GetBytes;
         }
 
@@ -328,16 +328,16 @@ namespace GameServer.PacketFunc
             if (pi == null)
                 throw new Exception("Erro PlayerInfo *pi is null. packet_func::pacote096()");
             using (var p = new PangyaBinaryWriter(0x96))
-            {                          
+            {
                 p.WriteUInt64(pi.cookie);
                 return p.GetBytes;
-            }     
+            }
         }
 
         public static byte[] pacote181(List<ItemBuffEx> v_element, int option = 0)
         {
             using (var p = new PangyaBinaryWriter(0x181))
-            {                                             
+            {
                 p.WriteInt32(option);
 
                 if (option == 0)
@@ -366,7 +366,7 @@ namespace GameServer.PacketFunc
         }
 
         public static byte[] pacote13F(int option = 0)
-        {                  
+        {
             using (var p = new PangyaBinaryWriter(0x13F))
             {
                 p.WriteByte(option);
@@ -413,20 +413,20 @@ namespace GameServer.PacketFunc
         public static byte[] pacote135()
         {
             using (var p = new PangyaBinaryWriter(0x135))
-            {                                       
+            {
                 return p.GetBytes;
             }
         }
-                          
+
         public static byte[] pacote131(int option)
         {
-            using (var p  =new PangyaBinaryWriter(0x131))
+            using (var p = new PangyaBinaryWriter(0x131))
             {
 
-                 
+
                 //if (!sTreasureHunterSystem::getInstance().isLoad())
                 //    sTreasureHunterSystem::getInstance().load();
-                              
+
                 p.WriteByte(option);
 
                 p.WriteByte(MS_NUM_MAPS);
@@ -450,10 +450,10 @@ namespace GameServer.PacketFunc
         public static byte[] pacote0E1(MascotManager v_element, int option = 0)
         {
             var p = new PangyaBinaryWriter(0xE1);
-                              
+
             p.Write(v_element.Build());
             return p.GetBytes;
-        }                                                                                      
+        }
 
         public static PangyaBinaryWriter pacote073(List<WarehouseItemEx> v_element, int option = 0)
         {
@@ -589,11 +589,11 @@ namespace GameServer.PacketFunc
 
                 p.WriteInt16((short)v_tegi.Count);
                 foreach (var item in v_tegi)
-                    p.WriteStruct(item, new TrofelEspecialInfo()); 
-                    return p.GetBytes;
+                    p.WriteStruct(item, new TrofelEspecialInfo());
+                return p.GetBytes;
             }
         }
-       
+
         public static byte[] pacote04E(int option, int _codeErrorInfo = 0)
         {
             /* Option Values
@@ -604,7 +604,7 @@ namespace GameServer.PacketFunc
                 * 6 ErrorCode Info
                 */
             using (var p = new PangyaBinaryWriter(0x4E))
-            {                      
+            {
                 p.WriteByte((byte)option);
 
                 if (_codeErrorInfo != 0)
@@ -614,14 +614,14 @@ namespace GameServer.PacketFunc
         }
 
 
-       public static byte[] pacote040(string nick, string msg, byte option)
+        public static byte[] pacote040(string nick, string msg, byte option)
         {
 
             if ((option == 0 || option == 0x80) && string.IsNullOrEmpty(nick))
-                throw  new exception("Error PlayerInfo *pi is null. packet_func::pacote040()");
+                throw new exception("Error PlayerInfo *pi is null. packet_func::pacote040()");
 
             using (var p = new PangyaBinaryWriter(0x40))
-            {                                          
+            {
                 p.WriteByte(option);
 
                 if (option == 0 || option == 0x80 || option == 4)
@@ -629,7 +629,7 @@ namespace GameServer.PacketFunc
                     p.WritePStr(nick);
                     if (option != 4)
                         p.WritePStr(msg);
-                }      
+                }
                 return p.GetBytes;
             }
         }
@@ -640,7 +640,7 @@ namespace GameServer.PacketFunc
 
             if (option == 0 && pi == null)
                 throw new Exception("Erro PlayerInfo *pi is null. packet_func::pacote044()");
-                                            
+
             p.WriteByte(option);   // Option
 
             if (option == 0)
@@ -720,12 +720,12 @@ int option = 0)
             foreach (var p_log in l5pg.players)
             {
                 p.WriteBytes(p_log.Build());
-            }                               
-            return p.GetBytes;     
+            }
+            return p.GetBytes;
         }
         public static byte[] pacote0FC(List<ServerInfo> v_si)
         {
-            var p = new PangyaBinaryWriter(0xFC); 
+            var p = new PangyaBinaryWriter(0xFC);
             p.WriteByte((byte)v_si.Count);
 
             foreach (ServerInfo i in v_si)
@@ -818,9 +818,9 @@ int option = 0)
                     p.WriteByte(season);
                     p.WriteUInt32(_uid);
                 }
-                return p.GetBytes;                      
+                return p.GetBytes;
             }
-        }                                                                     
+        }
 
         public static byte[] pacote211(List<MailBox> v_element, uint pagina, uint paginas, uint error = 0)
         {
@@ -854,7 +854,7 @@ int option = 0)
 
                 if (error == 0)
                 {
-                    p.WriteBytes(ei.Build());  
+                    p.WriteBytes(ei.Build());
                 }
 
                 return p.GetBytes;
@@ -983,7 +983,7 @@ int option = 0)
             {
                 throw new exception("Error player nao esta mais connectado. Em packet_func::pacote04B()", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PACKET_FUNC_SV,
                     2, 0));
-            }               
+            }
             p.WriteInt32(error);
 
             if (error == 0)
@@ -1055,7 +1055,7 @@ int option = 0)
                             //        if (it == _session.m_pi.mp_scl.end())
                             //        {
 
-                            //            _smp.message_pool.getInstance().push(new message("[channel::pacote04B][Error] player[UID=" + Convert.ToString(_session.m_pi.m_uid) + "] nao tem os estados do character na lounge. Criando um novo para ele. Bug", CL_FILE_LOG_AND_CONSOLE));
+                            //            _smp.message_pool.getInstance().push(new message("[channel::pacote04B][Error] player[UID=" + Convert.ToString(_session.m_pi.m_uid) + "] nao tem os estados do character na lounge. Criando um novo para ele. Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
 
                             //            // Add New State Character Lounge
                             //            var pair = _session.m_pi.mp_scl.insert(Tuple.Create(_session.m_pi.ei.char_info.id, new StateCharacterLounge({ })));
@@ -1073,7 +1073,7 @@ int option = 0)
                             //                break;
                             //        }
                             //    }
-                            }
+                        }
                         break;
                     case 7: // Player game
                             // Nada Aqui
@@ -1090,7 +1090,7 @@ int option = 0)
         public static byte[] pacote1AD(string webKey, int option)
         {
             using (var p = new PangyaBinaryWriter(0x1AD))
-            {                                           
+            {
                 p.WriteInt32(option);
 
                 if (webKey.empty())
@@ -1124,7 +1124,7 @@ int option = 0)
 
         public static byte[] pacote144(int option = 0)
         {
-            var p = new PangyaBinaryWriter(0x144); 
+            var p = new PangyaBinaryWriter(0x144);
             p.WriteByte((byte)option);
 
             return p.GetBytes;
@@ -1133,10 +1133,651 @@ int option = 0)
         public static byte[] pacote09A(int ulCapability)
         {        // UPDATE ON GAME
             var p = new PangyaBinaryWriter(0x9A);
-                          
+
             p.WriteInt32(ulCapability);
             return p.GetBytes;
         }
+
+            public static List<PangyaBinaryWriter> pacote048(Player _session, List<PlayerRoomInfoEx> v_element, int option = 0)
+            {
+                var p = new PangyaBinaryWriter();
+                var p_list = new List<PangyaBinaryWriter>();
+                if ((option & 0xFF) == 2)
+                { // exit player
+                    p.init_plain((ushort)0x48);
+                    p.WriteByte((byte)option);
+                    p.WriteInt16(-1);
+
+                    p.WriteUInt32(_session.m_oid);
+                    p_list.Add(p);
+                    return p_list;
+                }
+                //else if ((option & 0xFF) == 7)
+                //{
+                //    var elements = v_element.Count;
+
+                //    //realizar o split
+                //    MAKE_BEGIN_SPLIT_PACKET(0x48,
+                //        _session,
+                //        ((option & 0x100) != 0 ? sizeof(PlayerRoomInfo) : sizeof(PlayerRoomInfoEx)),
+                //        sizeof(PlayerRoomInfoEx));
+
+                //    p.WriteByte((byte)option);
+                //    p.WriteInt16(-1);
+                //    if ((option & 0xFF) == 0 || (option & 0xFF) == 5)
+                //    {
+                //        p.WriteByte((byte)((total > por_packet) ? por_packet : total));
+                //    }
+                //    else if ((option & 0xFF) == 7)
+                //    {
+                //        p.WriteByte((byte)elements);
+                //    }
+                //    else if ((option & 0xFF) == 3)
+                //    {
+                //        p.WriteUInt32(_session.m_oid);
+                //    }
+
+                //    MAKE_MID_SPLIT_PACKET_VECTOR(((option & 0x100) != 0 ? sizeof(PlayerRoomInfo) : sizeof(PlayerRoomInfoEx)));
+
+                //    p.WriteByte(0); // Final list de PlayerRoomInfo
+
+                //    MAKE_END_SPLIT_PACKET(1);
+                //}
+                //else
+                //{
+                //    var elements = v_element.Count;
+
+                //    if (elements * ((option & 0x100) != 0 ? sizeof(PlayerRoomInfo) : sizeof(PlayerRoomInfoEx)) < (MAX_BUFFER_PACKET - 100) != null)
+                //    {
+                //        p.init_plain((ushort)0x48);
+                //        p.WriteByte((byte)option);
+                //        p.WriteInt16(-1);
+
+                //        if ((option & 0xFF) == 0 || (option & 0xFF) == 5)
+                //        {
+                //            p.WriteByte((byte)elements);
+                //        }
+                //        else if ((option & 0xFF) == 3)
+                //        {
+                //            p.WriteUInt32(_session.m_oid);
+                //        }
+
+                //        for (var i = 0; i < v_element.Count; i++)
+                //        {
+                //            p.WriteBytes((option & 0x100) != 0 ? v_element[i].Build() : v_element[i].BuildEx());
+                //        }
+
+                //        p.WriteByte(0); // Final list de PlayerRoomInfo
+
+                //        return 1;
+                //    }
+                //    else
+                //    {
+                //        MAKE_BEGIN_SPLIT_PACKET(0x48,
+                //            _session,
+                //            ((option & 0x100) != 0 ? sizeof(PlayerRoomInfo) : sizeof(PlayerRoomInfoEx)),
+                //            MAX_BUFFER_PACKET);
+
+                //        if ((option & 0xFF) == 0 && index != 0u)
+                //        {
+                //            p.WriteByte(5); // Option 5 é para add os players aos que já tem na sala
+                //        }
+                //        else
+                //        {
+                //            p.WriteByte((byte)option);
+                //        }
+
+                //        p.WriteInt16(-1);
+
+                //        if ((option & 0xFF) == 0 || (option & 0xFF) == 5)
+                //        {
+                //            p.WriteByte((byte)((total > por_packet) ? por_packet : total));
+                //        }
+                //        else if ((option & 0xFF) == 3)
+                //        {
+                //            p.WriteUInt32(_session.m_oid);
+                //        }
+
+                //        p.WriteBytes((option & 0x100) != 0 ? v_element[i].Build() : v_element[i].BuildEx());
+
+                //        p.WriteByte(0); // Final list de PlayerRoomInfo
+
+                //     }
+                //}
+
+                return p_list;
+            }
+
+
+        // Metôdos de auxílio de criação de pacotes 
+        public static void channel_broadcast(Channel _channel,
+            PangyaBinaryWriter p, byte _debug)
+        {
+
+            List<Player> channel_session = _channel.getSessions(); //gs->getSessionPool().getChannelSessions(s->m_channel);
+
+            for (var i = 0; i < channel_session.Count; ++i)
+            {
+
+                var mb = (p).GetBytes;
+                try
+                {
+
+                    (channel_session[i]).Send(mb);
+                    if ((channel_session[i]).Devolve())
+                    {
+                        Program.gs.DisconnectSession((channel_session[i]));
+                    }
+                }
+                catch (exception e)
+                {
+                    if (!ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
+                        STDA_ERROR_TYPE.SESSION, 6))
+                    {
+                        if ((channel_session[i]).Devolve())
+                        {
+                            Program.gs.DisconnectSession((channel_session[i]));
+                        }
+                    }
+                    if (ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
+                        STDA_ERROR_TYPE.SESSION, 2))
+                    {
+                        throw;
+                    }
+                };
+
+            }
+
+        }
+
+        public static void channel_broadcast(Channel _channel,
+            List<PangyaBinaryWriter> v_p,
+            byte _debug)
+        {
+
+            List<Player> channel_session = new List<Player>();
+
+            for (var i = 0; i < v_p.Count; ++i)
+            {
+                if (v_p[i] != null)
+                {
+                    channel_session = _channel.getSessions(); //gs->getSessionPool().getChannelSessions(s->m_channel);
+
+                    for (var ii = 0; ii < channel_session.Count; ++ii)
+                    {
+                        var mb = (v_p[i]).GetBytes;
+                        try
+                        {
+
+                            (channel_session[ii]).Send(mb);
+                            if ((channel_session[ii]).Devolve())
+                            {
+                                Program.gs.DisconnectSession((channel_session[ii]));
+                            }
+                        }
+                        catch (exception e)
+                        {
+                            if (!ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
+                                STDA_ERROR_TYPE.SESSION, 6))
+                            {
+                                if ((channel_session[ii]).Devolve())
+                                {
+                                    Program.gs.DisconnectSession((channel_session[ii]));
+                                }
+                            }
+                            if (ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
+                                STDA_ERROR_TYPE.SESSION, 2))
+                            {
+                                throw;
+                            }
+                        };
+                    }
+
+                    v_p[i] = null;
+                }
+                else
+                {
+                    _smp.message_pool.push(new message("Error PangyaBinaryWriter p is nullptr, PangyaBinaryWriter_func::channel_broadcast()", type_msg.CL_FILE_LOG_AND_CONSOLE));
+                }
+            }
+
+            v_p.Clear();
+        }
+
+        public static void lobby_broadcast(Channel _channel,
+            PangyaBinaryWriter p, byte _debug)
+        {
+
+            List<Player> channel_session = _channel.getSessions(); //gs->getSessionPool().getChannelSessions(s->m_channel);
+
+            for (var i = 0; i < channel_session.Count; ++i)
+            {
+                if (channel_session[i].m_pi.mi.sala_numero == ushort.MaxValue)
+                { // Apenas quem está na lobby, sem ser em uma sala
+
+                    var mb = (p).GetBytes;
+                    try
+                    {
+
+                        (channel_session[i]).Send(mb);
+                        if ((channel_session[i]).Devolve())
+                        {
+                            Program.gs.DisconnectSession((channel_session[i]));
+                        }
+                    }
+                    catch (exception e)
+                    {
+                        if (!ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
+                            STDA_ERROR_TYPE.SESSION, 6))
+                        {
+                            if ((channel_session[i]).Devolve())
+                            {
+                                Program.gs.DisconnectSession((channel_session[i]));
+                            }
+                        }
+                        if (ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
+                            STDA_ERROR_TYPE.SESSION, 2))
+                        {
+                            throw;
+                        }
+                    };
+
+                }
+            }
+
+        }
+        public static void room_broadcast(room _room,
+            byte[] p, byte _debug)
+        {
+
+            List<Player> room_session = _room.getSessions(null, false);
+
+            for (var i = 0; i < room_session.Count; ++i)
+            {
+                var mb = (p);
+                try
+                {
+
+                    (room_session[i]).Send(mb);
+                    if ((room_session[i]).Devolve())
+                    {
+                        Program.gs.DisconnectSession((room_session[i]));
+                    }
+                }
+                catch (exception e)
+                {
+                    if (!ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
+                        STDA_ERROR_TYPE.SESSION, 6))
+                    {
+                        if ((room_session[i]).Devolve())
+                        {
+                            Program.gs.DisconnectSession((room_session[i]));
+                        }
+                    }
+                    if (ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
+                        STDA_ERROR_TYPE.SESSION, 2))
+                    {
+                        throw;
+                    }
+                };
+
+            }
+        }
+        public static void room_broadcast(room _room,
+            PangyaBinaryWriter p, byte _debug)
+        {
+
+            List<Player> room_session = _room.getSessions(null, false);
+
+            for (var i = 0; i < room_session.Count; ++i)
+            {
+                var mb = (p).GetBytes;
+                try
+                {
+
+                    (room_session[i]).Send(mb);
+                    if ((room_session[i]).Devolve())
+                    {
+                        Program.gs.DisconnectSession((room_session[i]));
+                    }
+                }
+                catch (exception e)
+                {
+                    if (!ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
+                        STDA_ERROR_TYPE.SESSION, 6))
+                    {
+                        if ((room_session[i]).Devolve())
+                        {
+                            Program.gs.DisconnectSession((room_session[i]));
+                        }
+                    }
+                    if (ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
+                        STDA_ERROR_TYPE.SESSION, 2))
+                    {
+                        throw;
+                    }
+                };
+
+            }
+        }
+
+        public static void room_broadcast(room _room,
+            List<PangyaBinaryWriter> v_p,
+            byte _debug)
+        {
+            List<Player> room_session = new List<Player>();
+
+            for (var i = 0; i < v_p.Count; ++i)
+            {
+                if (v_p[i] != null)
+                {
+                    room_session = _room.getSessions(null, false);
+
+                    for (var ii = 0; ii < room_session.Count; ++ii)
+                    {
+                        var mb = (v_p[i]).GetBytes;
+                        try
+                        {
+                            (room_session[ii]).Send(mb);
+                            if ((room_session[ii]).Devolve())
+                            {
+                                Program.gs.DisconnectSession((room_session[ii]));
+                            }
+                        }
+                        catch (exception e)
+                        {
+                            if (!ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
+                                STDA_ERROR_TYPE.SESSION, 6))
+                            {
+                                if ((room_session[ii]).Devolve())
+                                {
+                                    Program.gs.DisconnectSession((room_session[ii]));
+                                }
+                            }
+                            if (ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
+                                STDA_ERROR_TYPE.SESSION, 2))
+                            {
+                                throw;
+                            }
+                        };
+                    }
+
+                    v_p[i] = null;
+                }
+                else
+                {
+                    _smp.message_pool.push(new message("Error PangyaBinaryWriter p is nullptr, PangyaBinaryWriter_func::room_broadcast()", type_msg.CL_FILE_LOG_AND_CONSOLE));
+                }
+            }
+
+            v_p.Clear();
+        }
+
+        //public static void game_broadcast(Game _game,
+        //    PangyaBinaryWriter p, byte _debug)
+        //{
+
+        //    var game_session = _game.getSessions();
+
+        //    for (var i = 0; i < game_session.size(); ++i)
+        //    {
+        //        var mb = (p).GetBytes;
+        //        try
+        //        {
+        //            (game_session[i]).Send(mb);
+        //            if ((game_session[i]).Devolve())
+        //            {
+        //                Program.gs.DisconnectSession((game_session[i]));
+        //            }
+        //        }
+        //        catch (exception e)
+        //        {
+        //            if (!ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
+        //                STDA_ERROR_TYPE.SESSION, 6))
+        //            {
+        //                if ((game_session[i]).Devolve())
+        //                {
+        //                    Program.gs.DisconnectSession((game_session[i]));
+        //                }
+        //            }
+        //            if (ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
+        //                STDA_ERROR_TYPE.SESSION, 2))
+        //            {
+        //                throw;
+        //            }
+        //        };
+        //    }
+        //}
+
+        //public static void game_broadcast(Game _game,
+        //    List<PangyaBinaryWriter> v_p,
+        //    byte _debug)
+        //{
+
+        //    List<Player> game_session = new List<Player>();
+
+        //    for (var i = 0; i < v_p.Count; ++i)
+        //    {
+        //        if (v_p[i] != null)
+        //        {
+        //            game_session = _game.getSessions();
+
+        //            for (var ii = 0; ii < game_session.Count; ++ii)
+        //            {
+        //                var mb = (v_p[i]).GetBytes;
+        //                try
+        //                {
+        //                    (game_session[ii]).Send(mb);
+        //                    if ((game_session[ii]).Devolve())
+        //                    {
+        //                        Program.gs.DisconnectSession((game_session[ii]));
+        //                    }
+        //                }
+        //                catch (exception e)
+        //                {
+        //                    if (!ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
+        //                        STDA_ERROR_TYPE.SESSION, 6))
+        //                    {
+        //                        if ((game_session[ii]).Devolve())
+        //                        {
+        //                            Program.gs.DisconnectSession((game_session[ii]));
+        //                        }
+        //                    }
+        //                    if (ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
+        //                        STDA_ERROR_TYPE.SESSION, 2))
+        //                    {
+        //                        throw;
+        //                    }
+        //                };
+        //            }
+
+        //            v_p[i] = null;
+        //        }
+        //        else
+        //        {
+        //            _smp.message_pool.push(new message("Error PangyaBinaryWriter p is nullptr, PangyaBinaryWriter_func::room_broadcast()", type_msg.CL_FILE_LOG_AND_CONSOLE));
+        //        }
+        //    }
+
+        //    v_p.Clear();
+        //}
+
+        public static void vector_send(PangyaBinaryWriter _p,
+            List<Player> _v_s,
+            byte _debug)
+        {
+
+            foreach (var el in _v_s)
+            {
+                var mb = (_p).GetBytes;
+                try
+                {
+                    (el).Send(mb);
+                    if ((el).Devolve())
+                    {
+                        Program.gs.DisconnectSession((el));
+                    }
+                }
+                catch (exception e)
+                {
+                    if (!ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
+                        STDA_ERROR_TYPE.SESSION, 6))
+                    {
+                        if ((el).Devolve())
+                        {
+                            Program.gs.DisconnectSession((el));
+                        }
+                    }
+                    if (ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
+                        STDA_ERROR_TYPE.SESSION, 2))
+                    {
+                        throw;
+                    }
+                };
+
+            }
+        }
+
+        public static void vector_send(List<PangyaBinaryWriter> _v_p,
+            List<Player> _v_s,
+            byte _debug)
+        {
+
+            foreach (var el in _v_p)
+            {
+                if (el != null)
+                {
+                    foreach (var el2 in _v_s)
+                    {
+                        var mb = el.GetBytes;
+                        try
+                        {
+
+                            (el2).Send(mb);
+                            if ((el2).Devolve())
+                            {
+                                Program.gs.DisconnectSession((el2));
+                            }
+                        }
+                        catch (exception e)
+                        {
+                            if (!ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
+                                STDA_ERROR_TYPE.SESSION, 6))
+                            {
+                                if ((el2).Devolve())
+                                {
+                                    Program.gs.DisconnectSession((el2));
+                                }
+                            }
+                            if (ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
+                                STDA_ERROR_TYPE.SESSION, 2))
+                            {
+                                throw;
+                            }
+                        };
+
+                    }
+
+                }
+                else
+                {
+                    _smp.message_pool.push(new message("Error PangyaBinaryWriter p is nullptr, PangyaBinaryWriter_func::room_broadcast()", type_msg.CL_FILE_LOG_AND_CONSOLE));
+                }
+            }
+
+            _v_p.Clear();
+        }
+
+        public static void session_send(PangyaBinaryWriter p,
+            Player s, byte _debug)
+        {
+
+            if (s == null)
+            {
+                throw new exception("Error session s is nullptr, PangyaBinaryWriter_func::session_send()", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PACKET_FUNC_SV,
+                    1, 2));
+            }
+
+            var mb = (p).GetBytes;
+            try
+            {
+
+                s.Send(mb);
+                if ((s).Devolve())
+                {
+                    Program.gs.DisconnectSession((s));
+                }
+            }
+            catch (exception e)
+            {
+                if (!ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
+                    STDA_ERROR_TYPE.SESSION, 6))
+                {
+                    if ((s).Devolve())
+                    {
+                        Program.gs.DisconnectSession((s));
+                    }
+                }
+                if (ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
+                    STDA_ERROR_TYPE.SESSION, 2))
+                {
+                    throw;
+                }
+            }
+        } 
+
+        public static void session_send(List<PangyaBinaryWriter> v_p,
+            Player s, byte _debug)
+        {
+
+            if (s == null)
+            {
+                throw new exception("Error session s is nullptr, PangyaBinaryWriter_func::session_send()", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PACKET_FUNC_SV,
+                    1, 2));
+            }
+
+            for (var i = 0; i < v_p.Count; ++i)
+            {
+                if (v_p[i] != null)
+                {
+
+                    var mb = (v_p[i]).GetBytes;
+                    try
+                    {
+
+                        s.Send(mb);
+                        if (!(s).Devolve())
+                        {
+                            Program.gs.DisconnectSession((s));
+                        }
+                    }
+                    catch (exception e)
+                    {
+                        if (!ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
+                            STDA_ERROR_TYPE.SESSION, 6))
+                        {
+                            if ((s).Devolve())
+                            {
+                                Program.gs.DisconnectSession((s));
+                            }
+                        }
+                        if (ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
+                            STDA_ERROR_TYPE.SESSION, 2))
+                        {
+                            throw;
+                        }
+                    };
+                    v_p[i] = null;
+                }
+                else
+                {
+                    _smp.message_pool.push(new message("Error PangyaBinaryWriter p is nullptr, PangyaBinaryWriter_func::session_send()", type_msg.CL_FILE_LOG_AND_CONSOLE));
+                }
+            }
+
+            v_p.Clear();
+        }
+
         #endregion
     }
 }

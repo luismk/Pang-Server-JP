@@ -10,7 +10,7 @@ using PangyaAPI.Utilities.BinaryModels;
 using PangyaAPI.Utilities.Log;
 using GameServer.Game.System;
 using GameServer.Game.Manager;
-using GameServer.PangDefinition;
+using GameServer.PangyaEnums;
 using GameServer.PacketFunc;
 using PangyaAPI.Network.PangyaPacket;
 using PangyaAPI.Network.Pangya_St;
@@ -1104,7 +1104,7 @@ namespace GameServer.Game
                             {
 
                                 // Check if item is in map of update item
-                                var v_it = _session.m_pi.findUpdateItemByTypeidAndType(pCi._typeid, pCi.id);
+                                var v_it = _session.m_pi.findUpdateItemByTypeidAndId(pCi._typeid, pCi.id);
 
                                 if (v_it.Any())
                                 {
@@ -1169,7 +1169,7 @@ namespace GameServer.Game
                                 }
 
                                 // Check if item is in map of update item
-                                var v_it = _session.m_pi.findUpdateItemByTypeidAndType(_session.m_pi.ei.cad_info._typeid, _session.m_pi.ei.cad_info.id);
+                                var v_it = _session.m_pi.findUpdateItemByTypeidAndId(_session.m_pi.ei.cad_info._typeid, _session.m_pi.ei.cad_info.id);
 
                                 if (v_it.Any())
                                 {

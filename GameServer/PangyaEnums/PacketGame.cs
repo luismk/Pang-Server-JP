@@ -1,4 +1,4 @@
-﻿namespace GameServer.PangDefinition
+﻿namespace GameServer.PangyaEnums
 {
     /// <summary>
     /// Names of Packets Client

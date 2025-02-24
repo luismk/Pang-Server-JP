@@ -1,6 +1,6 @@
 ﻿using GameServer.Game.Manager;
 using GameServer.GameType;
-using GameServer.PangDefinition;
+using GameServer.PangyaEnums;
 using GameServer.Session;
 using PangyaAPI.Network.PangyaPacket;
 using PangyaAPI.Utilities;

@@ -19,7 +19,7 @@ using PangyaAPI.Network.PangyaSession;
 using PangyaAPI.Network.PangyaServer;
 using PangyaAPI.SQL;
 using PangyaAPI.Network.Cmd;
-using GameServer.PangDefinition;
+using GameServer.PangyaEnums;
 using packet_func = GameServer.PacketFunc.packet_func_cl;
 using GameServer.Game.Utils;
 

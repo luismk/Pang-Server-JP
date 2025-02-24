@@ -12,6 +12,7 @@ using System.Data;
 using System.Web.UI.WebControls.WebParts;
 using System.Net.Sockets;
 using System.Globalization;
+using PangyaAPI.Utilities.BinaryModels;
 
 namespace PangyaAPI.Utilities
 {
@@ -402,7 +403,7 @@ namespace PangyaAPI.Utilities
         }
     }
     public static class Tools
-    {
+    {                           
 
         public static void ClearArray(this Array array)
         {

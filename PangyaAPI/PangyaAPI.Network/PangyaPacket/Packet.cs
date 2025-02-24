@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using System;
 using PangyaAPI.Utilities;
+using System.Runtime.InteropServices;
+
 namespace PangyaAPI.Network.PangyaPacket
 {
     public class Packet
@@ -142,11 +144,11 @@ namespace PangyaAPI.Network.PangyaPacket
         {
             Reader.Seek(offset, origin);
         }
-
-        public T Read<T>() where T : struct
+        public T Read<T>() where T : new()
         {
             return Reader.Read<T>();
         }
+              
 
         public IEnumerable<uint> Read(uint count)
         {
