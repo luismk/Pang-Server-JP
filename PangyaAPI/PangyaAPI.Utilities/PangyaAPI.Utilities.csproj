@@ -48,14 +48,12 @@
   <ItemGroup>
     <Compile Include="BinaryModels\PangyaBinaryReader.cs" />
     <Compile Include="BinaryModels\PangyaBinaryWriter.cs" />
-    <Compile Include="Compare.cs" />
     <Compile Include="Cryptography\Crc32.cs" />
     <Compile Include="Cryptography\LZ77.cs" />
     <Compile Include="Cryptography\MiniLzo.cs" />
     <Compile Include="Cryptography\XOR.cs" />
     <Compile Include="Cryptography\XTEA.cs" />
     <Compile Include="exception.cs" />
-    <Compile Include="GenericDisposableCollection.cs" />
     <Compile Include="IniLib.cs" />
     <Compile Include="Interface\IDisposeable.cs" />
     <Compile Include="Log\Logger.cs" />
@@ -63,7 +61,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Tools.cs" />
     <Compile Include="vector.cs" />
-    <Compile Include="WildCard.cs" />
     <Compile Include="WriteConsole.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

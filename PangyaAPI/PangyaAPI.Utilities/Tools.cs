@@ -403,7 +403,70 @@ namespace PangyaAPI.Utilities
         }
     }
     public static class Tools
-    {                           
+    {
+        public static T IfCompare<T>(bool expression, T trueValue, T falseValue)
+        {
+            if (expression)
+            {
+                return trueValue;
+            }
+            else
+            {
+                return falseValue;
+            }
+        }
+        public static KeyValuePair<TKey, TValue> insert<TKey, TValue>(this Dictionary<TKey, TValue> pairs, TKey key, TValue value)
+        {
+            if (pairs.ContainsKey(key))
+                pairs[key] = value; // Atualiza o valor se a chave já existir
+            else
+                pairs.Add(key, value); // Adiciona a chave se não existir
+
+            return new KeyValuePair<TKey, TValue>(key, value);
+        }
+
+
+        public static KeyValuePair<TKey, TValue> insert<TKey, TValue>(this Dictionary<TKey, TValue> pairs, Tuple<TKey, TValue> tuple)
+        {
+            if (pairs.ContainsKey(tuple.Item1))
+                pairs[tuple.Item1] = tuple.Item2; // Atualiza o valor se a chave já existir
+            else
+                pairs.Add(tuple.Item1, tuple.Item2); // Adiciona a chave se não existir
+
+            return new KeyValuePair<TKey, TValue>(tuple.Item1, tuple.Item2);
+        }
+
+        public static bool empty<TKey, TValue>(this Dictionary<TKey, TValue> pairs)
+        {
+            return !pairs.Any(); // Retorna true se o dicionário estiver vazio
+        }
+
+        public static KeyValuePair<TKey, TValue> end<TKey, TValue>(this Dictionary<TKey, TValue> pairs)
+        {
+            return pairs.Last(); // Retorna true se o dicionário estiver vazio
+        }
+
+
+        public static bool empty<T>(this List<T> pairs)
+        {
+            return !pairs.Any(); // Retorna true se o dicionário estiver vazio
+        }
+
+        public static IEnumerable<List<T>> Chunk<T>(this IEnumerable<T> source, int size)
+        {
+            var chunk = new List<T>(size);
+            foreach (var item in source)
+            {
+                chunk.Add(item);
+                if (chunk.Count == size)
+                {
+                    yield return chunk;
+                    chunk = new List<T>(size);
+                }
+            }
+            if (chunk.Count > 0)
+                yield return chunk;
+        }
 
         public static void ClearArray(this Array array)
         {

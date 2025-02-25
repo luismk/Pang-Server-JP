@@ -321,8 +321,8 @@ namespace GameServer.Game.Manager
                         gmp.point = el.sumScoreP1();
 
                         // Update ON SERVER
-                        el.p[0].m_pi.mi.guild_pang = el.p[0].m_pi.gi.pang += gmp.pang;
-                        el.p[0].m_pi.mi.guild_point = el.p[0].m_pi.gi.point += gmp.point;
+                        el.p[0].m_pi.mi.guild_pang = (long)(el.p[0].m_pi.gi.pang += gmp.pang);
+                        el.p[0].m_pi.mi.guild_point = (uint)(el.p[0].m_pi.gi.point += gmp.point);
 
                         // Update ON DB
                         //snmdb.NormalManagerDB.getInstance().add(1,
@@ -343,7 +343,7 @@ namespace GameServer.Game.Manager
                         gmp.point = el.sumScoreP2();
 
                         // Update ON SERVER
-                        el.p[1].m_pi.mi.guild_pang = el.p[1].m_pi.gi.pang += gmp.pang;
+                        el.p[1].m_pi.mi.guild_pang = (long)(el.p[1].m_pi.gi.pang += gmp.pang);
                         el.p[1].m_pi.mi.guild_point = el.p[1].m_pi.gi.point += gmp.point;
 
                         //// Update ON DB

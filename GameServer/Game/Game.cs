@@ -1,6 +1,6 @@
 ﻿namespace GameServer.Game
 {
-    internal class Game
+    public class Game
     {
     }
 }

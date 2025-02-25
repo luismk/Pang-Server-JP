@@ -1,5 +1,12 @@
-.gitattributes.bak
-GameServer/GameServer/server.ini
-GameServer/GameServer/server.ini
+.gitattributes.bak 
 /.vs
 /PangyaAPI/PangyaAPI.Utilities/obj
+/PangyaAPI/PangyaAPI.Network/obj
+/PangyaAPI/PangyaAPI.SQL/obj
+/PangLib.IFF.JP/PangLib.IFF.JP/obj
+/PangyaAPI/PangyaAPI.Utilities/bin
+/PangyaAPI/PangyaAPI.Network/bin
+/PangyaAPI/PangyaAPI.SQL/bin
+/PangLib.IFF.JP/PangLib.IFF.JP/bin
+/GameServer/GameServer
+/GameServer/obj

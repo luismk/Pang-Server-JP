@@ -1,0 +1,127 @@
+﻿using GameServer.Game.Utils;
+using GameServer.Session;
+using PangyaAPI.Utilities;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using static GameServer.GameType.ShotSyncData;
+
+namespace GameServer.GameType
+{                   
+    public enum MEMORIAL_COIN_TYPE : uint
+    {
+        MCT_NORMAL,
+        MCT_PREMIUM,
+        MCT_SPECIAL
+    }
+
+    public class ctx_coin_item
+    {
+        public ctx_coin_item(uint _ul = 0u)
+        {
+            clear();
+        }
+        public ctx_coin_item(int _tipo,
+            uint __typeid,
+            uint _qntd)
+        {
+             this.tipo = _tipo;
+             this._typeid = __typeid;
+             this.qntd = _qntd;
+        }
+        public void clear()
+        {
+            this.tipo = 0;
+            this._typeid = 0;
+            this.qntd = 0;
+        }
+        public int tipo = new int();
+        public uint _typeid = new uint();
+        public uint qntd = new uint();
+    }
+
+    public class ctx_coin_item_ex : ctx_coin_item
+    {
+        public ctx_coin_item_ex(uint _lc = 0u)
+        {
+            clear();
+        }
+        public ctx_coin_item_ex(int _tipo,
+            uint __typeid,
+            uint _qntd,
+            uint _probabilidade,
+            int _gachar_number) : base(_tipo,
+                __typeid, _qntd)
+        {                      
+            this.probabilidade = _probabilidade;
+             this.gacha_number = _gachar_number;
+        }
+        public new void clear()
+        {
+            this.probabilidade = 0;
+            this.gacha_number = 0;
+        }
+        public uint probabilidade = new uint();
+        public int gacha_number = new int();
+    }
+
+    public class ctx_coin : System.IDisposable
+    {
+        public ctx_coin(uint _ul = 0u)
+        {
+            clear();
+        }
+        public void Dispose()
+        {
+        }
+        public void clear()
+        {
+
+            tipo = MEMORIAL_COIN_TYPE.MCT_NORMAL;
+            _typeid = 0u;
+            probabilidade = 100;
+
+            if (item.Count > 0)
+            {
+                item.Clear();
+            }
+        }
+        public MEMORIAL_COIN_TYPE tipo;
+        public uint _typeid = new uint();
+        public uint probabilidade = new uint();
+        public List<ctx_coin_item_ex> item = new List<ctx_coin_item_ex>();
+    }
+
+    public class ctx_memorial_level
+    {
+        public uint level = new uint(); // Level
+        public uint gacha_number = new uint(); // número máximo do gacha
+    }
+
+    public class ctx_coin_set_item 
+    {
+        public ctx_coin_set_item(uint _ul = 0u)
+        {
+            clear();
+        }                            
+        public void clear()
+        {
+
+            _typeid = 0u;
+            tipo = 0;
+            flag = -100;
+
+            if (item.Count > 0)
+            {
+                item.Clear();
+            }
+        }
+        public int flag = new int();
+        public uint _typeid = new uint();
+        public byte tipo; // Tipo 0 e 1, 1 Premium e 0 todos os outros
+        public List<ctx_coin_item_ex> item = new List<ctx_coin_item_ex>();
+    }
+}
+

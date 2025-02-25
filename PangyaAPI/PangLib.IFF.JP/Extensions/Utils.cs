@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
@@ -34,68 +33,6 @@ namespace PangLib.IFF.JP.Extensions
         public static uint GetItemGroup(uint _typeid)
         {
             return (uint)((_typeid & 0xFC000000) >> 26);
-        }
-
-
-        public static string TranslateText(string texto, string idiomaOrigem, string idiomaDestino)
-        {
-
-            if (string.IsNullOrEmpty(texto))
-                return "";
-
-            string url = $"https://api.mymemory.translated.net/get?q={Uri.EscapeDataString(texto)}&langpair={idiomaOrigem}|{idiomaDestino}";
-
-            try
-            {
-                using (HttpClient client = new HttpClient())
-                {
-                    HttpResponseMessage response = client.GetAsync(url).Result;
-
-                    if (response.IsSuccessStatusCode)
-                    {
-                        string json = response.Content.ReadAsStringAsync().Result;
-                        dynamic resultado = JObject.Parse(json);
-                        string translatedText = resultado.responseData.translatedText;
-
-                        // Mapeamento de substituições desejadas
-                        Dictionary<string, string> replacements = new Dictionary<string, string>
-                {
-                    { "Panya", "Pangya" },
-                    { "Panja", "Pangya" },
-                    { "Ken", "Nuri" },
-                    { "Daisuke", "Azer" },
-                    { "Erica", "Hana" },
-                    { "Erika", "Hana" },
-                    { "Qaz", "Kaz" },
-                    { "Kazu", "Kaz" } ,
-                      { "\\ c", "\\c" },
-                               { " abze", "" },
-                                { "abze", "" }
-                };
-
-                        // Aplicando as substituições
-                        foreach (var replacement in replacements)
-                        {
-                            translatedText = translatedText.Replace(replacement.Key, replacement.Value);
-                        }                                    
-                        return translatedText;
-                    }
-                    else
-                    {
-                        if (response.IsSuccessStatusCode == false)
-                        {
-
-                            string json = response.Content.ReadAsStringAsync().Result;
-                            dynamic resultado = JObject.Parse(json);
-                        }
-                        return texto;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                throw ex; 
-            }
-        }
+        }                      
     }
 }

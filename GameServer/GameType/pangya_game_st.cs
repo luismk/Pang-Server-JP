@@ -1419,7 +1419,7 @@ namespace GameServer.GameType
         public uint _typeid = 0;
         public uint id = 0;
         public uint status = 0; // 1 pendente, 2 excluído, 3 ativo, 4 concluído
-        public SortedDictionary<uint, CounterItemInfo> map_counter_item = new SortedDictionary<uint, CounterItemInfo>();
+        public Dictionary<uint, CounterItemInfo> map_counter_item = new Dictionary<uint, CounterItemInfo>();
         public List<QuestStuffInfo> v_qsi = new List<QuestStuffInfo>();
     }
 
@@ -1438,17 +1438,16 @@ namespace GameServer.GameType
         // A ultima quest do Achievement que tem o counter item adicionado no db e depois replica para os outro que nao foi concluído
         // Se não tiver cria um counter item para todas as quest
         public uint quest_base_typeid = new uint();
-        ////public List<QuestStuffInfo>.Enumerator getQuestBase()
-        ////{
+        public List<QuestStuffInfo>.Enumerator getQuestBase()
+        {
 
-        ////    if (quest_base_typeid == 0)
-        ////    {
-        ////        return v_qsi.ToList().LastIndexOf;
-        ////    }
+            if (quest_base_typeid == 0)
+            {
+                return v_qsi.ToList().GetEnumerator();
+            }
 
-        ////    return VECTOR_FIND_ITEM(v_qsi,
-        ////        _typeid, ==, quest_base_typeid);
-        ////}
+            return v_qsi.Where(c => c._typeid == quest_base_typeid).ToList().GetEnumerator();
+        }
     }
 
     // Premium Ticket User

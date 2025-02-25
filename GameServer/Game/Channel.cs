@@ -17,6 +17,7 @@ using PangyaAPI.Network.Pangya_St;
 using PangyaAPI.SQL.Manager;
 using GameServer.Cmd;
 using System.Runtime.InteropServices;
+using PangLib.IFF.JP.Models.Data;
 
 namespace GameServer.Game
 {
@@ -1445,11 +1446,12 @@ namespace GameServer.Game
                         break;
                 }
                 _session.Send(packet_func_sv.pacote04B(_session, type, error));
-            }   
-            catch (exception e) {
+            }
+            catch (exception e)
+            {
 
                 message_pool.push(new message("[channel::requestChangePlayerItemChannel][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
-                                               
+
                 _session.Send(packet_func_sv.pacote04B(_session, type, (int)(ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) == (uint)STDA_ERROR_TYPE.CHANNEL ? ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) : 1/*Unknown Error*/)));
 
             }
@@ -1538,7 +1540,249 @@ namespace GameServer.Game
         public void requestOpenBoxMyRoom(Player _session, Packet _packet) { }
 
         // Memorial System
-        public void requestPlayMemorial(Player _session, Packet _packet) { }
+        public void requestPlayMemorial(Player _session, Packet _packet)
+        {
+            PangyaBinaryWriter p= new PangyaBinaryWriter();
+
+            try
+            {
+
+
+                if (_session.m_pi.block_flag.m_flag.memorial_shop)
+                    throw new exception("[channel::requestPlayerMemorial][Error] player[UID=" + (_session.m_pi.uid)
+                            + "] tentou jogar no Memorial Shop, mas ele nao pode. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.CHANNEL, 6, 0x790001));
+
+                if (!sMemorialSystem.getInstance().isLoad())
+                    sMemorialSystem.getInstance().load();
+
+                var coin_typeid = _packet.ReadUInt32();
+
+                if (coin_typeid == 0)
+                    throw new exception("[channel::requestPlayMemorial][Error] player[UID=" + (_session.m_pi.uid) + "] tentou jogar Memorial com a coin[TYPEID="
+                            + (coin_typeid) + "], mas o coin_typeid is invalid(zero). Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.CHANNEL, 1, 0x6300301));
+
+                if (sIff.getInstance().getItemGroupIdentify(coin_typeid) != sIff.getInstance().ITEM)
+                    throw new exception("[channel::requestPlayMemorial][Error] player[UID=" + (_session.m_pi.uid) + "] tentou jogar Memorial com a coin[TYPEID="
+                            + (coin_typeid) + "], mas a coin is not Item Valid. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.CHANNEL, 2, 0x6300302));
+
+                var pWi = _session.m_pi.findWarehouseItemByTypeid(coin_typeid);
+
+                if (pWi == null)
+                    throw new exception("[channel::requestPlayMemorial][Error] player[UID=" + (_session.m_pi.uid) + "] tentou jogar Memorial com a coin[TYPEID="
+                            + (coin_typeid) + "], mas o ele nao possui a coin. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.CHANNEL, 3, 0x6300303));
+
+                var coin = sIff.getInstance().findItem(pWi._typeid);
+
+                if (coin == null || !coin.Active)
+                    throw new exception("[channel::requestPlayMemorial][Error] player[UID=" + (_session.m_pi.uid) + "] tentou jogar Memorial com a coin[TYPEID="
+                            + (coin_typeid) + "], mas nao tem a coin na IFF_STRUCT do Server. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.CHANNEL, 4, 0x6300304));
+
+                // Achievement System
+                //SysAchievement sys_achieve;
+
+                // Memorial System
+                var c = sMemorialSystem.getInstance().findCoin(coin.ID);
+
+                if (c == null)
+                    throw new exception("[channel::requestPlayMemorial][Error] player[UID=" + (_session.m_pi.uid) + "] tentou jogar Memorial com a coin[TYPEID="
+                            + (coin_typeid) + "], mas nao tem essa coin no Memorial System do Server. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.CHANNEL, 5, 0x6300305));
+
+                //// Achievement add + 1 ao contador de Play Coin no memorial shop
+                //if (c.tipo == MEMORIAL_COIN_TYPE::MCT_NORMAL)
+                //    sys_achieve.incrementCounter(0x6C4000B2u/*Normal Coin*/);
+                //else if (c.tipo == MEMORIAL_COIN_TYPE::MCT_SPECIAL)
+                //    sys_achieve.incrementCounter(0x6C4000B3u/*Special Coin*/);
+
+                var win_item = sMemorialSystem.getInstance().drawCoin(_session, c);
+
+                if (win_item.empty())
+                    throw new exception("[channel::requestPlayMemorial][Error] player[UID=" + (_session.m_pi.uid) + "] tentou jogar Memorial com a coin[TYPEID="
+                            + (coin_typeid) + "], mas não conseguiu sortear um item do memorial shop. Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.CHANNEL, 6, 0x6300306));
+
+                List<stItem> v_item = new List<stItem>();
+                stItem item = new stItem();
+
+                // Init Item Ganho
+                BuyItem bi = new BuyItem();
+                Mascot mascot = null;
+
+                foreach (var el in win_item)
+                {
+                    item.clear();
+
+                    bi.id = -1;
+                    bi._typeid = el._typeid;
+
+                    // Check se é Mascot, para colocar por dia o tempo que é a quantidade
+                    if (sIff.getInstance().getItemGroupIdentify(el._typeid) == sIff.getInstance().MASCOT && (mascot = sIff.getInstance().findMascot(el._typeid)) != null
+                        && mascot.Shop.flag_shop.time_shop.dia > 0 && mascot.Shop.flag_shop.time_shop.active)
+                    {   // é Mascot por Tempo
+                        bi.qntd = 1;
+                        bi.time = (short)el.qntd;
+                    }
+                    else
+                        bi.qntd = el.qntd;
+
+                    item_manager.initItemFromBuyItem(_session.m_pi, ref item, bi, false, 0, 0, 1);
+
+                    if (item._typeid == 0)
+                        throw new exception("[channel::requestPlayMemorial][Error] player[UID=" + (_session.m_pi.uid) + "] tentou jogar Memorial com a coin[TYPEID="
+                                + (coin_typeid) + "], mas nao conseguiu inicializar o Item[TYPEID=" + (bi._typeid) + "]", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.CHANNEL, 7, 0x6300307));
+
+                    // Verifica se já possui o item, o caddie item verifica se tem o caddie para depois verificar se tem o caddie item
+                    if ((sIff.getInstance().IsCanOverlapped(item._typeid) && sIff.getInstance().getItemGroupIdentify(item._typeid) != sIff.getInstance().CAD_ITEM) || !_session.m_pi.ownerItem(item._typeid))
+                    {
+                        if (item_manager.isSetItem(item._typeid))
+                        {
+                            var v_stItem = item_manager.getItemOfSetItem(_session, item._typeid, false, 1/*Não verifica o Level*/);
+
+                            if (!v_stItem.empty())
+                            {
+                                // Já verificou lá em cima se tem os item so set, então não precisa mais verificar aqui
+                                // Só add eles ao vector de venda
+                                // Verifica se pode ter mais de 1 item e se não ver se não tem o item
+                                foreach (var _el in v_stItem)
+                                    if ((sIff.getInstance().IsCanOverlapped(_el._typeid) && sIff.getInstance().getItemGroupIdentify(el._typeid) != sIff.getInstance().CAD_ITEM) || !_session.m_pi.ownerItem(_el._typeid))
+                                        v_item.Add(_el);
+                            }
+                            else
+                                throw new exception("[channel::requestPlayMemorial][Error] player[UID=" + (_session.m_pi.uid) + "] tentou jogar Memorial com a coin[TYPEID="
+                                        + (coin_typeid) + "], mas SetItem que ele ganhou no Memorial Shop, nao tem Item[TYPEID=" + (bi._typeid) + "]. Bug.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.CHANNEL, 8, 0x6300308));
+                        }
+                        else
+                            v_item.Add(item);
+
+                    }
+                    else if (sIff.getInstance().getItemGroupIdentify(item._typeid) == sIff.getInstance().CAD_ITEM)
+                        throw new exception("[channel::requestPlayMemorial][Error] player[UID=" + (_session.m_pi.uid) + "] tentou jogar Memorial com a coin[TYPEID="
+                                + (coin_typeid) + "], mas o CaddieItem que ele ganhou, nao tem o caddie, Item[TYPEID=" + (bi._typeid) + "]. Bug.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.CHANNEL, 9, 0x6300309));
+                    else
+                        throw new exception("[channel::requestPlayMemorial][Error] player[UID=" + (_session.m_pi.uid) + "] tentou jogar Memorial com a coin[TYPEID="
+                                + (coin_typeid) + "], mas ele ja tem o Item[TYPEID=" + (bi._typeid) + "]. Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.CHANNEL, 10, 0x6300310));
+
+                    // Achievement add +1 ao contador de item raro que ganhou
+                    //if (el.tipo >= 0 && el.tipo < 3)
+                    //    sys_achieve.incrementCounter(0x6C4000B5u/*Rare Win*/);
+                    //else if (el.tipo >= 3)
+                    //    sys_achieve.incrementCounter(0x6C4000B4u/*Super Rare Win*/);
+                }
+
+
+                // UPDATE ON SERVER AND DB
+
+                // Delete Coin
+                item.clear();
+
+                item.type = 2;
+                item.id = (int)pWi.id;
+                item._typeid = c._typeid;
+                item.qntd = 1;
+                item.STDA_C_ITEM_QNTD = (ushort)(item.qntd * -1);
+
+                //        if (item_manager.removeItem(item, _session) <= 0)
+                //            throw new exception("[channel::requestPlayMemorial][Error] player[UID=" + (_session.m_pi.uid) + "] tentou jogar Memorial com a coin[TYPEID="
+                //                    + (coin_typeid) + "], mas nao conseguiu deletar Coin. Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.CHANNEL, 11, 0x6300311));
+
+                //        // Add ao vector depois que add os itens ganho no memorial
+
+                //        std::string str = "";
+
+                //        // Coloca Item ganho no My Room do player
+                //        var rai = item_manager.addItem(v_item, _session, 0, 0);
+
+                //        if (rai.fails.Count() > 0 && rai.type != item_manager.RetAddItem::T_SUCCESS_PANG_AND_EXP_AND_CP_POUCH)
+                //        {
+
+                //            for (var i = 0u; i < v_item.Count(); ++i)
+                //            {
+                //                if (i == 0)
+                //                    str += "[TYPEID=" + (v_item[i]._typeid) + ", ID=" + (v_item[i].id) + ", QNTD=" + ((v_item[i].qntd > 0xFFu) ? v_item[i].qntd : v_item[i].STDA_C_ITEM_QNTD)
+                //                        + (v_item[i].STDA_C_ITEM_TIME > 0 ? ", TEMPO=" + (v_item[i].STDA_C_ITEM_TIME) : std::string("")) +"]";
+
+                //        else
+                //                str += ", [TYPEID=""" + (v_item[i]._typeid) + ", ID=" + (v_item[i].id) + ", QNTD=" + ((v_item[i].qntd > 0xFFu) ? v_item[i].qntd : v_item[i].STDA_C_ITEM_QNTD)
+                //                    + (v_item[i].STDA_C_ITEM_TIME > 0 ? ", TEMPO=" + (v_item[i].STDA_C_ITEM_TIME) : std::string("")) +"]";
+                //        }
+
+                //        throw new exception("[channel::requestPlayMemorial][Error] player[UID=" + (_session.m_pi.uid) + "] tentou jogar Memorial com a coin[TYPEID="
+                //                + (coin_typeid) + "], mas ele nao conseguiu adicionar os item(ns){" + str + "}. Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.CHANNEL, 12, 0x6300312));
+                //    }else
+                //    {
+                //        // Init Item Add Log
+                //        for (var i = 0u; i < v_item.Count(); ++i)
+                //        {
+                //            if (i == 0)
+                //                str += "[TYPEID=" + (v_item[i]._typeid) + ", ID=" + (v_item[i].id) + ", QNTD=" + ((v_item[i].qntd > 0xFFu) ? v_item[i].qntd : v_item[i].STDA_C_ITEM_QNTD)
+                //                    + (v_item[i].STDA_C_ITEM_TIME > 0 ? ", TEMPO=" + (v_item[i].STDA_C_ITEM_TIME) : std::string("")) +"]";
+
+                //        else
+                //            str += ", [TYPEID=""" + (v_item[i]._typeid) + ", ID=" + (v_item[i].id) + ", QNTD=" + ((v_item[i].qntd > 0xFFu) ? v_item[i].qntd : v_item[i].STDA_C_ITEM_QNTD)
+                //                + (v_item[i].STDA_C_ITEM_TIME > 0 ? ", TEMPO=" + (v_item[i].STDA_C_ITEM_TIME) : std::string("")) +"]";
+                //    }
+                //}
+
+                // Add a Coin agora no Vector de itens
+                v_item.Add(item);
+
+                // DB Register Rare Win Log
+                //if (!win_item.empty() && win_item.begin().tipo > 0 && win_item.Count() == 1)
+                //	snmdb::NormalManagerDB.getInstance().add(24, new CmdInsertMemorialRareWinLog(_session.m_pi.uid, c._typeid, * win_item.begin()), channel::SQLDBResponse, this);
+
+                // Log
+                //_smp::message_pool.push(new message("[MemorialSystem::Play][Log] player[UID=" + (_session.m_pi.uid) + "] jogou Coin[TYPEID="
+                //        + (c._typeid) + "] no Memorial Shop e ganhou o Item(ns){" + str + "}", type_msg.CL_FILE_LOG_AND_CONSOLE));
+
+                // UPDATE ON GAME
+                p.init_plain(0x216);
+
+                p.WriteUInt32((uint)UtilTime.GetSystemTimeAsUnix());
+                p.WriteUInt32((uint)v_item.Count());    // Count;
+
+                foreach (var el in v_item)
+                {
+                    p.WriteByte(el.type);
+                    p.WriteUInt32(el._typeid);
+                    p.WriteInt32(el.id);
+                    p.WriteUInt32(el.flag_time);
+                    p.WriteBuffer(el.stat, Marshal.SizeOf(el.stat));
+                    p.WriteUInt32((el.STDA_C_ITEM_TIME > 0) ? el.STDA_C_ITEM_TIME : el.STDA_C_ITEM_QNTD);
+                    p.WriteZero(25);
+                }
+
+                packet_func_sv.session_send(p, _session, 1);
+
+                // Resposta ao Play Memorial
+                p.init_plain(0x264);
+
+                p.WriteUInt32(0);   // OK
+
+                p.WriteUInt32((uint)win_item.Count());  // Count
+
+                foreach (var el in win_item)
+                {
+                    p.WriteInt32(el.tipo);
+                    p.WriteUInt32(el._typeid);
+                    p.WriteUInt32(el.qntd);
+                }
+
+                packet_func_sv.session_send(p, _session, 1);
+
+                // Update Achievement ON SERVER, DB and GAME
+                //sys_achieve.finish_and_update(_session);
+
+            }
+            catch (exception e)
+            {
+
+                _smp::message_pool.push(new message("[channel::requestPlayMemorial][ErrorSystem]" + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+
+                p.init_plain(0x264);
+
+                p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE(e.getCodeError()) == (uint)STDA_ERROR_TYPE.CHANNEL) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE(e.getCodeError()) : 0x6300300);
+
+                packet_func_sv.session_send(p, _session, 1);
+            }
+        }
 
         // Card System
         public void requestOpenCardPack(Player _session, Packet _packet) { }

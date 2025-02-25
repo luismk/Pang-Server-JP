@@ -795,7 +795,7 @@ namespace GameServer.GameType
             medal_win = new uMedalWin();
 
             typeing = -1;
-            hole = -1;
+            hole = 255;
         }
         public class stProgress
         {
@@ -932,10 +932,10 @@ namespace GameServer.GameType
             {
                 ucFlag = 0;
             }
-            public byte ucFlag;
-            public uint pang { get => (ucFlag & (1 << 0)) != 0 ? 1U : 0U; set { if (value != 0) ucFlag |= (1 << 0); else ucFlag &= (byte)~(1 << 0); } }
-            public uint pang_nitro { get => (ucFlag & (1 << 1)) != 0 ? 1U : 0U; set { if (value != 0) ucFlag |= (1 << 1); else ucFlag &= (byte)~(1 << 1); } }
-            public uint exp { get => (ucFlag & (1 << 2)) != 0 ? 1U : 0U; set { if (value != 0) ucFlag |= (1 << 2); else ucFlag &= (byte)~(1 << 2); } }
+            public sbyte ucFlag;
+            public uint pang { get => (ucFlag & (1 << 0)) != 0 ? 1U : 0U; set { if (value != 0) ucFlag |= (1 << 0); else ucFlag &= (sbyte)~(1 << 0); } }
+            public uint pang_nitro { get => (ucFlag & (1 << 1)) != 0 ? 1U : 0U; set { if (value != 0) ucFlag |= (1 << 1); else ucFlag &= (sbyte)~(1 << 1); } }
+            public uint exp { get => (ucFlag & (1 << 2)) != 0 ? 1U : 0U; set { if (value != 0) ucFlag |= (1 << 2); else ucFlag &= (sbyte)~(1 << 2); } }
 
         }
         public uint uid = new uint();
@@ -1067,18 +1067,18 @@ namespace GameServer.GameType
         {
             clear();
         }
-        public PlayerOrderTurnCtx(PlayerGameInfo _pgi, Hole _hole)
+        public PlayerOrderTurnCtx(PlayerGameInfo _pgi/*, Hole _hole*/)
         {
             this.pgi = _pgi;
-            this.hole = _hole;
+           // this.hole = _hole;
         }
         public void clear()
         {
             pgi = null;
-            hole = null;
+          //  hole = null;
         }
         public PlayerGameInfo pgi;
-        public Hole[] hole;
+        //public Hole[] hole;
     }
 
     // Table Rate Voice And Effect On Versus

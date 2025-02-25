@@ -1,24 +1,43 @@
-﻿using GameServer.GameType;
+﻿using GameServer.Game.Manager;
+using GameServer.GameType;
 using PangyaAPI.SQL;
 using System;
 using System.Collections.Generic;
 
 namespace GameServer.Cmd
 {
-    internal class CmdCardEquipInfo : Pangya_DB
+    public class CmdCardEquipInfo : Pangya_DB
     {
-        private uint m_uid;
-        private List<CardEquipInfoEx> v_cei = new List<CardEquipInfoEx>();
-
-        private const string m_szConsulta = "pangya.ProcGetCardEquip";
-        public CmdCardEquipInfo(uint uid)
+        public CmdCardEquipInfo()
         {
-            this.m_uid = uid;
-            v_cei = new List<CardEquipInfoEx>();
+            this.m_uid = 0;
+            this.v_cei = new CardEquipManager();
         }
-        protected override void lineResult(ctx_res _result, uint _index_result)
+
+        public CmdCardEquipInfo(uint _uid)
         {
-            checkColumnNumber(13);
+            this.m_uid = _uid;
+        }                       
+
+        public CardEquipManager getInfo()
+        {
+            return v_cei;
+        }
+
+        public uint getUID()
+        {
+            return (m_uid);
+        }
+
+        public void setUID(uint _uid)
+        {
+            m_uid = _uid;
+        }
+
+        protected override void lineResult(ctx_res _result, uint _index_reuslt)
+        {
+
+            checkColumnNumber(13, (uint)_result.cols);
 
             CardEquipInfoEx cei = new CardEquipInfoEx
             {
@@ -38,15 +57,16 @@ namespace GameServer.Cmd
             {
                 cei.end_date.CreateTime(_translateDate(_result.data[9]));
             }
-             cei.tipo = IFNULL(_result.data[11]);
+            cei.tipo = IFNULL(_result.data[11]);
             cei.use_yn = (byte)IFNULL(_result.data[12]);
 
-            v_cei.Add(cei);
+            v_cei.Add(cei.id, cei);
         }
 
         protected override Response prepareConsulta()
         {
-            v_cei.Clear();           
+
+            v_cei.Clear();
 
             var r = procedure(
                 m_szConsulta,
@@ -56,5 +76,12 @@ namespace GameServer.Cmd
 
             return r;
         }
+
+
+        private uint m_uid = new uint();
+        private CardEquipManager v_cei = new CardEquipManager();
+
+        private const string m_szConsulta = "pangya.ProcGetCardEquip";
     }
+    
 }

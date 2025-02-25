@@ -14,6 +14,8 @@ using PangyaAPI.Network.Pangya_St;
 using GameServer.Cmd;
 using PangyaAPI.Network.PangyaPacket;
 using GameServer.Game.System;
+using PangyaAPI.SQL.Manager;
+using GameServer.Game.Utils;
 
 namespace GameServer
 {
@@ -21,7 +23,7 @@ namespace GameServer
     {
         public static GameServerTcp.GameServer gs;
         static void Main(string[] args)
-        {
+        {    
             gs = new GameServerTcp.GameServer();//chama a class com servidor imbutido   
             for (; ; )
             {

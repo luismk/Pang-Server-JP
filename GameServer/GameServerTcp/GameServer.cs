@@ -195,8 +195,8 @@ namespace GameServer.GameServerTcp
                 //    sBoxSystem.getInstance().load();
 
                 //// Carrega Memorial System
-                //if (!sMemorialSystem.getInstance().isLoad())
-                //    sMemorialSystem.getInstance().load();
+                if (!sMemorialSystem.getInstance().isLoad())
+                    sMemorialSystem.getInstance().load();
 
                 //// Carrega Cube Coin System
                 //if (!sCubeCoinSystem.getInstance().isLoad())
@@ -510,8 +510,8 @@ namespace GameServer.GameServerTcp
             //    sBoxSystem.getInstance().load();
 
             //// Carrega Memorial System
-            //if (!sMemorialSystem.getInstance().isLoad())
-            //    sMemorialSystem.getInstance().load();
+            if (!sMemorialSystem.getInstance().isLoad())
+                sMemorialSystem.getInstance().load();
 
             //// Carrega Cube Coin System
             //if (!sCubeCoinSystem.getInstance().isLoad())

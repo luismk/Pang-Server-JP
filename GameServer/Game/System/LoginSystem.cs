@@ -21,6 +21,7 @@ using System.Threading;
 using GameServer.Game.Manager;
 using GameServer.PacketFunc;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 namespace GameServer.Game.System
 {
@@ -821,35 +822,30 @@ namespace GameServer.Game.System
                         {
                             // --------------------- AVISO ----------------------
                             // esse aqui os outros tem que depender dele para, não ir sem ele
-                            //var cmd_cAchieve = ((CmdCheckAchievement)(_pangya_db));
+                            var cmd_cAchieve = (CmdCheckAchievement)(_pangya_db);
 
-                            //// Cria Achievements do player
-                            //if (!cmd_cAchieve.getLastState())
-                            //{
+                            // Cria Achievements do player
+                            if (!cmd_cAchieve.getLastState())
+                            {
+                                _session.m_pi.mgr_achievement.initAchievement(_session.m_pi.uid, true/*Create sem verifica se o player tem achievement, por que aqui ele já verificou*/);
+                                
+                                // Add o Task + 1 por que não pede o achievement do db, porque criou ele aqui e salvo no DB
+                                incremenetCount();
 
-                            //    // Aqui pode lançar uma excession esse block dentro do if
-                            //    var _pi = _session.m_pi;
+                            }
+                            else
+                            {
+                                NormalManagerDB.add(19, new CmdAchievementInfo(_session.m_pi.uid), SQLDBResponse, _session);
+                            }
 
-                            //    _pi.mgr_achievement.initAchievement(_pi.m_uid, true/*Create sem verifica se o player tem achievement, por que aqui ele já verificou);
-
-                            //    // Add o Task + 1 por que não pede o achievement do db, porque criou ele aqui e salvo no DB
-                            //}
-                            //else
-                            //{
-
-                            //}
-
-                          //  NormalManagerDB.add(19, new CmdAchievementInfo(_session.m_pi.m_uid), SQLDBResponse, _session);
-                            incremenetCount();
-                            break;
                         }
+                        break;
                     case 19:    // Achievement Info
                         {
-                            //var cmd_ai = ((CmdAchievementInfo)(_pangya_db));
-                            //var _pi = _session.m_pi;
+                            var cmd_ai = ((CmdAchievementInfo)(_pangya_db));
 
-                            //// Inicializa o Achievement do player
-                            //_pi.mgr_achievement.initAchievement(_pi.m_uid, cmd_ai.getInfo());
+                            // Inicializa o Achievement do player
+                            _session.m_pi.mgr_achievement.initAchievement(_session.m_pi.uid, cmd_ai.GetInfo());
 
                             break;
                         }
@@ -868,10 +864,10 @@ namespace GameServer.Game.System
                         }
                     case 22:    // Card Equipped Info
                         {
-                            //_session.m_pi.v_cei = ((CmdCardEquipInfo)(_pangya_db)).getInfo();    // cmd_cei.getInfo();
+                            _session.m_pi.v_cei = ((CmdCardEquipInfo)(_pangya_db)).getInfo();    // cmd_cei.getInfo();
 
-                            //// Check Card Special Times
-                            //player_manager.checkCardSpecial(_session);
+                            // Check Card Special Times
+                            player_manager.checkCardSpecial(_session);
 
                             break;
                         }
@@ -1128,8 +1124,9 @@ namespace GameServer.Game.System
                 // Treasure Hunter Info
                 //_session.Send(packet_func_sv.pacote131());
 
-                //_pi.mgr_achievement.sendCounterItemToPlayer(_session);
-                //_pi.mgr_achievement.sendAchievementToPlayer(_session);
+                _session.m_pi.mgr_achievement.sendCounterItemToPlayer(_session);
+
+                _session.m_pi.mgr_achievement.sendAchievementToPlayer(_session);
 
                 _session.Send(packet_func_sv.pacote0F1());
 

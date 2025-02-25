@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using static GameServer.GameType._Define;
 using PangyaAPI.SQL.Manager;
 using GameServer.Session;
+using GameServer.Game.Utils;
 
 namespace GameServer.GameType
 {
@@ -443,7 +444,7 @@ namespace GameServer.GameType
 
             ari = new AttendanceRewardInfoEx();
 
-            //mgr_achievement = new             // Manager Achievement
+            mgr_achievement = new MgrAchievement();   // Manager Achievement
             v_card_info = new CardManager();
             v_cei = new CardEquipManager();
             v_ib = new List<ItemBuffEx>();
@@ -503,7 +504,7 @@ namespace GameServer.GameType
 
         public AttendanceRewardInfoEx ari { get; set; }
 
-        //MgrAchievement mgr_achievement;             // Manager Achievement
+       public MgrAchievement mgr_achievement;             // Manager Achievement
         public CardManager v_card_info { get; set; }
 
         public CardEquipManager v_cei { get; set; }

@@ -16,7 +16,7 @@ namespace PangyaAPI.Utilities.Log
         CL_FILE_LOG_IO_DATA_AND_CONSOLE,
         CL_ONLY_FILE_LOG_TEST,
         CL_FILE_LOG_TEST_AND_CONSOLE,
-    };
+    }
     public class message : IDisposable
     {
         public message()

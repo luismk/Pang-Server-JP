@@ -1386,132 +1386,132 @@ int option = 0)
             }
 
         }
-        public static void room_broadcast(room _room,
-            byte[] p, byte _debug)
-        {
+        //public static void room_broadcast(room _room,
+        //    byte[] p, byte _debug)
+        //{
 
-            List<Player> room_session = _room.getSessions(null, false);
+        //    List<Player> room_session = _room.getSessions(null, false);
 
-            for (var i = 0; i < room_session.Count; ++i)
-            {
-                var mb = (p);
-                try
-                {
+        //    for (var i = 0; i < room_session.Count; ++i)
+        //    {
+        //        var mb = (p);
+        //        try
+        //        {
 
-                    (room_session[i]).Send(mb);
-                    if ((room_session[i]).Devolve())
-                    {
-                        Program.gs.DisconnectSession((room_session[i]));
-                    }
-                }
-                catch (exception e)
-                {
-                    if (!ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
-                        STDA_ERROR_TYPE.SESSION, 6))
-                    {
-                        if ((room_session[i]).Devolve())
-                        {
-                            Program.gs.DisconnectSession((room_session[i]));
-                        }
-                    }
-                    if (ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
-                        STDA_ERROR_TYPE.SESSION, 2))
-                    {
-                        throw;
-                    }
-                };
+        //            (room_session[i]).Send(mb);
+        //            if ((room_session[i]).Devolve())
+        //            {
+        //                Program.gs.DisconnectSession((room_session[i]));
+        //            }
+        //        }
+        //        catch (exception e)
+        //        {
+        //            if (!ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
+        //                STDA_ERROR_TYPE.SESSION, 6))
+        //            {
+        //                if ((room_session[i]).Devolve())
+        //                {
+        //                    Program.gs.DisconnectSession((room_session[i]));
+        //                }
+        //            }
+        //            if (ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
+        //                STDA_ERROR_TYPE.SESSION, 2))
+        //            {
+        //                throw;
+        //            }
+        //        };
 
-            }
-        }
-        public static void room_broadcast(room _room,
-            PangyaBinaryWriter p, byte _debug)
-        {
+        //    }
+        //}
+        //public static void room_broadcast(room _room,
+        //    PangyaBinaryWriter p, byte _debug)
+        //{
 
-            List<Player> room_session = _room.getSessions(null, false);
+        //    List<Player> room_session = _room.getSessions(null, false);
 
-            for (var i = 0; i < room_session.Count; ++i)
-            {
-                var mb = (p).GetBytes;
-                try
-                {
+        //    for (var i = 0; i < room_session.Count; ++i)
+        //    {
+        //        var mb = (p).GetBytes;
+        //        try
+        //        {
 
-                    (room_session[i]).Send(mb);
-                    if ((room_session[i]).Devolve())
-                    {
-                        Program.gs.DisconnectSession((room_session[i]));
-                    }
-                }
-                catch (exception e)
-                {
-                    if (!ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
-                        STDA_ERROR_TYPE.SESSION, 6))
-                    {
-                        if ((room_session[i]).Devolve())
-                        {
-                            Program.gs.DisconnectSession((room_session[i]));
-                        }
-                    }
-                    if (ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
-                        STDA_ERROR_TYPE.SESSION, 2))
-                    {
-                        throw;
-                    }
-                };
+        //            (room_session[i]).Send(mb);
+        //            if ((room_session[i]).Devolve())
+        //            {
+        //                Program.gs.DisconnectSession((room_session[i]));
+        //            }
+        //        }
+        //        catch (exception e)
+        //        {
+        //            if (!ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
+        //                STDA_ERROR_TYPE.SESSION, 6))
+        //            {
+        //                if ((room_session[i]).Devolve())
+        //                {
+        //                    Program.gs.DisconnectSession((room_session[i]));
+        //                }
+        //            }
+        //            if (ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
+        //                STDA_ERROR_TYPE.SESSION, 2))
+        //            {
+        //                throw;
+        //            }
+        //        };
 
-            }
-        }
+        //    }
+        //}
 
-        public static void room_broadcast(room _room,
-            List<PangyaBinaryWriter> v_p,
-            byte _debug)
-        {
-            List<Player> room_session = new List<Player>();
+        //public static void room_broadcast(room _room,
+        //    List<PangyaBinaryWriter> v_p,
+        //    byte _debug)
+        //{
+        //    List<Player> room_session = new List<Player>();
 
-            for (var i = 0; i < v_p.Count; ++i)
-            {
-                if (v_p[i] != null)
-                {
-                    room_session = _room.getSessions(null, false);
+        //    for (var i = 0; i < v_p.Count; ++i)
+        //    {
+        //        if (v_p[i] != null)
+        //        {
+        //            room_session = _room.getSessions(null, false);
 
-                    for (var ii = 0; ii < room_session.Count; ++ii)
-                    {
-                        var mb = (v_p[i]).GetBytes;
-                        try
-                        {
-                            (room_session[ii]).Send(mb);
-                            if ((room_session[ii]).Devolve())
-                            {
-                                Program.gs.DisconnectSession((room_session[ii]));
-                            }
-                        }
-                        catch (exception e)
-                        {
-                            if (!ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
-                                STDA_ERROR_TYPE.SESSION, 6))
-                            {
-                                if ((room_session[ii]).Devolve())
-                                {
-                                    Program.gs.DisconnectSession((room_session[ii]));
-                                }
-                            }
-                            if (ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
-                                STDA_ERROR_TYPE.SESSION, 2))
-                            {
-                                throw;
-                            }
-                        };
-                    }
+        //            for (var ii = 0; ii < room_session.Count; ++ii)
+        //            {
+        //                var mb = (v_p[i]).GetBytes;
+        //                try
+        //                {
+        //                    (room_session[ii]).Send(mb);
+        //                    if ((room_session[ii]).Devolve())
+        //                    {
+        //                        Program.gs.DisconnectSession((room_session[ii]));
+        //                    }
+        //                }
+        //                catch (exception e)
+        //                {
+        //                    if (!ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
+        //                        STDA_ERROR_TYPE.SESSION, 6))
+        //                    {
+        //                        if ((room_session[ii]).Devolve())
+        //                        {
+        //                            Program.gs.DisconnectSession((room_session[ii]));
+        //                        }
+        //                    }
+        //                    if (ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
+        //                        STDA_ERROR_TYPE.SESSION, 2))
+        //                    {
+        //                        throw;
+        //                    }
+        //                };
+        //            }
 
-                    v_p[i] = null;
-                }
-                else
-                {
-                    _smp.message_pool.push(new message("Error PangyaBinaryWriter p is nullptr, PangyaBinaryWriter_func::room_broadcast()", type_msg.CL_FILE_LOG_AND_CONSOLE));
-                }
-            }
+        //            v_p[i] = null;
+        //        }
+        //        else
+        //        {
+        //            _smp.message_pool.push(new message("Error PangyaBinaryWriter p is nullptr, PangyaBinaryWriter_func::room_broadcast()", type_msg.CL_FILE_LOG_AND_CONSOLE));
+        //        }
+        //    }
 
-            v_p.Clear();
-        }
+        //    v_p.Clear();
+        //}
 
         //public static void game_broadcast(Game _game,
         //    PangyaBinaryWriter p, byte _debug)
