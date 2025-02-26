@@ -7,81 +7,70 @@ using PangyaAPI.SQL;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 
 namespace GameServer.Cmd
 {
     public class CmdAchievementInfo : Pangya_DB
     {
         private uint m_uid;
-        private readonly Dictionary<uint, AchievementInfoEx> map_ai = new Dictionary<uint, AchievementInfoEx>();
+        private readonly Dictionary<uint, List<AchievementInfoEx>> map_ai = new Dictionary<uint, List<AchievementInfoEx>>();
 
-        public CmdAchievementInfo()
-        {
-            m_uid = 0;
-
-            //if (!sIff.Instance.IsLoaded)
-            //    sIff.Instance.Load();
-        }
-
+      
         public CmdAchievementInfo(uint _uid)
         {
             m_uid = _uid;
 
-            //if (!sIff.Instance.IsLoaded)
-            //    sIff.Instance.Load();
-        }
-
-        ~CmdAchievementInfo()
-        {
+            if (!sIff.getInstance().isLoad())
+                sIff.getInstance().load();
         }
 
         protected override void lineResult(ctx_res _result, uint _index_result)
         {
             checkColumnNumber(10);
 
-            //var ai = new AchievementInfoEx();
-            //var qsi = new QuestStuffInfo();
-            //var cii = new CounterItemInfo { active = 1 };
+            var ai = new AchievementInfoEx();
+            var qsi = new QuestStuffInfo();
+            var cii = new CounterItemInfo { active = 1 };
 
-            //ai._typeid = IFNULL(_result.data[1]);
-            //ai.id = IFNULL(_result.data[2]);
+            ai._typeid = IFNULL(_result.data[1]);
+            ai.id = IFNULL(_result.data[2]);
 
-            //qsi.id = IFNULL(_result.data[4]);
-            //qsi._typeid = IFNULL(_result.data[5]);
-            //cii._typeid = IFNULL(_result.data[6]);
-            //cii.id = qsi.counter_item_id = IFNULL(_result.data[7]);
-            //cii.value = IFNULL(_result.data[8]);
-            //qsi.clear_date_unix = IFNULL(_result.data[9]);
+            qsi.id = IFNULL(_result.data[4]);
+            qsi._typeid = IFNULL(_result.data[5]);
+            cii._typeid = IFNULL(_result.data[6]);
+            cii.id = qsi.counter_item_id = IFNULL(_result.data[7]);
+            cii.value = IFNULL(_result.data[8]);
+            qsi.clear_date_unix = IFNULL(_result.data[9]);
 
-            //if (!map_ai.ContainsKey(ai._typeid) ||
-            //    (map_ai.TryGetValue(ai._typeid, out var existingAi) && existingAi.id != ai.id))
-            //{
+            if (!map_ai.ContainsKey(ai._typeid))
+                map_ai[ai._typeid] = new List<AchievementInfoEx>();
 
-            //    ai.active = (byte)IFNULL(_result.data[0]);
-            //    ai.status = IFNULL(_result.data[3]);
+            var existingAi = map_ai[ai._typeid].FirstOrDefault(a => a.id == ai.id);
 
-            //    CheckAchievementRetorno(ai);
-            //    CheckQuestAchievement(ai, qsi);
+            if (existingAi == null)
+            {
+                ai.active = (byte)IFNULL(_result.data[0]);
+                ai.status = IFNULL(_result.data[3]);
 
-            //    ai.v_qsi.Add(qsi);
+                CheckAchievementRetorno(ai);
+                CheckQuestAchievement(ai, qsi);
 
-            //    if (cii.id > 0)
-            //        ai.map_counter_item[cii.id] = cii;
+                ai.v_qsi.Add(qsi);
 
-            //    map_ai[ai._typeid] = ai;
-            //}
-            //else if (map_ai[ai._typeid].id == ai.id)
-            //{
-            //    CheckQuestAchievement(map_ai[ai._typeid], qsi);
-            //    map_ai[ai._typeid].v_qsi.Add(qsi);
+                if (cii.id > 0)
+                    ai.map_counter_item[cii.id] = cii;
 
-            //    if (cii.id > 0)
-            //        map_ai[ai._typeid].map_counter_item[cii.id] = cii;
-            //}
-            //else
-            //{
-            //    // requestCommonCmdGM duplicate TypeId logic here
-            //}
+                map_ai[ai._typeid].Add(ai);
+            }
+            else
+            {
+                CheckQuestAchievement(existingAi, qsi);
+                existingAi.v_qsi.Add(qsi);
+
+                if (cii.id > 0)
+                    existingAi.map_counter_item[cii.id] = cii;
+            }
         }
 
         protected override Response prepareConsulta()
@@ -102,27 +91,27 @@ namespace GameServer.Cmd
 
         private void CheckAchievementRetorno(AchievementInfoEx ai)
         {
-            //var achievement = sIff.Instance.FindAchievement(ai.TypeId);
+            var achievement = sIff.getInstance().findAchievement(ai.id);
 
-            //if (sIff.Instance.GetItemGroupIdentify(ai.TypeId) != Iff.QUEST_ITEM && achievement != null)
-            //{
-            //    ai.QuestBaseTypeId = achievement.TypeIdQuestIndex;
-            //}
-            //else if (sIff.Instance.GetItemGroupIdentify(ai.TypeId) == Iff.ACHIEVEMENT)
-            //{
-            //    Console.WriteLine($"[CmdAchievementInfo::LineResult][WARNING] Achievement[TypeId={ai.TypeId}] not found in .iff file for player: {m_uid}");
-            //}
+            if (sIff.getInstance().getItemGroupIdentify(ai.id) != sIff.getInstance().QUEST_ITEM && achievement != null)
+            {
+                ai.quest_base_typeid = achievement.TypeID_Quest_Index;
+            }
+            else if (sIff.getInstance().getItemGroupIdentify(ai.id) == sIff.getInstance().ACHIEVEMENT)
+            {
+                Console.WriteLine($"[CmdAchievementInfo::LineResult][WARNING] Achievement[TypeId={ai.id}] not found in .iff file for player: {m_uid}");
+            }
         }
 
         private void CheckQuestAchievement(AchievementInfoEx ai, QuestStuffInfo qsi)
         {
-            //if (ai.Status == 3 && (ai.QuestBaseTypeId == 0 || qsi.TypeId == ai.QuestBaseTypeId) && qsi.CounterItemId <= 0)
-            //{
-            //    Console.WriteLine($"[CmdAchievementInfo::LineResult][WARNING] Quest achievement[TypeId={qsi.TypeId}] does not have a counter item. Player: {m_uid}");
-            //}
+            if (ai.status == 3 && (ai.quest_base_typeid == 0 || qsi._typeid == ai.quest_base_typeid) && qsi.counter_item_id <= 0)
+            {
+                Console.WriteLine($"[CmdAchievementInfo::LineResult][WARNING] Quest achievement[TypeId={qsi._typeid}] does not have a counter item. Player: {m_uid}");
+            }
         }
 
-        public Dictionary<uint, AchievementInfoEx> GetInfo()
+        public Dictionary<uint, List<AchievementInfoEx>> GetInfo()
         {
             return map_ai;
         }
@@ -136,6 +125,7 @@ namespace GameServer.Cmd
         {
             m_uid = uid;
         }
+
         string m_szConsulta = "pangya.ProcGetNewAchievement";
     }
 }

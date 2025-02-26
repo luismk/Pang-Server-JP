@@ -115,9 +115,7 @@ namespace PangyaAPI.SQL.Manager
                     if (_data == null)
                     {
                         res = new response();
-                        result = new result_set((uint)result_set.STATE_TYPE._NO_DATA, 0, 0);
-                        result.addLine();   // Adiciona linha    
-                        res.addResultSet(result);
+                        res.addResultSet(new result_set((uint)result_set.STATE_TYPE._NO_DATA, 0, 0, null));
                         return res;
                     }
                     if (_data.Rows.Count == 1)
@@ -137,9 +135,8 @@ namespace PangyaAPI.SQL.Manager
                         {
                             for (i = 0; i < numResults; i++)
                             {
-                                result = new result_set((uint)result_set.STATE_TYPE.HAVE_DATA, numResults, numRows);
-                                result.addLine();   // Adiciona linha
-                                result.setRow(_data.Rows[i]);
+                                result = new result_set((uint)result_set.STATE_TYPE.HAVE_DATA, numResults, (uint)numRows, _data.Rows[i]);
+                               
                                 res.addResultSet(result);
                             }
                             ret++;
@@ -189,11 +186,8 @@ namespace PangyaAPI.SQL.Manager
                     if (numResults > 0)
                     {
                         foreach (DataRow item in _data.Rows)
-                        {
-                            result_set result = new result_set((uint)result_set.STATE_TYPE.HAVE_DATA, numResults, numRows);
-                            result.addLine();   // Adiciona linha
-                            result.setRow(item);
-                            res.addResultSet(result);
+                        {                                                                                                     
+                            res.addResultSet(new result_set((uint)result_set.STATE_TYPE.HAVE_DATA, numResults, (uint)numRows, item));
                         }
                     }
                 }

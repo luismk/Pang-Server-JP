@@ -33,7 +33,7 @@ namespace GameServer.Game.System
                             if (!(_session.m_pi.m_cap.game_master/* & 4*/))
                                 throw new exception("[GameMasterSystem.requestCommonCmdGM][VISIBLE][Error] player[UID=" + (_session.m_pi.uid) + "] nao eh GM mas tentou executar comando GM. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.GAME_SERVER, 1, 0x5700100));
 
-                            var c = Program.gs.findChannel(_session.m_pi.channel);
+                            var c = sgs.gs.getInstance().findChannel(_session.m_pi.channel);
 
                             if (c == null)
                                 throw new exception("[GameMasterSystem.requestCommonCmdGM][VISIBLE][Error] player[UID=" + (_session.m_pi.uid)
@@ -79,7 +79,7 @@ namespace GameServer.Game.System
                             if (!(_session.m_pi.m_cap.game_master/* & 4*/))
                                 throw new exception("[GameMasterSystem.requestCommonCmdGM][OPEN_WHISPER_PLAYER_LIST][Error] player[UID=" + (_session.m_pi.uid) + "] nao eh GM mas tentou executar comando GM. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.GAME_SERVER, 1, 0x5700100));
 
-                            var s = (Player)Program.gs.FindSessionByNickname(nickname);
+                            var s = (Player)sgs.gs.getInstance().FindSessionByNickname(nickname);
 
                             if (s == null)
                                 throw new exception("[GameMasterSystem.requestCommonCmdGM][OPEN_WHISPER_PLAYER_LIST][Error] player[UID=" + (_session.m_pi.uid) + "] tentou add um player a lista de Whisper, mas nao encontrou o nickname no Server.",
@@ -100,7 +100,7 @@ namespace GameServer.Game.System
                             if (!(_session.m_pi.m_cap.game_master/* & 4*/))
                                 throw new exception("[GameMasterSystem.requestCommonCmdGM][CLOSE_WHISPER_PLAYER_LIST][Error] player[UID=" + (_session.m_pi.uid) + "] nao eh GM mas tentou executar comando GM. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.GAME_SERVER, 1, 0x5700100));
 
-                            var s = (Player)Program.gs.FindSessionByNickname(nickname);
+                            var s = (Player)sgs.gs.getInstance().FindSessionByNickname(nickname);
 
                             if (s == null)
                                 throw new exception("[GameMasterSystem.requestCommonCmdGM][CLOSE_WHISPER_PLAYER_LIST][Error] player[UID=" + (_session.m_pi.uid) + "] tentou deletar um player da lista de Whisper, mas nao encontrou o nickname no Server.",
@@ -114,7 +114,7 @@ namespace GameServer.Game.System
                             if (!(_session.m_pi.m_cap.game_master/* & 4*/))
                                 throw new exception("[GameMasterSystem.requestCommonCmdGM][KICK][Error] player[UID=" + (_session.m_pi.uid) + "] nao eh GM mas tentou executar comando GM. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.GAME_SERVER, 1, 0x5700100));
 
-                            var c = Program.gs.findChannel(_session.m_pi.channel);
+                            var c = sgs.gs.getInstance().findChannel(_session.m_pi.channel);
 
                             if (c == null)
                                 throw new exception("[GameMasterSystem.requestCommonCmdGM][KICK][Error] player[UID=" + (_session.m_pi.uid)
@@ -130,7 +130,7 @@ namespace GameServer.Game.System
 
                             var oid = _packet.ReadUInt32();
 
-                            var s = Program.gs.FindSessionByOid(oid);
+                            var s = sgs.gs.getInstance().FindSessionByOid(oid);
 
                             if (s == null)
                                 throw new exception("[GameMasterSystem.requestCommonCmdGM][DISCONNECT][Error] player[UID=" + (_session.m_pi.uid) + "] tentou executar o comando /disconnect or /discon_uid mas nao encontrou o player[OID="
@@ -149,7 +149,7 @@ namespace GameServer.Game.System
                             if (!(_session.m_pi.m_cap.game_master/* & 4*/))
                                 throw new exception("[GameMasterSystem.requestCommonCmdGM][CHANGE_WIND_VERSUS][Error] player[UID=" + (_session.m_pi.uid) + "] nao eh GM mas tentou executar comando GM. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.GAME_SERVER, 1, 0x5700100));
 
-                            var c = Program.gs.findChannel(_session.m_pi.channel);
+                            var c = sgs.gs.getInstance().findChannel(_session.m_pi.channel);
 
                             if (c == null)
                                 throw new exception("[GameMasterSystem.requestCommonCmdGM][CHANGE_WIND_VERSUS][Error] player[UID=" + (_session.m_pi.uid)
@@ -165,7 +165,7 @@ namespace GameServer.Game.System
                             if (!(_session.m_pi.m_cap.game_master/* & 4*/))
                                 throw new exception("[GameMasterSystem.requestCommonCmdGM][CHANGE_WEATHER][Error] player[UID=" + (_session.m_pi.uid) + "] nao eh GM mas tentou executar comando GM. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.GAME_SERVER, 1, 0x5700100));
 
-                            var c = Program.gs.findChannel(_session.m_pi.channel);
+                            var c = sgs.gs.getInstance().findChannel(_session.m_pi.channel);
 
                             if (c == null)
                                 throw new exception("[GameMasterSystem.requestCommonCmdGM][CHANGE_WEATHER][Error] player[UID=" + (_session.m_pi.uid)
@@ -180,7 +180,7 @@ namespace GameServer.Game.System
                             if (!(_session.m_pi.m_cap.game_master/* & 4*/))
                                 throw new exception("[GameMasterSystem.requestCommonCmdGM][IDENTITY][Error] player[UID=" + (_session.m_pi.uid) + "] nao eh GM mas tentou executar comando GM. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.GAME_SERVER, 1, 0x5700100));
 
-                            var c = Program.gs.findChannel(_session.m_pi.channel);
+                            var c = sgs.gs.getInstance().findChannel(_session.m_pi.channel);
 
                             if (c == null)
                                 throw new exception("[GameMasterSystem.requestCommonCmdGM][IDENTITY][Error] player[UID=" + (_session.m_pi.uid)
@@ -202,7 +202,7 @@ namespace GameServer.Game.System
                             uint item_typeid = _packet.ReadUInt32();
                             uint item_qntd = _packet.ReadUInt32();
 
-                            var s = (Player)Program.gs.FindSessionByOid(oid_send);
+                            var s = (Player)sgs.gs.getInstance().FindSessionByOid(oid_send);
 
                             if (s == null)
                                 throw new exception("[GameMasterSystem.requestCommonCmdGM][GIVE_ITEM][Error] player[UID=" + (_session.m_pi.uid) + "] tentou enviar presente para o player[OID="
@@ -253,7 +253,7 @@ namespace GameServer.Game.System
                             if (_session.m_pi.m_cap.block_give_item_gm)
                                 throw new exception("[GameMasterSystem.requestCommonCmdGM][GOLDENBELL][Error] player[UID=" + (_session.m_pi.uid) + "] esta bloqueado para enviar itens pelo comando goldenbell.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.GAME_SERVER, 9, 0x5700100));
 
-                            var c = Program.gs.findChannel(_session.m_pi.channel);
+                            var c = sgs.gs.getInstance().findChannel(_session.m_pi.channel);
 
                             if (c == null)
                                 throw new exception("[GameMasterSystem.requestCommonCmdGM][GOLDENBELL][Error] player[UID=" + (_session.m_pi.uid)

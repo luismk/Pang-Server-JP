@@ -69,7 +69,7 @@ namespace PangyaAPI.SQL
         }
         public virtual void checkColumnNumber(uint _number_cols1, uint _number_cols2)
         {
-            if (_number_cols1 != 0 && _number_cols1 != _number_cols2)
+            if (_number_cols1 <= 0 || _number_cols1 != _number_cols2)
                 throw new exception("[Pangya_DB::" + _getName + "::checkColumnNumber][Error] numero de colunas retornada pela consulta sao diferente do esperado.");
         }
 

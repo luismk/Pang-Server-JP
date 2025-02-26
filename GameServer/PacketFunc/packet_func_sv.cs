@@ -10,11 +10,8 @@ using System.Collections.Generic;
 using System.Linq;
 using _smp = PangyaAPI.Utilities.Log;
 using static GameServer.GameType._Define;
-using System.Diagnostics;
 using GameServer.Session;
-using PangyaAPI.Network.PangyaPacket;
-using System.Runtime.InteropServices;
-using System.Diagnostics.Eventing.Reader;
+using System.Xml.Linq;
 
 namespace GameServer.PacketFunc
 {
@@ -25,7 +22,6 @@ namespace GameServer.PacketFunc
     {
         static int MAX_BUFFER_PACKET = 1000;
 
-        static GameServerTcp.GameServer gs = Program.gs;
         #region Response Packet
         public static byte[] InitialLogin(PlayerInfo pi, ServerInfoEx _si)
         {
@@ -33,7 +29,7 @@ namespace GameServer.PacketFunc
             try
             {
                 if (pi == null)
-                    throw new Exception("Erro PlayerInfo *pi is null. packet_func::InitialLogin()");
+                    throw new exception("Erro PlayerInfo *pi is null. packet_func_sv::InitialLogin()");
 
                 p.WritePStr(_si.version_client);
 
@@ -99,7 +95,7 @@ namespace GameServer.PacketFunc
 
                 return p.GetBytes;
             }
-            catch (Exception e)
+            catch (exception e)
             {
                 _smp.message_pool.push("[packet_func_gs::InitialLogin]", e);
                 return new byte[0];
@@ -143,7 +139,7 @@ namespace GameServer.PacketFunc
         {
             var p = new PangyaBinaryWriter();
             if (pi == null)
-                throw new Exception("Erro PlayerInfo *pi is null. packet_func::pacote11F()");
+                throw new exception("Erro PlayerInfo *pi is null. packet_func_sv::pacote11F()");
 
             p.init_plain(0x11F);
 
@@ -180,7 +176,7 @@ namespace GameServer.PacketFunc
                 {
                     //delete p;
 
-                    throw new Exception("Erro PlayerInfo *pi is null. packet_func::pacote095()");
+                    throw new exception("Erro PlayerInfo *pi is null. packet_func_sv::pacote095()");
                 }
 
                 p.WriteUInt64(pi.ui.pang);
@@ -326,7 +322,7 @@ namespace GameServer.PacketFunc
         public static byte[] pacote096(PlayerInfo pi)
         {
             if (pi == null)
-                throw new Exception("Erro PlayerInfo *pi is null. packet_func::pacote096()");
+                throw new exception("Erro PlayerInfo *pi is null. packet_func_sv::pacote096()");
             using (var p = new PangyaBinaryWriter(0x96))
             {
                 p.WriteUInt64(pi.cookie);
@@ -543,10 +539,10 @@ namespace GameServer.PacketFunc
                     return p.GetBytes;
                 }
             }
-            catch (Exception ex)
+            catch (exception ex)
             {
                 _smp.message_pool.push(new message(
-              $"[packet_func::pacote04D][ErrorSystem] {ex.Message}\nStack Trace: {ex.StackTrace}",
+              $"[packet_func_sv::pacote04D][ErrorSystem] {ex.getFullMessageError()}",
               type_msg.CL_FILE_LOG_AND_CONSOLE));
                 return new byte[] { 0x4D, 0x00, 0x00 };
             }
@@ -618,7 +614,7 @@ namespace GameServer.PacketFunc
         {
 
             if ((option == 0 || option == 0x80) && string.IsNullOrEmpty(nick))
-                throw new exception("Error PlayerInfo *pi is null. packet_func::pacote040()");
+                throw new exception("Error PlayerInfo *pi is null. packet_func_sv::pacote040()");
 
             using (var p = new PangyaBinaryWriter(0x40))
             {
@@ -639,7 +635,7 @@ namespace GameServer.PacketFunc
             var p = new PangyaBinaryWriter(0x44);
 
             if (option == 0 && pi == null)
-                throw new Exception("Erro PlayerInfo *pi is null. packet_func::pacote044()");
+                throw new exception("Erro PlayerInfo *pi is null. packet_func_sv::pacote044()");
 
             p.WriteByte(option);   // Option
 
@@ -867,7 +863,7 @@ int option = 0)
 
             if (pi == null)
             {
-                throw new exception("Erro PlayerInfo *pi is null. packet_func::pacote06B()", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PACKET_FUNC_SV,
+                throw new exception("Erro PlayerInfo *pi is null. packet_func_sv::pacote06B()", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PACKET_FUNC_SV,
                     1, 0));
             }
             var p = new PangyaBinaryWriter(0x6B);
@@ -975,13 +971,13 @@ int option = 0)
             var p = new PangyaBinaryWriter(0x4B);
             if (_session == null)
             {
-                throw new exception("Error _session is nullptr. Em packet_func::pacote04B()", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PACKET_FUNC_SV,
+                throw new exception("Error _session is nullptr. Em packet_func_sv::pacote04B()", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PACKET_FUNC_SV,
                     1, 0));
             }
 
             if (!_session.GetState())
             {
-                throw new exception("Error player nao esta mais connectado. Em packet_func::pacote04B()", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PACKET_FUNC_SV,
+                throw new exception("Error player nao esta mais connectado. Em packet_func_sv::pacote04B()", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PACKET_FUNC_SV,
                     2, 0));
             }
             p.WriteInt32(error);
@@ -1079,7 +1075,7 @@ int option = 0)
                             // Nada Aqui
                         break;
                     default:
-                        throw new exception("Error tipo desconhecido. Em packet_func::pacote04B()", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PACKET_FUNC_SV,
+                        throw new exception("Error tipo desconhecido. Em packet_func_sv::pacote04B()", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PACKET_FUNC_SV,
                             3, 0));
                 }
             }
@@ -1106,7 +1102,7 @@ int option = 0)
         {
             if (pi == null)
             {
-                throw new exception("[packet_func::pacote12][Error] PlayerInfo *pi is nullptr.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PACKET_FUNC_SV,
+                throw new exception("[packet_func_sv::pacote12][Error] PlayerInfo *pi is nullptr.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PACKET_FUNC_SV,
                     1, 0));
             }
             using (var p = new PangyaBinaryWriter(0x102))
@@ -1138,115 +1134,126 @@ int option = 0)
             return p.GetBytes;
         }
 
-            public static List<PangyaBinaryWriter> pacote048(Player _session, List<PlayerRoomInfoEx> v_element, int option = 0)
-            {
-                var p = new PangyaBinaryWriter();
-                var p_list = new List<PangyaBinaryWriter>();
-                if ((option & 0xFF) == 2)
-                { // exit player
-                    p.init_plain((ushort)0x48);
-                    p.WriteByte((byte)option);
-                    p.WriteInt16(-1);
+        //not tested
+        public static List<PangyaBinaryWriter> pacote048(Player _session, List<PlayerRoomInfoEx> v_element, int option = 0)
+        {
+            var p = new PangyaBinaryWriter();
+            var p_list = new List<PangyaBinaryWriter>();
+            if ((option & 0xFF) == 2)
+            { // exit player
+                p.init_plain(0x48);
+                p.WriteByte((byte)option);
+                p.WriteInt16(-1);
 
-                    p.WriteUInt32(_session.m_oid);
-                    p_list.Add(p);
-                    return p_list;
-                }
-                //else if ((option & 0xFF) == 7)
-                //{
-                //    var elements = v_element.Count;
-
-                //    //realizar o split
-                //    MAKE_BEGIN_SPLIT_PACKET(0x48,
-                //        _session,
-                //        ((option & 0x100) != 0 ? sizeof(PlayerRoomInfo) : sizeof(PlayerRoomInfoEx)),
-                //        sizeof(PlayerRoomInfoEx));
-
-                //    p.WriteByte((byte)option);
-                //    p.WriteInt16(-1);
-                //    if ((option & 0xFF) == 0 || (option & 0xFF) == 5)
-                //    {
-                //        p.WriteByte((byte)((total > por_packet) ? por_packet : total));
-                //    }
-                //    else if ((option & 0xFF) == 7)
-                //    {
-                //        p.WriteByte((byte)elements);
-                //    }
-                //    else if ((option & 0xFF) == 3)
-                //    {
-                //        p.WriteUInt32(_session.m_oid);
-                //    }
-
-                //    MAKE_MID_SPLIT_PACKET_VECTOR(((option & 0x100) != 0 ? sizeof(PlayerRoomInfo) : sizeof(PlayerRoomInfoEx)));
-
-                //    p.WriteByte(0); // Final list de PlayerRoomInfo
-
-                //    MAKE_END_SPLIT_PACKET(1);
-                //}
-                //else
-                //{
-                //    var elements = v_element.Count;
-
-                //    if (elements * ((option & 0x100) != 0 ? sizeof(PlayerRoomInfo) : sizeof(PlayerRoomInfoEx)) < (MAX_BUFFER_PACKET - 100) != null)
-                //    {
-                //        p.init_plain((ushort)0x48);
-                //        p.WriteByte((byte)option);
-                //        p.WriteInt16(-1);
-
-                //        if ((option & 0xFF) == 0 || (option & 0xFF) == 5)
-                //        {
-                //            p.WriteByte((byte)elements);
-                //        }
-                //        else if ((option & 0xFF) == 3)
-                //        {
-                //            p.WriteUInt32(_session.m_oid);
-                //        }
-
-                //        for (var i = 0; i < v_element.Count; i++)
-                //        {
-                //            p.WriteBytes((option & 0x100) != 0 ? v_element[i].Build() : v_element[i].BuildEx());
-                //        }
-
-                //        p.WriteByte(0); // Final list de PlayerRoomInfo
-
-                //        return 1;
-                //    }
-                //    else
-                //    {
-                //        MAKE_BEGIN_SPLIT_PACKET(0x48,
-                //            _session,
-                //            ((option & 0x100) != 0 ? sizeof(PlayerRoomInfo) : sizeof(PlayerRoomInfoEx)),
-                //            MAX_BUFFER_PACKET);
-
-                //        if ((option & 0xFF) == 0 && index != 0u)
-                //        {
-                //            p.WriteByte(5); // Option 5 é para add os players aos que já tem na sala
-                //        }
-                //        else
-                //        {
-                //            p.WriteByte((byte)option);
-                //        }
-
-                //        p.WriteInt16(-1);
-
-                //        if ((option & 0xFF) == 0 || (option & 0xFF) == 5)
-                //        {
-                //            p.WriteByte((byte)((total > por_packet) ? por_packet : total));
-                //        }
-                //        else if ((option & 0xFF) == 3)
-                //        {
-                //            p.WriteUInt32(_session.m_oid);
-                //        }
-
-                //        p.WriteBytes((option & 0x100) != 0 ? v_element[i].Build() : v_element[i].BuildEx());
-
-                //        p.WriteByte(0); // Final list de PlayerRoomInfo
-
-                //     }
-                //}
-
+                p.WriteUInt32(_session.m_oid);
+                p_list.Add(p);
                 return p_list;
             }
+            else if ((option & 0xFF) == 7)
+            {
+                var elements = v_element.Count;
+                var splitList = v_element.ToList().Split(20); //ChunkBy(this.ToList(), totalBySplit);
+
+                //Percorre lista e adiciona ao resultado
+                foreach (var players in splitList)
+                {
+                    p.init_plain(0x48);
+                    p.WriteByte((byte)option);
+                    p.WriteInt16(-1);
+                    if ((option & 0xFF) == 0 || (option & 0xFF) == 5)
+                    {
+                        p.WriteByte((byte)players.Count);
+                    }
+                    else if ((option & 0xFF) == 7)
+                    {
+                        p.WriteByte((byte)elements);
+                    }
+                    else if ((option & 0xFF) == 3)
+                    {
+                        p.WriteUInt32(_session.m_oid);
+                    }
+                    foreach (var info in players)
+                    {
+                        p.WriteBytes(info.BuildEx());
+                    }
+
+                    p.WriteByte(0); // Final list de PlayerRoomInfo
+                    p_list.Add(p);
+                }
+            }
+            else
+            {
+                var elements = v_element.Count;
+                if (elements * (Convert.ToBoolean(option & 0x100) ? new PlayerRoomInfo().Build().Length : new PlayerRoomInfoEx().Build().Length) < (MAX_BUFFER_PACKET - 100))
+                {
+                    var splitList = v_element.ToList().Split(20); //ChunkBy(this.ToList(), totalBySplit);
+
+                    //Percorre lista e adiciona ao resultado
+                    foreach (var players in splitList)
+                    {
+                        p.init_plain(0x48);
+                        p.WriteByte((byte)option);
+                        p.WriteInt16(-1);
+                        if ((option & 0xFF) == 0 || (option & 0xFF) == 5)
+                        {
+                            p.WriteByte((byte)elements);
+                        }
+                        else if ((option & 0xFF) == 3)
+                        {
+                            p.WriteUInt32(_session.m_oid);
+                        }
+
+                        for (var i = 0; i < players.Count; i++)
+                        {
+                            p.WriteBytes((option & 0x100) != 0 ? players[i].Build() : players[i].BuildEx());
+                        }
+                        p.WriteByte(0); // Final list de PlayerRoomInfo
+                        p_list.Add(p);
+                    }
+                }
+                else
+                {
+                    var splitList = v_element.ToList().Split(20); //ChunkBy(this.ToList(), totalBySplit);
+                    uint index = 0;
+                    //Percorre lista e adiciona ao resultado
+                    foreach (var players in splitList)
+                    {
+                        p.init_plain(0x48);
+                        p.WriteByte((byte)option);
+                        p.WriteInt16(-1);
+
+                        if ((option & 0xFF) == 0 && index != 0)//ver depois
+                        {
+                            p.WriteByte(5); // Option 5 é para add os players aos que já tem na sala
+                        }
+                        else
+                        {
+                            p.WriteByte((byte)option);
+                        }
+
+                        p.WriteInt16(-1);
+
+                        if ((option & 0xFF) == 0 || (option & 0xFF) == 5)
+                        {
+                            p.WriteByte((byte)players.Count);
+                        }
+                        else if ((option & 0xFF) == 3)
+                        {
+                            p.WriteUInt32(_session.m_oid);
+                        }
+                        for (var i = 0; i < players.Count; i++)
+                            p.WriteBytes((option & 0x100) != 0 ? players[i].Build() : players[i].BuildEx());
+
+
+                        p.WriteByte(0); // Final list de PlayerRoomInfo
+                        p_list.Add(p);
+                        index++;
+                    }
+                }
+            }
+
+            return p_list;
+        }
 
 
         // Metôdos de auxílio de criação de pacotes 
@@ -1254,7 +1261,7 @@ int option = 0)
             PangyaBinaryWriter p, byte _debug)
         {
 
-            List<Player> channel_session = _channel.getSessions(); //gs->getSessionPool().getChannelSessions(s->m_channel);
+            List<Player> channel_session = _channel.getSessions();
 
             for (var i = 0; i < channel_session.Count; ++i)
             {
@@ -1266,7 +1273,7 @@ int option = 0)
                     (channel_session[i]).Send(mb);
                     if ((channel_session[i]).Devolve())
                     {
-                        Program.gs.DisconnectSession((channel_session[i]));
+                        sgs.gs.getInstance().DisconnectSession((channel_session[i]));
                     }
                 }
                 catch (exception e)
@@ -1276,7 +1283,7 @@ int option = 0)
                     {
                         if ((channel_session[i]).Devolve())
                         {
-                            Program.gs.DisconnectSession((channel_session[i]));
+                            sgs.gs.getInstance().DisconnectSession((channel_session[i]));
                         }
                     }
                     if (ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
@@ -1301,7 +1308,7 @@ int option = 0)
             {
                 if (v_p[i] != null)
                 {
-                    channel_session = _channel.getSessions(); //gs->getSessionPool().getChannelSessions(s->m_channel);
+                    channel_session = _channel.getSessions();
 
                     for (var ii = 0; ii < channel_session.Count; ++ii)
                     {
@@ -1312,7 +1319,7 @@ int option = 0)
                             (channel_session[ii]).Send(mb);
                             if ((channel_session[ii]).Devolve())
                             {
-                                Program.gs.DisconnectSession((channel_session[ii]));
+                                sgs.gs.getInstance().DisconnectSession((channel_session[ii]));
                             }
                         }
                         catch (exception e)
@@ -1322,7 +1329,7 @@ int option = 0)
                             {
                                 if ((channel_session[ii]).Devolve())
                                 {
-                                    Program.gs.DisconnectSession((channel_session[ii]));
+                                    sgs.gs.getInstance().DisconnectSession((channel_session[ii]));
                                 }
                             }
                             if (ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
@@ -1348,7 +1355,7 @@ int option = 0)
             PangyaBinaryWriter p, byte _debug)
         {
 
-            List<Player> channel_session = _channel.getSessions(); //gs->getSessionPool().getChannelSessions(s->m_channel);
+            List<Player> channel_session = _channel.getSessions();
 
             for (var i = 0; i < channel_session.Count; ++i)
             {
@@ -1362,7 +1369,7 @@ int option = 0)
                         (channel_session[i]).Send(mb);
                         if ((channel_session[i]).Devolve())
                         {
-                            Program.gs.DisconnectSession((channel_session[i]));
+                            sgs.gs.getInstance().DisconnectSession((channel_session[i]));
                         }
                     }
                     catch (exception e)
@@ -1372,7 +1379,7 @@ int option = 0)
                         {
                             if ((channel_session[i]).Devolve())
                             {
-                                Program.gs.DisconnectSession((channel_session[i]));
+                                sgs.gs.getInstance().DisconnectSession((channel_session[i]));
                             }
                         }
                         if (ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
@@ -1401,7 +1408,7 @@ int option = 0)
         //            (room_session[i]).Send(mb);
         //            if ((room_session[i]).Devolve())
         //            {
-        //                Program.gs.DisconnectSession((room_session[i]));
+        //                sgs.gs.getInstance().DisconnectSession((room_session[i]));
         //            }
         //        }
         //        catch (exception e)
@@ -1411,7 +1418,7 @@ int option = 0)
         //            {
         //                if ((room_session[i]).Devolve())
         //                {
-        //                    Program.gs.DisconnectSession((room_session[i]));
+        //                    sgs.gs.getInstance().DisconnectSession((room_session[i]));
         //                }
         //            }
         //            if (ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
@@ -1438,7 +1445,7 @@ int option = 0)
         //            (room_session[i]).Send(mb);
         //            if ((room_session[i]).Devolve())
         //            {
-        //                Program.gs.DisconnectSession((room_session[i]));
+        //                sgs.gs.getInstance().DisconnectSession((room_session[i]));
         //            }
         //        }
         //        catch (exception e)
@@ -1448,7 +1455,7 @@ int option = 0)
         //            {
         //                if ((room_session[i]).Devolve())
         //                {
-        //                    Program.gs.DisconnectSession((room_session[i]));
+        //                    sgs.gs.getInstance().DisconnectSession((room_session[i]));
         //                }
         //            }
         //            if (ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
@@ -1481,7 +1488,7 @@ int option = 0)
         //                    (room_session[ii]).Send(mb);
         //                    if ((room_session[ii]).Devolve())
         //                    {
-        //                        Program.gs.DisconnectSession((room_session[ii]));
+        //                        sgs.gs.getInstance().DisconnectSession((room_session[ii]));
         //                    }
         //                }
         //                catch (exception e)
@@ -1491,7 +1498,7 @@ int option = 0)
         //                    {
         //                        if ((room_session[ii]).Devolve())
         //                        {
-        //                            Program.gs.DisconnectSession((room_session[ii]));
+        //                            sgs.gs.getInstance().DisconnectSession((room_session[ii]));
         //                        }
         //                    }
         //                    if (ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
@@ -1527,7 +1534,7 @@ int option = 0)
         //            (game_session[i]).Send(mb);
         //            if ((game_session[i]).Devolve())
         //            {
-        //                Program.gs.DisconnectSession((game_session[i]));
+        //                sgs.gs.getInstance().DisconnectSession((game_session[i]));
         //            }
         //        }
         //        catch (exception e)
@@ -1537,7 +1544,7 @@ int option = 0)
         //            {
         //                if ((game_session[i]).Devolve())
         //                {
-        //                    Program.gs.DisconnectSession((game_session[i]));
+        //                    sgs.gs.getInstance().DisconnectSession((game_session[i]));
         //                }
         //            }
         //            if (ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
@@ -1570,7 +1577,7 @@ int option = 0)
         //                    (game_session[ii]).Send(mb);
         //                    if ((game_session[ii]).Devolve())
         //                    {
-        //                        Program.gs.DisconnectSession((game_session[ii]));
+        //                        sgs.gs.getInstance().DisconnectSession((game_session[ii]));
         //                    }
         //                }
         //                catch (exception e)
@@ -1580,7 +1587,7 @@ int option = 0)
         //                    {
         //                        if ((game_session[ii]).Devolve())
         //                        {
-        //                            Program.gs.DisconnectSession((game_session[ii]));
+        //                            sgs.gs.getInstance().DisconnectSession((game_session[ii]));
         //                        }
         //                    }
         //                    if (ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
@@ -1615,7 +1622,7 @@ int option = 0)
                     (el).Send(mb);
                     if ((el).Devolve())
                     {
-                        Program.gs.DisconnectSession((el));
+                        sgs.gs.getInstance().DisconnectSession((el));
                     }
                 }
                 catch (exception e)
@@ -1625,7 +1632,7 @@ int option = 0)
                     {
                         if ((el).Devolve())
                         {
-                            Program.gs.DisconnectSession((el));
+                            sgs.gs.getInstance().DisconnectSession((el));
                         }
                     }
                     if (ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
@@ -1656,7 +1663,7 @@ int option = 0)
                             (el2).Send(mb);
                             if ((el2).Devolve())
                             {
-                                Program.gs.DisconnectSession((el2));
+                                sgs.gs.getInstance().DisconnectSession((el2));
                             }
                         }
                         catch (exception e)
@@ -1666,7 +1673,7 @@ int option = 0)
                             {
                                 if ((el2).Devolve())
                                 {
-                                    Program.gs.DisconnectSession((el2));
+                                    sgs.gs.getInstance().DisconnectSession((el2));
                                 }
                             }
                             if (ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
@@ -1705,7 +1712,7 @@ int option = 0)
                 s.Send(mb);
                 if ((s).Devolve())
                 {
-                    Program.gs.DisconnectSession((s));
+                    sgs.gs.getInstance().DisconnectSession((s));
                 }
             }
             catch (exception e)
@@ -1715,7 +1722,7 @@ int option = 0)
                 {
                     if ((s).Devolve())
                     {
-                        Program.gs.DisconnectSession((s));
+                        sgs.gs.getInstance().DisconnectSession((s));
                     }
                 }
                 if (ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
@@ -1724,7 +1731,7 @@ int option = 0)
                     throw;
                 }
             }
-        } 
+        }
 
         public static void session_send(List<PangyaBinaryWriter> v_p,
             Player s, byte _debug)
@@ -1748,7 +1755,7 @@ int option = 0)
                         s.Send(mb);
                         if (!(s).Devolve())
                         {
-                            Program.gs.DisconnectSession((s));
+                            sgs.gs.getInstance().DisconnectSession((s));
                         }
                     }
                     catch (exception e)
@@ -1758,7 +1765,7 @@ int option = 0)
                         {
                             if ((s).Devolve())
                             {
-                                Program.gs.DisconnectSession((s));
+                                sgs.gs.getInstance().DisconnectSession((s));
                             }
                         }
                         if (ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
@@ -1778,6 +1785,51 @@ int option = 0)
             v_p.Clear();
         }
 
+        public static List<PangyaBinaryWriter> MakeBeginSplitPacket(ushort packet_id, int element_size, int max_packet, int elements)
+        {
+            var packets = new List<PangyaBinaryWriter>();
+            int por_packet = ((max_packet - 100) > element_size) ? (max_packet - 100) / element_size : 1;
+            int total = elements;   
+            for (int index = 0; index < elements; total -= por_packet)
+            {
+                PangyaBinaryWriter p = new PangyaBinaryWriter();
+                p.init_plain(packet_id);
+                packets.Add(p);
+            }
+            return packets;
+        }
+
+        public static void MakeMedSplitPacket(ref PangyaBinaryWriter p, int total, int porPacket, int tipo)
+        {
+            if (tipo == 0)
+            {
+                p.WriteInt16((short)total);
+                p.WriteInt16((short)((total > porPacket) ? porPacket : total));
+            }
+            else
+            {
+                p.WriteUInt32((uint)total);
+                p.WriteUInt32((uint)((total > porPacket) ? porPacket : total));
+            }
+        }
+
+        public static void MakeMidSplitPacketVector(ref PangyaBinaryWriter p, List<byte[]> elements, int elementSize, ref int index, int porPacket)
+        {
+            for (int i = 0; i < porPacket && index < elements.Count; i++, index++)
+            {
+                p.WriteBytes(elements[index]);
+            }
+        }
+
+        public static void MakeMidSplitPacketMap(ref PangyaBinaryWriter p, Dictionary<int, byte[]> elements, int elementSize, ref int index, int porPacket)
+        {
+            var enumerator = elements.Values.GetEnumerator();
+            for (int i = 0; i < porPacket && index < elements.Count; i++, index++)
+            {
+                if (enumerator.MoveNext())
+                    p.WriteBytes(enumerator.Current);
+            }
+        }     
         #endregion
     }
 }

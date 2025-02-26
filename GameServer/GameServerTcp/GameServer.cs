@@ -22,6 +22,7 @@ using PangyaAPI.Network.Cmd;
 using GameServer.PangyaEnums;
 using packet_func = GameServer.PacketFunc.packet_func_cl;
 using GameServer.Game.Utils;
+using GameServer.GameServerTcp;
 
 namespace GameServer.GameServerTcp
 {
@@ -41,7 +42,6 @@ namespace GameServer.GameServerTcp
             ConfigInit();
             init_Packets();
             init_load_channels();
-            StartingServer();
             init_systems();
         }
 
@@ -1235,7 +1235,7 @@ namespace GameServer.GameServerTcp
                             + "] nao pode ver mensagem agora, mas o nickname de quem enviou a mensagem para ele eh invalido(empty). Hacker ou Bug.",
                             ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.GAME_SERVER, 0x750050, 0));
                 // Procura o player pelo nickname, para ver se ele está online
-                var s = (Player)Program.gs.FindSessionByNickname(nickname);
+                var s = (Player)FindSessionByNickname(nickname);
                 if (s != null && s.getConnected())
                 {
                     // Log
@@ -1720,5 +1720,12 @@ namespace GameServer.GameServerTcp
                 _smp.message_pool.push("[GameServer.sendChannelListToSession][ErrorSystem] " + e.getFullMessageError());
             }
         }
+    }
+}
+
+namespace sgs
+{
+    public class gs : Singleton<GameServer.GameServerTcp.GameServer>
+    {
     }
 }

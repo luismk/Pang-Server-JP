@@ -365,6 +365,33 @@ namespace PangyaAPI.Utilities.BinaryModels
             return true;
         }
 
+        public bool WriteInt16(short[] values)
+        {
+            try
+            {
+                for (uint i = 0; i < values.Count(); i++)
+                    Write(values[i]);
+            }
+            catch
+            {
+                return false;
+            }
+            return true;
+        }
+
+        public bool WriteUInt16(ushort[] values)
+        {
+            try
+            {
+                for (uint i = 0; i < values.Count(); i++)
+                    Write(values[i]);
+            }
+            catch
+            {
+                return false;
+            }
+            return true;
+        }
         public bool WriteUInt32(uint[] values)
         {
             try

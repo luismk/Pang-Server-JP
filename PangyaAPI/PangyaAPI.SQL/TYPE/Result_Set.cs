@@ -7,7 +7,7 @@ namespace PangyaAPI.SQL
     {
         public object[] data;
         public DataRow data_row;
-        public uint cols = new uint();
+        public uint cols { get; set; }
         public ctx_res next;
 
         public T ConvertToClass<T>() where T : new()
@@ -142,6 +142,13 @@ namespace PangyaAPI.SQL
             this.m_curr_data = null;
             this.m_lines = 0;
             this.m_cols = _cols;
+        }
+
+        public Result_Set(uint _state,uint _lines_affected, uint _cols, DataRow row): this(_state, _cols, (int)_lines_affected)
+        {
+             addLine();   // Adiciona linha
+            if(row != null) 
+                setRow(row);
         }
 
         public void Dispose()

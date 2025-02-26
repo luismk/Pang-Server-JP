@@ -1682,6 +1682,7 @@ namespace GameServer.GameType
         public TradeItem()
         {
             c = new short[5];
+            card = new Card();
         }
         [StructLayout(LayoutKind.Sequential, Pack = 4)]
         public class Card
@@ -1708,6 +1709,33 @@ namespace GameServer.GameType
         public string sd_name;//[41]
         [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 22)]
         public string sd_copier_nick;//[22]
+
+        public byte[] Build()
+        {
+            using (var p = new PangyaBinaryWriter())
+            {
+                p.WriteUInt32(_typeid);
+                p.WriteUInt32(id);
+                p.WriteUInt32(qntd);
+                p.WriteBytes(ucUnknown3, 3);//[3]
+                p.WriteUInt64(pang);
+                p.WriteUInt32(upgrade_custo);
+                p.WriteInt16(c);//array
+                p.WriteInt16(usUnknown);
+                p.WriteStr(sd_idx, 9);//[9]
+                p.WriteInt16(sd_seq);
+                p.WriteByte(sd_status);
+                p.WriteUInt32(card.character);
+                p.WriteUInt32(card.caddie);
+                p.WriteUInt32(card.NPC);
+                p.WriteInt16(card.character_slot_count);
+                p.WriteInt16(card.caddie_slot_count);
+                p.WriteInt16(card.NPC_slot_count);
+                p.WriteStr(sd_name, 41);//[41]
+                p.WriteStr(sd_copier_nick, 22);//[22]
+                return p.GetBytes;
+            }
+        }
     }
 
 
@@ -3532,12 +3560,7 @@ namespace GameServer.GameType
                 p.WriteUInt32(id);
                 p.WriteUInt32(_typeid);
                 p.WriteInt32(ano);
-
-                // Serializa o array de shorts (c)
-                foreach (var stat in c)
-                {
-                    p.WriteInt16(stat);
-                }
+                p.WriteInt16(c);
 
                 p.WriteByte(purchase);
                 p.WriteSByte(flag);//sbyte
@@ -3553,34 +3576,17 @@ namespace GameServer.GameType
                 p.WriteInt16(ucc.seq);
                 p.WriteStr(ucc.copier_nick, 22);
                 p.WriteUInt32(ucc.copier);
-
-                // Serializa o objeto Card
-                foreach (var value in card.character)
-                {
-                    p.WriteUInt32(value);
-                }
-                foreach (var value in card.caddie)
-                {
-                    p.WriteUInt32(value);
-                }
-                foreach (var value in card.NPC)
-                {
-                    p.WriteUInt32(value);
-                }
-
+                p.WriteUInt32(card.character);
+                p.WriteUInt32(card.caddie);
+                p.WriteUInt32(card.NPC);
                 // Serializa o objeto ClubsetWorkshop
                 p.WriteInt16(clubset_workshop.flag);
-                foreach (var stat in clubset_workshop.c)
-                {
-                    p.WriteInt16(stat);
-                }
+                p.WriteInt16(clubset_workshop.c);
                 p.WriteUInt32(clubset_workshop.mastery);
                 p.WriteUInt32(clubset_workshop.recovery_pts);
                 p.WriteInt32(clubset_workshop.level);
                 p.WriteUInt32(clubset_workshop.rank);
-                //if (p.GetSize == 196)
-                //    Debug.WriteLine($"GetWarehouse Size Okay");
-
+ 
                 return p.GetBytes;
             }
         }
@@ -3625,7 +3631,16 @@ namespace GameServer.GameType
         {
             item = new TradeItem();
            
-        }              
+        }
+        public byte[] Build()
+        {
+            using (var p = new PangyaBinaryWriter())
+            {
+                p.WriteUInt32(index);
+                p.WriteBytes(item.Build());
+                return p.GetBytes;
+            }
+        }
     }
 
     // Tutorial Info

@@ -75,7 +75,7 @@ namespace GameServer.Session
 
         public void SendChannel_broadcast(byte[] p)
         {
-            List<Player> channel_session = Program.gs.findChannel(m_pi.channel).getSessions();
+            List<Player> channel_session = sgs.gs.getInstance().findChannel(m_pi.channel).getSessions();
 
             for (var i = 0; i < channel_session.Count; ++i)
             {
@@ -85,7 +85,7 @@ namespace GameServer.Session
 
         public void SendLobby_broadcast(byte[] p)
         {
-            List<Player> channel_session = Program.gs.findChannel(m_pi.channel).getSessions();
+            List<Player> channel_session = sgs.gs.getInstance().findChannel(m_pi.channel).getSessions();
 
             for (var i = 0; i < channel_session.Count; ++i)
             {
@@ -96,7 +96,7 @@ namespace GameServer.Session
 
         public void SendChannel_broadcast(List<PangyaBinaryWriter> p)
         {
-            List<Player> channel_session = Program.gs.findChannel(m_pi.channel).getSessions();
+            List<Player> channel_session = sgs.gs.getInstance().findChannel(m_pi.channel).getSessions();
 
             for (var i = 0; i < channel_session.Count; ++i)
             {
@@ -106,7 +106,7 @@ namespace GameServer.Session
 
         public void SendLobby_broadcast(List<PangyaBinaryWriter> p)
         {
-            List<Player> channel_session = Program.gs.findChannel(m_pi.channel).getSessions();
+            List<Player> channel_session = sgs.gs.getInstance().findChannel(m_pi.channel).getSessions();
 
             for (var i = 0; i < channel_session.Count; ++i)
             {

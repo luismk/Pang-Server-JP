@@ -30,18 +30,13 @@ namespace GameServer.Cmd
 
             ctx_memorial_level ml = new ctx_memorial_level();
 
-            ml.level = (uint)IFNULL(_result.data[0]);
-
-            var it = m_level.FirstOrDefault(c => c.Key == ml.level);
-            if (it.Key == m_level.end().Key)
+            ml.level = IFNULL(_result.data[0]);    
+            var it = m_level.Any(c => c.Key == ml.level);
+            if (!it)
             {
                 ml.gacha_number = (uint)IFNULL(_result.data[1]);
-                m_level[ml.level] = ml;
-            }
-            else // J� tem esse memorial level, no map
-            {
-                message_pool.push(new message("[CmdMemorialLevelInfo::lineResult][WARNING] ja tem esse memorial level[value=" + Convert.ToString(ml.level) + "] no map. Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
-            }
+                m_level.Add(ml.level, ml);
+            }   
         }
         protected override Response prepareConsulta()
         {

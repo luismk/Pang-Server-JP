@@ -71,9 +71,9 @@
 
 //            // Att Exp rate, e Pang rate, que criou a sala, att ele também quando começa o jogo
 //            //if (sgs::gs != nullptr) {
-//            m_ri.rate_exp = (uint)Program.gs.getInfo().rate.exp;
-//            m_ri.rate_pang = (uint)Program.gs.getInfo().rate.pang;
-//            m_ri.angel_event = Program.gs.getInfo().rate.angel_event == 1 ? true : false;
+//            m_ri.rate_exp = (uint)sgs.gs.getInstance().getInfo().rate.exp;
+//            m_ri.rate_pang = (uint)sgs.gs.getInstance().getInfo().rate.pang;
+//            m_ri.angel_event = sgs.gs.getInstance().getInfo().rate.angel_event == 1 ? true : false;
 //            //}
 //        }
 
@@ -517,7 +517,7 @@
 
 //                m_weather_lounge = 0; // Good Weather
 
-//                short rate_rain = Program.gs.getInfo().rate.chuva;
+//                short rate_rain = sgs.gs.getInstance().getInfo().rate.chuva;
 
 //                Lottery loterry = new Lottery(0);
 
@@ -702,9 +702,9 @@
 
 //                // Att Exp rate, e Pang rate, que criou a sala, att ele também quando começa o jogo
 //                //if (sgs::gs != nullptr) {
-//                m_ri.rate_exp = (uint)Program.gs.getInfo().rate.exp;
-//                m_ri.rate_pang = (uint)Program.gs.getInfo().rate.pang;
-//                m_ri.angel_event = Program.gs.getInfo().rate.angel_event.IsTrue();
+//                m_ri.rate_exp = (uint)sgs.gs.getInstance().getInfo().rate.exp;
+//                m_ri.rate_pang = (uint)sgs.gs.getInstance().getInfo().rate.pang;
+//                m_ri.angel_event = sgs.gs.getInstance().getInfo().rate.angel_event.IsTrue();
 //                //}
 
 //                // Update Course of Hole
@@ -1979,7 +1979,7 @@
 //                            {
 //                                var natural = new NaturalAndShortGame((uint)_packet.ReadUInt32());
 
-//                                if (Program.gs.getInfo().propriedade.natural) // Natural não deixa desabilitar o Natural da sala, por que o server é natural
+//                                if (sgs.gs.getInstance().getInfo().propriedade.natural) // Natural não deixa desabilitar o Natural da sala, por que o server é natural
 //                                {
 //                                    natural.natural = 1;
 //                                }
@@ -2077,12 +2077,12 @@
 
 //                // LOG GM
 //                // Envia para todo os GM do server essa message
-//                var c = Program.gs.findChannel(_session.m_pi.channel);
+//                var c = sgs.gs.getInstance().findChannel(_session.m_pi.channel);
 
 //                if (c != null)
 //                {
 
-//                    var gm = Program.gs.findAllGM();
+//                    var gm = sgs.gs.getInstance().findAllGM();
 
 //                    if (!gm.empty())
 //                    {
@@ -4793,15 +4793,15 @@
 //                // Att Exp rate, e Pang rate, que começou o jogo
 //                //if (sgs::gs != nullptr) {
 
-//                rv.exp = m_ri.rate_exp = Program.gs.getInfo().rate.exp;
-//                rv.pang = m_ri.rate_pang = Program.gs.getInfo().rate.pang;
+//                rv.exp = m_ri.rate_exp = sgs.gs.getInstance().getInfo().rate.exp;
+//                rv.pang = m_ri.rate_pang = sgs.gs.getInstance().getInfo().rate.pang;
 
 //                // Angel Event
-//                m_ri.angel_event = Program.gs.getInfo().rate.angel_event;
+//                m_ri.angel_event = sgs.gs.getInstance().getInfo().rate.angel_event;
 
-//                rv.clubset = Program.gs.getInfo().rate.club_mastery;
-//                rv.rain = Program.gs.getInfo().rate.chuva;
-//                rv.treasure = Program.gs.getInfo().rate.treasure;
+//                rv.clubset = sgs.gs.getInstance().getInfo().rate.club_mastery;
+//                rv.rain = sgs.gs.getInstance().getInfo().rate.chuva;
+//                rv.treasure = sgs.gs.getInstance().getInfo().rate.treasure;
 
 //                rv.persist_rain = 0; // Persist rain flag isso é feito na classe game
 //                                     //}
@@ -4875,7 +4875,7 @@
 //                packet_func_sv.room_broadcast(this,
 //                    p, 1);
 
-//                uint rate_pang = Program.gs.getInfo().rate.pang;
+//                uint rate_pang = sgs.gs.getInstance().getInfo().rate.pang;
 
 //                p.init_plain((ushort)0x77);
 
@@ -8116,9 +8116,9 @@
 
 //                // Att Exp rate, e Pang rate, que criou a sala, att ele também quando começa o jogo
 //                //if (sgs::gs != nullptr) {
-//                m_ri.rate_exp = (int)Program.gs.getInfo().rate.exp;
-//                m_ri.rate_pang = (int)Program.gs.getInfo().rate.pang;
-//                m_ri.angel_event = Program.gs.getInfo().rate.angel_event.IsTrue();
+//                m_ri.rate_exp = (int)sgs.gs.getInstance().getInfo().rate.exp;
+//                m_ri.rate_pang = (int)sgs.gs.getInstance().getInfo().rate.pang;
+//                m_ri.angel_event = sgs.gs.getInstance().getInfo().rate.angel_event.IsTrue();
 //                //}
 
 //                // Update Course of Hole

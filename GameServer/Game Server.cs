@@ -19,16 +19,15 @@ using GameServer.Game.Utils;
 
 namespace GameServer
 {
-    internal class Program
+    public class GameServer
     {
-        public static GameServerTcp.GameServer gs;
-        static void Main(string[] args)
-        {    
-            gs = new GameServerTcp.GameServer();//chama a class com servidor imbutido   
+         static void Main(string[] args)
+        {                              
+            sgs.gs.getInstance().Start();
             for (; ; )
             {
                 var comando = Console.ReadLine().Split(new char[] { ' ' }, 2);
-                gs.RunCommand(comando);
+                sgs.gs.getInstance().RunCommand(comando);
             }
         }
     }

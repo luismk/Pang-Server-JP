@@ -93,7 +93,7 @@ namespace GameServer.Game
             return m_owner;
         }
 
-        public PersonalShop.STATE getState()
+        public STATE getState()
         {
 
             Locker _locker = new Locker(this);
@@ -228,8 +228,7 @@ namespace GameServer.Game
                         break;
                     default: // Unknown Type
                         throw new exception("[PersonalShop::pushItem][Error] player[UID=" + Convert.ToString(m_owner.m_pi.uid) + "] tentou colocar um card[TYPEID=" + Convert.ToString(_psi.item._typeid) + ", TYPE=" + Convert.ToString((ushort)card.Rarity) + "] que o tipo eh desconhecido. (N,R,SR e SC) Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PERSONAL_SHOP, 22, 0));
-                        break;
-                }
+                 }
             }
 
             v_item.Add(_psi);
@@ -275,7 +274,7 @@ namespace GameServer.Game
 
             for (var i = 0; i < v_item.Count(); ++i)
             {
-                _p.WriteStruct(v_item[i], Marshal.SizeOf(new PersonalShopItem()));
+                _p.WriteBytes(v_item[i].Build());
             }
         }
 
@@ -559,7 +558,7 @@ namespace GameServer.Game
 
             //        p.WriteUInt64(pang);
 
-            //        p.WriteStruct(_psi, Marshal.SizeOf(new PersonalShopItem()));
+            //        p.WriteBytes(_psi.Build());
 
             //        p.WriteByte(5);
 
@@ -567,7 +566,7 @@ namespace GameServer.Game
             //        ci_r.id = _psi.item.id;
             //        ci_r.qntd = _psi.item.qntd;
 
-            //        p.WriteStruct(ci_r, Marshal.SizeOf(new CardInfo()));
+            //        p.WriteBytes(ci_r.Build());
 
             //        packet_func_sv.session_send(p,
             //            m_owner, 1);
@@ -585,11 +584,11 @@ namespace GameServer.Game
 
             //        p.WriteUInt64(_session.m_pi.ui.pang);
 
-            //        p.WriteStruct(psi_r, Marshal.SizeOf(new PersonalShopItem()));
+            //        p.WriteBytes(psi_r.Build());
 
             //        p.WriteByte(5);
 
-            //        p.WriteStruct(ci_r, Marshal.SizeOf(new CardInfo()));
+            //        p.WriteBytes(ci_r.Build());
 
             //        packet_func_sv.session_send(p,
             //            _session, 1);
@@ -610,7 +609,7 @@ namespace GameServer.Game
 
             //        p.WriteUInt64(pang);
 
-            //        p.WriteStruct(_psi, Marshal.SizeOf(new PersonalShopItem()));
+            //        p.WriteBytes(_psi.Build());
 
             //        p.WriteByte((sIff.getInstance().getItemGroupIdentify(_psi.item._typeid) == sIff.getInstance().ITEM) ? 1 : 3);
 
@@ -618,7 +617,7 @@ namespace GameServer.Game
             //        wi_r.id = _psi.item.id;
             //        wi_r.c[0] = (short)_psi.item.qntd;
 
-            //        p.WriteStruct(wi_r, Marshal.SizeOf(new WarehouseItem()));
+            //        p.WriteBytes(wi_r.Build());
 
             //        packet_func_sv.session_send(p,
             //            m_owner, 1);
@@ -636,11 +635,11 @@ namespace GameServer.Game
 
             //        p.WriteUInt64(_session.m_pi.ui.pang);
 
-            //        p.WriteStruct(psi_r, Marshal.SizeOf(new PersonalShopItem()));
+            //        p.WriteBytes(psi_r.Build());
 
             //        p.WriteByte((sIff.getInstance().getItemGroupIdentify(psi_r.item._typeid) == sIff.getInstance().ITEM) ? 1 : 3);
 
-            //        p.WriteStruct(wi_r, Marshal.SizeOf(new WarehouseItem()));
+            //        p.WriteBytes(wi_r.Build());
 
             //        packet_func_sv.session_send(p,
             //            _session, 1);
@@ -653,7 +652,7 @@ namespace GameServer.Game
 
             //    p.WriteUInt32(m_owner.m_pi.uid);
 
-            //    p.WriteStruct(_psi, Marshal.SizeOf(new PersonalShopItem()));
+            //    p.WriteBytes(_psi.Build());
 
             //    p.WriteInt32(v_item.Count() == 0 ? 3 : 1);
 
@@ -700,7 +699,7 @@ namespace GameServer.Game
             }
         }
 
-        private void shop_broadcast(PangyaBinaryWriter _p,
+        public void shop_broadcast(PangyaBinaryWriter _p,
             Player _s, byte _debug)
         {
 
@@ -725,7 +724,7 @@ namespace GameServer.Game
             }
         }
 
-        private void shop_broadcast(List<PangyaBinaryWriter> _v_p,
+        public void shop_broadcast(List<PangyaBinaryWriter> _v_p,
             Player _s, byte _debug)
         {
 

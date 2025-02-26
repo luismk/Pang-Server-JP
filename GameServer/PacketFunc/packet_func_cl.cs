@@ -20,17 +20,16 @@ namespace GameServer.PacketFunc
     /// </summary>
     public class packet_func_cl
     {
-        static GameServerTcp.GameServer gs = Program.gs;
-        public static int packet002(ParamDispatch _arg1)
+         public static int packet002(ParamDispatch _arg1)
         {
             try
             {
-                gs.requestLogin((Player)_arg1._session, _arg1._packet);
+                sgs.gs.getInstance().requestLogin((Player)_arg1._session, _arg1._packet);
                 return 1;
             }
             catch (exception ex)
             {
-                Console.WriteLine($"[packet_func_gs::packet002][StError]: {ex.getFullMessageError()}");
+                Console.WriteLine($"[packet_func_cl::packet002][StError]: {ex.getFullMessageError()}");
                 _arg1._session.Disconnect();//chama a desconexao
                 return 0;
             }
@@ -42,12 +41,12 @@ namespace GameServer.PacketFunc
             try
             {
 
-                gs.requestChat((Player)pd._session, pd._packet); return 1;
+                sgs.gs.getInstance().requestChat((Player)pd._session, pd._packet); return 1;
 
             }
             catch (exception ex)
             {
-                Console.WriteLine($"[packet_func_gs::packet003][StError]:  {ex.getFullMessageError()}");
+                Console.WriteLine($"[packet_func_cl::packet003][StError]:  {ex.getFullMessageError()}");
             }
             return 0;
         }
@@ -57,11 +56,11 @@ namespace GameServer.PacketFunc
             try
             {
                 // Enter Channel, channel ID
-                gs.requestEnterChannel((Player)pd._session, pd._packet); return 1;
+                sgs.gs.getInstance().requestEnterChannel((Player)pd._session, pd._packet); return 1;
             }
             catch (exception ex)
             {
-                Console.WriteLine($"[packet_func_gs::packet004][StError]:  {ex.getFullMessageError()}");
+                Console.WriteLine($"[packet_func_cl::packet004][StError]:  {ex.getFullMessageError()}");
             }
             return 0;
         }
@@ -71,7 +70,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -125,7 +124,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                Channel _channel = gs.findChannel(((Player)pd._session).m_pi.channel);
+                Channel _channel = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (_channel != null)
                 {
@@ -152,7 +151,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                Channel _channel = gs.findChannel(((Player)pd._session).m_pi.channel);
+                Channel _channel = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (_channel != null)
                 {
@@ -179,7 +178,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                Channel _channel = gs.findChannel(((Player)pd._session).m_pi.channel);
+                Channel _channel = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (_channel != null)
                 {
@@ -209,7 +208,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                Channel _channel = gs.findChannel(((Player)pd._session).m_pi.channel);
+                Channel _channel = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (_channel != null)
                 {
@@ -237,7 +236,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                Channel _channel = gs.findChannel(((Player)pd._session).m_pi.channel);
+                Channel _channel = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 // Bloquear para ver se funciona o sync do entra depois no camp,
                 // mesmo que o outro(0x9D) chama primeiro esse(0x0C) é mais rápido para verificar se o player está em uma sala
@@ -274,7 +273,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                Channel c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                Channel c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -305,7 +304,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -336,7 +335,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                Channel c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                Channel c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -367,7 +366,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                Channel c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                Channel c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -398,7 +397,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -429,7 +428,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
 #if DEBUG
                 _smp.message_pool.push(new message("[packet_func::packet12][Log] request Player[UID=" + Convert.ToString(((Player)pd._session).m_pi.uid) + "]", type_msg.CL_FILE_LOG_AND_CONSOLE));
@@ -464,7 +463,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -495,7 +494,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -526,7 +525,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -556,7 +555,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -588,7 +587,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -619,7 +618,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -650,7 +649,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -681,7 +680,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -712,7 +711,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
 #if DEBUG
                 _smp.message_pool.push(new message("[packet_func::packet1B][Log] request Player[UID=" + Convert.ToString(((Player)pd._session).m_pi.uid) + "]", type_msg.CL_FILE_LOG_AND_CONSOLE));
@@ -747,7 +746,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -778,7 +777,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                Channel c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                Channel c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -809,7 +808,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                Channel c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                Channel c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -836,14 +835,11 @@ namespace GameServer.PacketFunc
         {
             try
             {
-                if (gs != null)
-                {
-                    Channel c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                Channel c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
-                    if (c != null)
-                    {
-                        c.requestChangePlayerItemMyRoom(((Player)pd._session), pd._packet); return 1;
-                    }
+                if (c != null)
+                {
+                    c.requestChangePlayerItemMyRoom(((Player)pd._session), pd._packet); return 1;
                 }
             }
             catch (exception e)
@@ -867,7 +863,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -895,7 +891,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                Channel c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                Channel c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -922,7 +918,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -953,7 +949,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                gs.requestPrivateMessage(((Player)pd._session), pd._packet); return 1;
+                sgs.gs.getInstance().requestPrivateMessage(((Player)pd._session), pd._packet); return 1;
 
             }
             catch (exception e)
@@ -976,7 +972,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                Channel c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                Channel c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -1003,7 +999,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                gs.requestPlayerInfo(((Player)pd._session), pd._packet); return 1;
+                sgs.gs.getInstance().requestPlayerInfo(((Player)pd._session), pd._packet); return 1;
 
             }
             catch (exception e)
@@ -1029,7 +1025,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -1060,7 +1056,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -1091,7 +1087,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                Channel c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                Channel c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -1122,7 +1118,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                gs.requestExceptionClientMessage(((Player)pd._session), pd._packet); return 1;
+                sgs.gs.getInstance().requestExceptionClientMessage(((Player)pd._session), pd._packet); return 1;
 
             }
             catch (exception e)
@@ -1148,7 +1144,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -1179,7 +1175,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -1210,7 +1206,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -1241,7 +1237,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -1272,7 +1268,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -1303,7 +1299,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -1340,7 +1336,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                gs.requestTranslateSubPacket(((Player)pd._session), pd._packet); return 1;
+                sgs.gs.getInstance().requestTranslateSubPacket(((Player)pd._session), pd._packet); return 1;
 
             }
             catch (exception e)
@@ -1366,7 +1362,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -1397,7 +1393,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -1428,7 +1424,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -1459,7 +1455,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -1490,7 +1486,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                gs.sendServerListAndChannelListToSession(((Player)pd._session));
+                sgs.gs.getInstance().sendServerListAndChannelListToSession(((Player)pd._session));
 
             }
             catch (exception e)
@@ -1513,7 +1509,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                gs.sendRankServer(((Player)pd._session));
+                sgs.gs.getInstance().sendRankServer(((Player)pd._session));
 
             }
             catch (exception e)
@@ -1539,7 +1535,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -1570,7 +1566,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -1601,7 +1597,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -1632,7 +1628,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -1663,7 +1659,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -1694,7 +1690,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                gs.requestChangeWhisperState(((Player)pd._session), pd._packet); return 1;
+                sgs.gs.getInstance().requestChangeWhisperState(((Player)pd._session), pd._packet); return 1;
 
             }
             catch (exception e)
@@ -1720,7 +1716,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                gs.requestCommandNoticeGM(((Player)pd._session), pd._packet); return 1;
+                sgs.gs.getInstance().requestCommandNoticeGM(((Player)pd._session), pd._packet); return 1;
 
             }
             catch (exception e)
@@ -1746,7 +1742,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                gs.sendDateTimeToSession(((Player)pd._session));
+                sgs.gs.getInstance().sendDateTimeToSession(((Player)pd._session));
 
             }
             catch (exception e)
@@ -1775,7 +1771,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -1809,7 +1805,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -1848,7 +1844,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                Channel c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                Channel c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -1874,7 +1870,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -1905,7 +1901,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -1936,7 +1932,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                gs.requestSendTicker(((Player)pd._session), pd._packet); return 1;
+                sgs.gs.getInstance().requestSendTicker(((Player)pd._session), pd._packet); return 1;
 
             }
             catch (exception e)
@@ -1962,7 +1958,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                gs.requestQueueTicker(((Player)pd._session), pd._packet); return 1;
+                sgs.gs.getInstance().requestQueueTicker(((Player)pd._session), pd._packet); return 1;
 
             }
             catch (exception e)
@@ -1988,7 +1984,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                gs.requestChangeChatMacroUser(((Player)pd._session), pd._packet); return 1;
+                sgs.gs.getInstance().requestChangeChatMacroUser(((Player)pd._session), pd._packet); return 1;
 
             }
             catch (exception e)
@@ -2014,7 +2010,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -2045,7 +2041,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -2076,7 +2072,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -2107,7 +2103,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -2138,7 +2134,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -2169,7 +2165,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -2200,7 +2196,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -2231,7 +2227,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -2262,7 +2258,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -2293,7 +2289,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var r = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var r = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (r != null)
                 {
@@ -2324,7 +2320,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -2355,7 +2351,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -2385,7 +2381,7 @@ namespace GameServer.PacketFunc
 
             try
             {
-                Channel c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                Channel c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -2412,7 +2408,7 @@ namespace GameServer.PacketFunc
         {
             try
             {
-                Channel c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                Channel c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -2437,7 +2433,7 @@ namespace GameServer.PacketFunc
 
             try
             {
-                gs.requestEnterOtherChannelAndLobby(((Player)pd._session), pd._packet); return 1;
+                sgs.gs.getInstance().requestEnterOtherChannelAndLobby(((Player)pd._session), pd._packet); return 1;
 
             }
             catch (exception e)
@@ -2463,7 +2459,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                gs.requestCheckGameGuardAuthAnswer(((Player)pd._session), pd._packet); return 1;
+                sgs.gs.getInstance().requestCheckGameGuardAuthAnswer(((Player)pd._session), pd._packet); return 1;
 
             }
             catch (exception e)
@@ -2522,7 +2518,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                gs.requestCommonCmdGM(((Player)pd._session), pd._packet); return 1;
+                sgs.gs.getInstance().requestCommonCmdGM(((Player)pd._session), pd._packet); return 1;
 
             }
             catch (exception e)
@@ -2548,7 +2544,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -2607,7 +2603,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 // Bloquear para ver se funciona o sync do entra depois no camp,
                 // mesmo que o outro(0x9D) chama primeiro esse(0x0C) é mais rápido para verificar se o player está em uma sala
@@ -2650,7 +2646,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -2681,7 +2677,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -2712,7 +2708,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -2743,7 +2739,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -2772,7 +2768,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -2803,7 +2799,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -2834,7 +2830,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -3090,7 +3086,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                gs.requestUCCSystem(((Player)pd._session), pd._packet); return 1;
+                sgs.gs.getInstance().requestUCCSystem(((Player)pd._session), pd._packet); return 1;
 
             }
             catch (exception e)
@@ -3116,7 +3112,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -3147,7 +3143,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -3210,7 +3206,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                gs.requestUCCWebKey(((Player)pd._session), pd._packet); return 1;
+                sgs.gs.getInstance().requestUCCWebKey(((Player)pd._session), pd._packet); return 1;
 
             }
             catch (exception e)
@@ -3236,7 +3232,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -3267,7 +3263,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -3298,7 +3294,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -3329,7 +3325,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -3360,7 +3356,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -3391,7 +3387,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -3422,7 +3418,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -3453,7 +3449,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -3483,7 +3479,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -3547,7 +3543,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -3578,7 +3574,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -3609,7 +3605,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -3646,7 +3642,7 @@ namespace GameServer.PacketFunc
                         + hex_util::BufferToHexString(pd._packet.getBuffer(), pd._packet.getSize()), type_msg.CL_FILE_LOG_AND_CONSOLE));*/
 
                 // Envia mensagem para o player que enviou o MP que o player não pode ver a mensagem
-                gs.requestNotifyNotDisplayPrivateMessageNow(((Player)pd._session), pd._packet); return 1;
+                sgs.gs.getInstance().requestNotifyNotDisplayPrivateMessageNow(((Player)pd._session), pd._packet); return 1;
 
             }
             catch (exception e)
@@ -3672,7 +3668,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -3703,7 +3699,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -3734,7 +3730,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -3765,7 +3761,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                Channel c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                Channel c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -3796,7 +3792,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -3827,7 +3823,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -3982,7 +3978,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                gs.requestChangeServer(((Player)pd._session), pd._packet); return 1;
+                sgs.gs.getInstance().requestChangeServer(((Player)pd._session), pd._packet); return 1;
 
             }
             catch (exception e)
@@ -3999,7 +3995,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -4026,7 +4022,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -4052,7 +4048,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -4079,7 +4075,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -4108,7 +4104,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -4139,7 +4135,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -4170,7 +4166,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -4201,7 +4197,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
 #if DEBUG
                 _smp.message_pool.push(new message("[packet_func::packet12F][Log] request Player[UID=" + Convert.ToString(((Player)pd._session).m_pi.uid) + "]", type_msg.CL_FILE_LOG_AND_CONSOLE));
@@ -4235,7 +4231,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -4260,7 +4256,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -4291,7 +4287,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -4322,7 +4318,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -4354,7 +4350,7 @@ namespace GameServer.PacketFunc
                 // se ele não fez o login com o Server ele não pode fazer nada até que ele faça o login
                 CHECK_SESSION_IS_AUTHORIZED((Player)pd._session, "packet140(requestEnterShop)");
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -4374,7 +4370,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -4405,7 +4401,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -4436,7 +4432,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -4467,7 +4463,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -4498,7 +4494,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
 #if DEBUG
                 _smp.message_pool.push(new message("[packet_func::packet146][Log] Request player[UID=" + Convert.ToString(((Player)pd._session).m_pi.uid) + "]", type_msg.CL_FILE_LOG_AND_CONSOLE));
@@ -4533,7 +4529,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -4564,7 +4560,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -4595,7 +4591,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -4626,7 +4622,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -4654,7 +4650,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -4682,7 +4678,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -4710,7 +4706,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -4737,7 +4733,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -4791,7 +4787,7 @@ namespace GameServer.PacketFunc
                 //{
                 //    mgr_achievement = ((Player)pd._session).m_pi.mgr_achievement;
                 //}
-                //else if ((s = gs.findPlayer(m_uid)) != null) // O player solicitou o achievement info de outro player online
+                //else if ((s = sgs.gs.getInstance().findPlayer(m_uid)) != null) // O player solicitou o achievement info de outro player online
                 //{
                 //    mgr_achievement = s.m_pi.mgr_achievement;
                 //}
@@ -4838,7 +4834,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -4869,7 +4865,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -4900,7 +4896,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -4931,7 +4927,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -4962,7 +4958,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -4993,7 +4989,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -5024,7 +5020,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -5055,7 +5051,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -5086,7 +5082,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -5117,7 +5113,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -5148,7 +5144,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -5179,7 +5175,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -5210,7 +5206,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -5241,7 +5237,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -5272,7 +5268,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -5321,7 +5317,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -5349,7 +5345,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -5380,7 +5376,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -5411,7 +5407,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -5442,7 +5438,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -5473,7 +5469,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -5504,7 +5500,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -5535,7 +5531,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -5566,7 +5562,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -5594,7 +5590,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -5621,7 +5617,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -5652,7 +5648,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -5683,7 +5679,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -5714,7 +5710,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -5745,7 +5741,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -5776,7 +5772,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -5825,7 +5821,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -5856,7 +5852,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -5887,7 +5883,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -5918,7 +5914,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {
@@ -5948,7 +5944,7 @@ namespace GameServer.PacketFunc
             try
             {
 
-                var c = gs.findChannel(((Player)pd._session).m_pi.channel);
+                var c = sgs.gs.getInstance().findChannel(((Player)pd._session).m_pi.channel);
 
                 if (c != null)
                 {

@@ -74,7 +74,7 @@ namespace GameServer.Game.System
                 ////////////----------------------- Terminou a leitura do Packet que o cliente enviou -------------------------\\\\\\\\\\\/
 
                 // Verifica aqui se o IP/MAC ADDRESS do player está bloqueado
-                //if (Program.gs.haveBanList(_session.getIP(), mac_address, !mac_address.empty()))
+                //if (sgs.gs.getInstance().haveBanList(_session.getIP(), mac_address, !mac_address.empty()))
                 //    throw new exception("Player[UID=" + (_pi.m_uid) + ", IP="
                 //            + _session.getIP() + ", MAC=" + mac_address + "] esta bloqueado por regiao IP/MAC Addrress.");
 
@@ -130,7 +130,7 @@ namespace GameServer.Game.System
                     //    // Bloquea todos os IP que o player logar e da error de que a area dele foi bloqueada
 
                     //    // Add o ip do player para a lista de ip banidos
-                    //    NormalManagerDB.add(9, new CmdInsertBlockIp(_session.getIP(), "255.255.255.255"), Program.gs.SQLDBResponse, Program.gs);
+                    //    NormalManagerDB.add(9, new CmdInsertBlockIp(_session.getIP(), "255.255.255.255"), sgs.gs.getInstance().SQLDBResponse, sgs.gs.getInstance());
 
                     //    // Resposta
                     //    throw new exception("[LoginSystem::requestLogin][Log] Player[UID=" + (_pi.m_uid) + ", IP=" + (_session.getIP())
@@ -142,7 +142,7 @@ namespace GameServer.Game.System
                     //    // Bloquea o MAC Address que o player logar e da error de que a area dele foi bloqueada
 
                     //    // Add o MAC Address do player para a lista de MAC Address banidos
-                    //    NormalManagerDB.add(10, new CmdInsertBlockMac(mac_address), Program.gs.SQLDBResponse, Program.gs);
+                    //    NormalManagerDB.add(10, new CmdInsertBlockMac(mac_address), sgs.gs.getInstance().SQLDBResponse, sgs.gs.getInstance());
 
                     //    // Resposta
                     //    throw new exception("[LoginSystem::requestLogin][Log] Player[UID=" + (_pi.m_uid)
@@ -156,7 +156,7 @@ namespace GameServer.Game.System
 
 
                 //// Se a flag do canSameIDLogin estiver ativo, não verifica Packet
-                //if (!Program.gs.canSameIDLogin() && Packet_version != Program.gs.getInfo().packet_version)
+                //if (!sgs.gs.getInstance().canSameIDLogin() && Packet_version != sgs.gs.getInstance().getInfo().packet_version)
                 //{
                 //    // Error no login, set falso o varriza o player a continuar conectado com o Game Server
                 //    _session.m_is_authorized = false;
@@ -240,15 +240,15 @@ namespace GameServer.Game.System
                 }
 
                 // Verifica se o player tem a capacidade e level para entrar no gs
-                if (Program.gs.m_si.propriedade.only_rookie && _pi.level >= 6/*Beginner E maior*/)
+                if (sgs.gs.getInstance().m_si.propriedade.only_rookie && _pi.level >= 6/*Beginner E maior*/)
                     throw new exception("Player[UID=" + (_pi.uid) + ", LEVEL="
                             + ((short)_pi.level) + "] nao pode entrar no gs por que o gs eh so para rookie.");
                 /*Nega ele não pode ser nenhum para lançar o erro*/
-                if (Program.gs.m_si.propriedade.mantle && !(_pi.m_cap.mantle|| _pi.m_cap.game_master))
+                if (sgs.gs.getInstance().m_si.propriedade.mantle && !(_pi.m_cap.mantle|| _pi.m_cap.game_master))
                     throw new exception("Player[UID=" + (_pi.uid) + ", CAP=" + (_pi.m_cap.ulCapability)
                             + "] nao tem a capacidade para entrar no gs mantle.");
                 // Verifica se o Player já está logado
-                var player_logado = Program.gs.HasLoggedWithOuterSocket(_session);
+                var player_logado = sgs.gs.getInstance().HasLoggedWithOuterSocket(_session);
 
                 if (player_logado != null)
                 {
@@ -265,29 +265,29 @@ namespace GameServer.Game.System
                 }
 
                 // Junta Flag de block do gs, ao do player
-                _pi.block_flag.m_flag.ullFlag |= Program.gs.m_si.flag.ullFlag;
+                _pi.block_flag.m_flag.ullFlag |= sgs.gs.getInstance().m_si.flag.ullFlag;
                 _pi.m_cap = _pi.mi.capability;//seta cap
                 // Authorized a ficar online no gs por tempo indeterminado
                 _session.m_is_authorized = true;
 
                 // Registra no Banco de dados que o player está logado no Game Server
-                NormalManagerDB.add(5, new CmdRegisterLogon(_pi.uid, 0/*Logou*/), Program.gs.SQLDBResponse, Program.gs);
+                NormalManagerDB.add(5, new CmdRegisterLogon(_pi.uid, 0/*Logou*/), sgs.gs.getInstance().SQLDBResponse, sgs.gs.getInstance());
 
                 // Resgistra o Login do Player no gs
-                NormalManagerDB.add(7, new CmdRegisterLogonServer(_pi.uid, Program.gs.m_si.uid), Program.gs.SQLDBResponse, Program.gs);
+                NormalManagerDB.add(7, new CmdRegisterLogonServer(_pi.uid, sgs.gs.getInstance().m_si.uid), sgs.gs.getInstance().SQLDBResponse, sgs.gs.getInstance());
 
                 _smp.message_pool.push("[LoginSystem::requestLogin][Log] Player[OID=" + (_session.m_oid) + ", UID=" + (_pi.uid) + ", NICK="
-                        + (_pi.nickname) + "] Sucess.");
+                        + (_pi.nickname) + "] Finalized.");
 
                 //// Verifica se o papel tem limite por dia, se não anula o papel shop do player
                 sPapelShopSystem.getInstance().init_player_papel_shop_info(_session);
 
-                //NormalManagerDB.add(11, new CmdFirstAnniversary(), Program.gs.SQLDBResponse, this);  
+                //NormalManagerDB.add(11, new CmdFirstAnniversary(), sgs.gs.getInstance().SQLDBResponse, this);  
 
                 NormalManagerDB.add(2, new CmdUserEquip(_session.m_pi.uid), SQLDBResponse, _session);
                                                                            
                 // Entra com sucesso
-                _session.Send(packet_func_sv.pacote044(Program.gs.m_si, 0xD3));
+                _session.Send(packet_func_sv.pacote044(sgs.gs.getInstance().m_si, 0xD3));
 
             }
             catch (exception ex)
@@ -309,7 +309,7 @@ namespace GameServer.Game.System
 
                 // Disconnect
 
-                Program.gs.DisconnectSession(_session);
+                sgs.gs.getInstance().DisconnectSession(_session);
             }
         }
 
@@ -355,7 +355,7 @@ namespace GameServer.Game.System
                             _session.m_pi.ue = ((CmdUserEquip)_pangya_db).getInfo();
 
                             // Verifica se tem o Pacote de verificação de bots ativado
-                            int ttl = Program.gs.getBotTTL(); //10000÷1.000=10s
+                            int ttl = sgs.gs.getInstance().getBotTTL(); //10000÷1.000=10s
 
                             _session.Send(packet_func_sv.pacote1A9(ttl/*milliseconds*/)); // Tempo para enviar um pacote, ant Bot
 
@@ -1062,7 +1062,7 @@ namespace GameServer.Game.System
                 }
                 else if (getCount() > 0)
                 {
-                    _session.Send(packet_func_sv.pacote044(Program.gs.m_si, 0xD2, _session.m_pi, _msg_id == 10? _msg_id + 2 : _msg_id + 1)); // send bar loading server!
+                    _session.Send(packet_func_sv.pacote044(sgs.gs.getInstance().getInfo(), 0xD2, _session.m_pi, _msg_id)); // send bar loading server!
                 }                
                
             }
@@ -1072,7 +1072,7 @@ namespace GameServer.Game.System
               $"[LoginSystem::SQLDBResponse][ErrorSystem] {ex.Message}\nStack Trace: {ex.StackTrace}",
               type_msg.CL_FILE_LOG_AND_CONSOLE));
                 if (_session != null && _session.getConnected())
-                    Program.gs.DisconnectSession(_session);
+                    sgs.gs.getInstance().DisconnectSession(_session);
             }
         }
 
@@ -1105,7 +1105,7 @@ namespace GameServer.Game.System
 
                 var pi = _session.m_pi;
                 // Envia todos pacotes aqui, alguns envia antes, por que agora estou usando o jeito o pangya original   
-                _session.Send(packet_func_sv.pacote044(Program.gs.m_si, 0, pi));
+                _session.Send(packet_func_sv.pacote044(sgs.gs.getInstance().m_si, 0, pi));
                                                
                 _session.Send(packet_func_sv.pacote070(pi.mp_ce)); // characters
                                                               
@@ -1117,7 +1117,7 @@ namespace GameServer.Game.System
 
                _session.Send(packet_func_sv.pacote072(pi.ue)); // equip selected                     
 
-                Program.gs.sendChannelListToSession(_session);
+                sgs.gs.getInstance().sendChannelListToSession(_session);
 
                 _session.Send(packet_func_sv.pacote102(pi));        // Pacote novo do JP, passa os coupons do Gacha JP
 
@@ -1178,13 +1178,12 @@ namespace GameServer.Game.System
                 //if (sgs::gs::getInstance().getInfo().rate.login_reward_event)
                 //    sLoginRewardSystem::getInstance().checkRewardLoginAndSend(_session);  
                 stopwatch.Stop();
-                _smp.message_pool.push(new message($"[LoginSystem.sendCompleteData][Log] Function executed in {stopwatch.ElapsedMilliseconds}ms", type_msg.CL_FILE_LOG_AND_CONSOLE));
-            }
-            catch (Exception ex)
+                _smp.message_pool.push("[LoginSystem::sendCompleteData][Log] Player[UID=" + _session.m_pi.uid + "] {stopwatch.ElapsedMilliseconds}ms.");
+             }
+            catch (exception ex)
             {
-                _smp.message_pool.push(new message($"[LoginSystem.sendCompleteData][ErrorSystem] {ex.Message}\nStack Trace: {ex.StackTrace}", type_msg.CL_FILE_LOG_AND_CONSOLE));
-            }
-
+                _smp.message_pool.push(new message($"[LoginSystem.sendCompleteData][ErrorSystem] {ex.getFullMessageError()}", type_msg.CL_FILE_LOG_AND_CONSOLE));
+            }                            
         }
 
         uint getCount()

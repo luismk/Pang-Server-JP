@@ -461,21 +461,7 @@ namespace PangyaAPI.Network.PangyaServer
             m_state = ServerState.Failure;
             Console.WriteLine("Server is stopping...");
         }
-
-        public bool StartingServer()
-        {
-            try
-            {
-                _smp::message_pool.push(new message("[server::Starting][Log] initial Server Now", type_msg.CL_FILE_LOG_AND_CONSOLE));
-
-                Start();
-                return true;
-            }
-            catch (exception e)
-            {
-                throw e;
-            }
-        }
+              
 
         public void SendToAll(byte[] Data)
         {

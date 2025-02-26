@@ -58,7 +58,7 @@ namespace GameServer.Game.Utils
             initAchievement(_create);
         }
 
-        public void initAchievement(uint _uid, Dictionary<uint, AchievementInfoEx> _mp_achievement)
+        public void initAchievement(uint _uid, Dictionary<uint, List<AchievementInfoEx>> _mp_achievement)
         {
 
             if (_uid == 0u)
@@ -69,9 +69,10 @@ namespace GameServer.Game.Utils
 
             m_uid = _uid;
 
-            foreach (var el in _mp_achievement)
+            foreach (var values in _mp_achievement.Values)
             {
-                addAchievement(el.Value); // Add Achievement
+                foreach (var el in values)
+                    addAchievement(el); // Add Achievement
             }
 
             m_state = true;
@@ -286,7 +287,7 @@ namespace GameServer.Game.Utils
 
             var it_new = map_ai.insert(_ai._typeid, _ai);
 
-            if (it_new.Key == map_ai.end().Key)
+            if (it_new.Key == 0)
             {
                 throw new exception("[MgrAchievement::addAchievement][Error] nao conseguiu inserir o achievement no multimap", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.MGR_ACHIEVEMENT,
                     11, 0));
@@ -420,7 +421,7 @@ namespace GameServer.Game.Utils
             CounterItemInfo cii = null;
 
             int por_packet = ((1000 - 100) > (17 + 4 + (16 * 10))) ? (1000 - 100) / ((17 + 4) + (16 * 10)) : 1; // por pacote
-             
+
             int total = elements;
             foreach (var batch in map_ai.Values.Chunk(por_packet))
             {
@@ -744,7 +745,7 @@ namespace GameServer.Game.Utils
 
                             if (cii.id > 0)
                             {
-                                 ai.map_counter_item[cii.id] = cii;
+                                ai.map_counter_item[cii.id] = cii;
                             }
                         }
                     } while (++i < (_achievement.Quest_TypeID.Length));
@@ -752,7 +753,7 @@ namespace GameServer.Game.Utils
                     // Atualiza os counter item id nas quest stuff se o achievement esta com o quest base
                     var it = ai.getQuestBase();
 
-                     if (it.Current != ai.v_qsi.Last())
+                    if (it.Current != ai.v_qsi.Last())
                     {
 
                         foreach (var el in ai.v_qsi)
@@ -875,7 +876,7 @@ namespace GameServer.Game.Utils
                     var it = ai.getQuestBase();
 
                     // C++ TO C# CONVERTER TASK: Iterators are only converted within the context of 'while' and 'for' loops:
-                    if (it .Current != ai.v_qsi.ToList().GetEnumerator().Current)
+                    if (it.Current != ai.v_qsi.ToList().GetEnumerator().Current)
                     {
 
                         foreach (var el in ai.v_qsi)
@@ -960,10 +961,9 @@ namespace GameServer.Game.Utils
                         throw cmd_ai.getException();
                     }
 
-                    foreach (var el in cmd_ai.GetInfo())
-                    {
-                        addAchievement(el.Value); // Add Achievement
-                    }
+                    foreach (var values in cmd_ai.GetInfo().Values)
+                        foreach (var el in values)
+                            addAchievement(el); // Add Achievement
                 }
 
             }
@@ -1047,7 +1047,7 @@ namespace GameServer.Game.Utils
                     }
                 case 5: // Update Quest User
                     {
-                         var cmd_uqu = (Cmd.CmdUpdateQuestUser)(_pangya_db);
+                        var cmd_uqu = (Cmd.CmdUpdateQuestUser)(_pangya_db);
 
 
                         message_pool.push(new message("[MgrAchievement::SQLDBResponse][Log] player[UID=" + Convert.ToString(cmd_uqu.getUID()) + "] Atualizou Quest[TYPEID=" + Convert.ToString(cmd_uqu.getInfo()._typeid) + ", ID=" + Convert.ToString(cmd_uqu.getInfo().id) + "] com sucesso.", type_msg.CL_FILE_LOG_AND_CONSOLE));

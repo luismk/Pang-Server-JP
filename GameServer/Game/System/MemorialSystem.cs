@@ -28,7 +28,7 @@ namespace GameServer.Game.System
 
             bool isLoad = false; 
             // + 1 no MEMORIAL_LEVEL_MAX por que � do 0 a 24, da 25 Levels
-            isLoad = (m_load && m_coin.Any() && m_level.Any() && m_level.Count == (MEMORIAL_LEVEL_MAX + 1) && m_consolo_premio.Any());
+            isLoad = (m_load && m_coin.Any() && m_level.Any() && m_level.Count == (MEMORIAL_LEVEL_MAX) && m_consolo_premio.Any());
                                  
             return isLoad;
         }
@@ -48,11 +48,11 @@ namespace GameServer.Game.System
         /*static*/
         public ctx_coin findCoin(uint _typeid)
         {            
-            var it = m_coin.Any(c=> c.Key == _typeid);
+            var it = m_coin.Any(c=> c._typeid == _typeid);
 
             if (it)
             {
-                return m_coin.FirstOrDefault(c => c.Key == _typeid).Value;
+                return m_coin.FirstOrDefault(c => c._typeid == _typeid);
             }
             return null;
         }
@@ -130,7 +130,7 @@ namespace GameServer.Game.System
             var count_item = m_consolo_premio.Values.Count(el => el.tipo == (_ctx_c.tipo == MEMORIAL_COIN_TYPE.MCT_PREMIUM ? 1 : 0));
 
 
-            var rate_memorial = (float)(Program.gs.getInfo().rate.memorial_shop) / 100.0f;
+            var rate_memorial = (float)(sgs.gs.getInstance().getInfo().rate.memorial_shop) / 100.0f;
 
             // Rate A+ da Coin
             if (_ctx_c.probabilidade > 0)
@@ -285,45 +285,31 @@ namespace GameServer.Game.System
                         } // Fim do loop de Filters
                     }
                 } // Fim do loop de Rare Item
-
-                // Add Coin ao Map
-                var it = m_coin.FirstOrDefault(coin=> coin.Key == c._typeid);
-
-                if (it.Value== null) // Add Coin ao map
-                {
-                    m_coin[c._typeid] = c;
-                }
-                else
-                {
-                    message_pool.push(new message("[MemorialSystem::initialize][WARNING] ja tem essa coin[TYPEID=" + Convert.ToString(c._typeid) + "] no map.", type_msg.CL_FILE_LOG_AND_CONSOLE));
-                }
-
+                             
+                m_coin.Add(c);   
             } // Fim do loop de Coin Item
 
             // Add os Itens Padr�es, para quando n�o ganha o rare item
-            CmdMemorialNormalItemInfo cmd_mnii = new CmdMemorialNormalItemInfo(); // Waiter
+            var cmd_mnii = new CmdMemorialNormalItemInfo(); // Waiter
 
             NormalManagerDB.add(0,
                 cmd_mnii, null, null);
 
  
             if (cmd_mnii.getException().getCodeError() != 0)
-            {
                 throw cmd_mnii.getException();
-            }
 
             m_consolo_premio = cmd_mnii.getInfo();
 
             // Levels
-            Cmd.CmdMemorialLevelInfo cmd_mli = new CmdMemorialLevelInfo(); // Waiter
+           var cmd_mli = new CmdMemorialLevelInfo(); // Waiter
 
             NormalManagerDB.add(0,
                 cmd_mli, null, null);
     
             if (cmd_mli.getException().getCodeError() != 0)
-            {
                 throw cmd_mli.getException();
-            }
+
 
             m_level = cmd_mli.getInfo();
 
@@ -374,7 +360,7 @@ namespace GameServer.Game.System
             return level > MEMORIAL_LEVEL_MAX ? (uint)MEMORIAL_LEVEL_MAX : level;
         }
 
-        private Dictionary<uint, ctx_coin> m_coin = new Dictionary<uint, ctx_coin>();
+        private List<ctx_coin> m_coin = new List<ctx_coin>();
         private Dictionary<uint, ctx_memorial_level> m_level = new Dictionary<uint, ctx_memorial_level>();
         private Dictionary<uint, ctx_coin_set_item> m_consolo_premio = new Dictionary<uint, ctx_coin_set_item>();
 

@@ -538,7 +538,7 @@ namespace GameServer.Game
             try
             {
                 //falta as outras checagens!
-                if (!Program.gs.getInfo().propriedade.grand_prix)
+                if (!sgs.gs.getInstance().getInfo().propriedade.grand_prix)
                     throw new exception("[channel::enterLobbyGrandPrix][Error] player[UID=" + (_session.m_pi.uid) + "] Channel[ID=" + (m_ci.id)
                             + "] tentou entrar na lobby Grand Prix, mas ele esta desativo. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.CHANNEL, 1, 0x750001));
 
@@ -550,10 +550,10 @@ namespace GameServer.Game
 
                     // Count Type Grand Prix que está ativo
                     // Tipo 0 é ativo por sem precisar desses valores
-                    p.WriteUInt32(Program.gs.getInfo().rate.countBitGrandPrixEvent());
+                    p.WriteUInt32(sgs.gs.getInstance().getInfo().rate.countBitGrandPrixEvent());
 
                     // Grand Prix Event: Types
-                    foreach (var el in Program.gs.getInfo().rate.getValueBitGrandPrixEvent())
+                    foreach (var el in sgs.gs.getInstance().getInfo().rate.getValueBitGrandPrixEvent())
                         p.WriteUInt32(el);
 
                     // Count de	grand prix clear, (typeid, position)
