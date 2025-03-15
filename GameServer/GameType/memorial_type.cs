@@ -44,50 +44,29 @@ namespace GameServer.GameType
 
     public class ctx_coin_item_ex : ctx_coin_item
     {
-        public ctx_coin_item_ex(uint _lc = 0u)
+        public ctx_coin_item_ex(uint _ul = 0) : base(_ul)
         {
             clear();
         }
+              
         public ctx_coin_item_ex(int _tipo,
-            uint __typeid,
-            uint _qntd,
-            uint _probabilidade,
-            int _gachar_number) : base(_tipo,
-                __typeid, _qntd)
-        {                      
-            this.probabilidade = _probabilidade;
-             this.gacha_number = _gachar_number;
-        }
-        public new void clear()
+           uint __typeid,
+           uint _qntd,
+           uint _probabilidade,
+           int _gachar_number) : base(_tipo,
+               __typeid, _qntd)
         {
-            this.probabilidade = 0;
-            this.gacha_number = 0;
+            this.probabilidade = _probabilidade;
+            this.gacha_number = _gachar_number;
         }
+
         public uint probabilidade = new uint();
         public int gacha_number = new int();
     }
 
-    public class ctx_coin : System.IDisposable
+    public class ctx_coin
     {
-        public ctx_coin(uint _ul = 0u)
-        {
-            clear();
-        }
-        public void Dispose()
-        {
-        }
-        public void clear()
-        {
-
-            tipo = MEMORIAL_COIN_TYPE.MCT_NORMAL;
-            _typeid = 0u;
-            probabilidade = 100;
-
-            if (item.Count > 0)
-            {
-                item.Clear();
-            }
-        }
+        public ctx_coin(uint _ul = 0u) { }
         public MEMORIAL_COIN_TYPE tipo;
         public uint _typeid = new uint();
         public uint probabilidade = new uint();

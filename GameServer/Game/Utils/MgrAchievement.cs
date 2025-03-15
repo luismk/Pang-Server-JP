@@ -120,8 +120,8 @@ namespace GameServer.Game.Utils
             {
                 if (!m_state)
                 {
-                    throw new exception("[MgrAchievement::" + "getPontos" + "][Error] Manager Achievement state is invalid, please call method initAchievement first.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.MGR_ACHIEVEMENT,
-                        1000, 0));
+                    //throw new exception("[MgrAchievement::" + "getPontos" + "][Error] Manager Achievement state is invalid, please call method initAchievement first.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.MGR_ACHIEVEMENT,
+                    //    1000, 0));
                 }
             };
 
@@ -333,7 +333,7 @@ namespace GameServer.Game.Utils
             };
 
             {
-                if (!(_session).getConnected() || !(_session).GetState())
+                if (!(_session).getConnected() || !(_session).getState())
                 {
                     throw new exception("[MgrAchievement::" + "sendAchievementGuiToPlayer" + "][Error] session is invalid", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.MGR_ACHIEVEMENT,
                         1, 0));
@@ -361,12 +361,12 @@ namespace GameServer.Game.Utils
             int total = v_element.Count;
             int por_packet = ((1000 - 100) > (17 + 4 + (16 * 10)) ? (1000 - 100) / ((17 + 4) + (16 * 10)) : 1);
             int processed = 0;
-
-            foreach (var batch in v_element.Values.Chunk(por_packet))
+            var split_list = v_element.Values.ToList().Split(por_packet);
+            foreach (var batch in split_list)
             {
                 p.init_plain((ushort)0x22D);
                 p.WriteUInt32(0); // SUCCESS
-                p.WriteUInt32((uint)total);
+                p.WriteUInt32((uint)batch.Count());
                 p.WriteUInt32((uint)batch.Count());
 
                 foreach (var ai in batch)
@@ -407,7 +407,7 @@ namespace GameServer.Game.Utils
             };
 
             {
-                if (!(_session).getConnected() || !(_session).GetState())
+                if (!(_session).getConnected() || !(_session).getState())
                 {
                     throw new exception("[MgrAchievement::" + "" + "][Error] session is invalid", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.MGR_ACHIEVEMENT,
                         1, 0));
@@ -474,7 +474,7 @@ namespace GameServer.Game.Utils
             };
 
             {
-                if (!(_session).getConnected() || !(_session).GetState())
+                if (!(_session).getConnected() || !(_session).getState())
                 {
                     throw new exception("[MgrAchievement::" + "" + "][Error] session is invalid", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.MGR_ACHIEVEMENT,
                         1, 0));
@@ -488,7 +488,8 @@ namespace GameServer.Game.Utils
             int por_packet = ((1000 - 100) > (17 + 4 + (16 * 10))) ? (1000 - 100) / ((17 + 4) + (16 * 10)) : 1; // por pacote
 
             int total = elements;
-            foreach (var batch in v_element.Chunk(por_packet))
+            var split_list = v_element.Split(por_packet);
+            foreach (var batch in split_list)
             {
                 p.init_plain((ushort)0x21D);
 

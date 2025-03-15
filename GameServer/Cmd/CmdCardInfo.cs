@@ -81,10 +81,10 @@ namespace GameServer.Cmd
                 use_yn = (byte)IFNULL(result.data[10])
             };
 
-            if (result.IsEmptyObject(7))
+            if (result.IsNotNull(7))
                 ci.use_date.CreateTime(_translateDate(result.data[7]));
 
-            if (result.IsEmptyObject(8))
+            if (result.IsNotNull(8))
                 ci.end_date.CreateTime(_translateDate(result.data[8]));
 
             v_ci.Add(ci.id, ci);

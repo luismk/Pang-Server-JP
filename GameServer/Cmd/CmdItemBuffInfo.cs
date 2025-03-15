@@ -44,12 +44,12 @@ namespace GameServer.Cmd
             ib.index = IFNULL(_result.data[0]);
             ib._typeid = IFNULL(_result.data[1]);
 
-            if (_result.IsEmptyObject(2))
+            if (_result.IsNotNull(2))
             {
                ib.use_date.CreateTime(_translateDate(_result.data[2]));
             }
 
-            if (_result.IsEmptyObject(3))
+            if (_result.IsNotNull(3))
             {
                 ib.end_date.CreateTime(_translateDate(_result.data[3]));
             }

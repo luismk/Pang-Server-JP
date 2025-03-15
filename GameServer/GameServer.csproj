@@ -215,8 +215,9 @@
     <Compile Include="Game\Team.cs" />
     <Compile Include="Game\Utils\BroadCastList.cs" />
     <Compile Include="Game\Utils\Lottery.cs" />
-    <Compile Include="Game\Utils\LotteryManager.cs" />
+    <Compile Include="Game\Utils\Lottery_1.cs" />
     <Compile Include="Game\Utils\MgrAchievement.cs" />
+    <Compile Include="Game\Utils\MultMap.cs" />
     <Compile Include="Game\Utils\RandomGen.cs" />
     <Compile Include="Game\Guild.cs" />
     <Compile Include="PacketFunc\packet_func_cl.cs" />

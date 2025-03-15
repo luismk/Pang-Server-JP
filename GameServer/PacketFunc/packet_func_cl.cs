@@ -1816,7 +1816,7 @@ namespace GameServer.PacketFunc
                 // se ele não fez o login com o Server ele não pode fazer nada até que ele faça o login
                 if (!((Player)pd._session).m_is_authorized)
                 {
-                    //throw new exception("[packet_func::" + "packet061" + "][Error] Player[UID=" + Convert.ToString(((Player)pd._session).m_pi.m_uid) + "] Nao esta varrizado a fazer esse request por que ele ainda nao fez o login com o Server. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PACKET_FUNC_SV,
+                    //throw new exception("[packet_func::" + "packet061" + "][Error] Player[UID=" + Convert.ToString(((Player)pd._session).m_pi.m_uid) + "] Nao esta autorizado a fazer esse request por que ele ainda nao fez o login com o Server. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PACKET_FUNC_SV,
                     //    1, 0x7000501));
                 }
 
@@ -2489,7 +2489,7 @@ namespace GameServer.PacketFunc
                 // se ele não fez o login com o Server ele não pode fazer nada até que ele faça o login
                 if (!((Player)pd._session).m_is_authorized)
                 {
-                    throw new exception("[packet_func::" + "packet08B" + "][Error] Player[UID=" + Convert.ToString(((Player)pd._session).m_pi.uid) + "] Nao esta varrizado a fazer esse request por que ele ainda nao fez o login com o Server. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PACKET_FUNC_SV,
+                    throw new exception("[packet_func::" + "packet08B" + "][Error] Player[UID=" + Convert.ToString(((Player)pd._session).m_pi.uid) + "] Nao esta autorizado a fazer esse request por que ele ainda nao fez o login com o Server. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PACKET_FUNC_SV,
                         1, 0x7000501));
                 }
 
@@ -2579,7 +2579,7 @@ namespace GameServer.PacketFunc
                 // se ele não fez o login com o Server ele não pode fazer nada até que ele faça o login
                 if (!((Player)pd._session).m_is_authorized)
                 {
-                    throw new exception("[packet_func::" + "packet09C(Last5Player)" + "][Error] Player[UID=" + Convert.ToString(((Player)pd._session).m_pi.uid) + "] Nao esta varrizado a fazer esse request por que ele ainda nao fez o login com o Server. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PACKET_FUNC_SV,
+                    throw new exception("[packet_func::" + "packet09C(Last5Player)" + "][Error] Player[UID=" + Convert.ToString(((Player)pd._session).m_pi.uid) + "] Nao esta autorizado a fazer esse request por que ele ainda nao fez o login com o Server. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PACKET_FUNC_SV,
                         1, 0x7000501));
                 }
 
@@ -2870,7 +2870,7 @@ namespace GameServer.PacketFunc
                 // se ele não fez o login com o Server ele não pode fazer nada até que ele faça o login
                 if (!((Player)pd._session).m_is_authorized)
                 {
-                    throw new exception("[packet_func::" + "packet0B4" + "][Error] Player[UID=" + Convert.ToString(((Player)pd._session).m_pi.uid) + "] Nao esta varrizado a fazer esse request por que ele ainda nao fez o login com o Server. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PACKET_FUNC_SV,
+                    throw new exception("[packet_func::" + "packet0B4" + "][Error] Player[UID=" + Convert.ToString(((Player)pd._session).m_pi.uid) + "] Nao esta autorizado a fazer esse request por que ele ainda nao fez o login com o Server. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PACKET_FUNC_SV,
                         1, 0x7000501));
                 }
 
@@ -2908,7 +2908,7 @@ namespace GameServer.PacketFunc
                 // se ele não fez o login com o Server ele não pode fazer nada até que ele faça o login
                 if (!((Player)pd._session).m_is_authorized)
                 {
-                    throw new exception("[packet_func::" + "packet0B5(MyrRoomHouseInfo)" + "][Error] Player[UID=" + Convert.ToString(((Player)pd._session).m_pi.uid) + "] Nao esta varrizado a fazer esse request por que ele ainda nao fez o login com o Server. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PACKET_FUNC_SV,
+                    throw new exception("[packet_func::" + "packet0B5(MyrRoomHouseInfo)" + "][Error] Player[UID=" + Convert.ToString(((Player)pd._session).m_pi.uid) + "] Nao esta autorizado a fazer esse request por que ele ainda nao fez o login com o Server. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PACKET_FUNC_SV,
                         1, 0x7000501));
                 }
 
@@ -2961,7 +2961,7 @@ namespace GameServer.PacketFunc
                 // se ele não fez o login com o Server ele não pode fazer nada até que ele faça o login
                 if (!((Player)pd._session).m_is_authorized)
                 {
-                    throw new exception("[packet_func::" + "packet0B7(InfoPlayerMyRoom)" + "][Error] Player[UID=" + Convert.ToString(((Player)pd._session).m_pi.uid) + "] Nao esta varrizado a fazer esse request por que ele ainda nao fez o login com o Server. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PACKET_FUNC_SV,
+                    throw new exception("[packet_func::" + "packet0B7(InfoPlayerMyRoom)" + "][Error] Player[UID=" + Convert.ToString(((Player)pd._session).m_pi.uid) + "] Nao esta autorizado a fazer esse request por que ele ainda nao fez o login com o Server. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PACKET_FUNC_SV,
                         1, 0x7000501));
                 }
 
@@ -3178,7 +3178,7 @@ namespace GameServer.PacketFunc
                 // se ele não fez o login com o Server ele não pode fazer nada até que ele faça o login
                 if (!((Player)pd._session).m_is_authorized)
                 {
-                    throw new exception("[packet_func::" + "packet0C1(UpdatePlace)" + "][Error] Player[UID=" + Convert.ToString(((Player)pd._session).m_pi.uid) + "] Nao esta varrizado a fazer esse request por que ele ainda nao fez o login com o Server. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PACKET_FUNC_SV,
+                    throw new exception("[packet_func::" + "packet0C1(UpdatePlace)" + "][Error] Player[UID=" + Convert.ToString(((Player)pd._session).m_pi.uid) + "] Nao esta autorizado a fazer esse request por que ele ainda nao fez o login com o Server. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PACKET_FUNC_SV,
                         1, 0x7000501));
                 }
 
@@ -3511,7 +3511,7 @@ namespace GameServer.PacketFunc
                 // se ele não fez o login com o Server ele não pode fazer nada até que ele faça o login
                 if (!((Player)pd._session).m_is_authorized)
                 {
-                    throw new exception("[packet_func::" + "packet0D3(CheckDolfiniLocker)" + "][Error] Player[UID=" + Convert.ToString(((Player)pd._session).m_pi.uid) + "] Nao esta varrizado a fazer esse request por que ele ainda nao fez o login com o Server. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PACKET_FUNC_SV,
+                    throw new exception("[packet_func::" + "packet0D3(CheckDolfiniLocker)" + "][Error] Player[UID=" + Convert.ToString(((Player)pd._session).m_pi.uid) + "] Nao esta autorizado a fazer esse request por que ele ainda nao fez o login com o Server. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PACKET_FUNC_SV,
                         1, 0x7000501));
                 }
 
@@ -3856,7 +3856,7 @@ namespace GameServer.PacketFunc
                 // se ele não fez o login com o Server ele não pode fazer nada até que ele faça o login
                 if (!((Player)pd._session).m_is_authorized)
                 {
-                    throw new exception("[packet_func::" + "packet0F4" + "][Error] Player[UID=" + Convert.ToString(((Player)pd._session).m_pi.uid) + "] Nao esta varrizado a fazer esse request por que ele ainda nao fez o login com o Server. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PACKET_FUNC_SV,
+                    throw new exception("[packet_func::" + "packet0F4" + "][Error] Player[UID=" + Convert.ToString(((Player)pd._session).m_pi.uid) + "] Nao esta autorizado a fazer esse request por que ele ainda nao fez o login com o Server. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PACKET_FUNC_SV,
                         1, 0x7000501));
                 }
 
@@ -3910,7 +3910,7 @@ namespace GameServer.PacketFunc
                 // se ele não fez o login com o Server ele não pode fazer nada até que ele faça o login
                 if (!((Player)pd._session).m_is_authorized)
                 {
-                    throw new exception("[packet_func::" + "packet0FB(WebKey)" + "][Error] Player[UID=" + Convert.ToString(((Player)pd._session).m_pi.uid) + "] Nao esta varrizado a fazer esse request por que ele ainda nao fez o login com o Server. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PACKET_FUNC_SV,
+                    throw new exception("[packet_func::" + "packet0FB(WebKey)" + "][Error] Player[UID=" + Convert.ToString(((Player)pd._session).m_pi.uid) + "] Nao esta autorizado a fazer esse request por que ele ainda nao fez o login com o Server. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PACKET_FUNC_SV,
                         1, 0x7000501));
                 }
 
@@ -3949,14 +3949,7 @@ namespace GameServer.PacketFunc
                 CHECK_SESSION_IS_AUTHORIZED((Player)pd._session, "packet0FE");
 
                 var p = new PangyaBinaryWriter(0x1B1);
-                ///UCC COMPRESS
-                p.WriteInt32(0x0132DC55);
-                p.WriteByte(0x19);
-                p.WriteZero(6);
-                p.WriteInt16(0x2211);
-                p.WriteZero(17);
-                p.WriteByte(0x11);//@@@@@ aqui diz que esta compresss
-                p.WriteInt16(0);
+               
                 ((Player)pd._session).Send(p.GetBytes);//tem que ser sem compress, se nao o projectg envia pacotes estranhos!
                 return 1;
 
@@ -4776,7 +4769,7 @@ namespace GameServer.PacketFunc
                 //// se ele não fez o login com o Server ele não pode fazer nada até que ele faça o login
                 //if (!((Player)pd._session).m_is_authorized)
                 //{
-                //    throw new exception("[packet_func::" + "packet157(requestAchievementInfo)" + "][Error] Player[UID=" + Convert.ToString(((Player)pd._session).m_pi.m_uid) + "] Nao esta varrizado a fazer esse request por que ele ainda nao fez o login com o Server. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PACKET_FUNC_SV,
+                //    throw new exception("[packet_func::" + "packet157(requestAchievementInfo)" + "][Error] Player[UID=" + Convert.ToString(((Player)pd._session).m_pi.m_uid) + "] Nao esta autorizado a fazer esse request por que ele ainda nao fez o login com o Server. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PACKET_FUNC_SV,
                 //        1, 0x7000501));
                 //}
 

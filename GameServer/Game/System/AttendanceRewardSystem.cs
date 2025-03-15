@@ -261,7 +261,7 @@ namespace GameServer.Game.System
             AttendanceRewardItemCtx aric = null;
 
 
-           var lottery = new Lottery(1);
+           var lottery = new Lottery();
 
             foreach(var el in v_item)
                 if (el.tipo == _tipo)

@@ -121,9 +121,12 @@ namespace PangyaAPI.Network.PangyaSession
         public int GetConnectTime() => (Environment.TickCount - m_start_time);
 
         // Métodos de estado
-        public bool GetState() => m_state;     
+        public bool getState() => m_state;
 
-        public void SetState(bool state) => m_state = state;       
+        public void SetState(bool state) {
+            m_state = state;
+            StartSendingLoop(); // Inicia o loop de envio contínuo ao instanciar a sessão
+        }      
 
         public bool getConnected()
         {
@@ -175,24 +178,7 @@ namespace PangyaAPI.Network.PangyaSession
         #endregion
 
         #region Player Send Packets 
-        public virtual void Send(PangyaBinaryWriter packet, bool debug_log = true)
-        {
-            if (debug_log)
-                Console.WriteLine("[SessionBase::Send][HexLog]: " + packet.GetBytes.HexDump() + Environment.NewLine);
-        
-            if (m_key != 255) 
-                SafeSend(packet.GetBytes.ServerEncrypt(m_key, 0));
-        }
-
-        public virtual void Send(byte[] Data, bool debug_log = true)
-        {
-            if (debug_log)
-                Console.WriteLine("[SessionBase::Send][HexLog]: " + Data.HexDump() + Environment.NewLine);
-
-            if (m_key != 255)
-                SafeSend(Data.ServerEncrypt(m_key, 0));
-        }
-
+          
         protected void SendBytes(byte[] buffer)
         {
             try

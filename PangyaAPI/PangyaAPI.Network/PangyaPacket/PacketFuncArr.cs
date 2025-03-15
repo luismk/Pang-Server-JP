@@ -67,13 +67,13 @@ namespace PangyaAPI.Network.PangyaPacket
 
                     return result; // Retorna o resultado do callback
                 }
-                catch (Exception e)
+                catch (exception e)
                 {
                     // Parar o stopwatch em caso de exceção
                     stopwatch.Stop();
 
                     // Exibe o erro e o tempo gasto até a exceção
-                    Console.WriteLine($"Function: {methodName}, Error: {e.Message}, Execution Time: {stopwatch.ElapsedMilliseconds} ms");
+                    Console.WriteLine($"Function: {methodName}, Error: {e.getFullMessageError()}");
 
                     throw; // Re-throw the exception
                 }

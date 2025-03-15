@@ -90,7 +90,7 @@ namespace PangyaAPI.Network.PangyaSession
             bool ret = true;
             lock (_lockObject)
             {
-                if (!session.GetState() && session._client == null)
+                if (!session.getState() && session._client == null)
                 {
                     throw new InvalidOperationException("[SessionManager::DeleteSession] SessionBase is not connected.");
                 }

@@ -1,10 +1,12 @@
 ﻿using GameServer.GameType;
 using System;
 using PangyaAPI.SQL;
+using PangyaAPI.Utilities;
+using System.Data.Common;
 
 namespace GameServer.Cmd
 {
-    internal class CmdAttendanceRewardInfo : Pangya_DB
+    public class CmdAttendanceRewardInfo : Pangya_DB
     {
         public CmdAttendanceRewardInfo()
         {
@@ -39,14 +41,22 @@ namespace GameServer.Cmd
 
             checkColumnNumber(6);
 
-            m_ari.counter = IFNULL(_result.data[0]);
-            m_ari.now._typeid = IFNULL(_result.data[1]);
-            m_ari.now.qntd = IFNULL(_result.data[2]);
-            m_ari.after._typeid = IFNULL(_result.data[3]);
-            m_ari.after.qntd = IFNULL(_result.data[4]);
+            try
+            {
+                m_ari.counter = IFNULL(_result.data[0]);
+                m_ari.now._typeid = IFNULL(_result.data[1]);
+                m_ari.now.qntd = IFNULL(_result.data[2]);
+                m_ari.after._typeid = IFNULL(_result.data[3]);
+                m_ari.after.qntd = IFNULL(_result.data[4]);
 
-            if (_result.data[5] != null)
-                m_ari.last_login.CreateTime(_translateDate(_result.data[5]));
+                if (_result.data[5] != null)
+                    m_ari.last_login.CreateTime(_translateDate(_result.data[5]));
+            }
+            catch (exception e)
+            {
+
+                throw e;
+            }
         }
 
         protected override Response prepareConsulta()
@@ -64,5 +74,15 @@ namespace GameServer.Cmd
         private AttendanceRewardInfoEx m_ari = new AttendanceRewardInfoEx();
 
         private const string m_szConsulta = "pangya.ProcGetAttendanceReward";
+
+        public partial class ProcGetAttendanceReward
+        {
+            public uint counter { get; set; }
+            public uint item_typeid_now { get; set; }
+            public uint item_qntd_now { get; set; }
+            public uint item_typeid_after { get; set; }
+            public uint item_qntd_after { get; set; }
+            public Nullable<System.DateTime> last_login { get; set; }
+        }
     }
 }

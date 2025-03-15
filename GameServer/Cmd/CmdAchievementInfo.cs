@@ -77,12 +77,7 @@ namespace GameServer.Cmd
         {
             map_ai.Clear();
 
-            var stopwatch = Stopwatch.StartNew();
-
-            var response = procedure(m_szConsulta, m_uid.ToString());
-
-            stopwatch.Stop();
-            Console.WriteLine($"[CmdAchievementInfo][Log] Query executed in {stopwatch.ElapsedMilliseconds}ms");
+            var response = procedure(m_szConsulta, m_uid.ToString());          
 
             checkResponse(response, $"Failed to retrieve achievement info for player: {m_uid}");
 

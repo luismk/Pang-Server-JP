@@ -56,6 +56,11 @@ namespace GameServer.GameType
         // Corta com toma, e corta com safety
         public static readonly uint[] active_item_cant_have_2_inveroty = { 402653229u, 402653231u };
 
+        public static readonly uint[] cadie_cauldron_Hermes_item_typeid = { 0x08010032u, 0x0804e058u, 0x0808e025u, 0x080ce041u, 0x0810a030u, 0x0814e05eu, 0x0818a060u, 0x081ce02fu, 0x0820e02fu };
+        public static readonly uint[] cadie_cauldron_Jester_item_typeid = { 0x08000848u, 0x08040863u, 0x0808082bu, 0x080c002cu, 0x08100033u, 0x0814003eu, 0x0818005eu, 0x081c002bu, 0x08200018u, 0x0824000eu, 0x0828001du, 0x08380004u, 0x0830000cu, 0x082c0004u };
+        public static readonly uint[] cadie_cauldron_Twilight_item_typeid = { 0x0801a812u, 0x08050811u, 0x0809081du, 0x080d481cu, 0x0811201bu, 0x08162810u, 0x08196013u, 0x081da817u, 0x0821a80cu };
+        public const uint TICKET_BOT_TYPEID = 0x1A000401u;
+
         public const uint TROFEL_GM_EVENT_TYPEID = 0x2D0A3B00;
 
         public const byte cadie_cauldron_Hermes_random_id = 2;
@@ -1207,19 +1212,17 @@ namespace GameServer.GameType
             MilliSecond = (ushort)date.Millisecond;
         }
 
-        public void CreateTime(DateTime date)
+        public void CreateTime(DateTime? date)
         {
-            if (date != DateTime.MinValue)
-            {
-
-                Year = (ushort)date.Year;
-                Month = (ushort)date.Month;
-                Minute = (ushort)date.Minute;
-                Day = (ushort)date.Day;
-                Hour = (ushort)date.Hour;
-                Second = (ushort)date.Second;
-                MilliSecond = (ushort)date.Millisecond;
-
+            if (date != null && date != DateTime.MinValue)
+            {            
+                Year = (ushort)date?.Year;
+                Month = (ushort)date?.Month;
+                Minute = (ushort)date?.Minute;
+                Day = (ushort)date?.Day;
+                Hour = (ushort)date?.Hour;
+                Second = (ushort)date?.Second;
+                MilliSecond = (ushort)date?.Millisecond;  
             }
         }
 
@@ -2828,7 +2831,7 @@ namespace GameServer.GameType
 
     // Estrutura que Guarda as informações dos Convites do Canal
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
-    public struct InviteChannelInfo
+    public class InviteChannelInfo
     {
         public ushort room_number;
         public uint invite_uid;
@@ -3226,7 +3229,12 @@ namespace GameServer.GameType
         public short parts_end_date_unix;
         public byte purchase;
         public short check_end;
-
+        public void clear()
+        {
+            // Limpa o caddie Parts
+           parts_typeid = 0;
+           parts_end_date_unix = 0;
+        }
     }
 
     // Caddie Info Ex
@@ -3291,6 +3299,13 @@ namespace GameServer.GameType
 
             updatePartsEndDate();
         }
+
+        public void clear()
+        {
+            base.clear();    
+           end_parts_date = new PangyaTime();
+        }
+
         /// <summary>
         /// Size = 25 (0x19)
         /// </summary>

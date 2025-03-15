@@ -66,7 +66,7 @@ namespace GameServer.Game
                     throw new exception("[Team::" + "addPlayer" + "][Error] _player is invalid(nullptr)", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.TEAM,
                         1, 0));
                 }
-                if (!(_player).GetState() || !(_player).getConnected())
+                if (!(_player).getState() || !(_player).getConnected())
                 {
                     throw new exception("[Team::" + "addPlayer" + "][Error] _player is not connected.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.TEAM,
                         2, 0));
@@ -97,7 +97,7 @@ namespace GameServer.Game
                     throw new exception("[Team::" + "deletePlayer" + "][Error] _player is invalid(nullptr)", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.TEAM,
                         1, 0));
                 }
-                if ((!(_player).GetState() || !(_player).getConnected()) && (_option) != 3)
+                if ((!(_player).getState() || !(_player).getConnected()) && (_option) != 3)
                 {
                     throw new exception("[Team::" + "deletePlayer" + "][Error] _player is not connected.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.TEAM,
                         2, 0));

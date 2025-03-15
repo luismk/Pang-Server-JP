@@ -1560,7 +1560,7 @@ namespace GameServer.GameServerTcp
 
                 s = (Player)FindSessionByNickname(nickname);
 
-                if (s == null || !s.GetState() || !s.getConnected())
+                if (s == null || !s.getState() || !s.getConnected())
                     throw new exception("[GameServer.requestPrivateMessage][WARNING] player[UID=" + (_session.m_pi.uid) + "] tentou enviar message privada[msg=" + msg + "] para o player[NICKNAME="
                             + nickname + "], mas o player nao esta online nesse server.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.GAME_SERVER, 2, 5));
 

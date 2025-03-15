@@ -11,7 +11,7 @@ namespace GameServer.Game.System
     {
         public void checkEndTimeTicket(Player _session)
         {
-            if (!_session.GetState())
+            if (!_session.getState())
             {
 
             }
@@ -92,7 +92,7 @@ namespace GameServer.Game.System
             WarehouseItemEx _ticket,
             uint _time)
         {
-            if (!_session.GetState())
+            if (!_session.getState())
             {
 
             }
@@ -206,7 +206,7 @@ namespace GameServer.Game.System
 
         public void removePremiumUser(Player _session)
         {
-            if (!_session.GetState())
+            if (!_session.getState())
             {
                 //throw new exception("[PremiumSystem" + "removePremiumUser" + "][Error] player nao esta connectado.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PREMIUM_SYSTEM,
                 //    1, 0));
@@ -251,7 +251,7 @@ namespace GameServer.Game.System
 
         public stItem addPremiumBall(Player _session)
         {
-            if (!_session.GetState())
+            if (!_session.getState())
             {
                 //throw new exception("[PremiumSystem" + "addPremiumBall" + "][Error] player nao esta connectado.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PREMIUM_SYSTEM,
                 //    1, 0));
@@ -304,7 +304,7 @@ namespace GameServer.Game.System
 
         public stItem addPremiumClubSet(Player _session, uint _time)
         {
-            //if (!_session.GetState())
+            //if (!_session.getState())
             //{
             //    throw new exception("[PremiumSystem" + "addPremiumClubSet" + "][Error] player nao esta connectado.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PREMIUM_SYSTEM,
             //        1, 0));
@@ -414,7 +414,7 @@ namespace GameServer.Game.System
 
         public void removePremiumBall(Player _session)
         {
-            //if (!_session.GetState())
+            //if (!_session.getState())
             //{
             //    throw new exception("[PremiumSystem" + "removePremiumBall" + "][Error] player nao esta connectado.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PREMIUM_SYSTEM,
             //        1, 0));

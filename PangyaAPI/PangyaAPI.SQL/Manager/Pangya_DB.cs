@@ -148,10 +148,22 @@ namespace PangyaAPI.SQL
         }
 
 
-        public static DateTime _translateDate(object value)
+        public static DateTime? _translateDate(object value)
         {
-            return DateTime.Parse(value.ToString());
+            if (value == null)
+                return null;
+
+            if (DateTime.TryParseExact(value.ToString(), "dd/MM/yyyy HH:mm:ss",
+                                       System.Globalization.CultureInfo.InvariantCulture,
+                                       System.Globalization.DateTimeStyles.None,
+                                       out DateTime result))
+            {
+                return result;
+            }
+
+            return null;
         }
+
         protected exception m__exception { get; set; }
         public exception m_exception { get => m__exception; set => m__exception = value; }
     }

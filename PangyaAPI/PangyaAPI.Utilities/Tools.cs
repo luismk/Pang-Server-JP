@@ -440,10 +440,41 @@ namespace PangyaAPI.Utilities
         {
             return !pairs.Any(); // Retorna true se o dicionário estiver vazio
         }
-
+        public static bool empty<TKey, TValue>(this Dictionary<TKey, List<TValue>> pairs)
+        {
+            return !pairs.Any(); // Retorna true se o dicionário estiver vazio
+        }
         public static KeyValuePair<TKey, TValue> end<TKey, TValue>(this Dictionary<TKey, TValue> pairs)
         {
             return pairs.Last(); // Retorna true se o dicionário estiver vazio
+        }
+
+        public static KeyValuePair<TKey, TValue> find<TKey, TValue>(this Dictionary<TKey, TValue> pairs, object value)
+        {
+            return pairs.Where(c=> c.Key == (TKey)value || c.Value == (TValue)value).FirstOrDefault(); // Retorna true se o dicionário estiver vazio
+        }
+
+
+        public static KeyValuePair<TKey, TValue> begin<TKey, TValue>(this Dictionary<TKey, TValue> pairs)
+        {
+            return pairs.FirstOrDefault(); // Retorna true se o dicionário estiver vazio
+        }
+
+
+        public static T end<T>(this List<T> pairs)
+        {
+            return pairs.Last(); // Retorna true se o dicionário estiver vazio
+        }
+
+        public static T find<T>(this List<T> pairs, T value)
+        {
+            return pairs.Where(c => c == value).FirstOrDefault(); // Retorna true se o dicionário estiver vazio
+        }
+
+
+        public static T begin<T>(this List<T> pairs)
+        {
+            return pairs.FirstOrDefault(); // Retorna true se o dicionário estiver vazio
         }
 
 

@@ -277,7 +277,7 @@ namespace GameServer.Game.System
                 NormalManagerDB.add(7, new CmdRegisterLogonServer(_pi.uid, sgs.gs.getInstance().m_si.uid), sgs.gs.getInstance().SQLDBResponse, sgs.gs.getInstance());
 
                 _smp.message_pool.push("[LoginSystem::requestLogin][Log] Player[OID=" + (_session.m_oid) + ", UID=" + (_pi.uid) + ", NICK="
-                        + (_pi.nickname) + "] Finalized.");
+                        + (_pi.nickname) + ", Stage= Check].");
 
                 //// Verifica se o papel tem limite por dia, se não anula o papel shop do player
                 sPapelShopSystem.getInstance().init_player_papel_shop_info(_session);
@@ -665,7 +665,7 @@ namespace GameServer.Game.System
                                 {
 
                                     for (var i = 0u; i < 5; ++i)
-                                        pi.ei.csi.enchant_c[i] = (short)(cs.Stats.getSlot()[i] + it.clubset_workshop.c[i]);
+                                        pi.ei.csi.enchant_c[i] = (short)(cs.Stats.getSlot[i] + it.clubset_workshop.c[i]);
 
                                 }
                                 else
@@ -694,7 +694,7 @@ namespace GameServer.Game.System
                                     if (cs != null)
                                     {                          
                                         for (var i = 0u; i < 5; ++i)
-                                            pi.ei.csi.enchant_c[i] = (short)(cs.Stats.getSlot()[i] + it.clubset_workshop.c[i]);
+                                            pi.ei.csi.enchant_c[i] = (short)(cs.Stats.getSlot[i] + it.clubset_workshop.c[i]);
 
                                     }
                                     else
@@ -820,23 +820,23 @@ namespace GameServer.Game.System
                         }
                     case 18:    // Check if have Achievement
                         {
-                            // --------------------- AVISO ----------------------
-                            // esse aqui os outros tem que depender dele para, não ir sem ele
-                            var cmd_cAchieve = (CmdCheckAchievement)(_pangya_db);
+                            //// --------------------- AVISO ----------------------
+                            //// esse aqui os outros tem que depender dele para, não ir sem ele
+                            //var cmd_cAchieve = (CmdCheckAchievement)(_pangya_db);
 
-                            // Cria Achievements do player
-                            if (!cmd_cAchieve.getLastState())
-                            {
-                                _session.m_pi.mgr_achievement.initAchievement(_session.m_pi.uid, true/*Create sem verifica se o player tem achievement, por que aqui ele já verificou*/);
+                            //// Cria Achievements do player
+                            //if (!cmd_cAchieve.getLastState())
+                            //{
+                            //    _session.m_pi.mgr_achievement.initAchievement(_session.m_pi.uid, true/*Create sem verifica se o player tem achievement, por que aqui ele já verificou*/);
                                 
                                 // Add o Task + 1 por que não pede o achievement do db, porque criou ele aqui e salvo no DB
                                 incremenetCount();
 
-                            }
-                            else
-                            {
-                                NormalManagerDB.add(19, new CmdAchievementInfo(_session.m_pi.uid), SQLDBResponse, _session);
-                            }
+                            //}
+                            //else
+                            //{
+                            //    NormalManagerDB.add(19, new CmdAchievementInfo(_session.m_pi.uid), SQLDBResponse, _session);
+                            //}
 
                         }
                         break;
@@ -845,7 +845,7 @@ namespace GameServer.Game.System
                             var cmd_ai = ((CmdAchievementInfo)(_pangya_db));
 
                             // Inicializa o Achievement do player
-                            _session.m_pi.mgr_achievement.initAchievement(_session.m_pi.uid, cmd_ai.GetInfo());
+                            //_session.m_pi.mgr_achievement.initAchievement(_session.m_pi.uid, cmd_ai.GetInfo());
 
                             break;
                         }
@@ -1088,10 +1088,7 @@ namespace GameServer.Game.System
             }
 
             try
-            {
-
-                var stopwatch = Stopwatch.StartNew();
-
+            {                                              
                 //// Check All Character All Item Equiped is on Warehouse Item of Player
                 foreach (var el in _session.m_pi.mp_ce)
                 {
@@ -1124,9 +1121,9 @@ namespace GameServer.Game.System
                 // Treasure Hunter Info
                 //_session.Send(packet_func_sv.pacote131());
 
-                _session.m_pi.mgr_achievement.sendCounterItemToPlayer(_session);
+                //_session.m_pi.mgr_achievement.sendCounterItemToPlayer(_session);
 
-                _session.m_pi.mgr_achievement.sendAchievementToPlayer(_session);
+                //_session.m_pi.mgr_achievement.sendAchievementToPlayer(_session);
 
                 _session.Send(packet_func_sv.pacote0F1());
 
@@ -1147,42 +1144,31 @@ namespace GameServer.Game.System
                 _session.Send(packet_func_sv.pacote096(pi));
 
                 _session.Send(packet_func_sv.pacote169(pi.ti_current_season, 5/*season atual*/));
-
-
+                                                                                                                                                   
                 _session.Send(packet_func_sv.pacote169(pi.ti_rest_season));
-
-
+                                                                                                  
                 _session.Send(packet_func_sv.pacote0B4(pi.v_tsi_current_season, 5/*season atual*/));
-
-
+                                                
                 _session.Send(packet_func_sv.pacote0B4(pi.v_tsi_rest_season));
-
-
+                                               
                 _session.Send(packet_func_sv.pacote158(pi.uid, pi.ui, 0));
-                // Total de season, 5 atual season
-
+                // Total de season, 5 atual season  
                 _session.Send(packet_func_sv.pacote25D(pi.v_tgp_current_season, 5/*season atual*/));
-
-
+                                 
                 _session.Send(packet_func_sv.pacote25D(pi.v_tgp_rest_season, 0));
 
-                var p = new PangyaBinaryWriter(0x1B1);
-                ///UCC COMPRESS
-                p.WriteUInt64(0x190132DC55);
-                p.WriteUInt64(0x19);
-                p.WriteZero(13);    
-                p.WriteUInt32(0x1100);//@@@@@ aqui diz que esta compresss
-                _session.Send(p);
-
+                _session.Send(packet_func_sv.pacote1B1());
+               
                 //// Login Reward System - verifica se o player ganhou algum item por logar
                 //if (sgs::gs::getInstance().getInfo().rate.login_reward_event)
                 //    sLoginRewardSystem::getInstance().checkRewardLoginAndSend(_session);  
-                stopwatch.Stop();
-                _smp.message_pool.push("[LoginSystem::sendCompleteData][Log] Player[UID=" + _session.m_pi.uid + "] {stopwatch.ElapsedMilliseconds}ms.");
-             }
+        
+                _smp.message_pool.push("[LoginSystem::requestLogin][Log] Player[OID=" + (_session.m_oid) + ", UID=" + (pi.uid) + ", NICK="
+                       + (pi.nickname) + ", Stage= Sucess].");
+              }
             catch (exception ex)
             {
-                _smp.message_pool.push(new message($"[LoginSystem.sendCompleteData][ErrorSystem] {ex.getFullMessageError()}", type_msg.CL_FILE_LOG_AND_CONSOLE));
+                _smp.message_pool.push(new message($"[LoginSystem.requestLogin][ErrorSystem] {ex.getFullMessageError()}", type_msg.CL_FILE_LOG_AND_CONSOLE));
             }                            
         }
 

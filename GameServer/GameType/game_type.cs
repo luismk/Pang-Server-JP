@@ -943,7 +943,7 @@ namespace GameServer.GameType
         public byte level;
         public byte hole; // Número do Hole que o player está
 
-        public byte init_first_hole = 1; // Flag que guarda quando o player inicializou o primeiro hole do jogo
+        public bool init_first_hole = true; // Flag que guarda quando o player inicializou o primeiro hole do jogo
 
         public byte finish_load_hole = 1;
 

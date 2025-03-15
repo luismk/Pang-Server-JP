@@ -486,5 +486,15 @@ namespace GameServer.Session
         {
             throw new NotImplementedException();
         }
+
+        internal bool checkBallEquiped(UserEquip ue)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal bool checkClubSetEquiped(UserEquip ue)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

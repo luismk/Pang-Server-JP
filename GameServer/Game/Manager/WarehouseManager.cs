@@ -18,7 +18,7 @@ namespace GameServer.Game.Manager
             {                                   
                 return PacketFunc.packet_func_sv.pacote073(list);
             }
-            catch (Exception e)
+            catch
             {
                 return PacketFunc.packet_func_sv.pacote073(new List<WarehouseItemEx>());
             }

@@ -975,7 +975,7 @@ int option = 0)
                     1, 0));
             }
 
-            if (!_session.GetState())
+            if (!_session.getState())
             {
                 throw new exception("Error player nao esta mais connectado. Em packet_func_sv::pacote04B()", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PACKET_FUNC_SV,
                     2, 0));
@@ -1733,6 +1733,43 @@ int option = 0)
             }
         }
 
+        public static void session_send(byte[] mb,
+            Player s, byte _debug)
+        {
+
+            if (mb == null || mb.Length == 0)
+            {
+                throw new exception("Error session s is nullptr, PangyaBinaryWriter_func::session_send()", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PACKET_FUNC_SV,
+                    1, 2));
+            }
+
+            try
+            {
+
+                s.Send(mb);
+                if ((s).Devolve())
+                {
+                    sgs.gs.getInstance().DisconnectSession((s));
+                }
+            }
+            catch (exception e)
+            {
+                if (!ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
+                    STDA_ERROR_TYPE.SESSION, 6))
+                {
+                    if ((s).Devolve())
+                    {
+                        sgs.gs.getInstance().DisconnectSession((s));
+                    }
+                }
+                if (ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
+                    STDA_ERROR_TYPE.SESSION, 2))
+                {
+                    throw;
+                }
+            }
+        }
+
         public static void session_send(List<PangyaBinaryWriter> v_p,
             Player s, byte _debug)
         {
@@ -1829,7 +1866,23 @@ int option = 0)
                 if (enumerator.MoveNext())
                     p.WriteBytes(enumerator.Current);
             }
-        }     
+        }
+
+        public static byte[] pacote1B1()
+        {
+            using (var p = new PangyaBinaryWriter(0x1B1))
+            {
+                ///UCC COMPRESS
+                p.WriteUInt32((uint)UtilTime.GetSystemTimeAsUnix());
+                p.WriteByte(25);
+                p.WriteZero(6);
+                p.WriteInt16(8721);
+                p.WriteZero(17);
+                p.WriteByte(17);//@@@@@ aqui diz que esta compresss
+                p.WriteInt16(0);
+                return p.GetBytes;
+            }
+        }
         #endregion
     }
 }

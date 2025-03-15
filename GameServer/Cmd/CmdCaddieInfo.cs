@@ -84,12 +84,12 @@ namespace GameServer.Cmd
                     rent_flag = _result.GetByte(6)
                 };
 
-                if (_result.IsEmptyObject(7))
+                if (_result.IsNotNull(7))
                     ci.end_date.CreateTime(_result.GetDateTime(7));
 
                 ci.purchase = _result.GetByte(8);
 				
-                if (_result.IsEmptyObject(9))
+                if (_result.IsNotNull(9))
                     ci.end_parts_date.CreateTime(_result.GetDateTime(9));
 				
                 ci.check_end = _result.GetByte(10);

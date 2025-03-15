@@ -120,7 +120,7 @@ namespace GameServer.Game.System
         /*static*/
         public void init_player_papel_shop_info(Player _session)
         {
-            if (!_session.GetState())
+            if (!_session.getState())
             {
                 throw new exception("[PapelShopSystem::" + "init_player_papel_shop_info" + "][Error] player is not connected.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PAPEL_SHOP_SYSTEM,
                     2, 0));
@@ -191,7 +191,7 @@ namespace GameServer.Game.System
         /*static*/
         public void updateDiaPlayer(Player _session)
         {
-            if (!_session.GetState())
+            if (!_session.getState())
             {
                 throw new exception("[PapelShopSystem::" + "updateDaiPlayer" + "][Error] player is not connected.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PAPEL_SHOP_SYSTEM,
                     2, 0));
@@ -238,7 +238,7 @@ namespace GameServer.Game.System
         /*static*/
         public void updatePlayerCount(Player _session)
         {
-            if (!_session.GetState())
+            if (!_session.getState())
             {
                 throw new exception("[PapelShopSystem::" + "updatePlayerCount" + "][Error] player is not connected.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PAPEL_SHOP_SYSTEM,
                     2, 0));
@@ -304,7 +304,7 @@ namespace GameServer.Game.System
         /*static*/
         public WarehouseItemEx hasCoupon(Player _session)
         {
-            if (!_session.GetState())
+            if (!_session.getState())
             {
                 throw new exception("[PapelShopSystem::" + "hasCoupon" + "][Error] player is not connected.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PAPEL_SHOP_SYSTEM,
                     2, 0));
@@ -393,7 +393,7 @@ namespace GameServer.Game.System
             List<ctx_papel_shop_ball> v_ball = new List<ctx_papel_shop_ball>();
             ctx_papel_shop_ball ctx_b = new ctx_papel_shop_ball();
 
-            Lottery lottery = new Lottery((ulong)m_ctx_psi.Count);
+            Lottery lottery = new Lottery();
 
             // Pega o Rate do Game Server
             var rate_cookie_server = 100 / 100.0f;
@@ -415,10 +415,7 @@ namespace GameServer.Game.System
                 // Sortea um valor
                 Lottery.LotteryCtx lc = null;
 
-                if (v_ball.Count > 0)
-                    lc = lottery.SpinRoleta(_type_id);
-                else
-                    lc = lottery.SpinRoleta();
+                lc = lottery.SpinRoleta();
 
                 if (lc == null)
                 {
@@ -466,7 +463,7 @@ namespace GameServer.Game.System
 
         public List<ctx_papel_shop_ball> dropBalls(Player _session)
         {
-            if (!_session.GetState())
+            if (!_session.getState())
             {
                 throw new exception("[PapelShopSystem::" + "dropBalls" + "][Error] player is not connected.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PAPEL_SHOP_SYSTEM,
                     2, 0));
@@ -480,7 +477,7 @@ namespace GameServer.Game.System
             List<ctx_papel_shop_ball> v_ball = new List<ctx_papel_shop_ball>();
             ctx_papel_shop_ball ctx_b = new ctx_papel_shop_ball();
 
-            Lottery lottery = new Lottery((ulong)m_ctx_psi.Count);
+            Lottery lottery = new Lottery();
 
             // Pega o Rate do Game Server
             var rate_cookie_server = 100 / 100.0f;
@@ -502,9 +499,7 @@ namespace GameServer.Game.System
                 // Sortea um valor
                 Lottery.LotteryCtx lc = null;
 
-                if (v_ball.Count > 0)
-                    lc = lottery.SpinRoleta(_type_id);
-                else
+
                     lc = lottery.SpinRoleta();
 
                 if (lc == null)

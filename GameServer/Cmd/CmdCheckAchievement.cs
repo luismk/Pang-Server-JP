@@ -21,7 +21,7 @@ namespace GameServer.Cmd
         }
 
         public void setUID(uint _uid)
-        {              
+        {
             m_uid = _uid;
         }
 
@@ -35,7 +35,7 @@ namespace GameServer.Cmd
 
             checkColumnNumber(1);
 
-            m_check = (IFNULL(_result.data[0]) > 0 ? true : false);
+            m_check = _result.GetBoolean(0);
         }
 
         protected override Response prepareConsulta()
