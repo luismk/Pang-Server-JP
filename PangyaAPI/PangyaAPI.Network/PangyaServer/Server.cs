@@ -20,19 +20,20 @@ using System.Threading.Tasks;
 
 namespace PangyaAPI.Network.PangyaServer
 {
+    public enum ServerState
+    {
+        Uninitialized,
+        Good,
+        GoodWithWarning,
+        Initialized,
+        Failure
+    }
     public abstract partial class Server
     {
         #region Fields
-        enum ServerState
-        {
-            Uninitialized,
-            Good,
-            GoodWithWarning,
-            Initialized,
-            Failure
-        }
+      
 
-        ServerState m_state;
+       public ServerState m_state;
         //DECRYPT FIELDS
 
         private ToServerBuffer ToServerBuffer = new ToServerBuffer();
@@ -45,8 +46,7 @@ namespace PangyaAPI.Network.PangyaServer
         public bool _isRunning => m_state == ServerState.Good;
         public IniHandle m_reader_ini { get; set; }
         public List<TableMac> ListBlockMac { get; set; }
-        public List<ServerInfo> m_server_list { get; set; }
-        protected func_arr funcs { get; set; }
+        public List<ServerInfo> m_server_list { get; set; }        
         public ServerInfoEx getInfo() => m_si;
         public TcpListener _server;
         #endregion
@@ -85,7 +85,6 @@ namespace PangyaAPI.Network.PangyaServer
             this.m_session_manager = sessionManager;
             m_server_list = new List<ServerInfo>();
             m_state = ServerState.Uninitialized;
-            funcs = new func_arr();
             m_reader_ini = new IniHandle("server.ini");
             ConfigInit();
         }
@@ -340,6 +339,65 @@ namespace PangyaAPI.Network.PangyaServer
             v_mac_ban_list = cmd_lmb.getList();
         }
 
+        protected void DispatchPacketSVThread(SessionBase session, Packet packet)
+        {
+            if (session == null || session.getConnected() == false || packet == null)
+            {
+                return;//nao esta mais conectado!
+            }
+
+            func_arr.func_arr_ex func = null;
+
+            try
+            {
+                // Obtém a função correspondente ao tipo de pacote
+                func = packet_func_base.funcs_sv.getPacketCall(packet.Id);
+            }
+            catch (exception e)
+            {
+                _smp::message_pool.push(new message($"[Server.DispatchPacketSameThread][ErrorSystem] {e.Message}, {e.getStackTrace()}"));
+                // Desconecta a sessão
+                DisconnectSession(session);
+            }
+
+            try
+            {
+                // Atualiza o tick do cliente
+                session.m_tick = Environment.TickCount;
+
+                var pd = new ParamDispatch
+                {
+                    _session = session,
+                    _packet = packet
+                };
+
+                if (CheckPacket(session, packet))
+                {
+                    try
+                    {
+                        if (func != null && func.ExecCmd(pd) != 1)
+                        {
+                            _smp.message_pool.push(new message($"[Server.DispatchPacketSameThread][Error][MY] Ao tratar o pacote. ID: {packet.Id}(0x{packet.Id:X})," + pd._packet.Log(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                            DisconnectSession(session);
+                        }
+                    }
+
+                    catch (exception e)
+                    {
+                        _smp::message_pool.push(new message($"[Server.DispatchPacketSameThread][Error][MY] {e.getFullMessageError()}"));
+
+                        DisconnectSession(session);
+                    }
+                }
+            }
+            catch (exception e)
+            {
+                _smp::message_pool.push(new message($"[Server.DispatchPacketSameThread][Error][MY] {e.Message}"));
+
+                DisconnectSession(session);
+            }
+        }
+
         protected void DispatchPacketSameThread(SessionBase session, Packet packet)
         {
             if (session == null || session.getConnected() == false || packet == null)
@@ -352,7 +410,66 @@ namespace PangyaAPI.Network.PangyaServer
             try
             {
                 // Obtém a função correspondente ao tipo de pacote
-                func = funcs.getPacketCall(packet.Id);
+                func = packet_func_base.funcs.getPacketCall(packet.Id);
+            }
+            catch (exception e)
+            {
+                _smp::message_pool.push(new message($"[Server.DispatchPacketSameThread][ErrorSystem] {e.Message}, {e.getStackTrace()}"));
+                // Desconecta a sessão
+                DisconnectSession(session);
+            }
+
+            try
+            {
+                // Atualiza o tick do cliente
+                session.m_tick = Environment.TickCount;
+
+                var pd = new ParamDispatch
+                {
+                    _session = session,
+                    _packet = packet
+                };
+
+                if (CheckPacket(session, packet))
+                {
+                    try
+                    {
+                        if (func != null && func.ExecCmd(pd) != 1)
+                        {
+                            _smp.message_pool.push(new message($"[Server.DispatchPacketSameThread][Error][MY] Ao tratar o pacote. ID: {packet.Id}(0x{packet.Id:X})," + pd._packet.Log(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                            DisconnectSession(session);
+                        }
+                    }
+
+                    catch (exception e)
+                    {
+                        _smp::message_pool.push(new message($"[Server.DispatchPacketSameThread][Error][MY] {e.getFullMessageError()}"));
+
+                        DisconnectSession(session);
+                    }
+                }
+            }
+            catch (exception e)
+            {
+                _smp::message_pool.push(new message($"[Server.DispatchPacketSameThread][Error][MY] {e.Message}"));
+
+                DisconnectSession(session);
+            }
+        }
+
+        protected void DispatchPacket_AS_Thread(SessionBase session, Packet packet)
+        {
+            if (session == null || session.getConnected() == false || packet == null)
+            {
+                return;//nao esta mais conectado!
+            }
+
+            func_arr.func_arr_ex func = null;
+
+            try
+            {
+                // Obtém a função correspondente ao tipo de pacote
+                func = packet_func_base.funcs_as.getPacketCall(packet.Id);
             }
             catch (exception e)
             {
@@ -462,15 +579,7 @@ namespace PangyaAPI.Network.PangyaServer
             Console.WriteLine("Server is stopping...");
         }
               
-
-        public void SendToAll(byte[] Data)
-        {
-            for (int i = 0; i < m_session_manager.NumSessionConnected(); i++)
-            {
-                m_session_manager.m_sessions[i].Send(Data);
-            }
-        }
-
+                              
         public virtual SessionBase HasLoggedWithOuterSocket(SessionBase _session)
         {
             var s = m_session_manager.FindAllSessionByUid(_session.getUID());
@@ -581,7 +690,7 @@ namespace PangyaAPI.Network.PangyaServer
 
         public virtual SessionBase FindSessionByUid(uint uid)
         {
-          return m_session_manager.FindSessionByUid(uid);
+          return m_session_manager.findSessionByUID(uid);
         }
 
         public virtual List<SessionBase> FindAllSessionByUid(uint uid)

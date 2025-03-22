@@ -70,7 +70,7 @@ namespace PangyaAPI.Network.Cmd
             return r;
         }
 
-        public RateConfigInfo GetInfo()
+        public RateConfigInfo getInfo()
         {
             return this.m_rate_info;
         }

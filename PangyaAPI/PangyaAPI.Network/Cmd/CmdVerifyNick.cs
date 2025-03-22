@@ -12,7 +12,7 @@ namespace PangyaAPI.Network.Cmd
 {
     public class CmdVerifyNick: Pangya_DB
     {
-        int m_uid = -1;
+       uint m_uid = 0;
         string m_nick = "";
         bool m_check = false;
        
@@ -27,7 +27,7 @@ namespace PangyaAPI.Network.Cmd
             checkColumnNumber(1);
             try
             {
-                m_uid = int.Parse(_result.data[0].ToString());
+                m_uid = uint.Parse(_result.data[0].ToString());
                 m_check = m_uid > 0;
 
                 if (!m_check)
@@ -56,5 +56,6 @@ namespace PangyaAPI.Network.Cmd
 
         public bool getLastCheck() => m_check;
 
+        public uint getUID() => m_uid;
     }
 }

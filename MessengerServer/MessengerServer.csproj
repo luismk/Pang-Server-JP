@@ -1,0 +1,85 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{2760E7EA-3095-49F3-81FB-8597682475E6}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>MessengerServer</RootNamespace>
+    <AssemblyName>MessengerServer</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>MessengerServer</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>MessengerServer</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Cmd\cmd_add_friend.cs" />
+    <Compile Include="Cmd\cmd_delete_friend.cs" />
+    <Compile Include="Cmd\cmd_friend_info.cs" />
+    <Compile Include="Cmd\cmd_player_info.cs" />
+    <Compile Include="Cmd\cmd_update_friend.cs" />
+    <Compile Include="GameType\pangya_messenger_st.cs" />
+    <Compile Include="GameType\PlayerInfo.cs" />
+    <Compile Include="Manager\FriendManager.cs" />
+    <Compile Include="MessengerServer.cs" />
+    <Compile Include="MessengerServerTcp\MessengerServer.cs" />
+    <Compile Include="PacketFunc\packet_func_ms.cs" />
+    <Compile Include="PangyaEnums\Definition.cs" />
+    <Compile Include="Session\Player.cs" />
+    <Compile Include="Session\player_manager.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PangyaAPI\PangLib.IFF.JP\PangLib.IFF.JP.csproj">
+      <Project>{ec517392-61f2-43f6-834d-8adc69924a22}</Project>
+      <Name>PangLib.IFF.JP</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\PangyaAPI\PangyaAPI.Network\PangyaAPI.Network.csproj">
+      <Project>{fe218d80-0679-47e0-bed2-284bba6fe8aa}</Project>
+      <Name>PangyaAPI.Network</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\PangyaAPI\PangyaAPI.SQL\PangyaAPI.SQL.csproj">
+      <Project>{a3fe3da6-5099-4a65-8734-d43513e23ffb}</Project>
+      <Name>PangyaAPI.SQL</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\PangyaAPI\PangyaAPI.Utilities\PangyaAPI.Utilities.csproj">
+      <Project>{1e2be994-1794-47ce-b66b-65f02d42570c}</Project>
+      <Name>PangyaAPI.Utilities</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

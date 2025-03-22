@@ -180,7 +180,7 @@ namespace PangyaAPI.Utilities.BinaryModels
             return true;
 
         }
-
+        public bool WriteString(string data) => WritePStr(data);
         public bool WritePStr(string data)
         {
             if (data == null) data = "";

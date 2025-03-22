@@ -403,7 +403,7 @@ namespace PangyaAPI.Utilities
         }
     }
     public static class Tools
-    {
+    {             
         public static T IfCompare<T>(bool expression, T trueValue, T falseValue)
         {
             if (expression)
@@ -451,8 +451,18 @@ namespace PangyaAPI.Utilities
 
         public static KeyValuePair<TKey, TValue> find<TKey, TValue>(this Dictionary<TKey, TValue> pairs, object value)
         {
-            return pairs.Where(c=> c.Key == (TKey)value || c.Value == (TValue)value).FirstOrDefault(); // Retorna true se o dicionário estiver vazio
+            if (value is TKey keyValue)
+            {
+                return pairs.FirstOrDefault(c => EqualityComparer<TKey>.Default.Equals(c.Key, keyValue));
+            }
+            if (value is TValue val)
+            {
+                return pairs.FirstOrDefault(c => EqualityComparer<TValue>.Default.Equals(c.Value, val));
+            }
+
+            return default; // Retorna o valor padrão (default) se não encontrar
         }
+
 
 
         public static KeyValuePair<TKey, TValue> begin<TKey, TValue>(this Dictionary<TKey, TValue> pairs)
@@ -468,7 +478,7 @@ namespace PangyaAPI.Utilities
 
         public static T find<T>(this List<T> pairs, T value)
         {
-            return pairs.Where(c => c == value).FirstOrDefault(); // Retorna true se o dicionário estiver vazio
+            return pairs.FirstOrDefault(c => EqualityComparer<T>.Default.Equals(c, value));
         }
 
 

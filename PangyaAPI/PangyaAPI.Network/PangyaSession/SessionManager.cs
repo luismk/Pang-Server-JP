@@ -134,7 +134,7 @@ namespace PangyaAPI.Network.PangyaSession
             return session;
         }
 
-        public virtual SessionBase FindSessionByUid(uint uid)
+        public virtual SessionBase findSessionByUID(uint uid)
         {
             SessionBase session = null;
             lock (_lockObject)

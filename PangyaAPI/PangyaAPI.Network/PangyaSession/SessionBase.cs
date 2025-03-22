@@ -201,7 +201,7 @@ namespace PangyaAPI.Network.PangyaSession
             }
         }
 
-        public void SafeSend(byte[] buffer)
+        protected void SafeSend(byte[] buffer)
         {
             try
             {

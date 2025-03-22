@@ -1,6 +1,7 @@
 ﻿using PangLib.IFF.JP.Extensions;
 using PangLib.IFF.JP.Models.Data;
 using PangLib.IFF.JP.Models.General;
+using PangyaAPI.Utilities.BinaryModels;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -333,7 +334,7 @@ namespace PangLib.IFF.JP.Models
                 Reader = new PangyaBinaryReader(new MemoryStream(data));
                 Header = Reader.Read<IFFHeader>();
                 CheckVersionIFF();
-                var real_size = (Reader.GetSize() - 8L) / Header.Count;
+                var real_size = (Reader.Size - 8L) / Header.Count;
                 CheckItemSize(real_size);
                 //reader object and convert is class IFF
                 var item = Reader.ReadStruct<T>(Header.Count);
@@ -374,7 +375,7 @@ namespace PangLib.IFF.JP.Models
                 Reader = new PangyaBinaryReader(new MemoryStream(data));
                 Header = Reader.Read<IFFHeader>();
                 CheckVersionIFF();
-                var real_size = (Reader.GetSize() - 8L) / Header.Count;
+                var real_size = (Reader.Size - 8L) / Header.Count;
                 CheckItemSize(real_size);
                 //reader object and convert is class IFF
                 var item = Reader.ReadStruct<T>(Header.Count);
@@ -417,7 +418,7 @@ namespace PangLib.IFF.JP.Models
                 Reader = new PangyaBinaryReader(new MemoryStream());
                 Header = Reader.Read<IFFHeader>();
                 CheckVersionIFF();
-                var real_size = (Reader.GetSize() - 8L) / Header.Count;
+                var real_size = (Reader.Size - 8L) / Header.Count;
                 CheckItemSize(real_size);
                 //reader object and convert is class IFF
                 var item = Reader.ReadStruct<T>(Header.Count).ToArray();

@@ -17,7 +17,17 @@ namespace PangyaAPI.Network.PangyaSession
         private readonly Channel<byte[]> _queue = Channel.CreateUnbounded<byte[]>(); // Fila otimizada
         private readonly SemaphoreSlim _sendLock = new SemaphoreSlim(1, 1); // Garante apenas uma Task de envio
         private volatile bool _isSending = false; // Flag para indicar envio ativo
- 
+        public virtual void Send(byte[] data, bool _compress = true, bool debug_log = true)
+        {
+            if (debug_log)
+                Console.WriteLine("[SessionBase::Send][HexLog]: " + data.HexDump());
+
+            if (m_key != 255 && _compress) // Encrypt se necessário
+                data = data.ServerEncrypt(m_key, 0);   
+
+            _queue.Writer.TryWrite(data); // Adiciona à fila sem bloquear
+        }
+
         public virtual void Send(byte[] data, bool debug_log = true)
         {
             if (debug_log)

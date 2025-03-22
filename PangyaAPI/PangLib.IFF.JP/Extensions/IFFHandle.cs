@@ -109,7 +109,7 @@ namespace PangLib.IFF.JP.Extensions
         {
             m_loaded = false;
         }
-
+                                                                           
         private IFFFile<T> MakeUnzipLoad<T>(string iffName) where T : new()
         {
             var mapIFF = new IFFFile<T>();
@@ -1734,5 +1734,7 @@ namespace PangLib.IFF.JP.Extensions
             return (uint)price.Sum(el => (uint)el);
         }
     }
-
+    public class sIff : Singleton<IFFHandle>
+    {
+    }
 }

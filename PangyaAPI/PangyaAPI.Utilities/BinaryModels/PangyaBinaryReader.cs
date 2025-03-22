@@ -59,15 +59,7 @@ namespace PangyaAPI.Utilities.BinaryModels
             BaseStream.Position = previousOffset;
             return array;
         }
-
-      public  T ReadStruct<T>() where T : struct
-        {
-            var pData = GCHandle.Alloc(GetRemainingData(), GCHandleType.Pinned);
-            var result = (T)Marshal.PtrToStructure(pData.AddrOfPinnedObject(), typeof(T));
-            pData.Free();
-            return result;
-        }
-
+            
 
         public bool ReadPStr(out string value, uint Count)
         {
@@ -660,7 +652,160 @@ namespace PangyaAPI.Utilities.BinaryModels
                 }
             }
             // return obj;
-        }       
+        }
 
+        public IEnumerable<uint> ReadUInt32Array(uint count)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                yield return ReadUInt32();
+            }
+        }
+        public IEnumerable<int> ReadInt32Array(uint count)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                yield return ReadInt32();
+            }
+        }
+
+        public IEnumerable<ushort> ReadUInt16Array(ushort count)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                yield return ReadUInt16();
+            }
+        }
+
+        public IEnumerable<short> ReadInt16Array(ushort count)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                yield return ReadInt16();
+            }
+        }
+
+        public T ReadStruct<T>()
+        {
+            var count = Marshal.SizeOf(typeof(T));
+
+            byte[] recordData = ReadBytes(count);
+
+            if (recordData.Length != count)
+            {
+                throw new Exception(
+                    $"The record({typeof(T).GetType().Name}) length ({recordData.Length}) mismatches the length of the passed structure ({count})");
+            }
+
+            var handle = GCHandle.Alloc(recordData, GCHandleType.Pinned);
+
+            try
+            {
+                var stt = (T)Marshal.PtrToStructure(handle.AddrOfPinnedObject(), typeof(T));
+                return stt;
+            }
+            catch { handle.Free(); return (T)Activator.CreateInstance(typeof(T)); }
+            finally
+            {
+                handle.Free();
+            }
+        }
+
+        protected T _Read<T>(long real_size)
+        {
+            var count = Marshal.SizeOf(typeof(T));
+
+            byte[] recordData = new byte[real_size];
+            if (count > real_size)
+            {
+                recordData = ReadBytes((int)real_size);
+                count = (int)real_size;
+            }
+            else if (real_size > count)
+            {
+                recordData = ReadBytes((int)real_size);
+                count = (int)real_size;
+            }
+            else
+            {
+                recordData = ReadBytes(count);
+            }
+            var handle = GCHandle.Alloc(recordData, GCHandleType.Pinned);
+
+            try
+            {
+                var stt = (T)Marshal.PtrToStructure(handle.AddrOfPinnedObject(), typeof(T));
+                return stt;
+            }
+            catch { handle.Free(); return (T)Activator.CreateInstance(typeof(T)); }
+            finally
+            {
+                handle.Free();
+            }
+        }
+
+        public T[] ReadStruct<T>(int count)
+        {
+            var array = new T[count];
+
+            for (int i = 0; i < count; i++)
+            {
+                array[i] = ReadStruct<T>();
+            }
+
+            return array;
+        }
+
+        public T[] ReadStruct<T>(int count, int size)
+        {
+            var array = new T[count];
+
+            for (int i = 0; i < count; i++)
+            {
+                array[i] = _Read<T>(size);
+            }
+
+            return array;
+        }                         
+
+        public object Read(object value, long real_size)
+        {
+            try
+            {
+                var count = Marshal.SizeOf(value);
+
+                byte[] recordData = new byte[real_size];
+                if (count > real_size)
+                {
+                    recordData = ReadBytes((int)real_size);
+                    count = (int)real_size;
+                }
+                else if (real_size > count)
+                {
+                    recordData = ReadBytes((int)real_size);
+                    count = (int)real_size;
+                }
+                else
+                {
+                    recordData = ReadBytes(count);
+                }
+                IntPtr ptr = Marshal.AllocHGlobal(count);
+
+                Marshal.Copy(recordData, 0, ptr, count);
+
+                value = Marshal.PtrToStructure(ptr, value.GetType());
+                Marshal.FreeHGlobal(ptr);
+                return value;
+            }
+            catch (Exception ex)
+            {
+
+                throw ex;
+            }
+        }                                      
+        public byte[] ReadBytes()
+        {
+            return ReadBytes((int)this.Size);
+        }
     }
 }

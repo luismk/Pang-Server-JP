@@ -25,7 +25,7 @@ namespace PangLib.IFF.JP.Models.General
         /// Active item
         /// </summary>
         [field: MarshalAs(UnmanagedType.Bool, SizeConst = 4)]
-        public bool Active { get; set; }//0 start position
+        public bool Active { get; set; } = true;//0 start position
         /// <summary>
         /// Tipo Index do item
         /// </summary>
@@ -34,17 +34,17 @@ namespace PangLib.IFF.JP.Models.General
         /// nome do item em bytes
         /// </summary>
         [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 64)]
-        byte[] NameInBytes { get; set; }//8 start position
+        byte[] NameInBytes { get; set; } = new byte[0];//8 start position
         /// <summary>
         /// level do item
         /// </summary>
         [field: MarshalAs(UnmanagedType.Struct, SizeConst = 1)]
-        public IFFLevel Level { get; set; }//72 start position
+        public IFFLevel Level { get; set; } = new IFFLevel(); //72 start position
         /// <summary>
         /// Nome do icone 
         /// </summary>
         [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 43)]  //is 40, 3 bytes isnt used 
-        public string ShopIcon { get; set; }//73 start position 
+        public string ShopIcon { get; set; } = "";//73 start position 
         //--------------------------end--------------------------------\\
 
         //------------------ SHOP DADOS ---------------------------------\\

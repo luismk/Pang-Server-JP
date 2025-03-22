@@ -89,7 +89,8 @@
     <Compile Include="Cryptor\MiniLzo.cs" />
     <Compile Include="Cryptor\ToServerBuffer.cs" />
     <Compile Include="PangyaPacket\Packet.cs" />
-    <Compile Include="PangyaPacket\PacketFuncArr.cs" />
+    <Compile Include="PangyaPacket\func_arr.cs" />
+    <Compile Include="PangyaPacket\packet_func_base.cs" />
     <Compile Include="PangyaServer\Server.cs" />
     <Compile Include="PangyaSession\SessionBase.cs" />
     <Compile Include="PangyaSession\SessionBaseSend.cs" />
