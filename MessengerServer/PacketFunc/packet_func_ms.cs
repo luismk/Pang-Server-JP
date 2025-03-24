@@ -12,11 +12,11 @@ namespace MessengerServer.PacketFunc
     public class packet_func : packet_func_base
     {
         // Cliente
-        public static int packet012(ParamDispatch pd)
+        public static int packet012(object param, ParamDispatch pd)
         {
             try
             {                                                                                                                                                                         
-                sms.ms.getInstance().requestLogin(((Player)pd._session), pd._packet);
+                ((MessengerServerTcp.MessengerServer)param).requestLogin(((Player)pd._session), pd._packet);
                 return 1;
             }
             catch (exception e)
@@ -33,7 +33,7 @@ namespace MessengerServer.PacketFunc
             return 0;
         }
 
-        public static int packet013(ParamDispatch pd)
+        public static int packet013(object param,ParamDispatch pd)
         {                                                                
             try
             {
@@ -63,12 +63,12 @@ namespace MessengerServer.PacketFunc
             return 0;
         }
 
-        public static int packet014(ParamDispatch pd)
+        public static int packet014(object param,ParamDispatch pd)
         {                                                               
             try
             {
 
-                sms.ms.getInstance().requestFriendAndGuildMemberList(((Player)pd._session), pd._packet);
+                ((MessengerServerTcp.MessengerServer)param).requestFriendAndGuildMemberList(((Player)pd._session), pd._packet);
 
             }
             catch (exception e)
@@ -85,12 +85,12 @@ namespace MessengerServer.PacketFunc
             return 0;
         }
 
-        public static int packet016(ParamDispatch pd)
+        public static int packet016(object param,ParamDispatch pd)
         {                                                              
             try
             {
 
-                sms.ms.getInstance().requestUpdatePlayerLogout(((Player)pd._session), pd._packet);
+                ((MessengerServerTcp.MessengerServer)param).requestUpdatePlayerLogout(((Player)pd._session), pd._packet);
 
             }
             catch (exception e)
@@ -107,12 +107,12 @@ namespace MessengerServer.PacketFunc
             return 0;
         }
 
-        public static int packet017(ParamDispatch pd)
+        public static int packet017(object param,ParamDispatch pd)
         {                                                             
             try
             {
 
-                sms.ms.getInstance().requestCheckNickname(((Player)pd._session), pd._packet);
+                ((MessengerServerTcp.MessengerServer)param).requestCheckNickname(((Player)pd._session), pd._packet);
 
             }
             catch (exception e)
@@ -129,12 +129,12 @@ namespace MessengerServer.PacketFunc
             return 0;
         }
 
-        public static int packet018(ParamDispatch pd)
+        public static int packet018(object param,ParamDispatch pd)
         {                                                            
             try
             {
 
-                sms.ms.getInstance().requestAddFriend(((Player)pd._session), pd._packet);
+                ((MessengerServerTcp.MessengerServer)param).requestAddFriend(((Player)pd._session), pd._packet);
 
             }
             catch (exception e)
@@ -151,12 +151,12 @@ namespace MessengerServer.PacketFunc
             return 0;
         }
 
-        public static int packet019(ParamDispatch pd)
+        public static int packet019(object param,ParamDispatch pd)
         {                                                           
             try
             {
 
-                sms.ms.getInstance().requestConfirmFriend(((Player)pd._session), pd._packet);
+                ((MessengerServerTcp.MessengerServer)param).requestConfirmFriend(((Player)pd._session), pd._packet);
 
             }
             catch (exception e)
@@ -173,12 +173,12 @@ namespace MessengerServer.PacketFunc
             return 0;
         }
 
-        public static int packet01A(ParamDispatch pd)
+        public static int packet01A(object param,ParamDispatch pd)
         {    
             try
             {
 
-                sms.ms.getInstance().requestBlockFriend(((Player)pd._session), pd._packet);
+                ((MessengerServerTcp.MessengerServer)param).requestBlockFriend(((Player)pd._session), pd._packet);
 
             }
             catch (exception e)
@@ -195,12 +195,12 @@ namespace MessengerServer.PacketFunc
             return 0;
         }
 
-        public static int packet01B(ParamDispatch pd)
+        public static int packet01B(object param,ParamDispatch pd)
         {        
             try
             {
 
-                sms.ms.getInstance().requestUnblockFriend(((Player)pd._session), pd._packet);
+                ((MessengerServerTcp.MessengerServer)param).requestUnblockFriend(((Player)pd._session), pd._packet);
 
             }
             catch (exception e)
@@ -217,12 +217,12 @@ namespace MessengerServer.PacketFunc
             return 0;
         }
 
-        public static int packet01C(ParamDispatch pd)
+        public static int packet01C(object param,ParamDispatch pd)
         {     
             try
             {
 
-                sms.ms.getInstance().requestDeleteFriend(((Player)pd._session), pd._packet);
+                ((MessengerServerTcp.MessengerServer)param).requestDeleteFriend(((Player)pd._session), pd._packet);
 
             }
             catch (exception e)
@@ -239,12 +239,12 @@ namespace MessengerServer.PacketFunc
             return 0;
         }
 
-        public static int packet01D(ParamDispatch pd)
+        public static int packet01D(object param,ParamDispatch pd)
         {     
             try
             {
 
-                sms.ms.getInstance().requestUpdatePlayerState(((Player)pd._session), pd._packet);
+                ((MessengerServerTcp.MessengerServer)param).requestUpdatePlayerState(((Player)pd._session), pd._packet);
 
             }
             catch (exception e)
@@ -261,12 +261,12 @@ namespace MessengerServer.PacketFunc
             return 0;
         }
 
-        public static int packet01E(ParamDispatch pd)
+        public static int packet01E(object param,ParamDispatch pd)
         {    
             try
             {
 
-                sms.ms.getInstance().requestChatFriend(((Player)pd._session), pd._packet);
+                ((MessengerServerTcp.MessengerServer)param).requestChatFriend(((Player)pd._session), pd._packet);
 
             }
             catch (exception e)
@@ -283,12 +283,12 @@ namespace MessengerServer.PacketFunc
             return 0;
         }
 
-        public static int packet01F(ParamDispatch pd)
+        public static int packet01F(object param,ParamDispatch pd)
         {         
             try
             {
 
-                sms.ms.getInstance().requestAssignApelido(((Player)pd._session), pd._packet);
+                ((MessengerServerTcp.MessengerServer)param).requestAssignApelido(((Player)pd._session), pd._packet);
 
             }
             catch (exception e)
@@ -305,12 +305,12 @@ namespace MessengerServer.PacketFunc
             return 0;
         }
 
-        public static int packet023(ParamDispatch pd)
+        public static int packet023(object param,ParamDispatch pd)
         {                         
             try
             {
 
-                sms.ms.getInstance().requestUpdateChannelPlayerInfo(((Player)pd._session), pd._packet);
+                ((MessengerServerTcp.MessengerServer)param).requestUpdateChannelPlayerInfo(((Player)pd._session), pd._packet);
 
             }
             catch (exception e)
@@ -327,12 +327,12 @@ namespace MessengerServer.PacketFunc
             return 0;
         }
 
-        public static int packet024(ParamDispatch pd)
+        public static int packet024(object param,ParamDispatch pd)
         {      
             try
             {
 
-                sms.ms.getInstance().requestNotifyPlayerWasInvitedToRoom(((Player)pd._session), pd._packet);
+                ((MessengerServerTcp.MessengerServer)param).requestNotifyPlayerWasInvitedToRoom(((Player)pd._session), pd._packet);
 
             }
             catch (exception e)
@@ -349,7 +349,7 @@ namespace MessengerServer.PacketFunc
             return 0;
         }
 
-        public static int packet025(ParamDispatch pd)
+        public static int packet025(object param,ParamDispatch pd)
         {
            
             
@@ -357,7 +357,7 @@ namespace MessengerServer.PacketFunc
             try
             {
 
-                sms.ms.getInstance().requestChatGuild(((Player)pd._session), pd._packet);
+                ((MessengerServerTcp.MessengerServer)param).requestChatGuild(((Player)pd._session), pd._packet);
 
             }
             catch (exception e)
@@ -374,7 +374,7 @@ namespace MessengerServer.PacketFunc
             return 0;
         }
 
-        public static int packet028(ParamDispatch pd)
+        public static int packet028(object param,ParamDispatch pd)
         {
            
             
@@ -382,7 +382,7 @@ namespace MessengerServer.PacketFunc
             try
             {
 
-                sms.ms.getInstance().requestInvitePlayerToGuildBattleRoom(((Player)pd._session), pd._packet);
+                ((MessengerServerTcp.MessengerServer)param).requestInvitePlayerToGuildBattleRoom(((Player)pd._session), pd._packet);
 
             }
             catch (exception e)
@@ -399,7 +399,7 @@ namespace MessengerServer.PacketFunc
             return 0;
         }
 
-        public static int packet029(ParamDispatch pd)
+        public static int packet029(object param,ParamDispatch pd)
         {
            
             
@@ -435,7 +435,7 @@ namespace MessengerServer.PacketFunc
             return 0;
         }
 
-        public static int packet02A(ParamDispatch pd)
+        public static int packet02A(object param,ParamDispatch pd)
         {
            
             
@@ -472,7 +472,7 @@ namespace MessengerServer.PacketFunc
             return 0;
         }
 
-        public static int packet02B(ParamDispatch pd)
+        public static int packet02B(object param,ParamDispatch pd)
         {
            
             
@@ -509,7 +509,7 @@ namespace MessengerServer.PacketFunc
             return 0;
         }
 
-        public static int packet02C(ParamDispatch pd)
+        public static int packet02C(object param,ParamDispatch pd)
         {
            
             
@@ -546,7 +546,7 @@ namespace MessengerServer.PacketFunc
             return 0;
         }
 
-        public static int packet02D(ParamDispatch pd)
+        public static int packet02D(object param,ParamDispatch pd)
         {
            
             
@@ -584,7 +584,7 @@ namespace MessengerServer.PacketFunc
         }
 
         // Server
-        public static int packet_svFazNada(ParamDispatch pd)
+        public static int packet_svFazNada(object param,ParamDispatch pd)
         {
            
             
@@ -596,13 +596,13 @@ namespace MessengerServer.PacketFunc
         }
 
         // Auth Server
-        public static int packet_as001(ParamDispatch pd)
+        public static int packet_as001(object param,ParamDispatch pd)
         {
            
             try
             {
 
-                sms.ms.getInstance().requestAcceptGuildMember(pd._packet);
+                ((MessengerServerTcp.MessengerServer)param).requestAcceptGuildMember(pd._packet);
 
             }
             catch (exception e)
@@ -619,12 +619,12 @@ namespace MessengerServer.PacketFunc
             return 0;
         }
 
-        public static int packet_as002(ParamDispatch pd)
+        public static int packet_as002(object param,ParamDispatch pd)
         {  
             try
             {
 
-                 sms.ms.getInstance().requestMemberExitedFromGuild(pd._packet);
+                 ((MessengerServerTcp.MessengerServer)param).requestMemberExitedFromGuild(pd._packet);
 
             }
             catch (exception e)
@@ -641,12 +641,12 @@ namespace MessengerServer.PacketFunc
             return 0;
         }
 
-        public static int packet_as003(ParamDispatch pd)
+        public static int packet_as003(object param,ParamDispatch pd)
         {                                          
             try
             {
 
-                 sms.ms.getInstance().requestKickGuildMember(pd._packet);
+                 ((MessengerServerTcp.MessengerServer)param).requestKickGuildMember(pd._packet);
 
             }
             catch (exception e)

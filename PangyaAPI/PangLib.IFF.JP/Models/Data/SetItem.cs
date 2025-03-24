@@ -3,6 +3,8 @@ using System;
 using System.Runtime.InteropServices;
 using PangLib.IFF.JP.Extensions;
 using System.Linq;
+using PangyaAPI.Utilities.BinaryModels;
+
 namespace PangLib.IFF.JP.Models.Data
 {
     #region Struct SetItem.iff

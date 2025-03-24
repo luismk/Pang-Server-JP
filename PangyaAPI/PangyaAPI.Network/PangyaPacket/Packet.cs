@@ -79,6 +79,8 @@ namespace PangyaAPI.Network.PangyaPacket
         {
             get => Reader.Size;
         }
+
+        public short getTipo() => Id;
         public uint GetPos
         {
             get => Reader.GetPosition();
@@ -199,6 +201,12 @@ namespace PangyaAPI.Network.PangyaPacket
         public bool ReadBytes(out byte[] value, int len)
         {
             return Reader.ReadBytes(out value, len);
+        }
+
+        public bool ReadBytes(ref byte[] value, uint len)
+        {
+            Reader.ReadBytes(out value, (int)len);
+            return true;
         }
         public bool ReadByte(out byte value)
         {

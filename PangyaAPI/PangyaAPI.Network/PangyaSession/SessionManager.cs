@@ -6,6 +6,7 @@ using System.Net.Sockets;
 using System.Net;
 using PangyaAPI.Network.PangyaServer;
 using System.Threading;
+using PangyaAPI.Network.PangyaUnit;
 
 namespace PangyaAPI.Network.PangyaSession
 {
@@ -66,6 +67,39 @@ namespace PangyaAPI.Network.PangyaSession
                 session = m_sessions[(int)index];
                 session._client = socket;
                 session.Server = _server;// server! 
+                session.Address = address;
+                session.m_key = key;
+                session.m_oid = index;
+                session.m_start_time = Environment.TickCount;
+                session.m_tick = Environment.TickCount;
+
+                session.SetState(true);
+
+                m_count++;
+            }
+
+            return session;
+        }
+
+        public SessionBase AddSession(unit _server, TcpClient socket, IPEndPoint address, byte key)
+        {
+            if (socket == null || !socket.Connected)
+            {
+                throw new InvalidOperationException("[SessionManager::AddSession] _client is invalid.");
+            }
+
+            SessionBase session = null;
+            lock (_lockObject)
+            {
+                uint index = findSessionFree();
+                if (index == uint.MaxValue)
+                {
+                    throw new InvalidOperationException("[SessionManager::AddSession] Already reached session limit.");
+                }
+                //socket.ReceiveTimeout = 60000; // 20 segundos
+                //socket.SendTimeout = 60000;
+                session = m_sessions[(int)index];
+                session._client = socket;
                 session.Address = address;
                 session.m_key = key;
                 session.m_oid = index;

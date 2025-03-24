@@ -4,6 +4,7 @@ using System;
 using System.Runtime.InteropServices;
 using PangLib.IFF.JP.Extensions;
 using System.Globalization;
+using PangyaAPI.Utilities.BinaryModels;
 
 namespace PangLib.IFF.JP.Models.Data
 {               

@@ -1,4 +1,5 @@
 ﻿using PangLib.IFF.JP.Extensions;
+using PangyaAPI.Utilities.BinaryModels;
 using System;
 using System.Runtime.InteropServices;
 using System.Text;

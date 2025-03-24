@@ -19,6 +19,7 @@ namespace PangyaAPI.Network.PangyaPacket
         public SessionBase _session { get; set; }
         public Packet _packet { get; set; }
     }
+    public delegate int call_func(object param, ParamDispatch pd);
 
     public class func_arr
     {
@@ -36,9 +37,10 @@ namespace PangyaAPI.Network.PangyaPacket
         public class func_arr_ex
         {
             public func_arr_ex()
-            {                                
+            {
             }
-            public Func<ParamDispatch, int> cf;
+            public call_func cf { get; set; }
+            public object Param { get; set; }
 
             public int ExecCmd(ParamDispatch pd)
             {
@@ -57,7 +59,7 @@ namespace PangyaAPI.Network.PangyaPacket
                     }
 
                     // Invoca a função callback e pega o resultado
-                    int result = cf.Invoke(pd);
+                    int result = cf.Invoke(Param, pd);
 
                     // Parar o stopwatch
                     stopwatch.Stop();
@@ -85,10 +87,18 @@ namespace PangyaAPI.Network.PangyaPacket
         /// </summary>
         /// <param db_name="_tipo">id do pacote</param>
         /// <param db_name="_func"> funcao a ser chamada</param>
-        public void addPacketCall(short _tipo,
-            Func<ParamDispatch, int> _func)
+
+        public void addPacketCall(ushort tipo, call_func func, object param)
         {
-            m_func[_tipo].cf = _func;
+            if (tipo < MAX_CALL_FUNC_ARR)
+            {
+                m_func[tipo].cf = func;
+                m_func[tipo].Param = param;
+            }
+            else
+            {
+                throw new ArgumentOutOfRangeException(nameof(tipo), "Tipo excede o limite máximo permitido.");
+            }
         }
 
         public func_arr_ex getPacketCall(short _tipo)

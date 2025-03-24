@@ -148,7 +148,7 @@ namespace PangyaAPI.Utilities
     public class Singleton<_ST> where _ST : new()
     {
 
-        public static readonly _ST myInstance = new _ST();
+        static readonly _ST myInstance = new _ST();
 
         public Singleton() { }
 

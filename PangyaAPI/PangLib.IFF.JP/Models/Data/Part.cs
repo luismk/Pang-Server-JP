@@ -1,6 +1,7 @@
 ﻿using PangLib.IFF.JP.Extensions;
 using PangLib.IFF.JP.Models.Flags;
 using PangLib.IFF.JP.Models.General;
+using PangyaAPI.Utilities.BinaryModels;
 using System;
 using System.Diagnostics;
 using System.Drawing;

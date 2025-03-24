@@ -17,8 +17,8 @@ using MessengerServer.PangyaEnums;
 using System.Threading;
 using System.Runtime.InteropServices;
 using System.Linq;
-using static PangyaAPI.SQL.NormalDB;
 using MessengerServer.Manager;
+using PangyaAPI.Network.Pangya_St;
 
 namespace MessengerServer.MessengerServerTcp
 {
@@ -26,8 +26,8 @@ namespace MessengerServer.MessengerServerTcp
     {
         public const int FRIEND_LIST_LIMIT = 50;
         public const int FRIEND_PAG_LIMIT = 30;
-        protected player_manager m_player_manager;
-        public MessengerServer() : base(new player_manager(2000))
+        public new player_manager m_session_manager;
+        public MessengerServer()
         {
             if (m_state == ServerState.Failure)
             {
@@ -38,9 +38,8 @@ namespace MessengerServer.MessengerServerTcp
             try
             {
 
-                m_player_manager = new player_manager(2000);
+                ConfigInit();                                                  
 
-                ConfigInit();
                 // Carrega IFF_STRUCT
                 if (!sIff.getInstance().isLoad())
                     sIff.getInstance().load();
@@ -50,7 +49,6 @@ namespace MessengerServer.MessengerServerTcp
 
                 // Initialized complete
                 m_state = ServerState.Initialized;
-
             }
             catch (exception e)
             {
@@ -72,6 +70,7 @@ namespace MessengerServer.MessengerServerTcp
                 WriteConsole.WriteLine($"[MessengerServer.CheckPacket][Log]: PLAYER[UID: {player.m_pi.uid}, CGPID: {packetId}]", ConsoleColor.Cyan);
                 return true;
             }
+
             else// nao tem no PacketIDClient
             {
                 WriteConsole.WriteLine($"[MessengerServer.CheckPacket][Log]: PLAYER[UID: {player.m_pi.uid}, CGPID: 0x{packet.Id:X}]");
@@ -90,15 +89,13 @@ namespace MessengerServer.MessengerServerTcp
             bool ret = true;
 
             try
-            {
-
+            {                                                       
                 // S� envia o UpdatePlayerLogout se o player estiver autorizado(Fez o login)
                 if (p.getState() && Interlocked.CompareExchange(ref ((Player)_session).m_pi.m_logout, ((Player)_session).m_pi.m_logout, 0) == 0 && p.m_is_authorized)
                     ret = sendUpdatePlayerLogoutToFriends(p);
             }
             catch (exception e)
-            {
-
+            {                                                        
                 message_pool.push(new message("[message_server::onDisconnected][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
 
@@ -169,41 +166,41 @@ namespace MessengerServer.MessengerServerTcp
         /// </summary>
         protected void init_Packets()
         {
-            packet_func.funcs.addPacketCall(0x12, packet_func.packet012);
-            packet_func.funcs.addPacketCall(0x13, packet_func.packet013);
-            packet_func.funcs.addPacketCall(0x14, packet_func.packet014);
-            packet_func.funcs.addPacketCall(0x16, packet_func.packet016);
-            packet_func.funcs.addPacketCall(0x17, packet_func.packet017);
-            packet_func.funcs.addPacketCall(0x18, packet_func.packet018);
-            packet_func.funcs.addPacketCall(0x19, packet_func.packet019);
-            packet_func.funcs.addPacketCall(0x1A, packet_func.packet01A);
-            packet_func.funcs.addPacketCall(0x1B, packet_func.packet01B);
-            packet_func.funcs.addPacketCall(0x1C, packet_func.packet01C);
-            packet_func.funcs.addPacketCall(0x1D, packet_func.packet01D);
-            packet_func.funcs.addPacketCall(0x1E, packet_func.packet01E);
-            packet_func.funcs.addPacketCall(0x1F, packet_func.packet01F);
-            packet_func.funcs.addPacketCall(0x23, packet_func.packet023);
-            packet_func.funcs.addPacketCall(0x24, packet_func.packet024);
-            packet_func.funcs.addPacketCall(0x25, packet_func.packet025);
-            packet_func.funcs.addPacketCall(0x28, packet_func.packet028);
-            packet_func.funcs.addPacketCall(0x29, packet_func.packet029);
-            packet_func.funcs.addPacketCall(0x2A, packet_func.packet02A);
-            packet_func.funcs.addPacketCall(0x2B, packet_func.packet02B);
-            packet_func.funcs.addPacketCall(0x2C, packet_func.packet02C);
-            packet_func.funcs.addPacketCall(0x2D, packet_func.packet02D);
+            packet_func.funcs.addPacketCall(0x12, packet_func.packet012, this);
+            packet_func.funcs.addPacketCall(0x13, packet_func.packet013, this);
+            packet_func.funcs.addPacketCall(0x14, packet_func.packet014, this);
+            packet_func.funcs.addPacketCall(0x16, packet_func.packet016, this);
+            packet_func.funcs.addPacketCall(0x17, packet_func.packet017, this);
+            packet_func.funcs.addPacketCall(0x18, packet_func.packet018, this);
+            packet_func.funcs.addPacketCall(0x19, packet_func.packet019, this);
+            packet_func.funcs.addPacketCall(0x1A, packet_func.packet01A, this);
+            packet_func.funcs.addPacketCall(0x1B, packet_func.packet01B, this);
+            packet_func.funcs.addPacketCall(0x1C, packet_func.packet01C, this);
+            packet_func.funcs.addPacketCall(0x1D, packet_func.packet01D, this);
+            packet_func.funcs.addPacketCall(0x1E, packet_func.packet01E, this);
+            packet_func.funcs.addPacketCall(0x1F, packet_func.packet01F, this);
+            packet_func.funcs.addPacketCall(0x23, packet_func.packet023, this);
+            packet_func.funcs.addPacketCall(0x24, packet_func.packet024, this);
+            packet_func.funcs.addPacketCall(0x25, packet_func.packet025, this);
+            packet_func.funcs.addPacketCall(0x28, packet_func.packet028, this);
+            packet_func.funcs.addPacketCall(0x29, packet_func.packet029, this);
+            packet_func.funcs.addPacketCall(0x2A, packet_func.packet02A, this);
+            packet_func.funcs.addPacketCall(0x2B, packet_func.packet02B, this);
+            packet_func.funcs.addPacketCall(0x2C, packet_func.packet02C, this);
+            packet_func.funcs.addPacketCall(0x2D, packet_func.packet02D, this);
 
             // Resposta Server
-            packet_func.funcs_sv.addPacketCall(0x2E, packet_func.packet_svFazNada);
-            packet_func.funcs_sv.addPacketCall(0x2F, packet_func.packet_svFazNada);
-            packet_func.funcs_sv.addPacketCall(0x30, packet_func.packet_svFazNada);
-            packet_func.funcs_sv.addPacketCall(0x3B, packet_func.packet_svFazNada);
-            packet_func.funcs_sv.addPacketCall(0x3C, packet_func.packet_svFazNada);
-            packet_func.funcs_sv.addPacketCall(0x40, packet_func.packet_svFazNada); // Msg Aviso Lobby, cliente tamb�m aceita o Message Server enviar esse Pacote
+            packet_func.funcs_sv.addPacketCall(0x2E, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x2F, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x30, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x3B, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x3C, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x40, packet_func.packet_svFazNada, this); // Msg Aviso Lobby, cliente tamb�m aceita o Message Server enviar esse Pacote
 
             // Auth Server
-            packet_func.funcs_as.addPacketCall(0x01, packet_func.packet_as001);
-            packet_func.funcs_as.addPacketCall(0x02, packet_func.packet_as002);
-            packet_func.funcs_as.addPacketCall(0x03, packet_func.packet_as003);
+            packet_func.funcs_as.addPacketCall(0x01, packet_func.packet_as001, this);
+            packet_func.funcs_as.addPacketCall(0x02, packet_func.packet_as002, this);
+            packet_func.funcs_as.addPacketCall(0x03, packet_func.packet_as003, this);
 
         }
 
@@ -410,7 +407,7 @@ namespace MessengerServer.MessengerServerTcp
                         {
                             p.WriteBuffer(friend, Marshal.SizeOf(new FriendInfo()));
 
-                            var s = (Player)m_player_manager.findSessionByUID((friend).uid);
+                            var s = (Player)m_session_manager.findSessionByUID((friend).uid);
 
                             // Se o Player tem ele na lista de amigos, e ele n�o estiver bloqueado na lista do amigo
                             if (s != null && (pFi = s.m_pi.m_friend_manager.findFriendInAllFriend(_session.m_pi.uid)) != null && !(pFi.state.block == 1))
@@ -538,7 +535,7 @@ namespace MessengerServer.MessengerServerTcp
                 packet_func.session_send(p, _session, 1);
 
                 // Send To Player Friend(s)
-                packet_func.friend_broadcast(m_player_manager.findAllFriend(_session.m_pi.m_friend_manager.getAllFriendAndGuildMember(true/*Not Send To Block Friend*/)), p, _session, 1);
+                packet_func.friend_broadcast(m_session_manager.findAllFriend(_session.m_pi.m_friend_manager.getAllFriendAndGuildMember(true/*Not Send To Block Friend*/)), p, _session, 1);
 
             }
             catch (exception e)
@@ -595,7 +592,7 @@ namespace MessengerServer.MessengerServerTcp
                 p.WriteBuffer(_session.m_pi.m_cpi, Marshal.SizeOf(_session.m_pi.m_cpi));
 
                 // Send To Player Friend(s)
-                packet_func.friend_broadcast(m_player_manager.findAllFriend(_session.m_pi.m_friend_manager.getAllFriendAndGuildMember(true/*Not Send To Block Friend*/)), p, _session, 1);
+                packet_func.friend_broadcast(m_session_manager.findAllFriend(_session.m_pi.m_friend_manager.getAllFriendAndGuildMember(true/*Not Send To Block Friend*/)), p, _session, 1);
 
             }
             catch (exception e)
@@ -665,7 +662,7 @@ namespace MessengerServer.MessengerServerTcp
                     throw new exception("[message_server::requestChatFriend][Error] player[UID=" + (_session.m_pi.uid) + "] tentou enviar Message[MSG="
                             + msg + "] para o Amigo[UID=" + (uid) + "], mas o amigo esta bloqueado. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.MESSAGE_SERVER, 4, 0x5200304));
 
-                var s = (Player)m_player_manager.findSessionByUID(uid);
+                var s = (Player)m_session_manager.findSessionByUID(uid);
 
                 if (s == null)
                     throw new exception("[message_server::requestChatFriend][Error] player[UID=" + (_session.m_pi.uid) + "] tentou enviar Message[MSG="
@@ -682,7 +679,7 @@ namespace MessengerServer.MessengerServerTcp
                             + msg + "] para o Amigo[UID=" + (uid) + "], mas amigo bloqueou ele. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.MESSAGE, 7, 0x5200307));
 
                 // Log Para os GMs
-                var gm = m_player_manager.findAllGM();
+                var gm = m_session_manager.findAllGM();
 
                 if (!gm.empty())
                 {
@@ -776,7 +773,7 @@ namespace MessengerServer.MessengerServerTcp
                             + msg + "] para o Chat da Guild[UID=" + (_session.m_pi.guild_uid) + "], mas a msg is empty. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.MESSAGE_SERVER, 2, 0x5200402));
 
                 // Log Para os GMs
-                var gm = m_player_manager.findAllGM();
+                var gm = m_session_manager.findAllGM();
 
                 if (!gm.empty())
                 {
@@ -828,9 +825,9 @@ namespace MessengerServer.MessengerServerTcp
 
                 packet_func.session_send(p, _session, 1);   // SEND TO PLAYER TOO
 
-                // Usa o m_player_manager.findAllGuildMember, que pega todos os players que est�o na mesma guild
-                packet_func.friend_broadcast(m_player_manager.findAllGuildMember(_session.m_pi.guild_uid), p, _session, 1); // All GUILD MEMBER
-                                                                                                                            //packet_func.friend_broadcast(m_player_manager.findAllFriend(_session.m_pi.m_friend_manager.getAllGuildMember()), p, _session, 1);	// ALL GUILD MEMBER
+                // Usa o m_session_manager.findAllGuildMember, que pega todos os players que est�o na mesma guild
+                packet_func.friend_broadcast(m_session_manager.findAllGuildMember(_session.m_pi.guild_uid), p, _session, 1); // All GUILD MEMBER
+                                                                                                                            //packet_func.friend_broadcast(m_session_manager.findAllFriend(_session.m_pi.m_friend_manager.getAllGuildMember()), p, _session, 1);	// ALL GUILD MEMBER
 
                 // ------------------------------- Chat History Discord ------------------------------------
                 // Envia a mensagem para o discord chat log se estiver ativado
@@ -1021,7 +1018,7 @@ namespace MessengerServer.MessengerServerTcp
                     throw new exception("[message_server::requestBlockFriend][Error] player[UID=" + (_session.m_pi.uid) + "] tentou bloqueiar Amigo[UID="
                             + (uid) + "], mas o amigo ja esta bloqueado. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.MESSAGE_SERVER, 3, 0x5300103));
 
-                var s = (Player)m_player_manager.findSessionByUID(uid);
+                var s = (Player)m_session_manager.findSessionByUID(uid);
 
                 FriendInfoEx pFi2 = null;
 
@@ -1156,7 +1153,7 @@ namespace MessengerServer.MessengerServerTcp
                     throw new exception("[message_server::requestUnBlockFriend][Error] player[UID=" + (_session.m_pi.uid) + "] tentou desbloquear Amigo[UID="
                             + (uid) + "], mas o amigo ja esta desbloqueado. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.MESSAGE_SERVER, 3, 0x5300203));
 
-                var s = (Player)m_player_manager.findSessionByUID(uid);
+                var s = (Player)m_session_manager.findSessionByUID(uid);
 
                 FriendInfoEx pFi2 = null;
 
@@ -1301,7 +1298,7 @@ namespace MessengerServer.MessengerServerTcp
                     throw new exception("[message_server::requestAddFriend][Error] player[UID=" + (_session.m_pi.uid) + "] tentou add Friend[UID="
                             + (uid) + ", NICKNAME=" + nickname + "], mas ele esta com a lista de amigos cheia[LIMIT=" + (FRIEND_LIST_LIMIT) + "].", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.MESSAGE_SERVER, 4, 0x5200603));
 
-                var s = (Player)m_player_manager.findSessionByUID(uid);
+                var s = (Player)m_session_manager.findSessionByUID(uid);
 
                 FriendInfoEx fi = new FriendInfoEx(), fi2 = new FriendInfoEx();
 
@@ -1525,7 +1522,7 @@ namespace MessengerServer.MessengerServerTcp
                     throw new exception("[message_server::requestConfirmFriend][Error] player[UID=" + (_session.m_pi.uid) + "] tentou aceitar Amigo[UID="
                             + (uid) + "], mas o player ja eh seu amigo. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.MESSAGE_SERVER, 4, 0x5200804));
 
-                var s = (Player)m_player_manager.findSessionByUID(uid);
+                var s = (Player)m_session_manager.findSessionByUID(uid);
 
                 FriendInfoEx pFi2 = null;
 
@@ -1678,7 +1675,7 @@ namespace MessengerServer.MessengerServerTcp
                     throw new exception("[message_server::requestDeleteFriend][Error] player[UID=" + (_session.m_pi.uid) + "] tentou deletar Amigo[UID="
                             + (uid) + ", NICKNAME=" + nickname + "], mas o player nao eh amigo dele. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.MESSAGE_SERVER, 3, 0x5200703));
 
-                var s = (Player)m_player_manager.findSessionByUID(uid);
+                var s = (Player)m_session_manager.findSessionByUID(uid);
 
                 FriendInfoEx pFi2 = null;
 
@@ -1900,7 +1897,7 @@ namespace MessengerServer.MessengerServerTcp
 
                 p.WriteUInt32(((Player)_session).m_pi.uid);
 
-                packet_func.friend_broadcast(m_player_manager.findAllFriend(((Player)_session).m_pi.m_friend_manager.getAllFriendAndGuildMember(true/*Not Send To Block Friend*/)), p, _session, 1);
+                packet_func.friend_broadcast(m_session_manager.findAllFriend(((Player)_session).m_pi.m_friend_manager.getAllFriendAndGuildMember(true/*Not Send To Block Friend*/)), p, _session, 1);
 
             }
             catch (exception e)
@@ -1986,6 +1983,56 @@ namespace MessengerServer.MessengerServerTcp
         protected virtual void ReloadGlobalSystem(uint tipo) { }
 
         protected virtual void UpdateRateAndEvent(uint tipo, uint qntd) { }
+
+        public override void AuthCmdShutdown(int timeSec)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void AuthCmdBroadcastNotice(string notice)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void AuthCmdBroadcastTicker(string nickname, string msg)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void AuthCmdBroadcastCubeWinRare(string msg, uint option)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void AuthCmdDisconnectPlayer(uint reqServerUid, uint playerUid, byte force)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void AuthCmdConfirmDisconnectPlayer(uint playerUid)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void AuthCmdNewMailArrivedMailBox(uint playerUid, uint mailId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void AuthCmdNewRate(uint tipo, uint qntd)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void AuthCmdReloadGlobalSystem(uint tipo)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void AuthCmdConfirmSendInfoPlayerOnline(uint reqServerUid, AuthServerPlayerInfo aspi)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
 namespace sms

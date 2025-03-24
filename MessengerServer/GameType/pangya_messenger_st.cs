@@ -3,12 +3,7 @@ using System;
 using System.Runtime.InteropServices;
 
 namespace MessengerServer.GameType
-{
-    public class _Define
-    {
-        public const int FRIEND_LIST_LIMIT = 50;
-        public const int FRIEND_PAG_LIMIT = 30;
-    }
+{                 
     // PlayerInfo
     public class player_info
     {

@@ -17,8 +17,7 @@ using System.Linq;
 using System.Diagnostics;
 using PangyaAPI.Network.Cryptor;
 using System.Threading.Tasks;
-
-namespace PangyaAPI.Network.PangyaServer
+namespace PangyaAPI.Network.PangyaUnit
 {
     public enum ServerState
     {
@@ -28,12 +27,12 @@ namespace PangyaAPI.Network.PangyaServer
         Initialized,
         Failure
     }
-    public abstract partial class Server
+    public abstract partial class unit
     {
         #region Fields
-      
 
-       public ServerState m_state;
+
+        public ServerState m_state;
         //DECRYPT FIELDS
 
         private ToServerBuffer ToServerBuffer = new ToServerBuffer();
@@ -42,13 +41,12 @@ namespace PangyaAPI.Network.PangyaServer
         public SessionManager m_session_manager;
         public ServerInfoEx m_si;
         private int m_Bot_TTL; // Anti-bot Time-to-live
-        private bool m_chatDiscord;                      
+        private bool m_chatDiscord;
         public bool _isRunning => m_state == ServerState.Good;
-        public IniHandle m_reader_ini { get; set; }
-        public List<TableMac> ListBlockMac { get; set; }
-        public List<ServerInfo> m_server_list { get; set; }        
+        public IniHandle m_reader_ini { get; set; }            
         public ServerInfoEx getInfo() => m_si;
         public TcpListener _server;
+        public List<ServerInfo> m_server_list { get; set; }
         #endregion
 
         #region Abstract Methods
@@ -79,10 +77,10 @@ namespace PangyaAPI.Network.PangyaServer
         #endregion
 
         #region Constructor
-        public Server()
+        public unit()
            : base()
         {
-             m_server_list = new List<ServerInfo>();
+            m_server_list = new List<ServerInfo>();
             m_state = ServerState.Uninitialized;
             m_reader_ini = new IniHandle("server.ini");
             ConfigInit();
@@ -153,7 +151,7 @@ namespace PangyaAPI.Network.PangyaServer
         /// Manuseia Comunicação do Cliente
         /// </summary>
         private void HandleSession(TcpClient client)
-        {                                        
+        {
             //add player
             var Session = m_session_manager.AddSession(this, client, client.Client.RemoteEndPoint as IPEndPoint, (byte)(new Random().Next() % 16));
             //
@@ -161,7 +159,7 @@ namespace PangyaAPI.Network.PangyaServer
 
             onAcceptCompleted(Session);
 
-                    
+
             while (Session.getConnected())
             {
                 try
@@ -181,8 +179,8 @@ namespace PangyaAPI.Network.PangyaServer
 
                         //foreach (var packet in decryptedPackets)
                         //{
-                            //Dispara evento OnPacketReceived
-                            DispatchPacketSameThread(Session, new Packet(message, Session.m_key)); // Processa o pacote recebido
+                        //Dispara evento OnPacketReceived
+                        DispatchPacket_AS_Thread(Session, new Packet(message, Session.m_key)); // Processa o pacote recebido
                         //}             
                     }
                     else
@@ -199,11 +197,11 @@ namespace PangyaAPI.Network.PangyaServer
                         {
                             DisconnectSession(Session);
                             return;
-                        }                                                                                                   
-                        message_pool.push(new message("[server::HandleSession][IOError] " + erro.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));   
+                        }
+                        message_pool.push(new message("[server::HandleSession][IOError] " + erro.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
                     }
                     catch { }
-                } 
+                }
             }
             DisconnectSession(Session);
         }
@@ -322,7 +320,7 @@ namespace PangyaAPI.Network.PangyaServer
             // List de IP Address Ban
             var cmd_lib = new CmdListIpBan();     // Waiter
 
-            NormalManagerDB.add(0, cmd_lib, null, null);  
+            NormalManagerDB.add(0, cmd_lib, null, null);
 
             if (cmd_lib.getException().getCodeError() != 0)
                 throw cmd_lib.getException();
@@ -332,7 +330,7 @@ namespace PangyaAPI.Network.PangyaServer
             // List de Mac Address Ban
             var cmd_lmb = new CmdListMacBan();    // Waiter
 
-            NormalManagerDB.add(0, cmd_lmb, null, null);     
+            NormalManagerDB.add(0, cmd_lmb, null, null);
 
             if (cmd_lmb.getException().getCodeError() != 0)
                 throw cmd_lmb.getException();
@@ -579,8 +577,8 @@ namespace PangyaAPI.Network.PangyaServer
             m_state = ServerState.Failure;
             Console.WriteLine("Server is stopping...");
         }
-              
-                              
+
+
         public virtual SessionBase HasLoggedWithOuterSocket(SessionBase _session)
         {
             var s = m_session_manager.FindAllSessionByUid(_session.getUID());
@@ -686,12 +684,12 @@ namespace PangyaAPI.Network.PangyaServer
 
         public virtual SessionBase FindSessionByOid(uint oid)
         {
-           return m_session_manager.FindSessionByOid(oid);
+            return m_session_manager.FindSessionByOid(oid);
         }
 
         public virtual SessionBase FindSessionByUid(uint uid)
         {
-          return m_session_manager.findSessionByUID(uid);
+            return m_session_manager.findSessionByUID(uid);
         }
 
         public virtual List<SessionBase> FindAllSessionByUid(uint uid)
@@ -759,19 +757,6 @@ namespace PangyaAPI.Network.PangyaServer
         }
 
         public int getBotTTL() => m_Bot_TTL;
-        #endregion
-
-        #region Abstract Methods
-        public abstract void AuthCmdShutdown(int timeSec);
-        public abstract void AuthCmdBroadcastNotice(string notice);
-        public abstract void AuthCmdBroadcastTicker(string nickname, string msg);
-        public abstract void AuthCmdBroadcastCubeWinRare(string msg, uint option);
-        public abstract void AuthCmdDisconnectPlayer(uint reqServerUid, uint playerUid, byte force);
-        public abstract void AuthCmdConfirmDisconnectPlayer(uint playerUid);
-        public abstract void AuthCmdNewMailArrivedMailBox(uint playerUid, uint mailId);
-        public abstract void AuthCmdNewRate(uint tipo, uint qntd);
-        public abstract void AuthCmdReloadGlobalSystem(uint tipo);
-        public abstract void AuthCmdConfirmSendInfoPlayerOnline(uint reqServerUid, AuthServerPlayerInfo aspi);
-        #endregion
+        #endregion  
     }
 }

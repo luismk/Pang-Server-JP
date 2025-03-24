@@ -1063,7 +1063,7 @@ namespace PangyaAPI.Network.Pangya_St
             }
         }
         /// <summary>
-        /// Size = 513 bytes
+        /// size = 513 bytes
         /// </summary>
         /// <returns></returns>
         public byte[] Build()
@@ -1105,13 +1105,125 @@ namespace PangyaAPI.Network.Pangya_St
                 for (int i = 0; i < 4; i++)
                     p.WriteUInt32(Card_NPC[i]);
                 //if (p.GetSize == 513)
-                //    Debug.WriteLine("GetCharacterInfo Size Okay");
+                //    Debug.WriteLine("GetCharacterInfo size Okay");
 
                 return p.GetBytes;
             }
         }
     }
+    // Auth Server - Player Info
+    public struct AuthServerPlayerInfo
+    {                                   
+        public uint uid;
+        public string id;
+        public string ip;
+        public int option;
 
+        public AuthServerPlayerInfo(uint _uid = 0)
+        {
+            uid = _uid;
+            id = string.Empty;
+            ip = string.Empty;
+            option = -1;
+        }
+          
+        public AuthServerPlayerInfo(uint _uid, string _id, string _ip)
+        {
+            uid = _uid;
+            id = _id;
+            ip = _ip;
+            option = 1; 
+        }
+
+        public void Clear()
+        {
+            uid = 0;
+            option = -1;
+
+            if (!string.IsNullOrEmpty(id)) id = string.Empty;
+            if (!string.IsNullOrEmpty(ip)) ip = string.Empty;
+        }
+    }
+
+    // Auth Server - Server Send command to Other Server Header
+    public class CommandOtherServerHeader
+    {
+        public uint send_server_uid_or_type { get; set; } // Envia o comando para esse server (UID/TYPE)
+        public short command_id { get; set; }         // Comando ID
+
+        public CommandOtherServerHeader(uint ul = 0)
+        {
+            send_server_uid_or_type = ul;
+            command_id = 0;
+        }
+
+        public void Clear()
+        {
+            send_server_uid_or_type = 0;
+            command_id = 0;
+        }
+    }
+
+    // Auth Server - Server Send command to Other Server Header Ex
+    public class CommandOtherServerHeaderEx : CommandOtherServerHeader
+    {
+        public class StCommand
+        {
+            public byte[] buff { get; set; }
+            public ushort size { get; set; }
+            private bool state { get; set; }
+
+            public StCommand(ushort size = 0)
+            {
+                buff = null;
+                this.size = 0;
+                state = false;
+
+                init(size);
+            }
+
+            public void Destroy()
+            {
+                buff = null;
+                state = false;
+            }
+
+            public void init(ushort size)
+            {
+                if (size > 0)
+                {
+                    this.size = size;
+
+                    if (buff != null)
+                        Destroy();
+
+                    buff = new byte[size];
+                    state = true;
+                }
+            }
+
+            public bool is_good() => state;
+        }
+
+        public StCommand command { get; set; }
+
+        public CommandOtherServerHeaderEx(uint ul = 0) : base(ul)
+        {
+            command = new StCommand(0);
+            Clear();
+        }
+
+        ~CommandOtherServerHeaderEx()
+        {
+            Clear();
+        }
+
+        public new void Clear()
+        {
+            base.Clear();
+            command.Destroy();
+        }
+    }
     #region User Info
 
 
@@ -1157,7 +1269,7 @@ namespace PangyaAPI.Network.Pangya_St
     }
 
     // ------------------ Player Account Basic ---------------- //
-    // Struct ID State Block Flag
+    // Struct ID state Block Flag
     public class IDStateBlockFlag
     {
         public IDStateBlockFlag(ulong _ul)

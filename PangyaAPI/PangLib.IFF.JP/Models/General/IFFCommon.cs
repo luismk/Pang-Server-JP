@@ -3,7 +3,9 @@ using System.Runtime.InteropServices;
 using PangLib.IFF.JP.Models.Flags;
 using PangLib.IFF.JP.Extensions;
 using System.Text;
-using System.Windows.Forms;  
+using System.Windows.Forms;
+using PangyaAPI.Utilities.BinaryModels;
+
 namespace PangLib.IFF.JP.Models.General
 {
     /// <summary>
