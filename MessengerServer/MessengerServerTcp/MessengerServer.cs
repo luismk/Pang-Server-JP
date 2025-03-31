@@ -5,7 +5,7 @@ using PangyaAPI.Network.PangyaServer;
 using PangyaAPI.Utilities;
 using MessengerServer.Session;
 using PangyaAPI.Utilities.Log;
-using PangLib.IFF.JP.Extensions;
+using PangyaAPI.IFF.JP.Extensions;
 using MessengerServer.PacketFunc;
 using PangyaAPI.Utilities.BinaryModels;
 using PangyaAPI.SQL;
@@ -26,8 +26,8 @@ namespace MessengerServer.MessengerServerTcp
     {
         public const int FRIEND_LIST_LIMIT = 50;
         public const int FRIEND_PAG_LIMIT = 30;
-        public new player_manager m_session_manager;
-        public MessengerServer()
+        static player_manager m_player_manager = new player_manager(2000);
+        public MessengerServer() : base(m_player_manager)
         {
             if (m_state == ServerState.Failure)
             {
@@ -38,7 +38,7 @@ namespace MessengerServer.MessengerServerTcp
             try
             {
 
-                ConfigInit();                                                  
+                ConfigInit();
 
                 // Carrega IFF_STRUCT
                 if (!sIff.getInstance().isLoad())
@@ -67,13 +67,13 @@ namespace MessengerServer.MessengerServerTcp
             // Verifica se o valor de packetId é válido no enum PacketIDClient
             if (Enum.IsDefined(typeof(PacketIDClient), packetId))
             {
-                WriteConsole.WriteLine($"[MessengerServer.CheckPacket][Log]: PLAYER[UID: {player.m_pi.uid}, CGPID: {packetId}]", ConsoleColor.Cyan);
+                WriteConsole.WriteLine($"[MessengerServer.CheckPacket][Log]: PLAYER[UID: {player.m_pi.uid}, CMPID: {packetId}]", ConsoleColor.Cyan);
                 return true;
             }
 
             else// nao tem no PacketIDClient
             {
-                WriteConsole.WriteLine($"[MessengerServer.CheckPacket][Log]: PLAYER[UID: {player.m_pi.uid}, CGPID: 0x{packet.Id:X}]");
+                WriteConsole.WriteLine($"[MessengerServer.CheckPacket][Log]: PLAYER[UID: {player.m_pi.uid}, CMPID: 0x{packet.Id:X}]");
                 return true;
             }
         }
@@ -89,13 +89,13 @@ namespace MessengerServer.MessengerServerTcp
             bool ret = true;
 
             try
-            {                                                       
+            {
                 // S� envia o UpdatePlayerLogout se o player estiver autorizado(Fez o login)
                 if (p.getState() && Interlocked.CompareExchange(ref ((Player)_session).m_pi.m_logout, ((Player)_session).m_pi.m_logout, 0) == 0 && p.m_is_authorized)
                     ret = sendUpdatePlayerLogoutToFriends(p);
             }
             catch (exception e)
-            {                                                        
+            {
                 message_pool.push(new message("[message_server::onDisconnected][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
 
@@ -151,7 +151,7 @@ namespace MessengerServer.MessengerServerTcp
                 Response.WriteByte(1);  // OPTION 1
                 Response.WriteByte(1);	// OPTION 2
                 Response.WriteUInt32(_session.m_key);//key
-                _session.Send(Response.GetBytes, false, false);
+                _session.Send(Response.GetBytes,0);
             }
             catch (Exception ex)
             {
@@ -228,9 +228,9 @@ namespace MessengerServer.MessengerServerTcp
                             + nickname + "] tentou logar com Server, mas o nickname esta vazio. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.MESSAGE_SERVER, 2, 0x5200102));
 
                 // Verifica se o IP/MAC Address est� banido
-                if (haveBanList(_session.getIP(), "", false/*N�o tem MAC Address esse pacote*/))
-                    throw new exception("[message_server::requestLogin][Error] Player[UID=" + (uid) + ", NICKNAME=" + nickname + ", IP=" + _session.getIP()
-                            + "] tentou logar com o Server, mas ele esta com IP banido.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.MESSAGE_SERVER, 5, 0x5200105));
+                //if (haveBanList(_session.getIP(), "", false/*N�o tem MAC Address esse pacote*/))
+                //    throw new exception("[message_server::requestLogin][Error] Player[UID=" + (uid) + ", NICKNAME=" + nickname + ", IP=" + _session.getIP()
+                //            + "] tentou logar com o Server, mas ele esta com IP banido.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.MESSAGE_SERVER, 5, 0x5200105));
 
                 var cmd_pi = new CmdPlayerInfo(uid);    // Waiter
 
@@ -241,7 +241,7 @@ namespace MessengerServer.MessengerServerTcp
 
                 _session.m_pi.set_info(cmd_pi.getInfo());
 
-                if (nickname.CompareTo(_session.m_pi.nickname) != 1)
+                if (nickname.CompareTo(_session.m_pi.nickname) != 0)
                     throw new exception("[message_server::requestLogin][Error] player[UID=" + (uid) + ", NICKNAME="
                             + nickname + "] tentou logar com Server, mas o nickname do databse[NICKNAME_DB=" + (_session.m_pi.nickname) + "] eh diferente do fornecido pelo cliente. Hacker ou Bug",
                             ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.MESSAGE_SERVER, 4, 0x5200104));
@@ -361,7 +361,7 @@ namespace MessengerServer.MessengerServerTcp
             try
             {
 
-                message_pool.push(new message("[FriendList][Log] envia lista de amigos para o player[UID=" + (_session.m_pi.uid) + "].", type_msg.CL_FILE_LOG_AND_CONSOLE));
+                message_pool.push(new message("[FriendList][Log] envia lista de amigos para o player[UID=" + (_session.m_pi.uid) + ", FRIENDS=" + _session.m_pi.m_friend_manager.getAllFriendAndGuildMember().Count + "].", type_msg.CL_FILE_LOG_AND_CONSOLE));
 
                 // Verifica se session est� varrizada para executar esse a��o, 
                 // se ele n�o fez o login com o Server ele n�o pode fazer nada at� que ele fa�a o login
@@ -391,26 +391,25 @@ namespace MessengerServer.MessengerServerTcp
                 // Resposta para Lista de Amigos e Membros da Guild
                 if (mp.paginas > 0)
                 {
-                    for (var i = 0; i < mp.paginas; i++)
-                    {
-                        mp.increse();
-
+                    for (var i = 0; i < mp.paginas; i++, mp.increse())
+                    { 
                         p.init_plain(0x30);
 
                         p.WriteUInt16(0x102);   // Sub Packet Id
 
                         p.WriteBuffer(mp.pag, Marshal.SizeOf(mp.pag));
+                      
+                        var begin = friend_list
+                            .Skip(mp.index.start)  // Pula até o índice de início
+                            .Take(mp.index.end - mp.index.start); // Pega apenas os elementos entre start e end
 
-                        var begin = friend_list.Skip(mp.index.start).Take(mp.index.end - mp.index.start);
-
-                        foreach (var friend in begin)
+                        foreach (var fi in begin)
                         {
-                            p.WriteBuffer(friend, Marshal.SizeOf(new FriendInfo()));
-
-                            var s = (Player)m_session_manager.findSessionByUID((friend).uid);
+                            p.WriteStruct(fi, new FriendInfo());
+                            var s = (Player)(m_session_manager.findSessionByUID((fi).uid) == null ? m_session_manager.findSessionByUID((fi).uid) : m_session_manager.FindSessionByNickname((fi).nickname));
 
                             // Se o Player tem ele na lista de amigos, e ele n�o estiver bloqueado na lista do amigo
-                            if (s != null && (pFi = s.m_pi.m_friend_manager.findFriendInAllFriend(_session.m_pi.uid)) != null && !(pFi.state.block == 1))
+                             if (s != null && (pFi = s.m_pi.m_friend_manager.findFriendInAllFriend(_session.m_pi.uid)) != null)
                             {   // Player est� online
 
                                 p.WriteBuffer(s.m_pi.m_cpi, Marshal.SizeOf(new ChannelPlayerInfo()));
@@ -421,22 +420,22 @@ namespace MessengerServer.MessengerServerTcp
                                 switch (s.m_pi.m_state)
                                 {
                                     case 0: // IN GAME
-                                        (friend).state.play = 1;
+                                        (fi).state.play = 1;
                                         break;
                                     case 1: // AFK
-                                        (friend).state.AFK = 1;
+                                        (fi).state.AFK = 1;
                                         break;
                                     case 3: // BUSY
-                                        (friend).state.busy = 1;
+                                        (fi).state.busy = 1;
                                         break;
                                     case 4: // ON
                                     default:
-                                        (friend).state.online = 1;
+                                        (fi).state.online = 1;
                                         break;
                                 }
 
                                 // Online
-                                (friend).state.online = 1;
+                                (fi).state.online = 1;
 
                             }
                             else
@@ -451,16 +450,16 @@ namespace MessengerServer.MessengerServerTcp
                                 p.WriteByte(5); // OFFLINE
 
                                 // Offline
-                                (friend).state.online = 0;
+                                (fi).state.online = 0;
                             }
 
-                            p.WriteByte(friend.cUnknown_flag);
+                            p.WriteByte(fi.cUnknown_flag);
 
                             // Aqui quando � o player e ele est� guild � 1/*Master*/, 2 sub, e outros membro guild � 0, e quando � friend � o level
-                            p.WriteByte(friend.flag.ucFlag == 2/*S� Guild Member*/ ? (friend.uid == _session.m_pi.uid ? 1/*Master*/ : 0) : friend.level);
+                            p.WriteByte(fi.flag.ucFlag == 2/*S� Guild Member*/ ? (fi.uid == _session.m_pi.uid ? 1/*Master*/ : 0) : fi.level);
 
-                            p.WriteByte(friend.state.ucState);
-                            p.WriteByte(friend.flag.ucFlag);
+                            p.WriteByte(fi.state.ucState);
+                            p.WriteByte(fi.flag.ucFlag);
                         }
 
                         packet_func.session_send(p, _session, 1);
@@ -507,7 +506,7 @@ namespace MessengerServer.MessengerServerTcp
             try
             {
 
-                ChannelPlayerInfo cpi = _packet.Read<ChannelPlayerInfo>();
+                var cpi = _packet.ReadStruct<ChannelPlayerInfo>();
 
                 _session.m_pi.m_cpi = cpi;
 
@@ -535,7 +534,7 @@ namespace MessengerServer.MessengerServerTcp
                 packet_func.session_send(p, _session, 1);
 
                 // Send To Player Friend(s)
-                packet_func.friend_broadcast(m_session_manager.findAllFriend(_session.m_pi.m_friend_manager.getAllFriendAndGuildMember(true/*Not Send To Block Friend*/)), p, _session, 1);
+                packet_func.friend_broadcast(m_player_manager.findAllFriend(_session.m_pi.m_friend_manager.getAllFriendAndGuildMember(true/*Not Send To Block Friend*/)), p, _session, 1);
 
             }
             catch (exception e)
@@ -574,11 +573,6 @@ namespace MessengerServer.MessengerServerTcp
                 if (_session.m_pi.m_state != state)
                     _session.m_pi.m_state = state;
 
-                // Log
-#if _DEBUG
-		message_pool.push(new message("[UpdateState][Log] player[UID=" + (_session.m_pi.uid) + "] atualizou seu status[value=" + (state) + "]", type_msg.CL_FILE_LOG_AND_CONSOLE));
-#endif // _DEBUG
-
                 // Update ON GAME - To player friend(s)
                 p.init_plain(0x30);
 
@@ -592,8 +586,31 @@ namespace MessengerServer.MessengerServerTcp
                 p.WriteBuffer(_session.m_pi.m_cpi, Marshal.SizeOf(_session.m_pi.m_cpi));
 
                 // Send To Player Friend(s)
-                packet_func.friend_broadcast(m_session_manager.findAllFriend(_session.m_pi.m_friend_manager.getAllFriendAndGuildMember(true/*Not Send To Block Friend*/)), p, _session, 1);
+                packet_func.friend_broadcast(m_player_manager.findAllFriend(_session.m_pi.m_friend_manager.getAllFriendAndGuildMember(true/*Not Send To Block Friend*/)), p, _session, 1);
+                switch ((USER_STATUS)state)
+                {
+                    case USER_STATUS.IS_PLAYING:
+                         // Log
+                        message_pool.push(new message("[MessengerServer::requestUpdatePlayerState][Log] player[UID=" + (_session.m_pi.uid) + "] PLAYING", type_msg.CL_FILE_LOG_AND_CONSOLE));
+                        break;
+                    case USER_STATUS.IS_RECONNECT:
+                        // Log
+                        message_pool.push(new message("[MessengerServer::requestUpdatePlayerState][Log] player[UID=" + (_session.m_pi.uid) + "] SLEEP", type_msg.CL_FILE_LOG_AND_CONSOLE));
 
+                        break;
+                    case USER_STATUS.IS_ONLINE:
+                        // Log
+                        message_pool.push(new message("[MessengerServer::requestUpdatePlayerState][Log] player[UID=" + (_session.m_pi.uid) + "] ONLINE", type_msg.CL_FILE_LOG_AND_CONSOLE));
+                        break;
+                    case USER_STATUS.IS_IDLE:
+
+                        // Log
+                        message_pool.push(new message("[MessengerServer::requestUpdatePlayerState][Log] player[UID=" + (_session.m_pi.uid) + "] BUSY", type_msg.CL_FILE_LOG_AND_CONSOLE));
+
+                        break;
+                    default:
+                        break;
+                }
             }
             catch (exception e)
             {
@@ -612,11 +629,8 @@ namespace MessengerServer.MessengerServerTcp
                 // se ele n�o fez o login com o Server ele n�o pode fazer nada at� que ele fa�a o login
                 //CHECK_SESSION_IS_AUTHORIZED("UpdatePlayerLogout");
 
-#if _DEBUG
-		message_pool.push(new message("[PlayerLogout][Log] Player[UID=" + (_session.m_pi.uid) + "] deslogou-se", type_msg.CL_FILE_LOG_AND_CONSOLE));
-#endif // _DEBUG
-
-                // Send Update Player Logout to your friends
+ 		message_pool.push(new message("[PlayerLogout][Log] Player[UID=" + (_session.m_pi.uid) + "] deslogou-se", type_msg.CL_FILE_LOG_AND_CONSOLE));
+                 // Send Update Player Logout to your friends
                 sendUpdatePlayerLogoutToFriends(_session);
 
             }
@@ -662,7 +676,7 @@ namespace MessengerServer.MessengerServerTcp
                     throw new exception("[message_server::requestChatFriend][Error] player[UID=" + (_session.m_pi.uid) + "] tentou enviar Message[MSG="
                             + msg + "] para o Amigo[UID=" + (uid) + "], mas o amigo esta bloqueado. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.MESSAGE_SERVER, 4, 0x5200304));
 
-                var s = (Player)m_session_manager.findSessionByUID(uid);
+                var s = (Player)m_player_manager.findSessionByUID(uid);
 
                 if (s == null)
                     throw new exception("[message_server::requestChatFriend][Error] player[UID=" + (_session.m_pi.uid) + "] tentou enviar Message[MSG="
@@ -679,7 +693,7 @@ namespace MessengerServer.MessengerServerTcp
                             + msg + "] para o Amigo[UID=" + (uid) + "], mas amigo bloqueou ele. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.MESSAGE, 7, 0x5200307));
 
                 // Log Para os GMs
-                var gm = m_session_manager.findAllGM();
+                var gm = m_player_manager.findAllGM();
 
                 if (!gm.empty())
                 {
@@ -773,7 +787,7 @@ namespace MessengerServer.MessengerServerTcp
                             + msg + "] para o Chat da Guild[UID=" + (_session.m_pi.guild_uid) + "], mas a msg is empty. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.MESSAGE_SERVER, 2, 0x5200402));
 
                 // Log Para os GMs
-                var gm = m_session_manager.findAllGM();
+                var gm = m_player_manager.findAllGM();
 
                 if (!gm.empty())
                 {
@@ -825,9 +839,9 @@ namespace MessengerServer.MessengerServerTcp
 
                 packet_func.session_send(p, _session, 1);   // SEND TO PLAYER TOO
 
-                // Usa o m_session_manager.findAllGuildMember, que pega todos os players que est�o na mesma guild
-                packet_func.friend_broadcast(m_session_manager.findAllGuildMember(_session.m_pi.guild_uid), p, _session, 1); // All GUILD MEMBER
-                                                                                                                            //packet_func.friend_broadcast(m_session_manager.findAllFriend(_session.m_pi.m_friend_manager.getAllGuildMember()), p, _session, 1);	// ALL GUILD MEMBER
+                // Usa o m_player_manager.findAllGuildMember, que pega todos os players que est�o na mesma guild
+                packet_func.friend_broadcast(m_player_manager.findAllGuildMember(_session.m_pi.guild_uid), p, _session, 1); // All GUILD MEMBER
+                                                                                                                            //packet_func.friend_broadcast(m_player_manager.findAllFriend(_session.m_pi.m_friend_manager.getAllGuildMember()), p, _session, 1);	// ALL GUILD MEMBER
 
                 // ------------------------------- Chat History Discord ------------------------------------
                 // Envia a mensagem para o discord chat log se estiver ativado
@@ -1018,7 +1032,7 @@ namespace MessengerServer.MessengerServerTcp
                     throw new exception("[message_server::requestBlockFriend][Error] player[UID=" + (_session.m_pi.uid) + "] tentou bloqueiar Amigo[UID="
                             + (uid) + "], mas o amigo ja esta bloqueado. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.MESSAGE_SERVER, 3, 0x5300103));
 
-                var s = (Player)m_session_manager.findSessionByUID(uid);
+                var s = (Player)m_player_manager.findSessionByUID(uid);
 
                 FriendInfoEx pFi2 = null;
 
@@ -1153,7 +1167,7 @@ namespace MessengerServer.MessengerServerTcp
                     throw new exception("[message_server::requestUnBlockFriend][Error] player[UID=" + (_session.m_pi.uid) + "] tentou desbloquear Amigo[UID="
                             + (uid) + "], mas o amigo ja esta desbloqueado. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.MESSAGE_SERVER, 3, 0x5300203));
 
-                var s = (Player)m_session_manager.findSessionByUID(uid);
+                var s = (Player)m_player_manager.findSessionByUID(uid);
 
                 FriendInfoEx pFi2 = null;
 
@@ -1298,7 +1312,7 @@ namespace MessengerServer.MessengerServerTcp
                     throw new exception("[message_server::requestAddFriend][Error] player[UID=" + (_session.m_pi.uid) + "] tentou add Friend[UID="
                             + (uid) + ", NICKNAME=" + nickname + "], mas ele esta com a lista de amigos cheia[LIMIT=" + (FRIEND_LIST_LIMIT) + "].", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.MESSAGE_SERVER, 4, 0x5200603));
 
-                var s = (Player)m_session_manager.findSessionByUID(uid);
+                var s = (Player)m_player_manager.findSessionByUID(uid);
 
                 FriendInfoEx fi = new FriendInfoEx(), fi2 = new FriendInfoEx();
 
@@ -1351,7 +1365,7 @@ namespace MessengerServer.MessengerServerTcp
 
                     p.WriteUInt32(0);   // OK
 
-                    p.WriteBuffer(fi, Marshal.SizeOf(new FriendInfo()));
+                    p.WriteStruct(fi, new FriendInfo());
 
                     p.WriteBuffer(s.m_pi.m_cpi, Marshal.SizeOf(new ChannelPlayerInfo()));
 
@@ -1370,8 +1384,7 @@ namespace MessengerServer.MessengerServerTcp
 
                     p.WriteUInt16(0x106);   // Sub Packet Id
 
-                    p.WriteBuffer(fi2, Marshal.SizeOf(new FriendInfo()));
-
+                    p.WriteStruct(fi2, new FriendInfo());
                     p.WriteBuffer(_session.m_pi.m_cpi, Marshal.SizeOf(new ChannelPlayerInfo()));
 
                     // State Icon Player
@@ -1454,8 +1467,7 @@ namespace MessengerServer.MessengerServerTcp
 
                     p.WriteUInt32(0);   // OK
 
-                    p.WriteBuffer(fi, Marshal.SizeOf(new FriendInfo()));
-
+                    p.WriteStruct(fi, new FriendInfo());
                     p.WriteInt16(-1);       // Sala N�mero
                     p.WriteInt32(-1);       // Sala Tipo
                     p.WriteInt32(-1);       // Server GUID
@@ -1522,7 +1534,7 @@ namespace MessengerServer.MessengerServerTcp
                     throw new exception("[message_server::requestConfirmFriend][Error] player[UID=" + (_session.m_pi.uid) + "] tentou aceitar Amigo[UID="
                             + (uid) + "], mas o player ja eh seu amigo. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.MESSAGE_SERVER, 4, 0x5200804));
 
-                var s = (Player)m_session_manager.findSessionByUID(uid);
+                var s = (Player)m_player_manager.findSessionByUID(uid);
 
                 FriendInfoEx pFi2 = null;
 
@@ -1675,7 +1687,7 @@ namespace MessengerServer.MessengerServerTcp
                     throw new exception("[message_server::requestDeleteFriend][Error] player[UID=" + (_session.m_pi.uid) + "] tentou deletar Amigo[UID="
                             + (uid) + ", NICKNAME=" + nickname + "], mas o player nao eh amigo dele. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.MESSAGE_SERVER, 3, 0x5200703));
 
-                var s = (Player)m_session_manager.findSessionByUID(uid);
+                var s = (Player)m_player_manager.findSessionByUID(uid);
 
                 FriendInfoEx pFi2 = null;
 
@@ -1821,7 +1833,7 @@ namespace MessengerServer.MessengerServerTcp
             }
         }
         public void requestInvitePlayerToGuildBattleRoom(Player _session, Packet _packet)
-        { 
+        {
             try
             {
 
@@ -1834,7 +1846,7 @@ namespace MessengerServer.MessengerServerTcp
                 ushort room_numero = _packet.ReadUInt16();
 
                 uint player_invite_uid = _packet.ReadUInt32();
-               var player_invite_nickname = _packet.ReadString();
+                var player_invite_nickname = _packet.ReadString();
 
                 uint player_invited_uid = _packet.ReadUInt32();
 
@@ -1852,7 +1864,7 @@ namespace MessengerServer.MessengerServerTcp
             }
             catch (exception e)
             {
-                 message_pool.push(new message("[message_server::requestInvitPlayerToGuildBattleRoom][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                message_pool.push(new message("[message_server::requestInvitPlayerToGuildBattleRoom][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
         }
 
@@ -1897,7 +1909,7 @@ namespace MessengerServer.MessengerServerTcp
 
                 p.WriteUInt32(((Player)_session).m_pi.uid);
 
-                packet_func.friend_broadcast(m_session_manager.findAllFriend(((Player)_session).m_pi.m_friend_manager.getAllFriendAndGuildMember(true/*Not Send To Block Friend*/)), p, _session, 1);
+                packet_func.friend_broadcast(m_player_manager.findAllFriend(((Player)_session).m_pi.m_friend_manager.getAllFriendAndGuildMember(true/*Not Send To Block Friend*/)), p, _session, 1);
 
             }
             catch (exception e)
@@ -1984,57 +1996,120 @@ namespace MessengerServer.MessengerServerTcp
 
         protected virtual void UpdateRateAndEvent(uint tipo, uint qntd) { }
 
-        public override void AuthCmdShutdown(int timeSec)
+        public override void authCmdShutdown(int _time_sec)
         {
-            throw new NotImplementedException();
+
         }
 
-        public override void AuthCmdBroadcastNotice(string notice)
+        public override void authCmdBroadcastNotice(string _notice)
         {
-            throw new NotImplementedException();
+            // Message Server n�o usa esse Comando
+            return;
         }
 
-        public override void AuthCmdBroadcastTicker(string nickname, string msg)
+        public override void authCmdBroadcastTicker(string _nickname, string _msg)
         {
-            throw new NotImplementedException();
+            // Message Server n�o usa esse Comando
+            return;
         }
 
-        public override void AuthCmdBroadcastCubeWinRare(string msg, uint option)
+        public override void authCmdBroadcastCubeWinRare(string _msg, uint _option)
         {
-            throw new NotImplementedException();
+            // Message Server n�o usa esse Comando
+            return;
         }
 
-        public override void AuthCmdDisconnectPlayer(uint reqServerUid, uint playerUid, byte force)
+        public override void authCmdDisconnectPlayer(uint _req_server_uid, uint _player_uid, byte _force)
         {
-            throw new NotImplementedException();
+            try
+            {
+
+                var s = m_player_manager.findPlayer(_player_uid);
+
+                if (s != null)
+                {
+
+                    // Log
+                    message_pool.push(new message("[message_server::authCmdDisconnectPlayer][log] Comando do Auth Server, Server[UID=" + (_req_server_uid)
+                            + "] pediu para desconectar o Player[UID=" + (s.m_pi.uid) + "]", type_msg.CL_FILE_LOG_AND_CONSOLE));
+
+                    // Deconecta o Player
+                    DisconnectSession(s);
+
+                    // UPDATE ON Auth Server
+                    m_unit_connect.sendConfirmDisconnectPlayer(_req_server_uid, _player_uid);
+
+                }
+                else
+                    message_pool.push(new message("[message_server::authCmdDisconnectPlayer][WARNING] Comando do Auth Server, Server[UID=" + (_req_server_uid)
+                            + "] pediu para desconectar o Player[UID=" + (_player_uid) + "], mas nao encontrou ele no server.", type_msg.CL_FILE_LOG_AND_CONSOLE));
+
+            }
+            catch (exception e)
+            {
+
+                message_pool.push(new message("[message_server::authCmdDisconnectPlayer][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+            }
         }
 
-        public override void AuthCmdConfirmDisconnectPlayer(uint playerUid)
+        public override void authCmdConfirmDisconnectPlayer(uint _player_uid)
         {
-            throw new NotImplementedException();
+            // Message Server n�o usa esse Comando
+            return;
         }
 
-        public override void AuthCmdNewMailArrivedMailBox(uint playerUid, uint mailId)
+        public override void authCmdNewMailArrivedMailBox(uint _player_uid, uint _mail_id)
         {
-            throw new NotImplementedException();
+            // Message Server n�o usa esse Comando
+            return;
         }
 
-        public override void AuthCmdNewRate(uint tipo, uint qntd)
+        public override void authCmdNewRate(uint _tipo, uint _qntd)
         {
-            throw new NotImplementedException();
+            // Message Server n�o usa esse Comando
+            return;
         }
 
-        public override void AuthCmdReloadGlobalSystem(uint tipo)
+        public override void authCmdReloadGlobalSystem(uint _tipo)
         {
-            throw new NotImplementedException();
+            // Message Server n�o usa esse Comando
+            return;
         }
 
-        public override void AuthCmdConfirmSendInfoPlayerOnline(uint reqServerUid, AuthServerPlayerInfo aspi)
+        public override void authCmdInfoPlayerOnline(uint _req_server_uid, uint _player_uid)
         {
-            throw new NotImplementedException();
+            // Message Server n�o usa esse Comando
+            return;
+        }
+
+        public override void authCmdConfirmSendInfoPlayerOnline(uint _req_server_uid, AuthServerPlayerInfo _aspi)
+        {
+
+        }
+
+        public override void authCmdSendCommandToOtherServer(Packet _packet)
+        {
+
+        }
+
+        public override void authCmdSendReplyToOtherServer(Packet _packet)
+        {
+
+        }
+
+        public override void sendCommandToOtherServerWithAuthServer(Packet _packet, uint _send_server_uid_or_type)
+        {
+
+        }
+
+        public override void sendReplyToOtherServerWithAuthServer(Packet _packet, uint _send_server_uid_or_type)
+        {
+
         }
     }
 }
+
+// Server Static 
 namespace sms
 {
     public class ms : Singleton<MessengerServer.MessengerServerTcp.MessengerServer>

@@ -1,4 +1,5 @@
 ﻿using PangyaAPI.Network.PangyaSession;
+using PangyaAPI.Network.PangyaUnit;
 using PangyaAPI.Utilities;
 using PangyaAPI.Utilities.Log;
 using System;
@@ -16,23 +17,33 @@ namespace PangyaAPI.Network.PangyaPacket
     /// </summary>
     public class ParamDispatch
     {
+        public ParamDispatch(SessionBase session, Packet packet)
+        {
+            _session = session;
+            _packet = packet;
+        }
+        public ParamDispatch()
+        {
+
+        }
+
         public SessionBase _session { get; set; }
-        public Packet _packet { get; set; }
+        public Packet _packet { get; set; }                   
     }
     public delegate int call_func(object param, ParamDispatch pd);
 
     public class func_arr
     {
         static int MAX_CALL_FUNC_ARR = 10000; // Era 500, era 1000
-        protected func_arr_ex[] m_func; // pacotes de recv
+        protected Dictionary<ushort, func_arr_ex> m_func; // pacotes de recv
         public func_arr()
         {
-            m_func = new func_arr_ex[MAX_CALL_FUNC_ARR];
-            for (int i = 0; i < MAX_CALL_FUNC_ARR; i++)
-            {
-                m_func.SetValue(new func_arr_ex(), i);
-            }
+            m_func = new Dictionary<ushort, func_arr_ex>(MAX_CALL_FUNC_ARR);
 
+            for (ushort i = 0; i < MAX_CALL_FUNC_ARR; i++)
+            { 
+                m_func[i] =new func_arr_ex();
+            }
         }
         public class func_arr_ex
         {
@@ -103,9 +114,9 @@ namespace PangyaAPI.Network.PangyaPacket
 
         public func_arr_ex getPacketCall(short _tipo)
         {
-            if (m_func[_tipo] != null)
+            if (_tipo >= 0 && m_func.ContainsKey((ushort)_tipo))
             {
-                return m_func[_tipo];
+                return m_func[(ushort)_tipo];
             }
             else
             {

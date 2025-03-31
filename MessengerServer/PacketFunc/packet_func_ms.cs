@@ -17,7 +17,7 @@ namespace MessengerServer.PacketFunc
             try
             {                                                                                                                                                                         
                 ((MessengerServerTcp.MessengerServer)param).requestLogin(((Player)pd._session), pd._packet);
-                return 1;
+                return 0;
             }
             catch (exception e)
             {
@@ -718,7 +718,7 @@ namespace MessengerServer.PacketFunc
                         {  
                             try
                             {                                
-                                (el2.Value).Send(el.GetBytes, false); 
+                                (el2.Value).Send(el.GetBytes, 1); 
                             }
                             catch (exception e)
                             {
@@ -741,6 +741,10 @@ namespace MessengerServer.PacketFunc
 
         public static void session_send(PangyaBinaryWriter p, Player _session, int _debug)
         {
+            if (_debug == 1)
+            {
+                Console.WriteLine("Send_Session:" + p.GetBytes.HexDump());
+            }
             _session.Send(p);
         }
     }

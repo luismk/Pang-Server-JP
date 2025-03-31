@@ -1,0 +1,187 @@
+﻿//using System;
+//using System.Collections.Generic;
+//using System.Linq;
+//using System.Text;
+//using System.Threading.Tasks;
+//using GameServer.Game.Utils;
+//using static GameServer.GameType._Define;
+//namespace GameServer.GameType
+//{
+//    public class stHoleWind
+//    {
+//        public stHoleWind(uint _ul = 0)
+//        {
+//            this.degree = new stHoleWind.stDegree(0);
+//            clear();
+//        }
+//        public stHoleWind(byte _wind, ushort _degree)
+//        {
+//            this.wind = _wind;
+//            this.degree = new stHoleWind.stDegree(_degree);
+//        }
+//        public void clear()
+//        { 
+//        }
+//        public byte wind;
+//        public class stDegree
+//        {
+//            public stDegree() : this(0)
+//            {        }
+//            public stDegree(ushort _degree)
+//            {
+//                this.degree = _degree;
+//                this.min_degree = 0;
+//                min_degree = (ushort)(((degree - 20) < 0) != false ? (ushort)(LIMIT_DEGREE + (degree) - 20) : (degree) - 20);
+//            }
+//            public void clear()
+//            { 
+//            }
+//            public void setDegree(ushort _degree)
+//            {
+//                degree = _degree;
+
+//                min_degree = (ushort)(((degree - 20) < 0) != false ? (ushort)(LIMIT_DEGREE + (degree) - 20) : (degree) - 20);
+//            }
+//            public ushort getDegree()
+//            {
+//                return degree;
+//            }
+//            public ushort getShuffleDegree()
+//            {
+
+//                degree = (ushort)((min_degree + (sRandomGen.getInstance().rIbeMt19937_64_chrono() % LIMIT_RANGE)) % LIMIT_DEGREE);
+
+//                //std::srand(std::clock() * (uint)this / (std::clock() + 1));
+
+//                //degree = (unsigned short)((min_degree + (((std::rand() * std::clock()) / (std::rand() + 1) * (uint)this) % LIMIT_RANGE)) % LIMIT_DEGREE);
+
+//                return degree;
+//            }
+//            protected ushort degree;
+//            protected ushort min_degree;
+//            protected const byte LIMIT_RANGE = 40;
+//        }
+//        public stDegree degree = new stDegree();
+//    }
+
+//    public class stHolePar
+//    {
+//        public void clear()
+//        { 
+//        }
+//        public byte par;
+//        public string range_score = new string(new char[2]);
+//        public byte total_shot;
+//    }
+
+//    public class stXZLocation
+//    {
+//        public void clear()
+//        { 
+//        }
+//        public float x;
+//        public float z;
+//    }
+
+//    // C++ TO C# CONVERTER TASK: Unions are not supported in C#:
+//    public class uCubeCoinFlag
+//    {
+//        void clear()
+
+//        { 
+//        }
+//      public  byte[] ucFlag = new byte[2];
+//        public byte type;
+//        public byte enable; // Ativa Coin e Cube no Hole
+//        public byte enable_cube; // Ativa Cube
+//        public byte enable_coin; // Ativa Coin
+//    }
+
+//public class Cube
+//    {
+//        public enum eFLAG_LOCATION : uint
+//        {
+//            EDGE_GREEN,
+//            CARPET,
+//            AIR,
+//            GROUND
+//        }
+
+//        public enum eTYPE : uint
+//        {
+//            COIN,
+//            CUBE
+//        }
+
+//        public Cube(uint _ul = 0)
+//        {
+//            clear();
+//        }
+//        public Cube(uint _id,
+//            eTYPE _tipo,
+//            uint _flag_unknown,
+//            eFLAG_LOCATION _flag_location,
+//            float _x, float _y, float _z)
+//        {
+//              this.id = _id;
+//             this.tipo = (_tipo);
+//              this.flag_unknown = _flag_unknown;
+//             this.flag_location = (_flag_location);
+//            this.location = new Cube.stLocation(_x,
+//                _y, _z);
+//        }
+//        public void clear()
+//        { 
+//        }
+//        public class stLocation
+//        {
+//            public void clear()
+//            { 
+//            }
+//            public float x;
+//            public float y;
+//            public float z;
+//            public stLocation() { }
+//            public stLocation(float x, float y, float z)
+//            {
+//                this.x = x;
+//                this.y = y;
+//                this.z = z;
+//            }
+//        }
+
+//        public stLocation location = new stLocation();
+//        public uint id = new uint();
+//        public eTYPE tipo;
+//        public uint flag_unknown = new uint();
+//        public eFLAG_LOCATION flag_location; // Borda Green = 0, Carpet = 1 , Ar = 2, Chão = 3
+//    }
+
+//    public class CubeEx : Cube
+//    {
+//        public CubeEx(uint _ul = 0) : base(_ul)
+//        {
+//            this.rate = 1u;
+//        }
+//        public CubeEx(uint _id,
+//            eTYPE _tipo,
+//            uint _flag_unknown,
+//            eFLAG_LOCATION _flag_location,
+//            float _x, float _y, float _z,
+//            uint _rate) : base(_id,
+//                _tipo, _flag_unknown,
+//                _flag_location, _x, _y, _z)
+//        {
+//             this.rate = _rate;
+//        }
+//        public new void clear()
+//        {
+
+//            base.clear();
+
+//            rate = 1u;
+//        }
+
+//        public uint rate = new uint(); // Aqui é quantas vezes o cube ou coin caiu no mesmo lugar
+//    }
+//}

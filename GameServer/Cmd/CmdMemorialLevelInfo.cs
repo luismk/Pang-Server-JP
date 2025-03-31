@@ -4,7 +4,7 @@ using PangyaAPI.Utilities;
 using System.Collections.Generic;
 using System;
 using System.Linq;
-using PangLib.IFF.JP.Models.Data;
+using PangyaAPI.IFF.JP.Models.Data;
 using GameServer.PangyaEnums;
 using PangyaAPI.Utilities.Log;
 

@@ -185,9 +185,12 @@
     <Compile Include="GameType\bot_gm_event_type.cs" />
     <Compile Include="GameType\guild_type.cs" />
     <Compile Include="GameType\game_type.cs" />
+    <Compile Include="GameType\hole_type.cs" />
     <Compile Include="GameType\memorial_type.cs" />
     <Compile Include="GameType\papel_shop_type.cs" />
+    <Compile Include="Game\Course.cs" />
     <Compile Include="Game\Dupla.cs" />
+    <Compile Include="Game\Hole.cs" />
     <Compile Include="Game\Manager\CardEquipManager.cs" />
     <Compile Include="Game\Manager\CardManager.cs" />
     <Compile Include="Game\Manager\DuplaManager.cs" />
@@ -220,8 +223,7 @@
     <Compile Include="Game\Utils\MultMap.cs" />
     <Compile Include="Game\Utils\RandomGen.cs" />
     <Compile Include="Game\Guild.cs" />
-    <Compile Include="PacketFunc\packet_func_cl.cs" />
-    <Compile Include="PacketFunc\packet_func_sv.cs" />
+    <Compile Include="PacketFunc\packet_func_gs.cs" />
     <Compile Include="PangyaEnums\COMMAND_CMD_GM.cs" />
     <Compile Include="PangyaEnums\CapabilityFlags.cs" />
     <Compile Include="PangyaEnums\PacketGame.cs" />
@@ -240,9 +242,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\PangyaAPI\PangLib.IFF.JP\PangLib.IFF.JP.csproj">
-      <Project>{ec517392-61f2-43f6-834d-8adc69924a22}</Project>
-      <Name>PangLib.IFF.JP</Name>
+    <ProjectReference Include="..\PangyaAPI\PangyaAPI.IFF.JP\PangyaAPI.IFF.JP.csproj">
+      <Project>{03210c5a-2661-4bb2-b3b5-c49603e422f3}</Project>
+      <Name>PangyaAPI.IFF.JP</Name>
     </ProjectReference>
     <ProjectReference Include="..\PangyaAPI\PangyaAPI.Network\PangyaAPI.Network.csproj">
       <Project>{fe218d80-0679-47e0-bed2-284bba6fe8aa}</Project>

@@ -568,7 +568,7 @@ namespace GameServer.Game
 
             //        p.WriteBytes(ci_r.Build());
 
-            //        packet_func_sv.session_send(p,
+            //        packet_func.session_send(p,
             //            m_owner, 1);
 
             //        // Esse Pacote � o de add ele soma, n�o atualiza do zero como o que tira do player
@@ -590,7 +590,7 @@ namespace GameServer.Game
 
             //        p.WriteBytes(ci_r.Build());
 
-            //        packet_func_sv.session_send(p,
+            //        packet_func.session_send(p,
             //            _session, 1);
 
             //    }
@@ -619,7 +619,7 @@ namespace GameServer.Game
 
             //        p.WriteBytes(wi_r.Build());
 
-            //        packet_func_sv.session_send(p,
+            //        packet_func.session_send(p,
             //            m_owner, 1);
 
             //        // Esse Pacote � o de add ele soma, n�o atualiza do zero como o que tira do player
@@ -641,7 +641,7 @@ namespace GameServer.Game
 
             //        p.WriteBytes(wi_r.Build());
 
-            //        packet_func_sv.session_send(p,
+            //        packet_func.session_send(p,
             //            _session, 1);
             //    }
 
@@ -714,12 +714,12 @@ namespace GameServer.Game
             var clients = v_open_shop_visit;
 
             // Envia para o dono do Personal Shop
-            packet_func_sv.session_send(_p,
+            packet_func.session_send(_p,
                 m_owner, 1);
 
             foreach (var el in clients)
             {
-                packet_func_sv.session_send(_p,
+                packet_func.session_send(_p,
                     el, _debug);
             }
         }
@@ -739,12 +739,12 @@ namespace GameServer.Game
             var clients = v_open_shop_visit;
 
             // Envia para o dono do Personal Shop
-            packet_func_sv.session_send(_v_p,
+            packet_func.session_send(_v_p,
                 m_owner, 1);
 
             foreach (var el in clients)
             {
-                packet_func_sv.session_send(_v_p,
+                packet_func.session_send(_v_p,
                     el, _debug);
             }
         }

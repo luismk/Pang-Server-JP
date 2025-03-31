@@ -20,7 +20,6 @@ using PangyaAPI.Network.PangyaServer;
 using PangyaAPI.SQL;
 using PangyaAPI.Network.Cmd;
 using GameServer.PangyaEnums;
-using packet_func = GameServer.PacketFunc.packet_func_cl;
 using GameServer.Game.Utils;
 using GameServer.GameServerTcp;
 
@@ -376,7 +375,7 @@ namespace GameServer.GameServerTcp
 
         public virtual void sendServerListAndChannelListToSession(Player _session)
         {
-            _session.Send(packet_func_sv.pacote09F(m_server_list, v_channel));
+            _session.Send(packet_func.pacote09F(m_server_list, v_channel));
         }
 
         public virtual void sendDateTimeToSession(Player _session)
@@ -570,203 +569,486 @@ namespace GameServer.GameServerTcp
         }
         public virtual void init_Packets()
         {
-            this.funcs.addPacketCall(0x02, packet_func.packet002);
-            this.funcs.addPacketCall(0x03, packet_func.packet003);
-            this.funcs.addPacketCall(0x04, packet_func.packet004);
-            this.funcs.addPacketCall(0x06, packet_func.packet006);
-            this.funcs.addPacketCall(0x07, packet_func.packet007);
-            this.funcs.addPacketCall(0x08, packet_func.packet008);
-            this.funcs.addPacketCall(0x09, packet_func.packet009);
-            this.funcs.addPacketCall(0x0A, packet_func.packet00A);
-            this.funcs.addPacketCall(0x0B, packet_func.packet00B);
-            this.funcs.addPacketCall(0x0C, packet_func.packet00C);
-            this.funcs.addPacketCall(0x0D, packet_func.packet00D);
-            this.funcs.addPacketCall(0x0E, packet_func.packet00E);
-            this.funcs.addPacketCall(0x0F, packet_func.packet00F);
-            this.funcs.addPacketCall(0x10, packet_func.packet010);
-            this.funcs.addPacketCall(0x11, packet_func.packet011);
-            this.funcs.addPacketCall(0x12, packet_func.packet012);
-            this.funcs.addPacketCall(0x13, packet_func.packet013);
-            this.funcs.addPacketCall(0x14, packet_func.packet014);
-            this.funcs.addPacketCall(0x15, packet_func.packet015);
-            this.funcs.addPacketCall(0x16, packet_func.packet016);
-            this.funcs.addPacketCall(0x17, packet_func.packet017);
-            this.funcs.addPacketCall(0x18, packet_func.packet018);
-            this.funcs.addPacketCall(0x19, packet_func.packet019);
-            this.funcs.addPacketCall(0x1A, packet_func.packet01A);
-            this.funcs.addPacketCall(0x1B, packet_func.packet01B);
-            this.funcs.addPacketCall(0x1C, packet_func.packet01C);
-            this.funcs.addPacketCall(0x1D, packet_func.packet01D);
-            this.funcs.addPacketCall(0x1F, packet_func.packet01F);
-            this.funcs.addPacketCall(0x20, packet_func.packet020);
-            this.funcs.addPacketCall(0x22, packet_func.packet022);
-            this.funcs.addPacketCall(0x26, packet_func.packet026);
-            this.funcs.addPacketCall(0x29, packet_func.packet029);
-            this.funcs.addPacketCall(0x2A, packet_func.packet02A);
-            this.funcs.addPacketCall(0x2D, packet_func.packet02D);
-            this.funcs.addPacketCall(0x2F, packet_func.packet02F);
-            this.funcs.addPacketCall(0x30, packet_func.packet030);
-            this.funcs.addPacketCall(0x31, packet_func.packet031);
-            this.funcs.addPacketCall(0x32, packet_func.packet032);
-            this.funcs.addPacketCall(0x33, packet_func.packet033);
-            this.funcs.addPacketCall(0x34, packet_func.packet034);
-            this.funcs.addPacketCall(0x35, packet_func.packet035);
-            this.funcs.addPacketCall(0x36, packet_func.packet036);
-            this.funcs.addPacketCall(0x37, packet_func.packet037);
-            this.funcs.addPacketCall(0x39, packet_func.packet039);
-            this.funcs.addPacketCall(0x3A, packet_func.packet03A);
-            this.funcs.addPacketCall(0x3C, packet_func.packet03C);
-            this.funcs.addPacketCall(0x3D, packet_func.packet03D);
-            this.funcs.addPacketCall(0x3E, packet_func.packet03E);
-            this.funcs.addPacketCall(0x41, packet_func.packet041);
-            this.funcs.addPacketCall(0x42, packet_func.packet042);
-            this.funcs.addPacketCall(0x43, packet_func.packet043);
-            this.funcs.addPacketCall(0x47, packet_func.packet047);
-            this.funcs.addPacketCall(0x48, packet_func.packet048);
-            this.funcs.addPacketCall(0x4A, packet_func.packet04A);
-            this.funcs.addPacketCall(0x4B, packet_func.packet04B);
-            this.funcs.addPacketCall(0x4F, packet_func.packet04F);
-            this.funcs.addPacketCall(0x54, packet_func.packet054);
-            this.funcs.addPacketCall(0x55, packet_func.packet055);
-            this.funcs.addPacketCall(0x57, packet_func.packet057);
-            this.funcs.addPacketCall(0x5C, packet_func.packet05C);
-            this.funcs.addPacketCall(0x60, packet_func.packet060);
-            this.funcs.addPacketCall(0x61, packet_func.packet061);
-            this.funcs.addPacketCall(0x63, packet_func.packet063);
-            this.funcs.addPacketCall(0x64, packet_func.packet064);
-            this.funcs.addPacketCall(0x65, packet_func.packet065);
-            this.funcs.addPacketCall(0x66, packet_func.packet066);
-            this.funcs.addPacketCall(0x67, packet_func.packet067);
-            this.funcs.addPacketCall(0x69, packet_func.packet069);
-            this.funcs.addPacketCall(0x6B, packet_func.packet06B);
-            this.funcs.addPacketCall(0x73, packet_func.packet073);
-            this.funcs.addPacketCall(0x74, packet_func.packet074);
-            this.funcs.addPacketCall(0x75, packet_func.packet075);
-            this.funcs.addPacketCall(0x76, packet_func.packet076);
-            this.funcs.addPacketCall(0x77, packet_func.packet077);
-            this.funcs.addPacketCall(0x78, packet_func.packet078);
-            this.funcs.addPacketCall(0x79, packet_func.packet079);
-            this.funcs.addPacketCall(0x7A, packet_func.packet07A);
-            this.funcs.addPacketCall(0x7B, packet_func.packet07B);
-            this.funcs.addPacketCall(0x7C, packet_func.packet07C);
-            this.funcs.addPacketCall(0x7D, packet_func.packet07D);
-            this.funcs.addPacketCall(0x81, packet_func.packet081);
-            this.funcs.addPacketCall(0x82, packet_func.packet082);
-            this.funcs.addPacketCall(0x83, packet_func.packet083);
-            this.funcs.addPacketCall(0x88, packet_func.packet088);
-            this.funcs.addPacketCall(0x8B, packet_func.packet08B);
-            this.funcs.addPacketCall(0x8F, packet_func.packet08F);
-            this.funcs.addPacketCall(0x98, packet_func.packet098);
-            this.funcs.addPacketCall(0x9C, packet_func.packet09C);
-            this.funcs.addPacketCall(0x9D, packet_func.packet09D);
-            this.funcs.addPacketCall(0x9E, packet_func.packet09E);
-            this.funcs.addPacketCall(0xA1, packet_func.packet0A1);
-            this.funcs.addPacketCall(0xA2, packet_func.packet0A2);
-            this.funcs.addPacketCall(0xAA, packet_func.packet0AA);
-            this.funcs.addPacketCall(0xAB, packet_func.packet0AB);
-            this.funcs.addPacketCall(0xAE, packet_func.packet0AE);
-            this.funcs.addPacketCall(0xB2, packet_func.packet0B2);
+            packet_func.funcs.addPacketCall(0x02, packet_func.packet002, this);
+            packet_func.funcs.addPacketCall(0x03, packet_func.packet003, this);
+            packet_func.funcs.addPacketCall(0x04, packet_func.packet004, this);
+            packet_func.funcs.addPacketCall(0x06, packet_func.packet006, this);
+            packet_func.funcs.addPacketCall(0x07, packet_func.packet007, this);
+            packet_func.funcs.addPacketCall(0x08, packet_func.packet008, this);
+            packet_func.funcs.addPacketCall(0x09, packet_func.packet009, this);
+            packet_func.funcs.addPacketCall(0x0A, packet_func.packet00A, this);
+            packet_func.funcs.addPacketCall(0x0B, packet_func.packet00B, this);
+            packet_func.funcs.addPacketCall(0x0C, packet_func.packet00C, this);
+            packet_func.funcs.addPacketCall(0x0D, packet_func.packet00D, this);
+            packet_func.funcs.addPacketCall(0x0E, packet_func.packet00E, this);
+            packet_func.funcs.addPacketCall(0x0F, packet_func.packet00F, this);
+            packet_func.funcs.addPacketCall(0x10, packet_func.packet010, this);
+            packet_func.funcs.addPacketCall(0x11, packet_func.packet011, this);
+            packet_func.funcs.addPacketCall(0x12, packet_func.packet012, this);
+            packet_func.funcs.addPacketCall(0x13, packet_func.packet013, this);
+            packet_func.funcs.addPacketCall(0x14, packet_func.packet014, this);
+            packet_func.funcs.addPacketCall(0x15, packet_func.packet015, this);
+            packet_func.funcs.addPacketCall(0x16, packet_func.packet016, this);
+            packet_func.funcs.addPacketCall(0x17, packet_func.packet017, this);
+            packet_func.funcs.addPacketCall(0x18, packet_func.packet018, this);
+            packet_func.funcs.addPacketCall(0x19, packet_func.packet019, this);
+            packet_func.funcs.addPacketCall(0x1A, packet_func.packet01A, this);
+            packet_func.funcs.addPacketCall(0x1B, packet_func.packet01B, this);
+            packet_func.funcs.addPacketCall(0x1C, packet_func.packet01C, this);
+            packet_func.funcs.addPacketCall(0x1D, packet_func.packet01D, this);
+            packet_func.funcs.addPacketCall(0x1F, packet_func.packet01F, this);
+            packet_func.funcs.addPacketCall(0x20, packet_func.packet020, this);
+            packet_func.funcs.addPacketCall(0x22, packet_func.packet022, this);
+            packet_func.funcs.addPacketCall(0x26, packet_func.packet026, this);
+            packet_func.funcs.addPacketCall(0x29, packet_func.packet029, this);
+            packet_func.funcs.addPacketCall(0x2A, packet_func.packet02A, this);
+            packet_func.funcs.addPacketCall(0x2D, packet_func.packet02D, this);
+            packet_func.funcs.addPacketCall(0x2F, packet_func.packet02F, this);
+            packet_func.funcs.addPacketCall(0x30, packet_func.packet030, this);
+            packet_func.funcs.addPacketCall(0x31, packet_func.packet031, this);
+            packet_func.funcs.addPacketCall(0x32, packet_func.packet032, this);
+            packet_func.funcs.addPacketCall(0x33, packet_func.packet033, this);
+            packet_func.funcs.addPacketCall(0x34, packet_func.packet034, this);
+            packet_func.funcs.addPacketCall(0x35, packet_func.packet035, this);
+            packet_func.funcs.addPacketCall(0x36, packet_func.packet036, this);
+            packet_func.funcs.addPacketCall(0x37, packet_func.packet037, this);
+            packet_func.funcs.addPacketCall(0x39, packet_func.packet039, this);
+            packet_func.funcs.addPacketCall(0x3A, packet_func.packet03A, this);
+            packet_func.funcs.addPacketCall(0x3C, packet_func.packet03C, this);
+            packet_func.funcs.addPacketCall(0x3D, packet_func.packet03D, this);
+            packet_func.funcs.addPacketCall(0x3E, packet_func.packet03E, this);
+            packet_func.funcs.addPacketCall(0x41, packet_func.packet041, this);
+            packet_func.funcs.addPacketCall(0x42, packet_func.packet042, this);
+            packet_func.funcs.addPacketCall(0x43, packet_func.packet043, this);
+            packet_func.funcs.addPacketCall(0x47, packet_func.packet047, this);
+            packet_func.funcs.addPacketCall(0x48, packet_func.packet048, this);
+            packet_func.funcs.addPacketCall(0x4A, packet_func.packet04A, this);
+            packet_func.funcs.addPacketCall(0x4B, packet_func.packet04B, this);
+            packet_func.funcs.addPacketCall(0x4F, packet_func.packet04F, this);
+            packet_func.funcs.addPacketCall(0x54, packet_func.packet054, this);
+            packet_func.funcs.addPacketCall(0x55, packet_func.packet055, this);
+            packet_func.funcs.addPacketCall(0x57, packet_func.packet057, this);
+            packet_func.funcs.addPacketCall(0x5C, packet_func.packet05C, this);
+            packet_func.funcs.addPacketCall(0x60, packet_func.packet060, this);
+            packet_func.funcs.addPacketCall(0x61, packet_func.packet061, this);
+            packet_func.funcs.addPacketCall(0x63, packet_func.packet063, this);
+            packet_func.funcs.addPacketCall(0x64, packet_func.packet064, this);
+            packet_func.funcs.addPacketCall(0x65, packet_func.packet065, this);
+            packet_func.funcs.addPacketCall(0x66, packet_func.packet066, this);
+            packet_func.funcs.addPacketCall(0x67, packet_func.packet067, this);
+            packet_func.funcs.addPacketCall(0x69, packet_func.packet069, this);
+            packet_func.funcs.addPacketCall(0x6B, packet_func.packet06B, this);
+            packet_func.funcs.addPacketCall(0x73, packet_func.packet073, this);
+            packet_func.funcs.addPacketCall(0x74, packet_func.packet074, this);
+            packet_func.funcs.addPacketCall(0x75, packet_func.packet075, this);
+            packet_func.funcs.addPacketCall(0x76, packet_func.packet076, this);
+            packet_func.funcs.addPacketCall(0x77, packet_func.packet077, this);
+            packet_func.funcs.addPacketCall(0x78, packet_func.packet078, this);
+            packet_func.funcs.addPacketCall(0x79, packet_func.packet079, this);
+            packet_func.funcs.addPacketCall(0x7A, packet_func.packet07A, this);
+            packet_func.funcs.addPacketCall(0x7B, packet_func.packet07B, this);
+            packet_func.funcs.addPacketCall(0x7C, packet_func.packet07C, this);
+            packet_func.funcs.addPacketCall(0x7D, packet_func.packet07D, this);
+            packet_func.funcs.addPacketCall(0x81, packet_func.packet081, this);
+            packet_func.funcs.addPacketCall(0x82, packet_func.packet082, this);
+            packet_func.funcs.addPacketCall(0x83, packet_func.packet083, this);
+            packet_func.funcs.addPacketCall(0x88, packet_func.packet088, this);
+            packet_func.funcs.addPacketCall(0x8B, packet_func.packet08B, this);
+            packet_func.funcs.addPacketCall(0x8F, packet_func.packet08F, this);
+            packet_func.funcs.addPacketCall(0x98, packet_func.packet098, this);
+            packet_func.funcs.addPacketCall(0x9C, packet_func.packet09C, this);
+            packet_func.funcs.addPacketCall(0x9D, packet_func.packet09D, this);
+            packet_func.funcs.addPacketCall(0x9E, packet_func.packet09E, this);
+            packet_func.funcs.addPacketCall(0xA1, packet_func.packet0A1, this);
+            packet_func.funcs.addPacketCall(0xA2, packet_func.packet0A2, this);
+            packet_func.funcs.addPacketCall(0xAA, packet_func.packet0AA, this);
+            packet_func.funcs.addPacketCall(0xAB, packet_func.packet0AB, this);
+            packet_func.funcs.addPacketCall(0xAE, packet_func.packet0AE, this);
+            packet_func.funcs.addPacketCall(0xB2, packet_func.packet0B2, this);
             // Recebi esse pacote quando troquei de server, e no outro eu tinha jogado um Match feito bastante Achievement
             // e pegado daily quest, desistido do resto e aceito a do dia e aberto alguns card packs, ai troquei de server e recebi esse pacote
             //2018-11-17 20:43:07.307 Tipo : 180(0xB4), desconhecido ou nao implementado.func_arr.getPacketCall()     Error Code : 335609856
             //2018-11-17 20:43:07.307 size packet : 5
             //0000 B4 00 01 00 00 -- -- -- -- -- -- -- -- -- -- --    ................
-            this.funcs.addPacketCall(0xB4, packet_func.packet0B4);
-            this.funcs.addPacketCall(0xB5, packet_func.packet0B5);
-            this.funcs.addPacketCall(0xB7, packet_func.packet0B7);
-            this.funcs.addPacketCall(0xB9, packet_func.packet0B9);
-            this.funcs.addPacketCall(0xBA, packet_func.packet0BA);
-            this.funcs.addPacketCall(0xBD, packet_func.packet0BD);
-            this.funcs.addPacketCall(0xC1, packet_func.packet0C1);
-            this.funcs.addPacketCall(0xC9, packet_func.packet0C9);
-            this.funcs.addPacketCall(0xCA, packet_func.packet0CA);
-            this.funcs.addPacketCall(0xCB, packet_func.packet0CB);
-            this.funcs.addPacketCall(0xCC, packet_func.packet0CC);
-            this.funcs.addPacketCall(0xCD, packet_func.packet0CD);
-            this.funcs.addPacketCall(0xCE, packet_func.packet0CE);
-            this.funcs.addPacketCall(0xCF, packet_func.packet0CF);
-            this.funcs.addPacketCall(0xD0, packet_func.packet0D0);
-            this.funcs.addPacketCall(0xD1, packet_func.packet0D1);
-            this.funcs.addPacketCall(0xD2, packet_func.packet0D2);
-            this.funcs.addPacketCall(0xD3, packet_func.packet0D3);
-            this.funcs.addPacketCall(0xD4, packet_func.packet0D4);
-            this.funcs.addPacketCall(0xD5, packet_func.packet0D5);
-            this.funcs.addPacketCall(0xD8, packet_func.packet0D8);
-            this.funcs.addPacketCall(0xDE, packet_func.packet0DE);
-            this.funcs.addPacketCall(0xE5, packet_func.packet0E5);
-            this.funcs.addPacketCall(0xE6, packet_func.packet0E6);
-            this.funcs.addPacketCall(0xE7, packet_func.packet0E7);
-            this.funcs.addPacketCall(0xEB, packet_func.packet0EB);
-            this.funcs.addPacketCall(0xEC, packet_func.packet0EC);
-            this.funcs.addPacketCall(0xEF, packet_func.packet0EF);
-            this.funcs.addPacketCall(0xF4, packet_func.packet0F4);
-            this.funcs.addPacketCall(0xFB, packet_func.packet0FB);
-            this.funcs.addPacketCall(0xFE, packet_func.packet0FE);
-            this.funcs.addPacketCall(0x119, packet_func.packet119);
-            this.funcs.addPacketCall(0x126, packet_func.packet126);
-            this.funcs.addPacketCall(0x127, packet_func.packet127);
-            this.funcs.addPacketCall(0x128, packet_func.packet128);
-            this.funcs.addPacketCall(0x129, packet_func.packet129);
-            this.funcs.addPacketCall(0x12C, packet_func.packet12C);
-            this.funcs.addPacketCall(0x12D, packet_func.packet12D);
-            this.funcs.addPacketCall(0x12E, packet_func.packet12E);
-            this.funcs.addPacketCall(0x12F, packet_func.packet12F);
-            this.funcs.addPacketCall(0x130, packet_func.packet130);
-            this.funcs.addPacketCall(0x131, packet_func.packet131);
-            this.funcs.addPacketCall(0x137, packet_func.packet137);
-            this.funcs.addPacketCall(0x138, packet_func.packet138);
-            this.funcs.addPacketCall(0x140, packet_func.packet140);
-            this.funcs.addPacketCall(0x141, packet_func.packet141);
-            this.funcs.addPacketCall(0x143, packet_func.packet143);
-            this.funcs.addPacketCall(0x144, packet_func.packet144);
-            this.funcs.addPacketCall(0x145, packet_func.packet145);
-            this.funcs.addPacketCall(0x146, packet_func.packet146);
-            this.funcs.addPacketCall(0x147, packet_func.packet147);
-            this.funcs.addPacketCall(0x14B, packet_func.packet14B);
-            this.funcs.addPacketCall(0x151, packet_func.packet151);
-            this.funcs.addPacketCall(0x152, packet_func.packet152);
-            this.funcs.addPacketCall(0x153, packet_func.packet153);
-            this.funcs.addPacketCall(0x154, packet_func.packet154);
-            this.funcs.addPacketCall(0x155, packet_func.packet155);
-            this.funcs.addPacketCall(0x156, packet_func.packet156);
-            this.funcs.addPacketCall(0x157, packet_func.packet157);
-            this.funcs.addPacketCall(0x158, packet_func.packet158);
-            this.funcs.addPacketCall(0x15C, packet_func.packet15C);
-            this.funcs.addPacketCall(0x15D, packet_func.packet15D);
-            this.funcs.addPacketCall(0x164, packet_func.packet164);
-            this.funcs.addPacketCall(0x165, packet_func.packet165);
-            this.funcs.addPacketCall(0x166, packet_func.packet166);
-            this.funcs.addPacketCall(0x167, packet_func.packet167);
-            this.funcs.addPacketCall(0x168, packet_func.packet168);
-            this.funcs.addPacketCall(0x169, packet_func.packet169);
-            this.funcs.addPacketCall(0x16B, packet_func.packet16B);
-            this.funcs.addPacketCall(0x16C, packet_func.packet16C);
-            this.funcs.addPacketCall(0x16D, packet_func.packet16D);
-            this.funcs.addPacketCall(0x16E, packet_func.packet16E);
-            this.funcs.addPacketCall(0x16F, packet_func.packet16F);
-            this.funcs.addPacketCall(0x171, packet_func.packet171);
-            this.funcs.addPacketCall(0x172, packet_func.packet172);
-            this.funcs.addPacketCall(0x176, packet_func.packet176);
-            this.funcs.addPacketCall(0x177, packet_func.packet177);
-            this.funcs.addPacketCall(0x179, packet_func.packet179);
-            this.funcs.addPacketCall(0x17A, packet_func.packet17A);
-            this.funcs.addPacketCall(0x17F, packet_func.packet17F);
-            this.funcs.addPacketCall(0x180, packet_func.packet180);
-            this.funcs.addPacketCall(0x181, packet_func.packet181);
-            this.funcs.addPacketCall(0x184, packet_func.packet184);
-            this.funcs.addPacketCall(0x185, packet_func.packet185);
-            this.funcs.addPacketCall(0x187, packet_func.packet187);
-            this.funcs.addPacketCall(0x188, packet_func.packet188);
-            this.funcs.addPacketCall(0x189, packet_func.packet189);
-            this.funcs.addPacketCall(0x18A, packet_func.packet18A);
-            this.funcs.addPacketCall(0x18B, packet_func.packet18B);
-            this.funcs.addPacketCall(0x18C, packet_func.packet18C);
-            this.funcs.addPacketCall(0x18D, packet_func.packet18D);
-            this.funcs.addPacketCall(0x192, packet_func.packet192);
-            this.funcs.addPacketCall(0x196, packet_func.packet196);
-            this.funcs.addPacketCall(0x197, packet_func.packet197);
-            this.funcs.addPacketCall(0x198, packet_func.packet198);
-            this.funcs.addPacketCall(0x199, packet_func.packet199);
+            packet_func.funcs.addPacketCall(0xB4, packet_func.packet0B4, this);
+            packet_func.funcs.addPacketCall(0xB5, packet_func.packet0B5, this);
+            packet_func.funcs.addPacketCall(0xB7, packet_func.packet0B7, this);
+            packet_func.funcs.addPacketCall(0xB9, packet_func.packet0B9, this);
+            packet_func.funcs.addPacketCall(0xBA, packet_func.packet0BA, this);
+            packet_func.funcs.addPacketCall(0xBD, packet_func.packet0BD, this);
+            packet_func.funcs.addPacketCall(0xC1, packet_func.packet0C1, this);
+            packet_func.funcs.addPacketCall(0xC9, packet_func.packet0C9, this);
+            packet_func.funcs.addPacketCall(0xCA, packet_func.packet0CA, this);
+            packet_func.funcs.addPacketCall(0xCB, packet_func.packet0CB, this);
+            packet_func.funcs.addPacketCall(0xCC, packet_func.packet0CC, this);
+            packet_func.funcs.addPacketCall(0xCD, packet_func.packet0CD, this);
+            packet_func.funcs.addPacketCall(0xCE, packet_func.packet0CE, this);
+            packet_func.funcs.addPacketCall(0xCF, packet_func.packet0CF, this);
+            packet_func.funcs.addPacketCall(0xD0, packet_func.packet0D0, this);
+            packet_func.funcs.addPacketCall(0xD1, packet_func.packet0D1, this);
+            packet_func.funcs.addPacketCall(0xD2, packet_func.packet0D2, this);
+            packet_func.funcs.addPacketCall(0xD3, packet_func.packet0D3, this);
+            packet_func.funcs.addPacketCall(0xD4, packet_func.packet0D4, this);
+            packet_func.funcs.addPacketCall(0xD5, packet_func.packet0D5, this);
+            packet_func.funcs.addPacketCall(0xD8, packet_func.packet0D8, this);
+            packet_func.funcs.addPacketCall(0xDE, packet_func.packet0DE, this);
+            packet_func.funcs.addPacketCall(0xE5, packet_func.packet0E5, this);
+            packet_func.funcs.addPacketCall(0xE6, packet_func.packet0E6, this);
+            packet_func.funcs.addPacketCall(0xE7, packet_func.packet0E7, this);
+            packet_func.funcs.addPacketCall(0xEB, packet_func.packet0EB, this);
+            packet_func.funcs.addPacketCall(0xEC, packet_func.packet0EC, this);
+            packet_func.funcs.addPacketCall(0xEF, packet_func.packet0EF, this);
+            packet_func.funcs.addPacketCall(0xF4, packet_func.packet0F4, this);
+            packet_func.funcs.addPacketCall(0xFB, packet_func.packet0FB, this);
+            packet_func.funcs.addPacketCall(0xFE, packet_func.packet0FE, this);
+            packet_func.funcs.addPacketCall(0x119, packet_func.packet119, this);
+            packet_func.funcs.addPacketCall(0x126, packet_func.packet126, this);
+            packet_func.funcs.addPacketCall(0x127, packet_func.packet127, this);
+            packet_func.funcs.addPacketCall(0x128, packet_func.packet128, this);
+            packet_func.funcs.addPacketCall(0x129, packet_func.packet129, this);
+            packet_func.funcs.addPacketCall(0x12C, packet_func.packet12C, this);
+            packet_func.funcs.addPacketCall(0x12D, packet_func.packet12D, this);
+            packet_func.funcs.addPacketCall(0x12E, packet_func.packet12E, this);
+            packet_func.funcs.addPacketCall(0x12F, packet_func.packet12F, this);
+            packet_func.funcs.addPacketCall(0x130, packet_func.packet130, this);
+            packet_func.funcs.addPacketCall(0x131, packet_func.packet131, this);
+            packet_func.funcs.addPacketCall(0x137, packet_func.packet137, this);
+            packet_func.funcs.addPacketCall(0x138, packet_func.packet138, this);
+            packet_func.funcs.addPacketCall(0x140, packet_func.packet140, this);
+            packet_func.funcs.addPacketCall(0x141, packet_func.packet141, this);
+            packet_func.funcs.addPacketCall(0x143, packet_func.packet143, this);
+            packet_func.funcs.addPacketCall(0x144, packet_func.packet144, this);
+            packet_func.funcs.addPacketCall(0x145, packet_func.packet145, this);
+            packet_func.funcs.addPacketCall(0x146, packet_func.packet146, this);
+            packet_func.funcs.addPacketCall(0x147, packet_func.packet147, this);
+            packet_func.funcs.addPacketCall(0x14B, packet_func.packet14B, this);
+            packet_func.funcs.addPacketCall(0x151, packet_func.packet151, this);
+            packet_func.funcs.addPacketCall(0x152, packet_func.packet152, this);
+            packet_func.funcs.addPacketCall(0x153, packet_func.packet153, this);
+            packet_func.funcs.addPacketCall(0x154, packet_func.packet154, this);
+            packet_func.funcs.addPacketCall(0x155, packet_func.packet155, this);
+            packet_func.funcs.addPacketCall(0x156, packet_func.packet156, this);
+            packet_func.funcs.addPacketCall(0x157, packet_func.packet157, this);
+            packet_func.funcs.addPacketCall(0x158, packet_func.packet158, this);
+            packet_func.funcs.addPacketCall(0x15C, packet_func.packet15C, this);
+            packet_func.funcs.addPacketCall(0x15D, packet_func.packet15D, this);
+            packet_func.funcs.addPacketCall(0x164, packet_func.packet164, this);
+            packet_func.funcs.addPacketCall(0x165, packet_func.packet165, this);
+            packet_func.funcs.addPacketCall(0x166, packet_func.packet166, this);
+            packet_func.funcs.addPacketCall(0x167, packet_func.packet167, this);
+            packet_func.funcs.addPacketCall(0x168, packet_func.packet168, this);
+            packet_func.funcs.addPacketCall(0x169, packet_func.packet169, this);
+            packet_func.funcs.addPacketCall(0x16B, packet_func.packet16B, this);
+            packet_func.funcs.addPacketCall(0x16C, packet_func.packet16C, this);
+            packet_func.funcs.addPacketCall(0x16D, packet_func.packet16D, this);
+            packet_func.funcs.addPacketCall(0x16E, packet_func.packet16E, this);
+            packet_func.funcs.addPacketCall(0x16F, packet_func.packet16F, this);
+            packet_func.funcs.addPacketCall(0x171, packet_func.packet171, this);
+            packet_func.funcs.addPacketCall(0x172, packet_func.packet172, this);
+            packet_func.funcs.addPacketCall(0x176, packet_func.packet176, this);
+            packet_func.funcs.addPacketCall(0x177, packet_func.packet177, this);
+            packet_func.funcs.addPacketCall(0x179, packet_func.packet179, this);
+            packet_func.funcs.addPacketCall(0x17A, packet_func.packet17A, this);
+            packet_func.funcs.addPacketCall(0x17F, packet_func.packet17F, this);
+            packet_func.funcs.addPacketCall(0x180, packet_func.packet180, this);
+            packet_func.funcs.addPacketCall(0x181, packet_func.packet181, this);
+            packet_func.funcs.addPacketCall(0x184, packet_func.packet184, this);
+            packet_func.funcs.addPacketCall(0x185, packet_func.packet185, this);
+            packet_func.funcs.addPacketCall(0x187, packet_func.packet187, this);
+            packet_func.funcs.addPacketCall(0x188, packet_func.packet188, this);
+            packet_func.funcs.addPacketCall(0x189, packet_func.packet189, this);
+            packet_func.funcs.addPacketCall(0x18A, packet_func.packet18A, this);
+            packet_func.funcs.addPacketCall(0x18B, packet_func.packet18B, this);
+            packet_func.funcs.addPacketCall(0x18C, packet_func.packet18C, this);
+            packet_func.funcs.addPacketCall(0x18D, packet_func.packet18D, this);
+            packet_func.funcs.addPacketCall(0x192, packet_func.packet192, this);
+            packet_func.funcs.addPacketCall(0x196, packet_func.packet196, this);
+            packet_func.funcs.addPacketCall(0x197, packet_func.packet197, this);
+            packet_func.funcs.addPacketCall(0x198, packet_func.packet198, this);
+            packet_func.funcs.addPacketCall(0x199, packet_func.packet199, this);
+
+            packet_func.funcs_sv.addPacketCall(0x3F, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x40, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x42, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x44, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x45, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x46, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x47, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x48, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x49, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x4A, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x4B, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x4C, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x4D, packet_func.packet_sv4D, this);
+            packet_func.funcs_sv.addPacketCall(0x4E, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x50, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x52, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x53, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x55, packet_func.packet_sv055, this);
+            packet_func.funcs_sv.addPacketCall(0x56, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x58, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x59, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x5A, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x5B, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x5C, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x5D, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x60, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x61, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x63, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x64, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x65, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x66, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x67, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x68, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x6A, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x6B, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x6C, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x6D, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x6E, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x70, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x71, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x72, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x73, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x76, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x77, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x78, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x79, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x7C, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x7D, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x7E, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x83, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x84, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x86, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x89, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x8A, packet_func.packet_sv055, this);   // Esse pede o pacote 0x1B de tacada de novo do player que está com lag
+            packet_func.funcs_sv.addPacketCall(0x8B, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x8C, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x8D, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x8E, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x90, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x91, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x92, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x93, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x94, packet_func.packet_svFazNada, this);   // Resposta player report chat game
+            packet_func.funcs_sv.addPacketCall(0x95, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x96, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x97, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x9A, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x9E, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x9F, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0xA1, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0xA2, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0xA3, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0xA4, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0xA5, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0xA7, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0xAA, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0xAC, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0xB0, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0xB2, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0xB4, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0xB9, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0xBA, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0xBF, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0xC2, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0xC4, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0xC5, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0xC7, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0xC8, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0xC9, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0xCA, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0xCC, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0xCE, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0xD4, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0xD7, packet_func.packet_svFazNada, this);   // Request GameGuard Auth
+            packet_func.funcs_sv.addPacketCall(0xE1, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0xE2, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0xE3, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0xE4, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0xE5, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0xE6, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0xE7, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0xE8, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0xE9, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0xEA, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0xEB, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0xEC, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0xED, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0xF1, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0xF5, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0xF6, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0xF8, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0xF9, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0xFA, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0xFB, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0xFC, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x101, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x102, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x10B, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x10E, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x10F, packet_func.packet_svFazNada, this);  // Dialog Level Up!
+            packet_func.funcs_sv.addPacketCall(0x113, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x115, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x11A, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x11B, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x11C, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x11F, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x129, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x12A, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x12B, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x12D, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x12E, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x12F, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x130, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x131, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x132, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x133, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x134, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x135, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x136, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x137, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x138, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x139, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x13F, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x144, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x14E, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x14F, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x150, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x151, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x153, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x154, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x156, packet_func.packet_svRequestInfo, this);
+            packet_func.funcs_sv.addPacketCall(0x157, packet_func.packet_svRequestInfo, this);
+            packet_func.funcs_sv.addPacketCall(0x158, packet_func.packet_svRequestInfo, this);
+            packet_func.funcs_sv.addPacketCall(0x159, packet_func.packet_svRequestInfo, this);
+            packet_func.funcs_sv.addPacketCall(0x15A, packet_func.packet_svRequestInfo, this);
+            packet_func.funcs_sv.addPacketCall(0x15B, packet_func.packet_svRequestInfo, this);
+            packet_func.funcs_sv.addPacketCall(0x15C, packet_func.packet_svRequestInfo, this);
+            packet_func.funcs_sv.addPacketCall(0x15D, packet_func.packet_svRequestInfo, this);
+            packet_func.funcs_sv.addPacketCall(0x15E, packet_func.packet_svRequestInfo, this);
+            packet_func.funcs_sv.addPacketCall(0x160, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x168, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x169, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x16A, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x16C, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x16D, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x16E, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x16F, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x170, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x171, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x172, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x173, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x174, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x176, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x181, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x18D, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x18F, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x190, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x196, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x197, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x198, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x199, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x19D, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x1A9, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x1AD, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x1B1, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x1D3, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x1D4, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x1D9, packet_func.packet_svFazNada, this);  // Update ON GAME. Level And Exp
+            packet_func.funcs_sv.addPacketCall(0x1E7, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x1E8, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x1E9, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x1EA, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x1EC, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x1EE, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x1EF, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x1F0, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x1F1, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x1F2, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x1F3, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x1F4, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x1F5, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x1F7, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x1F8, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x1F9, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x1FA, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x200, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x201, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x203, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x20E, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x210, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x211, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x212, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x213, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x214, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x215, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x216, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x21B, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x21D, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x21E, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x220, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x225, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x226, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x227, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x228, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x229, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x22A, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x22B, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x22C, packet_func.packet_svFazNada/*packet_sv22D*/, this);
+            packet_func.funcs_sv.addPacketCall(0x22D, packet_func.packet_svFazNada/*packet_sv22D*/, this);
+            packet_func.funcs_sv.addPacketCall(0x22E, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x22F, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x230, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x231, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x236, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x237, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x23D, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x23E, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x23F, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x240, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x241, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x242, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x243, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x244, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x245, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x246, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x247, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x248, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x249, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x24C, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x24F, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x250, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x251, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x253, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x254, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x255, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x256, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x257, packet_func.packet_svRequestInfo, this);
+            packet_func.funcs_sv.addPacketCall(0x258, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x259, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x25A, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x25C, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x25D, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x264, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x265, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x266, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x26A, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x26B, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x26D, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x26E, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x26F, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x270, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x271, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x272, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x273, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x274, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x27E, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x27F, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x280, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x281, packet_func.packet_svFazNada, this);
+
+            // Auth Server Comandos
+            packet_func.funcs_as.addPacketCall(0x1, packet_func.packet_as001, this);
         }
         public virtual void init_load_channels()
         {
@@ -832,7 +1114,7 @@ namespace GameServer.GameServerTcp
                 Response.WriteByte(1);  // OPTION 1
                 Response.WriteByte(1);	// OPTION 2
                 Response.WriteByte(_session.m_key);//key
-                _session.SafeSend(Response.GetBytes);
+                _session.Send(Response.GetBytes, 0);
             }
             catch (Exception ex)
             {
@@ -905,7 +1187,7 @@ namespace GameServer.GameServerTcp
 
                 if (enter.getId() == _session.m_pi.channel)
                 {
-                    _session.Send(packet_func_sv.pacote04E(1));
+                    _session.Send(packet_func.pacote04E(1));
                     return enter;   // Ele já está nesse canal
                 }
 
@@ -913,7 +1195,7 @@ namespace GameServer.GameServerTcp
                 {
                     // Não conseguiu entrar no canal por que ele está cheio, deixa o enter como null
                     enter = null;
-                    _session.Send(packet_func_sv.pacote04E(2));
+                    _session.Send(packet_func.pacote04E(2));
                 }
                 else
                 {
@@ -931,7 +1213,7 @@ namespace GameServer.GameServerTcp
             catch (exception e)
             {
                 _smp::message_pool.push(new message("[GameServer.enterChannel][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
-                _session.Send(packet_func_sv.pacote04E(-1));
+                _session.Send(packet_func.pacote04E(-1));
             }
 
             return enter;
@@ -1005,7 +1287,7 @@ namespace GameServer.GameServerTcp
                 if (cmd_uakl.getException().getCodeError() != 0)
                     throw cmd_uakl.getException();
 
-                _session.Send(packet_func_sv.pacote1D4(auth_key_game));
+                _session.Send(packet_func.pacote1D4(auth_key_game));
 
             }
             catch (exception e)
@@ -1084,7 +1366,7 @@ namespace GameServer.GameServerTcp
                                 && /* Check SAME Channel and Room*/(el.m_pi.channel != _session.m_pi.channel || el.m_pi.mi.sala_numero != _session.m_pi.mi.sala_numero))
                             {
                                 // Responde no chat do player     
-                                el.Send(packet_func_sv.pacote040(from, msg_gm, 0));
+                                el.Send(packet_func.pacote040(from, msg_gm, 0));
                             }
                         }
                     }
@@ -1096,7 +1378,7 @@ namespace GameServer.GameServerTcp
                 else
                 {
                     //is low :/
-                    _session.SendLobby_broadcast(packet_func_sv.pacote040(_session.m_pi.nickname, msg, (byte)(_session.m_pi.m_cap.game_master ? 128 : 0)));
+                    _session.SendLobby_broadcast(packet_func.pacote040(_session.m_pi.nickname, msg, (byte)(_session.m_pi.m_cap.game_master ? 128 : 0)));
 
                     var p = new PangyaBinaryWriter(new byte[] { 0x4d, 0x02 });
                     p.WriteUInt32(0); //sucess 0
@@ -1242,7 +1524,7 @@ namespace GameServer.GameServerTcp
                     _smp::message_pool.push(new message("[GameServer.requestNotifyNotDisplayPrivateMessageNow][Log] Player[UID=" + (_session.m_pi.uid)
                             + "] recebeu mensagem do Player[UID=" + (s.m_pi.uid) + ", NICKNAME=" + nickname + "], mas ele nao pode ver a mensagem agora.", type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-                    s.Send(packet_func_sv.pacote040(nickname, "", 4));
+                    s.Send(packet_func.pacote040(nickname, "", 4));
 
                 }
             }
@@ -1291,7 +1573,7 @@ namespace GameServer.GameServerTcp
                     if (uid != _session.m_pi.uid && !mi.capability.game_master/* & 4/*(GM)*/)
                     {
 
-                        _session.Send(packet_func_sv.pacote089(uid, season, 3));
+                        _session.Send(packet_func.pacote089(uid, season, 3));
 
                     }
                     else
@@ -1418,31 +1700,31 @@ namespace GameServer.GameServerTcp
 
                         List<TrofelEspecialInfo> v_tegi = cmd_tei.getInfo();
 
-                        _session.Send(packet_func_sv.pacote157(mi, season));
+                        _session.Send(packet_func.pacote157(mi, season));
 
-                        _session.Send(packet_func_sv.pacote15E(uid, ci));
+                        _session.Send(packet_func.pacote15E(uid, ci));
 
-                        _session.Send(packet_func_sv.pacote156(uid, ue, season));
+                        _session.Send(packet_func.pacote156(uid, ue, season));
 
-                        _session.Send(packet_func_sv.pacote158(uid, ui, season));
+                        _session.Send(packet_func.pacote158(uid, ui, season));
 
-                        _session.Send(packet_func_sv.pacote15D(uid, gi));
+                        _session.Send(packet_func.pacote15D(uid, gi));
 
-                        _session.Send(packet_func_sv.pacote15C(uid, v_ms_na, v_msa_na, Convert.ToByte((season != 0) ? 0x33 : 0x0A)));
+                        _session.Send(packet_func.pacote15C(uid, v_ms_na, v_msa_na, Convert.ToByte((season != 0) ? 0x33 : 0x0A)));
 
-                        _session.Send(packet_func_sv.pacote15C(uid, v_ms_g, v_msa_g, Convert.ToByte((season != 0) ? 0x34 : 0x0B)));
+                        _session.Send(packet_func.pacote15C(uid, v_ms_g, v_msa_g, Convert.ToByte((season != 0) ? 0x34 : 0x0B)));
 
-                        _session.Send(packet_func_sv.pacote15B(uid, season));
+                        _session.Send(packet_func.pacote15B(uid, season));
 
-                        _session.Send(packet_func_sv.pacote15A(uid, v_tei, season));
+                        _session.Send(packet_func.pacote15A(uid, v_tei, season));
 
-                        _session.Send(packet_func_sv.pacote159(uid, ti, season));
+                        _session.Send(packet_func.pacote159(uid, ti, season));
 
-                        _session.Send(packet_func_sv.pacote15C(uid, v_ms_n.ToList(), v_msa_n.ToList(), season));
+                        _session.Send(packet_func.pacote15C(uid, v_ms_n.ToList(), v_msa_n.ToList(), season));
 
-                        _session.Send(packet_func_sv.pacote257(uid, v_tegi, season));
+                        _session.Send(packet_func.pacote257(uid, v_tegi, season));
 
-                        _session.Send(packet_func_sv.pacote089(uid, season));
+                        _session.Send(packet_func.pacote089(uid, season));
                     }
 
                     return;
@@ -1452,7 +1734,7 @@ namespace GameServer.GameServerTcp
                 // Quem quer ver a info não é GM aí verifica se o player é GM
                 if (uid != _session.m_pi.uid && !pi.m_cap.game_master/* & 4/*(GM)*/)
                 {
-                    _session.Send(packet_func_sv.pacote089(uid, season, 3));
+                    _session.Send(packet_func.pacote089(uid, season, 3));
 
                 }
                 else
@@ -1489,39 +1771,39 @@ namespace GameServer.GameServerTcp
                         if (pi.a_msa_grand_prix[i].best_score != 127)
                             v_msa_g.Add(pi.a_msa_grand_prix[i]);
 
-                    _session.Send(packet_func_sv.pacote157(pi.mi, season));
+                    _session.Send(packet_func.pacote157(pi.mi, season));
 
-                    _session.Send(packet_func_sv.pacote15E(pi.uid, ci));
+                    _session.Send(packet_func.pacote15E(pi.uid, ci));
 
-                    _session.Send(packet_func_sv.pacote156(pi.uid, pi.ue, season));
+                    _session.Send(packet_func.pacote156(pi.uid, pi.ue, season));
 
-                    _session.Send(packet_func_sv.pacote158(pi.uid, pi.ui, season));
+                    _session.Send(packet_func.pacote158(pi.uid, pi.ui, season));
 
-                    _session.Send(packet_func_sv.pacote15D(pi.uid, pi.gi));
+                    _session.Send(packet_func.pacote15D(pi.uid, pi.gi));
 
-                    _session.Send(packet_func_sv.pacote15C(pi.uid, v_ms_na, v_msa_na, (byte)((season != 0) ? 0x33 : 0x0A)));
+                    _session.Send(packet_func.pacote15C(pi.uid, v_ms_na, v_msa_na, (byte)((season != 0) ? 0x33 : 0x0A)));
 
-                    _session.Send(packet_func_sv.pacote15C(pi.uid, v_ms_g, v_msa_g, (byte)((season != 0) ? 0x34 : 0x0B)));
+                    _session.Send(packet_func.pacote15C(pi.uid, v_ms_g, v_msa_g, (byte)((season != 0) ? 0x34 : 0x0B)));
 
-                    _session.Send(packet_func_sv.pacote15B(uid, season));
+                    _session.Send(packet_func.pacote15B(uid, season));
 
-                    _session.Send(packet_func_sv.pacote15A(pi.uid, (season != 0) ? pi.v_tsi_current_season : pi.v_tsi_rest_season, season));
+                    _session.Send(packet_func.pacote15A(pi.uid, (season != 0) ? pi.v_tsi_current_season : pi.v_tsi_rest_season, season));
 
-                    _session.Send(packet_func_sv.pacote159(pi.uid, (season != 0) ? pi.ti_current_season : pi.ti_rest_season, season));
+                    _session.Send(packet_func.pacote159(pi.uid, (season != 0) ? pi.ti_current_season : pi.ti_rest_season, season));
 
-                    _session.Send(packet_func_sv.pacote15C(pi.uid, v_ms_n, v_msa_n, season));
+                    _session.Send(packet_func.pacote15C(pi.uid, v_ms_n, v_msa_n, season));
 
-                    _session.Send(packet_func_sv.pacote257(pi.uid, (season != 0) ? pi.v_tgp_current_season : pi.v_tgp_rest_season, season));
+                    _session.Send(packet_func.pacote257(pi.uid, (season != 0) ? pi.v_tgp_current_season : pi.v_tgp_rest_season, season));
 
 
-                    _session.Send(packet_func_sv.pacote089(uid, season));
+                    _session.Send(packet_func.pacote089(uid, season));
 
                 }
             }
             catch (Exception e)
             {
                 message_pool.push(new message($"[GameServer::RequestPlayerInfo][ErrorSystem] {e.Message}", type_msg.CL_ONLY_CONSOLE));
-                _session.Send(packet_func_sv.pacote089(0));
+                _session.Send(packet_func.pacote089(0));
             }
         }
 
@@ -1713,7 +1995,7 @@ namespace GameServer.GameServerTcp
         {
             try
             {
-                _session.Send(packet_func_sv.pacote04D(v_channel));
+                _session.Send(packet_func.pacote04D(v_channel));
             }
             catch (exception e)
             {

@@ -6,6 +6,7 @@ using System.Linq;
 using PangyaAPI.Utilities;
 using PangyaAPI.Network.PangyaSession;
 using GameServer.GameType;
+using System.Net.Http.Headers;
 
 namespace GameServer.Session
 {
@@ -39,7 +40,7 @@ namespace GameServer.Session
         }
 
 
-        public new void Clear()
+        public override void Clear()
         {
             base.Clear();
             if (m_indexes != null && m_indexes.Count > 0)
@@ -60,47 +61,26 @@ namespace GameServer.Session
 
             return null;
         }
-             
+
         public override SessionBase FindSessionByOid(uint oid)
         {
-            SessionBase session = null;
-            foreach (var el in m_sessions.Where(el => el._client != null))
-            {
-                if (el.m_oid == oid)
-                    session = el;
-            }
-            return session;
+            return base.FindSessionByOid(oid);
         }
 
-        public override SessionBase FindSessionByUid(uint uid)
+        public override SessionBase findSessionByUID(uint uid) 
         {
-            SessionBase session = null;
-            lock (_lockObject)
-            {
-                session = m_sessions.FirstOrDefault(el => el._client != null && el.getUID() == uid);
-            }
-            return session;
+          return base.findSessionByUID(uid);
         }
 
         public override List<SessionBase> FindAllSessionByUid(uint uid)
         {
-            List<SessionBase> sessions = new List<SessionBase>();
-            lock (_lockObject)
-            {
-                sessions = m_sessions.Where(el => el._client != null && el.getUID() == uid).ToList();
-            }
-            return sessions;
+            return base.FindAllSessionByUid(uid);
         }
 
         public override SessionBase FindSessionByNickname(string nickname)
         {
-            SessionBase session = null;
-            lock (_lockObject)
-            {
-                session = m_sessions.FirstOrDefault(el => el._client != null && el.Nickname == nickname);
-            }
-            return session;
-        }
+            return base.FindSessionByNickname(nickname);
+        } 
         // Override methods
         public override bool DeleteSession(SessionBase _session)
         {

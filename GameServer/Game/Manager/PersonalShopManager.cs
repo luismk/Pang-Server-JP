@@ -442,7 +442,7 @@ namespace GameServer.Game.Manager
 
                 p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) == (uint)STDA_ERROR_TYPE.PERSONAL_SHOP_MANAGER) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE_TYPE(e.getCodeError()) : 5200100);
 
-                packet_func_sv.session_send(p,
+                packet_func.session_send(p,
                     _session, 1);
             }
 
@@ -490,7 +490,7 @@ namespace GameServer.Game.Manager
 
                 p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) == (uint)STDA_ERROR_TYPE.PERSONAL_SHOP_MANAGER) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE_TYPE(e.getCodeError()) : 5200400);
 
-                packet_func_sv.session_send(p,
+                packet_func.session_send(p,
                     _session, 1);
             }
 
@@ -544,7 +544,7 @@ namespace GameServer.Game.Manager
 
                 p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) == (uint)STDA_ERROR_TYPE.PERSONAL_SHOP_MANAGER) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE_TYPE(e.getCodeError()) : 5200150);
 
-                packet_func_sv.session_send(p,
+                packet_func.session_send(p,
                     _session, 1);
             }
 
@@ -613,7 +613,7 @@ namespace GameServer.Game.Manager
 
                 p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) == (uint)STDA_ERROR_TYPE.PERSONAL_SHOP_MANAGER) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE_TYPE(e.getCodeError()) : 5200200);
 
-                packet_func_sv.session_send(p,
+                packet_func.session_send(p,
                     _session, 1);
             }
 
@@ -677,7 +677,7 @@ namespace GameServer.Game.Manager
 
                 ps.putItemOnPacket(p);
 
-                packet_func_sv.session_send(p,
+                packet_func.session_send(p,
                     _session, 1);
 
             }
@@ -696,7 +696,7 @@ namespace GameServer.Game.Manager
                     p.WritePStr(_session.m_pi.nickname);
                     p.WritePStr("Card price is outside the price range.");
 
-                    packet_func_sv.session_send(p,
+                    packet_func.session_send(p,
                         _session, 1);
                 }
 
@@ -706,7 +706,7 @@ namespace GameServer.Game.Manager
 
                 p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) == (uint)STDA_ERROR_TYPE.PERSONAL_SHOP_MANAGER) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE_TYPE(e.getCodeError()) : 5200250);
 
-                packet_func_sv.session_send(p,
+                packet_func.session_send(p,
                     _session, 1);
             }
         }
@@ -747,7 +747,7 @@ namespace GameServer.Game.Manager
 
                 p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) == (uint)STDA_ERROR_TYPE.PERSONAL_SHOP_MANAGER) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE_TYPE(e.getCodeError()) : 5200550);
 
-                packet_func_sv.session_send(p,
+                packet_func.session_send(p,
                     _session, 1);
             }
         }
@@ -778,7 +778,7 @@ namespace GameServer.Game.Manager
 
                 p.WriteUInt32(ps.getVisitCount());
 
-                packet_func_sv.session_send(p,
+                packet_func.session_send(p,
                     _session, 1);
 
             }
@@ -791,7 +791,7 @@ namespace GameServer.Game.Manager
 
                 p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) == (uint)STDA_ERROR_TYPE.PERSONAL_SHOP_MANAGER) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE_TYPE(e.getCodeError()) : 5200300);
 
-                packet_func_sv.session_send(p,
+                packet_func.session_send(p,
                     _session, 1);
             }
         }
@@ -822,7 +822,7 @@ namespace GameServer.Game.Manager
 
                 p.WriteUInt64(ps.getPangSale());
 
-                packet_func_sv.session_send(p,
+                packet_func.session_send(p,
                     _session, 1);
 
             }
@@ -835,7 +835,7 @@ namespace GameServer.Game.Manager
 
                 p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) == (uint)STDA_ERROR_TYPE.PERSONAL_SHOP_MANAGER) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE_TYPE(e.getCodeError()) : 5200350);
 
-                packet_func_sv.session_send(p,
+                packet_func.session_send(p,
                     _session, 1);
             }
         }
@@ -896,7 +896,7 @@ namespace GameServer.Game.Manager
 
                 ps.putItemOnPacket(p);
 
-                packet_func_sv.session_send(p,
+                packet_func.session_send(p,
                     _session, 1);
 
             }
@@ -909,7 +909,7 @@ namespace GameServer.Game.Manager
 
                 p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) == (uint)STDA_ERROR_TYPE.PERSONAL_SHOP_MANAGER) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE_TYPE(e.getCodeError()) : 5200450);
 
-                packet_func_sv.session_send(p,
+                packet_func.session_send(p,
                     _session, 1);
             }
         }
@@ -942,7 +942,7 @@ namespace GameServer.Game.Manager
 
                 p.WriteUInt32(1); // OK
 
-                packet_func_sv.session_send(p,
+                packet_func.session_send(p,
                     _session, 1);
 
             }
@@ -955,7 +955,7 @@ namespace GameServer.Game.Manager
 
                 p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) == (uint)STDA_ERROR_TYPE.PERSONAL_SHOP_MANAGER) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE_TYPE(e.getCodeError()) : 5200500);
 
-                packet_func_sv.session_send(p,
+                packet_func.session_send(p,
                     _session, 1);
             }
         }

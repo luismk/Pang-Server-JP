@@ -184,12 +184,12 @@ namespace MessengerServer.Manager
             }
                                                       
             var it = m_friend.find(_fi.uid);
-
-            if (it.Key == m_friend.end().Key) // add new friend ou Guild Member
+             
+            if (!m_friend.Any(c => c.Key == _fi.uid)) // add new friend ou Guild Member
             {
-                 m_friend[_fi.uid] = _fi;
-             }
-             else if (it.Value.flag.ucFlag != 3 && it.Value.flag.ucFlag != _fi.flag.ucFlag) // Add Guild Member ou Friend
+                m_friend.Add(_fi.uid, _fi);
+            }
+            else if (it.Value.flag.ucFlag != 3 && it.Value.flag.ucFlag != _fi.flag.ucFlag) // Add Guild Member ou Friend
             {
                  it.Value.flag.ucFlag |= _fi.flag.ucFlag;
             }
@@ -216,12 +216,10 @@ namespace MessengerServer.Manager
                 throw new exception("[FriendManager::deleteFriend][Error] player[UID=" + Convert.ToString(m_pi.uid) + "] tentou adicionar um amigo[UID=" + Convert.ToString(_uid) + "], mas o uid is invalid(zero)", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.FRIEND_MANAGER,
                     1, 0));
             }
- 
-            var it = m_friend.find(_uid);
-
-             if (it.Key != m_friend.end().Key)
+  
+             if (m_friend.Any(c => c.Key == _uid))
             {
-                m_friend.Remove(it.Key);
+                m_friend.Remove(_uid);
             }
             else
             {
@@ -236,9 +234,8 @@ namespace MessengerServer.Manager
             {
                 return el.Value.uid == _uid;
             });
-                    
-
-            return (it.Key == m_friend.end().Key ? null : it.Value);
+             
+            return it.Value;
         }
 
         public FriendInfoEx findGuildMember(uint _uid)
@@ -248,7 +245,7 @@ namespace MessengerServer.Manager
                 return el.Value.flag.guild_member == 1 && el.Value.uid == _uid;
             });
                                  
-            return (it.Key == m_friend.end().Key ? null : it.Value);
+            return it.Value;
         }
 
         public FriendInfoEx findFriend(uint _uid)
@@ -258,7 +255,7 @@ namespace MessengerServer.Manager
                 return el.Value.flag._friend == 1 && el.Value.uid == _uid;
             });               
 
-            return (it.Key == m_friend.end().Key ? null : it.Value);
+            return it.Value;
         }
 
         // Gets

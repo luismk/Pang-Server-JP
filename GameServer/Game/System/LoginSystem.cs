@@ -74,9 +74,9 @@ namespace GameServer.Game.System
                 ////////////----------------------- Terminou a leitura do Packet que o cliente enviou -------------------------\\\\\\\\\\\/
 
                 // Verifica aqui se o IP/MAC ADDRESS do player está bloqueado
-                //if (sgs.gs.getInstance().haveBanList(_session.getIP(), mac_address, !mac_address.empty()))
-                //    throw new exception("Player[UID=" + (_pi.m_uid) + ", IP="
-                //            + _session.getIP() + ", MAC=" + mac_address + "] esta bloqueado por regiao IP/MAC Addrress.");
+                if (sgs.gs.getInstance().haveBanList(_session.getIP(), mac_address, !mac_address.empty()))
+                    throw new exception("Player[UID=" + (_pi.uid) + ", IP="
+                            + _session.getIP() + ", MAC=" + mac_address + "] esta bloqueado por regiao IP/MAC Addrress.");
 
                 // Aqui verifica se recebeu os dados corretos
                 if (_pi.id[0] == '\0')
@@ -93,7 +93,7 @@ namespace GameServer.Game.System
                     throw cmd_pi.getException();
 
                 //set info player!
-                _pi.SetInfo(cmd_pi.getInfo());
+                _pi.set_info(cmd_pi.getInfo());
 
                 _session.m_pi = _pi; //fez ficar correto agora!
 
@@ -124,31 +124,32 @@ namespace GameServer.Game.System
                         throw new exception("[LoginSystem::requestLogin][Log] Bloqueado permanente. player [UID=" + (_pi.uid)
                                 + ", ID=" + (_pi.id) + "]");
                     }
-                    //else if (_pi.block_flag.m_id_state.L_BLOCK_ALL_IP)
-                    //{
 
-                    //    // Bloquea todos os IP que o player logar e da error de que a area dele foi bloqueada
+                    else if (_pi.block_flag.m_id_state.L_BLOCK_ALL_IP)
+                    {
 
-                    //    // Add o ip do player para a lista de ip banidos
-                    //    NormalManagerDB.add(9, new CmdInsertBlockIp(_session.getIP(), "255.255.255.255"), sgs.gs.getInstance().SQLDBResponse, sgs.gs.getInstance());
+                        // Bloquea todos os IP que o player logar e da error de que a area dele foi bloqueada
 
-                    //    // Resposta
-                    //    throw new exception("[LoginSystem::requestLogin][Log] Player[UID=" + (_pi.m_uid) + ", IP=" + (_session.getIP())
-                    //            + "] Block ALL IP que o player fizer login.");
-                    //}
-                    //else if (_pi.block_flag.m_id_state.L_BLOCK_MAC_ADDRESS)
-                    //{
+                        // Add o ip do player para a lista de ip banidos
+                        NormalManagerDB.add(9, new CmdInsertBlockIp(_session.getIP(), "255.255.255.255"), sgs.gs.getInstance().SQLDBResponse, sgs.gs.getInstance());
 
-                    //    // Bloquea o MAC Address que o player logar e da error de que a area dele foi bloqueada
+                        // Resposta
+                        throw new exception("[LoginSystem::requestLogin][Log] Player[UID=" + (_pi.uid) + ", IP=" + (_session.getIP())
+                                + "] Block ALL IP que o player fizer login.");
+                    }
+                    else if (_pi.block_flag.m_id_state.L_BLOCK_MAC_ADDRESS)
+                    {
 
-                    //    // Add o MAC Address do player para a lista de MAC Address banidos
-                    //    NormalManagerDB.add(10, new CmdInsertBlockMac(mac_address), sgs.gs.getInstance().SQLDBResponse, sgs.gs.getInstance());
+                        // Bloquea o MAC Address que o player logar e da error de que a area dele foi bloqueada
 
-                    //    // Resposta
-                    //    throw new exception("[LoginSystem::requestLogin][Log] Player[UID=" + (_pi.m_uid)
-                    //            + ", IP=" + (_session.getIP()) + ", MAC=" + mac_address + "] Block MAC Address que o player fizer login.");
+                        // Add o MAC Address do player para a lista de MAC Address banidos
+                        NormalManagerDB.add(10, new CmdInsertBlockMac(mac_address), sgs.gs.getInstance().SQLDBResponse, sgs.gs.getInstance());
 
-                    //}
+                        // Resposta
+                        throw new exception("[LoginSystem::requestLogin][Log] Player[UID=" + (_pi.uid)
+                                + ", IP=" + (_session.getIP()) + ", MAC=" + mac_address + "] Block MAC Address que o player fizer login.");
+
+                    }
                 }
 
                 // Check Packet version
@@ -252,17 +253,17 @@ namespace GameServer.Game.System
 
                 if (player_logado != null)
                 {
-                    //if (!m_login_manager.canSameIDLogin())
-                    //{
-                    //	_smp.message_pool.push(("[LoginSystem::requestLogin][Log] Player[UID=" + (_pi.m_uid) + ", OID="
-                    //		+ (_session.m_oid) + ", IP=" + _session.getIP() + "] que esta logando agora, ja tem uma outra session com o mesmo UID logado, desloga o outro Player[UID="
-                    //		+ (player_logado.getUID()) + ", OID=" + (player_logado.m_oid) + ", IP=" + player_logado.getIP() + "]", CL_FILE_LOG_AND_CONSOLE));
+                    if (!sgs.gs.getInstance().canSameIDLogin())
+                    {
+                        _smp.message_pool.push("[LoginSystem::requestLogin][Log] Player[UID=" + (_pi.uid) + ", OID="
+                            + (_session.m_oid) + ", IP=" + _session.getIP() + "] que esta logando agora, ja tem uma outra session com o mesmo UID logado, desloga o outro Player[UID="
+                            + (player_logado.getUID()) + ", OID=" + (player_logado.m_oid) + ", IP=" + player_logado.getIP() + "]", type_msg. CL_FILE_LOG_AND_CONSOLE);
 
-                    ////	if (!DisconnectSession(player_logado))
-                    ////		throw new exception("Nao conseguiu disconnectar o player[UID=" + (player_logado.getUID())
-                    ////			+ ", OID=" + (player_logado.m_oid) + ", IP=" + player_logado.getIP() + "], ele pode esta com o bug do oid bloqueado, ou SessionBase::UsaCtx bloqueado.");
-                    //}
-                }
+                        if (!sgs.gs.getInstance().DisconnectSession(player_logado))
+                            throw new exception("Nao conseguiu disconnectar o player[UID=" + (player_logado.getUID())
+                                + ", OID=" + (player_logado.m_oid) + ", IP=" + player_logado.getIP() + "], ele pode esta com o bug do oid bloqueado, ou SessionBase::UsaCtx bloqueado.");
+                    }
+            }
 
                 // Junta Flag de block do gs, ao do player
                 _pi.block_flag.m_flag.ullFlag |= sgs.gs.getInstance().m_si.flag.ullFlag;
@@ -287,7 +288,7 @@ namespace GameServer.Game.System
                 NormalManagerDB.add(2, new CmdUserEquip(_session.m_pi.uid), SQLDBResponse, _session);
                                                                            
                 // Entra com sucesso
-                _session.Send(packet_func_sv.pacote044(sgs.gs.getInstance().m_si, 0xD3));
+                _session.Send(packet_func.pacote044(sgs.gs.getInstance().m_si, 0xD3));
 
             }
             catch (exception ex)
@@ -357,7 +358,7 @@ namespace GameServer.Game.System
                             // Verifica se tem o Pacote de verificação de bots ativado
                             int ttl = sgs.gs.getInstance().getBotTTL(); //10000÷1.000=10s
 
-                            _session.Send(packet_func_sv.pacote1A9(ttl/*milliseconds*/)); // Tempo para enviar um pacote, ant Bot
+                            _session.Send(packet_func.pacote1A9(ttl/*milliseconds*/)); // Tempo para enviar um pacote, ant Bot
 
                             NormalManagerDB.add(5, new CmdTutorialInfo(pi.uid), SQLDBResponse, _session);
 
@@ -418,7 +419,7 @@ namespace GameServer.Game.System
 
                             _session.m_pi.TutoInfo = ((CmdTutorialInfo)(_pangya_db)).getInfo();  
                             // Manda pacote do tutorial aqui
-                            _session.Send(packet_func_sv.pacote11F(_session.m_pi, 3/*tutorial info, 3 add do zero init*/));
+                            _session.Send(packet_func.pacote11F(_session.m_pi, 3/*tutorial info, 3 add do zero init*/));
 
                             break;
                         }
@@ -429,7 +430,7 @@ namespace GameServer.Game.System
                             // Não sei se o que é esse pacote, então não sei o que ele busca no banco de dados, mas depois descubro
                             // Deixar ele enviando aqui por enquanto
 
-                            _session.Send(packet_func_sv.pacote101());// pacote novo do JP
+                            _session.Send(packet_func.pacote101());// pacote novo do JP
 
                             break;
                         }
@@ -965,7 +966,7 @@ namespace GameServer.Game.System
 
                             var v_mb = _session.m_pi.m_mail_box.getAllUnreadEmail();
 
-                            _session.Send(packet_func_sv.pacote210(v_mb));
+                            _session.Send(packet_func.pacote210(v_mb));
                             break;
                         }
                     case 33:    // Aviso Caddie Ferias
@@ -975,7 +976,7 @@ namespace GameServer.Game.System
                             if (v_cif.Any())
                             {
 
-                                _session.Send(packet_func_sv.pacote0D4(v_cif));         
+                                _session.Send(packet_func.pacote0D4(v_cif));         
                             }
                             break;
                         }
@@ -986,7 +987,7 @@ namespace GameServer.Game.System
                             if (!v_moi.Any())
                             {
 
-                                _session.Send(packet_func_sv.pacote0B2(v_moi));         
+                                _session.Send(packet_func.pacote0B2(v_moi));         
 
                             }
 
@@ -1062,7 +1063,7 @@ namespace GameServer.Game.System
                 }
                 else if (getCount() > 0)
                 {
-                    _session.Send(packet_func_sv.pacote044(sgs.gs.getInstance().getInfo(), 0xD2, _session.m_pi, _msg_id)); // send bar loading server!
+                    _session.Send(packet_func.pacote044(sgs.gs.getInstance().getInfo(), 0xD2, _session.m_pi, _msg_id)); // send bar loading server!
                 }                
                
             }
@@ -1102,62 +1103,62 @@ namespace GameServer.Game.System
 
                 var pi = _session.m_pi;
                 // Envia todos pacotes aqui, alguns envia antes, por que agora estou usando o jeito o pangya original   
-                _session.Send(packet_func_sv.pacote044(sgs.gs.getInstance().m_si, 0, pi));
+                _session.Send(packet_func.pacote044(sgs.gs.getInstance().m_si, 0, pi));
                                                
-                _session.Send(packet_func_sv.pacote070(pi.mp_ce)); // characters
+                _session.Send(packet_func.pacote070(pi.mp_ce)); // characters
                                                               
-                _session.Send(packet_func_sv.pacote071(pi.mp_ci)); //caddies   
+                _session.Send(packet_func.pacote071(pi.mp_ci)); //caddies   
 
                _session.Send(pi.mp_wi.Build()); //inventory(warehouse)   
 
-                _session.Send(packet_func_sv.pacote0E1(pi.mp_mi)); //mascots
+                _session.Send(packet_func.pacote0E1(pi.mp_mi)); //mascots
 
-               _session.Send(packet_func_sv.pacote072(pi.ue)); // equip selected                     
+               _session.Send(packet_func.pacote072(pi.ue)); // equip selected                     
 
                 sgs.gs.getInstance().sendChannelListToSession(_session);
 
-                _session.Send(packet_func_sv.pacote102(pi));        // Pacote novo do JP, passa os coupons do Gacha JP
+                _session.Send(packet_func.pacote102(pi));        // Pacote novo do JP, passa os coupons do Gacha JP
 
                 // Treasure Hunter Info
-                //_session.Send(packet_func_sv.pacote131());
+                //_session.Send(packet_func.pacote131());
 
                 //_session.m_pi.mgr_achievement.sendCounterItemToPlayer(_session);
 
                 //_session.m_pi.mgr_achievement.sendAchievementToPlayer(_session);
 
-                _session.Send(packet_func_sv.pacote0F1());
+                _session.Send(packet_func.pacote0F1());
 
-                _session.Send(packet_func_sv.pacote144());		// Pacote novo do JP
+                _session.Send(packet_func.pacote144());		// Pacote novo do JP
 
-                _session.Send(packet_func_sv.pacote135()); 
+                _session.Send(packet_func.pacote135()); 
 
-                _session.Send(packet_func_sv.pacote138(pi.v_card_info)); 
+                _session.Send(packet_func.pacote138(pi.v_card_info)); 
 
-                _session.Send(packet_func_sv.pacote136()); 
+                _session.Send(packet_func.pacote136()); 
 
-                _session.Send(packet_func_sv.pacote137(pi.v_cei)); 
+                _session.Send(packet_func.pacote137(pi.v_cei)); 
 
-                _session.Send(packet_func_sv.pacote13F()); 
+                _session.Send(packet_func.pacote13F()); 
 
-                _session.Send(packet_func_sv.pacote181(pi.v_ib));
+                _session.Send(packet_func.pacote181(pi.v_ib));
 
-                _session.Send(packet_func_sv.pacote096(pi));
+                _session.Send(packet_func.pacote096(pi));
 
-                _session.Send(packet_func_sv.pacote169(pi.ti_current_season, 5/*season atual*/));
+                _session.Send(packet_func.pacote169(pi.ti_current_season, 5/*season atual*/));
                                                                                                                                                    
-                _session.Send(packet_func_sv.pacote169(pi.ti_rest_season));
+                _session.Send(packet_func.pacote169(pi.ti_rest_season));
                                                                                                   
-                _session.Send(packet_func_sv.pacote0B4(pi.v_tsi_current_season, 5/*season atual*/));
+                _session.Send(packet_func.pacote0B4(pi.v_tsi_current_season, 5/*season atual*/));
                                                 
-                _session.Send(packet_func_sv.pacote0B4(pi.v_tsi_rest_season));
+                _session.Send(packet_func.pacote0B4(pi.v_tsi_rest_season));
                                                
-                _session.Send(packet_func_sv.pacote158(pi.uid, pi.ui, 0));
+                _session.Send(packet_func.pacote158(pi.uid, pi.ui, 0));
                 // Total de season, 5 atual season  
-                _session.Send(packet_func_sv.pacote25D(pi.v_tgp_current_season, 5/*season atual*/));
+                _session.Send(packet_func.pacote25D(pi.v_tgp_current_season, 5/*season atual*/));
                                  
-                _session.Send(packet_func_sv.pacote25D(pi.v_tgp_rest_season, 0));
+                _session.Send(packet_func.pacote25D(pi.v_tgp_rest_season, 0));
 
-                _session.Send(packet_func_sv.pacote1B1());
+                _session.Send(packet_func.pacote1B1());
                
                 //// Login Reward System - verifica se o player ganhou algum item por logar
                 //if (sgs::gs::getInstance().getInfo().rate.login_reward_event)

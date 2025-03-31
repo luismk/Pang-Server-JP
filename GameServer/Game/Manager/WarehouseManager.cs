@@ -16,11 +16,11 @@ namespace GameServer.Game.Manager
         {                                       
             try
             {                                   
-                return PacketFunc.packet_func_sv.pacote073(list);
+                return PacketFunc.packet_func.pacote073(list);
             }
             catch
             {
-                return PacketFunc.packet_func_sv.pacote073(new List<WarehouseItemEx>());
+                return PacketFunc.packet_func.pacote073(new List<WarehouseItemEx>());
             }
         }                                                                  
 

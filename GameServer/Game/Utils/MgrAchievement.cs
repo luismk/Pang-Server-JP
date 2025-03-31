@@ -4,7 +4,7 @@ using PangyaAPI.Utilities.Log;
 using PangyaAPI.Utilities;
 using System;
 using System.Collections.Generic;
-using PangLib.IFF.JP.Models.Data;
+using PangyaAPI.IFF.JP.Models.Data;
 using System.Linq;
 using PangyaAPI.SQL.Manager;
 using GameServer.Session;
@@ -383,7 +383,7 @@ namespace GameServer.Game.Utils
                     }
                 }
 
-                packet_func_sv.session_send(p, _session, 1);
+                packet_func.session_send(p, _session, 1);
                 processed += batch.Count();
                 total -= batch.Count();
             } // FIM MAKE_SPLIT_PACKET
@@ -392,7 +392,7 @@ namespace GameServer.Game.Utils
 
             p.WriteUInt32(0); // SUCCESS
 
-            packet_func_sv.session_send(p,
+            packet_func.session_send(p,
                 _session, 1);
         }
 
@@ -457,7 +457,7 @@ namespace GameServer.Game.Utils
                     }
                 }
 
-                packet_func_sv.session_send(p, _session, 0);
+                packet_func.session_send(p, _session, 0);
                 total -= batch.Count();
             }
 
@@ -503,7 +503,7 @@ namespace GameServer.Game.Utils
                     p.WriteUInt32(counter.id);//
                     p.WriteUInt32(counter.value);//
                 }
-                packet_func_sv.session_send(p,
+                packet_func.session_send(p,
                     _session, 0);
 
             }

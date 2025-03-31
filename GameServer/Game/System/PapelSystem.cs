@@ -514,7 +514,7 @@ namespace GameServer.Game.System
 
 
                 // Player já tem o item, e nao pode ter duplicate, sortea um novo para ele
-                if ((!sIff.getInstance().IsCanOverlapped(ctx_psi._typeid) || sIff.getInstance()._getItemGroupIdentify(ctx_psi._typeid) == PangLib.IFF.JP.Models.Flags.IFF_GROUP.CAD_ITEM) && _session.m_pi.ownerItem(ctx_psi._typeid))
+                if ((!sIff.getInstance().IsCanOverlapped(ctx_psi._typeid) || sIff.getInstance()._getItemGroupIdentify(ctx_psi._typeid) == PangyaAPI.IFF.JP.Models.Flags.IFF_GROUP.CAD_ITEM) && _session.m_pi.ownerItem(ctx_psi._typeid))
                 {
                     continue;
                 }

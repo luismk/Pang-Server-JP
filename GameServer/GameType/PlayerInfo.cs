@@ -464,14 +464,7 @@ namespace GameServer.GameType
             m_mail_box = new PlayerMailBox();
         }
 
-        public void SetInfo(player_info info)
-        {
-            uid = info.uid;
-            level = info.level;
-            block_flag = info.block_flag;
-            nickname = info.nickname;
-            pass = info.pass;
-        }
+      
 
         public ulong cookie { get; set; }
         public CouponGacha cg { get; set; }

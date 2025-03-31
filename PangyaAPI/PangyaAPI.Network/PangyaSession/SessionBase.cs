@@ -19,6 +19,8 @@ namespace PangyaAPI.Network.PangyaSession
     public abstract partial class SessionBase : IDisposeable
     {
         #region Public Fields     
+
+        public string m_ip => getIP();
         /// <summary>
         /// Servidor em que o cliente está conectado
         /// </summary>
@@ -125,8 +127,7 @@ namespace PangyaAPI.Network.PangyaSession
 
         public void SetState(bool state) {
             m_state = state;
-            StartSendingLoop(); // Inicia o loop de envio contínuo ao instanciar a sessão
-        }      
+         }      
 
         public bool getConnected()
         {
@@ -246,7 +247,7 @@ namespace PangyaAPI.Network.PangyaSession
                     m_tick = int.MaxValue;
                     m_oid = uint.MaxValue;
                     m_is_authorized = false;
-                    this._client.Dispose();
+                    this._client?.Dispose();
                     _client = null;
                 }
 

@@ -4,6 +4,7 @@ using PangyaAPI.Utilities;
 using PangyaAPI.Utilities.Log;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace MessengerServer.Cmd
 {
@@ -32,11 +33,7 @@ namespace MessengerServer.Cmd
             this.m_type = (_type);
             this.m_friend_uid = _friend_uid;
             this.m_fi = new Dictionary<uint, FriendInfoEx>();
-        }
-
-        public virtual void Dispose()
-        {
-        }
+        }  
 
         public uint getUID()
         {
@@ -102,11 +99,11 @@ namespace MessengerServer.Cmd
             fi.level = (byte)IFNULL<int>(_result.data[11]);
             fi.flag.ucFlag = (byte)IFNULL<int>(_result.data[12]);
 
-            var it = m_fi.find(fi.uid);
+            var it = m_fi.Any(c => c.Value.uid ==fi.uid);
 
-            if (it.Key == m_fi.end().Key)
+            if (!it)
             {
-                m_fi[fi.uid] = fi;
+                m_fi.Add(fi.uid, fi);
             }
             else
             {

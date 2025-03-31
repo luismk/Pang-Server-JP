@@ -84,6 +84,8 @@ namespace PangyaAPI.Utilities.Log
         {
             InitializeLogFile();
             var m = getMessage();
+            if (m == null)
+                return;
             lock (_lock)
             {
                 using (var writer = new StreamWriter(_file, append: true))
@@ -108,8 +110,7 @@ namespace PangyaAPI.Utilities.Log
             {
                 Console.WriteLine(m.get(), ConsoleColor.Cyan);       
             }
-            else
-                throw new Exception("message is null. message_pool::console_log()");
+             
         }
         public static void push(string s, type_msg _tipo = type_msg.CL_FILE_LOG_AND_CONSOLE)
         {
@@ -171,7 +172,7 @@ namespace PangyaAPI.Utilities.Log
         }
         static message getMessage() { return getFirstMessage(); }
 
-        static message getFirstMessage() { return m_message[0]; }
+        static message getFirstMessage() { return m_message.Count> 0? m_message[0]: null; }
 
         public static bool checkUpdateDayLog()
         {

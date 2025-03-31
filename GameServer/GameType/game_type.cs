@@ -767,7 +767,7 @@ namespace GameServer.GameType
             degree = 0;
             mascot_typeid = 0;
 
-            init_first_hole = 0;
+            init_first_hole = false;
 
             tick_sync_shot.clear();
             tick_sync_end_shot.clear();

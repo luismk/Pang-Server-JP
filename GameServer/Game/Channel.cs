@@ -17,8 +17,7 @@ using PangyaAPI.Network.Pangya_St;
 using PangyaAPI.SQL.Manager;
 using GameServer.Cmd;
 using System.Runtime.InteropServices;
-using PangLib.IFF.JP.Models.Data;
-
+using PangyaAPI.IFF.JP.Models.Data;
 namespace GameServer.Game
 {
     public class Channel
@@ -283,7 +282,7 @@ namespace GameServer.Game
 
 
                 //             // Update Room ON LOBBY
-                //             if (packet_func_sv.pacote047(p, List<RoomInfo> { (RoomInfo)r.getInfo() }, 3))
+                //             if (packet_func.pacote047(p, List<RoomInfo> { (RoomInfo)r.getInfo() }, 3))
                 //packet_func.channel_broadcast(c, p, 1);
 
             }
@@ -316,8 +315,8 @@ namespace GameServer.Game
 
             addSession(_session);
 
-            _session.Send(packet_func_sv.pacote095(0x102));
-            _session.Send(packet_func_sv.pacote04E(1));
+            _session.Send(packet_func.pacote095(0x102));
+            _session.Send(packet_func.pacote04E(1));
 
             //// Verifica se o tempo do ticket premium user acabou e manda a mensagem para o player, e exclui o ticket do player no SERVER, DB e GAME
             //sPremiumSystem.checkEndTimeTicket(_session);
@@ -461,17 +460,17 @@ namespace GameServer.Game
             pci = getPlayerInfo(_session);
 
             // Add o primeiro limpando a lobby
-            var p = packet_func_sv.pacote046(v_pci, 4);
+            var p = packet_func.pacote046(v_pci, 4);
             _session.Send(p);
 
             if (v_pci.Count() > 0)
             {
-                _session.Send(packet_func_sv.pacote046(v_pci, 5));
+                _session.Send(packet_func.pacote046(v_pci, 5));
             }
-            //if (packet_func_sv.pacote047(p, v_ri, 0)) // e a listagem de salas!
+            //if (packet_func.pacote047(p, v_ri, 0)) // e a listagem de salas!
             //    packet_func.session_send(ref p, _session, 0);
 
-            _session.SendChannel_broadcast(packet_func_sv.pacote046(pci == null ? new vector<PlayerCanalInfo>() : new vector<PlayerCanalInfo>(pci), 1));
+            _session.SendChannel_broadcast(packet_func.pacote046(pci == null ? new vector<PlayerCanalInfo>() : new vector<PlayerCanalInfo>(pci), 1));
 
             v_pci.Clear();
         }
@@ -843,7 +842,7 @@ namespace GameServer.Game
                         // Log
                         _smp::message_pool.push(new message("[channel::requestExecCCGIdentity][Log] player[UID=" + (_session.m_pi.uid) + "] trocou a capacidade dele, para GM Total(Admin)", type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-                        _session.Send(packet_func_sv.pacote09A(_session.m_pi.m_cap.ulCapability));
+                        _session.Send(packet_func.pacote09A(_session.m_pi.m_cap.ulCapability));
 
                         sendUpdatePlayerInfo(_session, 3);
                     }
@@ -866,7 +865,7 @@ namespace GameServer.Game
                         _smp::message_pool.push(new message("[channel::requestExecCCGIdentity][Log] player[UID=" + (_session.m_pi.uid) + "] trocou a capacidade dele, para GM Normal(user normal)", type_msg.CL_FILE_LOG_AND_CONSOLE));
 
                         // UPDATE ON GAME 
-                        _session.Send(packet_func_sv.pacote09A(_session.m_pi.m_cap.ulCapability));
+                        _session.Send(packet_func.pacote09A(_session.m_pi.m_cap.ulCapability));
 
                         sendUpdatePlayerInfo(_session, 3);
 
@@ -909,7 +908,7 @@ namespace GameServer.Game
 
                             ci = (CharacterInfo)_packet.Read(new CharacterInfo());
                             if (ci.id != 0 && (pCe = _session.m_pi.findCharacterById(ci.id)) != null
-                                    && (sIff.getInstance()._getItemGroupIdentify(pCe._typeid) == PangLib.IFF.JP.Models.Flags.IFF_GROUP.CHARACTER && sIff.getInstance()._getItemGroupIdentify(ci._typeid) == PangLib.IFF.JP.Models.Flags.IFF_GROUP.CHARACTER))
+                                    && (sIff.getInstance()._getItemGroupIdentify(pCe._typeid) == PangyaAPI.IFF.JP.Models.Flags.IFF_GROUP.CHARACTER && sIff.getInstance()._getItemGroupIdentify(ci._typeid) == PangyaAPI.IFF.JP.Models.Flags.IFF_GROUP.CHARACTER))
                             {
 
                                 // Checks Parts Equiped
@@ -937,7 +936,7 @@ namespace GameServer.Game
 
 
 
-                            _session.Send(packet_func_sv.pacote06B(_session.m_pi, type, error));
+                            _session.Send(packet_func.pacote06B(_session.m_pi, type, error));
                             break;
                         }
                     case 5: // only Character ID EQUIPADO
@@ -945,7 +944,7 @@ namespace GameServer.Game
                             CharacterInfo pCe = null;
 
                             if ((item_id = _packet.ReadUInt32()) != 0 && (pCe = _session.m_pi.findCharacterById(item_id)) != null
-                                  && sIff.getInstance()._getItemGroupIdentify(pCe._typeid) == PangLib.IFF.JP.Models.Flags.IFF_GROUP.CHARACTER)
+                                  && sIff.getInstance()._getItemGroupIdentify(pCe._typeid) == PangyaAPI.IFF.JP.Models.Flags.IFF_GROUP.CHARACTER)
                             {
 
                                 _session.m_pi.ei.char_info = pCe;
@@ -954,7 +953,7 @@ namespace GameServer.Game
                                 updatePlayerInfo(_session);
 
                                 PlayerCanalInfo pci = getPlayerInfo(_session);
-                                _session.Send(packet_func_sv.pacote06B(_session.m_pi, type, error));
+                                _session.Send(packet_func.pacote06B(_session.m_pi, type, error));
 
                                 // Update ON DB
                                 NormalManagerDB.add(0, new CmdUpdateCharacterEquiped(_session.m_pi.uid, (int)item_id), null, this);
@@ -970,18 +969,18 @@ namespace GameServer.Game
                                         + "]. Hacker ou Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
                             }
 
-                            _session.Send(packet_func_sv.pacote06B(_session.m_pi, type, error));
+                            _session.Send(packet_func.pacote06B(_session.m_pi, type, error));
 
                             break;
                         }
                     default:
-                        _session.Send(packet_func_sv.pacote06B(_session.m_pi, type, error));//teste
+                        _session.Send(packet_func.pacote06B(_session.m_pi, type, error));//teste
                         break;
                 }
             }
             catch (exception e)
             {
-                _session.Send(packet_func_sv.pacote06B(_session.m_pi, type, 1));
+                _session.Send(packet_func.pacote06B(_session.m_pi, type, 1));
 
                 _smp::message_pool.push(new message("[channel::requestChangePlayerItemMyRoom][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
@@ -1101,7 +1100,7 @@ namespace GameServer.Game
                             // Caddie
                             if ((item_id = _packet.ReadUInt32()) != 0 && (pCi = _session.m_pi.findCaddieById(item_id)) != null &&
 
-                         sIff.getInstance()._getItemGroupIdentify(pCi._typeid) == PangLib.IFF.JP.Models.Flags.IFF_GROUP.CADDIE)
+                         sIff.getInstance()._getItemGroupIdentify(pCi._typeid) == PangyaAPI.IFF.JP.Models.Flags.IFF_GROUP.CADDIE)
                             {
 
                                 // Check if item is in map of update item
@@ -1214,7 +1213,7 @@ namespace GameServer.Game
                             WarehouseItemEx pWi = null;
 
                             if ((item_id = _packet.ReadUInt32()) != 0 && (pWi = _session.m_pi.findWarehouseItemByTypeid(item_id)) != null
-                                    && sIff.getInstance()._getItemGroupIdentify(pWi._typeid) == PangLib.IFF.JP.Models.Flags.IFF_GROUP.BALL)
+                                    && sIff.getInstance()._getItemGroupIdentify(pWi._typeid) == PangyaAPI.IFF.JP.Models.Flags.IFF_GROUP.BALL)
                             {
 
                                 _session.m_pi.ei.comet = pWi;
@@ -1285,7 +1284,7 @@ namespace GameServer.Game
 
                             // ClubSet
                             if ((item_id = _packet.ReadUInt32()) != 0 && (pWi = _session.m_pi.findWarehouseItemByTypeid(item_id)) != null
-                                            && sIff.getInstance()._getItemGroupIdentify(pWi._typeid) == PangLib.IFF.JP.Models.Flags.IFF_GROUP.CLUBSET)
+                                            && sIff.getInstance()._getItemGroupIdentify(pWi._typeid) == PangyaAPI.IFF.JP.Models.Flags.IFF_GROUP.CLUBSET)
                             {
 
                                 var c_it = _session.m_pi.findUpdateItemByTypeidAndType(item_id, UpdateItem.UI_TYPE.WAREHOUSE);
@@ -1325,7 +1324,7 @@ namespace GameServer.Game
                         {
                             CharacterInfo pCe = null;
                             if ((item_id = _packet.ReadUInt32()) != 0 && (pCe = _session.m_pi.findCharacterById(item_id)) != null
-                                    && sIff.getInstance()._getItemGroupIdentify(pCe._typeid) == PangLib.IFF.JP.Models.Flags.IFF_GROUP.CHARACTER)
+                                    && sIff.getInstance()._getItemGroupIdentify(pCe._typeid) == PangyaAPI.IFF.JP.Models.Flags.IFF_GROUP.CHARACTER)
                             {
 
                                 _session.m_pi.ei.char_info = pCe;
@@ -1373,7 +1372,7 @@ namespace GameServer.Game
                             if ((item_id = _packet.ReadUInt32()) != 0)
                             {
 
-                                if ((pMi = _session.m_pi.findMascotById(item_id)) != null && sIff.getInstance()._getItemGroupIdentify(pMi._typeid) == PangLib.IFF.JP.Models.Flags.IFF_GROUP.MASCOT)
+                                if ((pMi = _session.m_pi.findMascotById(item_id)) != null && sIff.getInstance()._getItemGroupIdentify(pMi._typeid) == PangyaAPI.IFF.JP.Models.Flags.IFF_GROUP.MASCOT)
                                 {
 
                                     var m_it = _session.m_pi.findUpdateItemByTypeidAndType(_session.m_pi.ue.mascot_id, UpdateItem.UI_TYPE.MASCOT);
@@ -1445,20 +1444,20 @@ namespace GameServer.Game
                     default:
                         break;
                 }
-                _session.Send(packet_func_sv.pacote04B(_session, type, error));
+                _session.Send(packet_func.pacote04B(_session, type, error));
             }
             catch (exception e)
             {
 
                 message_pool.push(new message("[channel::requestChangePlayerItemChannel][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-                _session.Send(packet_func_sv.pacote04B(_session, type, (int)(ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) == (uint)STDA_ERROR_TYPE.CHANNEL ? ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) : 1/*Unknown Error*/)));
+                _session.Send(packet_func.pacote04B(_session, type, (int)(ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) == (uint)STDA_ERROR_TYPE.CHANNEL ? ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) : 1/*Unknown Error*/)));
 
             }
         }
         public void requestChangePlayerItemRoom(Player _session, Packet _packet)
         {
-            _session.Send(packet_func_sv.pacote04B(_session, _packet.ReadByte(), 0));
+            _session.Send(packet_func.pacote04B(_session, _packet.ReadByte(), 0));
         }
 
         // Delete Active Item
@@ -1511,7 +1510,7 @@ namespace GameServer.Game
                 // Update cookie do server com o que está no banco de dados
                 _session.m_pi.updateCookie();
 
-                _session.Send(packet_func_sv.pacote096(_session.m_pi));
+                _session.Send(packet_func.pacote096(_session.m_pi));
 
                 // Vou colocar aqui para atualizar os Grand Zodiac Pontos por que quando eu fazer o evento o Grand Zodiac ele vai consumir os pontos na página web, 
                 // aí vou atualizar aqui com o do banco de dados
@@ -1749,7 +1748,7 @@ namespace GameServer.Game
                     p.WriteZero(25);
                 }
 
-                packet_func_sv.session_send(p, _session, 1);
+                packet_func.session_send(p, _session, 1);
 
                 // Resposta ao Play Memorial
                 p.init_plain(0x264);
@@ -1765,7 +1764,7 @@ namespace GameServer.Game
                     p.WriteUInt32(el.qntd);
                 }
 
-                packet_func_sv.session_send(p, _session, 1);
+                packet_func.session_send(p, _session, 1);
 
                 // Update Achievement ON SERVER, DB and GAME
                 //sys_achieve.finish_and_update(_session);
@@ -1780,7 +1779,7 @@ namespace GameServer.Game
 
                 p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE(e.getCodeError()) == (uint)STDA_ERROR_TYPE.CHANNEL) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE(e.getCodeError()) : 0x6300300);
 
-                packet_func_sv.session_send(p, _session, 1);
+                packet_func.session_send(p, _session, 1);
             }
         }
 
@@ -1844,12 +1843,12 @@ namespace GameServer.Game
                     _smp::message_pool.push(new message("[channel::requestOpenMailBox][Log] Player[UID=" + (_session.m_pi.uid)
                                               + "] abriu o MailBox[Pagina=" + (pagina) + "] com sucesso.", type_msg.CL_FILE_LOG_AND_CONSOLE));
                     // pagina existe, envia ela
-                    _session.Send(packet_func_sv.pacote211(mails, pagina, _session.m_pi.m_mail_box.getTotalPages()/*cmd_mbi.getTotalPage()*/));
+                    _session.Send(packet_func.pacote211(mails, pagina, _session.m_pi.m_mail_box.getTotalPages()/*cmd_mbi.getTotalPage()*/));
 
                 }
                 else
                 { // MailBox Vazio                                                  
-                    _session.Send(packet_func_sv.pacote211(new List<MailBox>(), pagina, 1));
+                    _session.Send(packet_func.pacote211(new List<MailBox>(), pagina, 1));
                 }
 
             }
@@ -1910,7 +1909,7 @@ namespace GameServer.Game
 
                 _smp::message_pool.push(new message("[channel::requestInfoMail][Log] Player[UID=" + (_session.m_pi.uid) + "] pediu info do Mail[ID="
                         + (email.id) + "] com sucesso.", type_msg.CL_FILE_LOG_AND_CONSOLE));
-                _session.Send(packet_func_sv.pacote212(email), true);
+                _session.Send(packet_func.pacote212(email), 1);
 
             }
             catch (exception e)
@@ -2201,7 +2200,7 @@ namespace GameServer.Game
         void sendUpdatePlayerInfo(Player _session, int _option)
         {
             PlayerCanalInfo pci = getPlayerInfo(_session);
-            _session.SendChannel_broadcast(packet_func_sv.pacote046(new vector<PlayerCanalInfo> { (pci == null) ? new PlayerCanalInfo() : pci }, _option));
+            _session.SendChannel_broadcast(packet_func.pacote046(new vector<PlayerCanalInfo> { (pci == null) ? new PlayerCanalInfo() : pci }, _option));
         }
 
         // Destroy Room

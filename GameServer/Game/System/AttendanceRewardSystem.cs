@@ -86,7 +86,7 @@ namespace GameServer.Game.System
                     _session.m_pi.ari.login = 1;   // Ainda n�o passou 1 dia desde que ele logou no pangya
 
 
-                _session.Send(packet_func_sv.pacote248(_session.m_pi.ari));
+                _session.Send(packet_func.pacote248(_session.m_pi.ari));
             }
             catch (exception e)
             {
@@ -181,7 +181,7 @@ namespace GameServer.Game.System
                 //sys_achieve.incrementCounter(0x6C4000A0u/*Login Count por dia, 1 por dia*/);
 
 
-                _session.Send(packet_func_sv.pacote249(_session.m_pi.ari));
+                _session.Send(packet_func.pacote249(_session.m_pi.ari));
 
                 // UPDATE Achievement ON SERVER, DB and GAME
                 ///sys_achieve.finish_and_update(_session);

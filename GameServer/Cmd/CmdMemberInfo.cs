@@ -54,7 +54,7 @@ namespace GameServer.Cmd
                 m_mi.papel_shop.current_count = Convert.ToInt16(_result.data[22]);
                 m_mi.papel_shop.remain_count = Convert.ToInt16(_result.data[23]);
 
-                if (_result.data[24] != null)
+                if (_result.IsNotNull(24))
                     m_mi.papel_shop_last_update.CreateTime(_result.data[24].ToString());
 
                 m_mi.level = Convert.ToByte(_result.data[25]);

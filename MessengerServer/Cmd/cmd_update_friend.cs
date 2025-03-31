@@ -75,7 +75,7 @@ namespace MessengerServer.Cmd
 
 				var r = procedure(
 					m_szConsulta,
-					Convert.ToString(m_uid) + ", " + Convert.ToString(m_fi.uid) + ", " + _db.makeText(m_fi.apelido) + ", " + Convert.ToString(m_fi.lUnknown) + ", " + Convert.ToString(m_fi.lUnknown2) + ", " + Convert.ToString(m_fi.lUnknown3) + ", " + Convert.ToString(m_fi.lUnknown4) + ", " + Convert.ToString(m_fi.lUnknown5) + ", " + Convert.ToString(m_fi.lUnknown6) + ", " + Convert.ToString((short)m_fi.cUnknown_flag) + ", " + Convert.ToString((ushort)m_fi.state.ucState));
+					Convert.ToString(m_uid) + ", " + Convert.ToString(m_fi.uid) + ", " + (m_fi.apelido) + ", " + Convert.ToString(m_fi.lUnknown) + ", " + Convert.ToString(m_fi.lUnknown2) + ", " + Convert.ToString(m_fi.lUnknown3) + ", " + Convert.ToString(m_fi.lUnknown4) + ", " + Convert.ToString(m_fi.lUnknown5) + ", " + Convert.ToString(m_fi.lUnknown6) + ", " + Convert.ToString((short)m_fi.cUnknown_flag) + ", " + Convert.ToString((ushort)m_fi.state.ucState));
 
 				checkResponse(r, "nao consegiu atualizar Friend Info[UID=" + Convert.ToString(m_fi.uid) + ", APELIDO=" + (m_fi.apelido) + ", UNK1=" + Convert.ToString(m_fi.lUnknown) + ", UNK2=" + Convert.ToString(m_fi.lUnknown2) + ", UNK3=" + Convert.ToString(m_fi.lUnknown3) + ", UNK4=" + Convert.ToString(m_fi.lUnknown4) + ", UNK5=" + Convert.ToString(m_fi.lUnknown5) + ", UNK6=" + Convert.ToString(m_fi.lUnknown6) + ", UNK_FLAG=" + Convert.ToString((short)m_fi.cUnknown_flag) + ", STATE=" + Convert.ToString((byte)m_fi.state.ucState) + "] do player[UID=" + Convert.ToString(m_uid) + "]");
 

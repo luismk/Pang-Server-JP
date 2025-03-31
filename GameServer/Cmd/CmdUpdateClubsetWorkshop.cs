@@ -83,7 +83,7 @@ namespace GameServer.Cmd
                     4, 0));
             }
 
-            if (sIff.getInstance()._getItemGroupIdentify(m_wi._typeid) != PangLib.IFF.JP.Models.Flags.IFF_GROUP.CLUBSET)
+            if (sIff.getInstance()._getItemGroupIdentify(m_wi._typeid) != PangyaAPI.IFF.JP.Models.Flags.IFF_GROUP.CLUBSET)
             {
                 throw new exception("[CmdUpdateClubSetWorkShop::prepareConsulta][Error] Item[TYPEID=" + Convert.ToString(m_wi._typeid) + ", ID=" + Convert.ToString(m_wi.id) + "] nao eh um ClubSet", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PANGYA_DB,
                     4, 0));

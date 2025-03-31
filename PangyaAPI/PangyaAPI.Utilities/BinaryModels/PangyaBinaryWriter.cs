@@ -181,6 +181,7 @@ namespace PangyaAPI.Utilities.BinaryModels
 
         }
         public bool WriteString(string data) => WritePStr(data);
+        public bool WriteString(string data, int len) => WriteStr(data, len);
         public bool WritePStr(string data)
         {
             if (data == null) data = "";
@@ -514,12 +515,12 @@ namespace PangyaAPI.Utilities.BinaryModels
                 IntPtr ptr = Marshal.AllocHGlobal(size);
                 try
                 {
-                    Marshal.StructureToPtr(value, ptr, true);
-                    byte[] buffer = new byte[size];
-                    Marshal.Copy(ptr, buffer, 0, size);
+                    byte[] arr = new byte[size];
 
-                    // Chama o método Write para manipular os dados
-                    Write(buffer, size);
+                     Marshal.StructureToPtr(value, ptr, true);
+                    Marshal.Copy(ptr, arr, 0, size);
+                    Marshal.FreeHGlobal(ptr);
+                    Write(arr);
                 }
                 catch (ArgumentException ex) // Corrigido para Exception com "E" maiúsculo
                 {

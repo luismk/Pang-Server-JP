@@ -34,7 +34,7 @@ namespace PangyaAPI.Network.PangyaSession
             _ttl = m_reader_ini.ReadUInt32("OPTION", "TTL", 0);
         }
 
-        public void Clear()
+        public virtual void Clear()
         {
             lock (_lockObject)
             {

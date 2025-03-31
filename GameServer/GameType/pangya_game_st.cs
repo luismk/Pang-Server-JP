@@ -18,6 +18,8 @@ namespace GameServer.GameType
     /// </summary>
     public static class _Define
     {
+
+        public const byte LIMIT_DEGREE = 255;
         public const ulong EXPIRES_CACHE_TIME = 3 * 1000Ul; // 3 Segundos
         public const uint NUM_OF_EMAIL_PER_PAGE = 20u; // 20 Emails por p�gina
         public const uint LIMIT_OF_UNREAD_EMAIL = 300u; // 300 Emails n�o lidos que pode enviar para o player         
@@ -90,7 +92,7 @@ namespace GameServer.GameType
         public const uint TICKET_REPORT_TYPEID = 0x1A000041u;
     }
 
-    public partial class player_info
+    public class player_info
     {
         public uint uid { get; set; }
         public BlockFlag block_flag { get; set; }
@@ -104,6 +106,15 @@ namespace GameServer.GameType
             id = "";
             nickname = "";
             pass = "";
+        }
+
+        public void set_info(player_info info)
+        {
+            uid = info.uid;
+            level = info.level;
+            block_flag = info.block_flag;
+            nickname = info.nickname;
+            pass = info.pass;
         }
     }
     public class stSyncUpdateDB

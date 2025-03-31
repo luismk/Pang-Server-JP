@@ -27,6 +27,9 @@ namespace PangyaAPI.Network.PangyaUnit
         Initialized,
         Failure
     }
+    /// <summary>
+    /// Server Auth ;)
+    /// </summary>
     public abstract partial class unit
     {
         #region Fields
@@ -270,7 +273,7 @@ namespace PangyaAPI.Network.PangyaUnit
                             Console.Title = $"Bird Server - P: {m_si.curr_user}";
                             break;
                         case 3:
-                            Console.Title = $"Messenger Server - P: {m_si.curr_user}";
+                            Console.Title = $"Login Server - P: {m_si.curr_user}";
                             break;
                         case 4:
                             Console.Title = $"Rank Server - P: {m_si.curr_user}";

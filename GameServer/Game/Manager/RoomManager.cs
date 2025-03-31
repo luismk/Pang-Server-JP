@@ -206,7 +206,7 @@
 //        public RoomGrandPrix makeRoomGrandPrix(byte _channel_owner,
 //            RoomInfoEx _ri,
 //            Player _session,
-//            PangLib.IFF.JP.Models.Data.GrandPrixData _gp,
+//            PangyaAPI.IFF.JP.Models.Data.GrandPrixData _gp,
 //            int _option = 0)
 //        {
 

@@ -1,7 +1,7 @@
 ﻿using GameServer.GameType;
 using GameServer.Session;
-using PangLib.IFF.JP.Models.Flags;
-using PangLib.IFF.JP.Models.General;
+using PangyaAPI.IFF.JP.Models.Flags;
+using PangyaAPI.IFF.JP.Models.General;
 using PangyaAPI.Network.Pangya_St;
 using PangyaAPI.SQL;
 using PangyaAPI.Utilities;
@@ -241,7 +241,7 @@ namespace GameServer.Game.Manager
                         BEGIN_INIT_BUYITEM(_pi, ref _item, _bi, _gift_opt.IsTrue(), _chk_lvl.IsTrue(), item);
                         for (int i = 0; i < _item.c.Length; i++)
                         {
-                            _item.c[i] = item.Stats.getSlot()[i];
+                            _item.c[i] = item.Stats.getSlot[i];
                         }
                         if (_chk_lvl.IsTrue())
                             _item.STDA_C_ITEM_QNTD = (ushort)_item.qntd;
@@ -274,7 +274,7 @@ namespace GameServer.Game.Manager
                         // Copia C[] do IFF::Item para o _item
                         for (int i = 0; i < _item.c.Length; i++)
                         {
-                            _item.c[i] = item.Stats.getSlot()[i];
+                            _item.c[i] = item.Stats.getSlot[i];
                         }
                         // Tem preço de tempo
                         var empty_price = sIff.getInstance().EMPTY_ARRAY_PRICE(_item.c);
@@ -413,7 +413,7 @@ namespace GameServer.Game.Manager
                             _item.flag_time = 2;
                             for (int i = 0; i < _item.c.Length; i++)
                             {
-                                _item.c[i] = item.Stats.getSlot()[i];
+                                _item.c[i] = item.Stats.getSlot[i];
                             }
                             _item.STDA_C_ITEM_TIME = (ushort)_item.date_reserve;    // Caddie depois que add, só colocar o time novamente
                         }

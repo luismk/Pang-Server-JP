@@ -146,6 +146,12 @@ namespace PangyaAPI.Network.PangyaPacket
         {
             Reader.Seek(offset, origin);
         }
+
+        public T ReadStruct<T>()
+        { 
+            return Reader.ReadStruct<T>();
+        }
+
         public T Read<T>() where T : new()
         {
             return Reader.Read<T>();

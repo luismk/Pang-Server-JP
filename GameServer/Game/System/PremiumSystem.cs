@@ -70,7 +70,7 @@ namespace GameServer.Game.System
                     var p = new PangyaBinaryWriter();
 
                     ////// UPDATE ON GAME
-                    //packet_func_sv.pacote26D(p,
+                    //packet_func.pacote26D(p,
                     //    _session,
                     //    _session.m_pi.pt.unix_end_date);
                     //packet_func.session_send(p,
@@ -156,7 +156,7 @@ namespace GameServer.Game.System
 
                 //     packet pp = new packet();
 
-                //     if (packet_func_sv.pacote073(pp,
+                //     if (packet_func.pacote073(pp,
                 //         _session, _session.m_pi.mp_wi))
                 //     {
                 //         packet_func.session_send(pp,
@@ -223,13 +223,13 @@ namespace GameServer.Game.System
                 //// Tira capacidade de premium user do player
                 //_session.m_pi.m_cap.stBit.premium_user = 0u;
 
-                //packet_func_sv.pacote09A(p,
+                //packet_func.pacote09A(p,
                 //    _session, _session.m_pi);
                 //packet_func.session_send(p,
                 //    _session, 1);
 
                 //// UPDATE ON GAME - Mostra a mensagem que acabou o tempo do ticket premium
-                //packet_func_sv.pacote26D(p,
+                //packet_func.pacote26D(p,
                 //    _session,
                 //    _session.m_pi.pt.unix_end_date);
                 //packet_func.session_send(p,

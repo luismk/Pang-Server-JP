@@ -2,7 +2,7 @@
 using GameServer.Game.Manager;
 using GameServer.GameServerTcp;
 using GameServer.GameType;
-using PangLib.IFF.JP.Models.Data;
+using PangyaAPI.IFF.JP.Models.Data;
 using PangyaAPI.Network.Pangya_St;
 using PangyaAPI.Network.PangyaSession;
 using PangyaAPI.SQL.Manager;
@@ -58,21 +58,7 @@ namespace GameServer.Session
         }
 
         #region Send Packets
-        public void Send(List<PangyaBinaryWriter> packet, bool debug_log = false)
-        {
-            for (int i = 0; i < packet.Count; i++)
-                base.Send(packet[i], debug_log);
-        }
-        public override void Send(PangyaBinaryWriter packet, bool debug_log = false)
-        {
-            base.Send(packet, debug_log);
-        }
-
-        public override void Send(byte[] Data, bool debug_log = false)
-        {
-            base.Send(Data, debug_log);
-        }
-
+        
         public void SendChannel_broadcast(byte[] p)
         {
             List<Player> channel_session = sgs.gs.getInstance().findChannel(m_pi.channel).getSessions();

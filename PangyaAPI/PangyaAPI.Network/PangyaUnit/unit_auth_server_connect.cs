@@ -1090,28 +1090,16 @@ namespace PangyaAPI.Network.PangyaUnit
                 if (m_state != STATE.INITIALIZED)
                 {
                     return;
+                } 
+
+                if (!m_session.getConnected())
+                {
+                    ConnectAndAssoc();
+                 }
+                else 
+                {
+                 message_pool.push(new message("[unit_auth_server_connect::onHeartBeat][Error] tentou esperar pelo evento de tentar conectar com o Auth Server, mas deu error", type_msg.CL_FILE_LOG_AND_CONSOLE));
                 }
-
-                uint errCode = 0u;
-
-#if _WIN32
-					if(! m_session.isConnected() && (errCode = WaitForSingleObject(hEventTryConnect, 0)) == DefineConstants.WAIT_OBJECT_0)
-					{
-						ConnectAndAssoc();
-					} else if(errCode != 0 && errCode != DefineConstants.WAIT_TIMEOUT)
-					{
-						Singleton< list_fifo_console_asyc< message >>.getInstance().push(new message("[unit_auth_server_connect::onHeartBeat][Error] tentou esperar pelo evento de tentar conectar com o Auth Server, mas deu error. Error Code: " + Convert.ToString(GetLastError()), type_msg.CL_FILE_LOG_AND_CONSOLE));
-					}
-#elif __linux__
-					if(! m_session.isConnected() && (hEventTryConnect != null && (errCode = hEventTryConnect.wait(0)) == DefineConstants.WAIT_OBJECT_0))
-					{
-						ConnectAndAssoc();
-					} else if(errCode != 0 && errCode != DefineConstants.WAIT_TIMEOUT)
-					{
-						Singleton< list_fifo_console_asyc< message >>.getInstance().push(new message("[unit_auth_server_connect::onHeartBeat][Error] tentou esperar pelo evento de tentar conectar com o Auth Server, mas deu error. Error Code: " + Convert.ToString(errno), type_msg.CL_FILE_LOG_AND_CONSOLE));
-					}
-#endif
-
             }
             catch (exception e)
             {
@@ -1153,41 +1141,13 @@ namespace PangyaAPI.Network.PangyaUnit
             }
         }
 
-        protected override void config_init()
+        protected void config_init()
         {
-
-            m_reader_ini = new IniHandle("Server.ini");
-
             m_unit_ctx.ip = m_reader_ini.ReadString("AUTHSERVER", "IP");
             m_unit_ctx.port = m_reader_ini.readInt("AUTHSERVER", "PORT");
 
             // Carregou com sucesso
             m_unit_ctx.state = true;
-        }
-
-        public override void WaitForAllThreadsFinish(int milliseconds)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void PostIoOperation(SessionBase session, byte[] buffer, int ioSize, int operation)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void DisconnectSession(SessionBase session)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void onStart()
-        {
-            throw new NotImplementedException();
-        }
-
-        public override bool isLive()
-        {
-            throw new NotImplementedException();
         }
 
         protected IUnitAuthServer m_owner_server;
