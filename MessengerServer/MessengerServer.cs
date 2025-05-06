@@ -5,12 +5,20 @@ namespace MessengerServer
     {
         static void Main(string[] args)
         {
-            sms.ms.getInstance().Start();
-            for (; ; )
-            {
-                var comando = Console.ReadLine().Split(new char[] { ' ' }, 2);
-                sms.ms.getInstance().RunCommand(comando);
+			try
+			{ 
+                sms.ms.getInstance().Start();
+                for (; ; )
+                {
+                    var comando = Console.ReadLine().Split(new char[] { ' ' }, 2);
+                     sms.ms.getInstance().CheckCommand(comando.ToString());
+                }
             }
+			catch (Exception e)
+			{
+
+				throw e;
+			}
         }
     }
 }

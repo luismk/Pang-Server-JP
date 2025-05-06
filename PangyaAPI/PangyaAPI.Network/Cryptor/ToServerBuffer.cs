@@ -56,8 +56,7 @@ namespace PangyaAPI.Network.Cryptor
         private byte[] InternalProcessPacket()
         {
             int currentLength = _endIndex < _initialIndex ? _buffer.Length - _initialIndex + _endIndex : _endIndex - _initialIndex;
-            //Console.WriteLine($"CurrentLength: '{currentLength}' PacketLength: '{packet.Length}'");
-            if (currentLength < FrameLength)
+             if (currentLength < FrameLength)
             {
                 return null;
             }

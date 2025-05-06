@@ -102,7 +102,7 @@ namespace PangyaAPI.Utilities.Log
         }
 
 
-        static void console_log()
+       public static void console_log()
         {
             message m = getMessage();
 

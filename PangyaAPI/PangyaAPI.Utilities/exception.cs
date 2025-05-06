@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
@@ -145,7 +146,7 @@ namespace PangyaAPI.Utilities
     {
         public static uint STDA_SOURCE_ERROR_ENCODE(uint source_error) => (uint)(((source_error) << 24) & 0xFF000000);
         public static uint STDA_SOURCE_ERROR_DECODE(uint err_code) => (uint)(((err_code) >> 24) & 0x000000FF);
-        public static uint STDA_SOURCE_ERROR_DECODE_TYPE(uint err_code) => (uint)(((err_code) >> 24) & 0x000000FF);
+        public static STDA_ERROR_TYPE STDA_SOURCE_ERROR_DECODE_TYPE(uint err_code) => (STDA_ERROR_TYPE)(((err_code) >> 24) & 0x000000FF);
         public static uint STDA_ERROR_ENCODE(uint err) => (uint)(((err) << 16) & 0x00FF0000);
         public static uint STDA_ERROR_DECODE(uint err_code) => (uint)(((err_code) >> 16) & 0x000000FF);
         public static uint STDA_SYSTEM_ERROR_ENCODE(uint _err_sys) => (uint)((_err_sys) & 0x0000FFFF);
@@ -180,6 +181,8 @@ namespace PangyaAPI.Utilities
             m_code_error = code_error;
 
             m_message_error_full = m_message_error + "\t Error Code: " + code_error;
+
+            Debug.WriteLine(m_message_error_full);
         }
 
         public Exception GetException()

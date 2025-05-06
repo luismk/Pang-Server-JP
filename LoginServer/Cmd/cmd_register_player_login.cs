@@ -10,7 +10,7 @@ namespace LoginServer.Cmd
 			public CmdRegisterPlayerLogin()
 			{
 				this.m_uid = 0;
-				this.m_ip = new string();
+				this.m_ip = "";
 				this.m_server_uid = 0;
 			}
 
@@ -29,13 +29,12 @@ this.m_server_uid = _server_uid;
 
 			public uint getUID()
 			{
-				return new uint(m_uid);
+				return (m_uid);
 			}
 
 			public void setUID(uint _uid)
 			{
 m_uid = _uid;
-				m_uid.CopyFrom(_uid);
 			}
 
 			public string getIP()
@@ -50,13 +49,12 @@ m_uid = _uid;
 
 			public uint getServerUID()
 			{
-				return new uint(m_server_uid);
+				return m_server_uid;
 			}
 
 			public void setServerUID(uint _server_uid)
 			{
 m_server_uid = _server_uid;
-				m_server_uid.CopyFrom(_server_uid);
 			}
 
 			protected override void lineResult(ctx_res _result, uint _index_result)
@@ -66,12 +64,12 @@ m_server_uid = _server_uid;
 				return;
 			}
 
-			protected override response prepareConsulta()
+			protected override Response prepareConsulta()
 			{
 
 				if(m_ip.Length == 0)
 				{
-					throw exception("[CmdRegisterPlayerLogin::prepareConsulta][Error] ip is invalid", STDA_MAKE_ERROR(STDA_ERROR_TYPE.PANGYA_DB,
+					throw new exception("[CmdRegisterPlayerLogin::prepareConsulta][Error] ip is invalid", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PANGYA_DB,
 						4, 0));
 				}
 
@@ -82,16 +80,7 @@ m_server_uid = _server_uid;
 
 				return r;
 			}
-
-			protected override string _getName()
-			{
-				return "CmdRegisterPlayerLogin";
-			}
-			protected override string _wgetName()
-			{
-				return "CmdRegisterPlayerLogin";
-			}
-
+		  
 			private uint m_uid = new uint();
 			private uint m_server_uid = new uint();
 			private string m_ip = "";

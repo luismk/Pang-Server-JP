@@ -520,7 +520,7 @@ namespace PangyaAPI.Utilities.BinaryModels
                      Marshal.StructureToPtr(value, ptr, true);
                     Marshal.Copy(ptr, arr, 0, size);
                     Marshal.FreeHGlobal(ptr);
-                    Write(arr);
+                    WriteBytes(arr);
                 }
                 catch (ArgumentException ex) // Corrigido para Exception com "E" maiúsculo
                 {

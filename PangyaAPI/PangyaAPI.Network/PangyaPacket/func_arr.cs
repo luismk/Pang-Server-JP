@@ -13,11 +13,11 @@ using System.Threading.Tasks;
 namespace PangyaAPI.Network.PangyaPacket
 {
     /// <summary>
-    /// get packet and session
+    /// get packet and Session
     /// </summary>
     public class ParamDispatch
     {
-        public ParamDispatch(SessionBase session, Packet packet)
+        public ParamDispatch(Session session, packet packet)
         {
             _session = session;
             _packet = packet;
@@ -27,8 +27,8 @@ namespace PangyaAPI.Network.PangyaPacket
 
         }
 
-        public SessionBase _session { get; set; }
-        public Packet _packet { get; set; }                   
+        public Session _session { get; set; }
+        public packet _packet { get; set; }                   
     }
     public delegate int call_func(object param, ParamDispatch pd);
 

@@ -1,26 +1,20 @@
-﻿using _smp = PangyaAPI.Utilities.Log;
-using PangyaAPI.SQL;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using PangyaAPI.Utilities;
+﻿using System.Collections.Generic;
 using PangyaAPI.Network.PangyaSession;
-using GameServer.GameType;
 using MessengerServer.GameType;
+using PangyaAPI.Network.PangyaPacket;
 
 namespace MessengerServer.Session
 {
     public class player_manager : SessionManager
-    {
-        public player_manager(uint _max_session) : base(_max_session)
+    {          
+        public player_manager(pangya_packet_handle_base _threadpool, uint _max_session) : base(_threadpool, _max_session)
         {
             if (_max_session != 0)
             {
                 for (var i = 0u; i < _max_session; ++i)
-                    m_sessions.Add(new Player() { m_oid = uint.MaxValue });
+                    m_sessions.Add(new Player(m_threadpool) { m_oid = int.MaxValue });
             }
         }
-
 
         public new void Clear()
         {
@@ -30,11 +24,11 @@ namespace MessengerServer.Session
         public Player findPlayer(uint? _uid, bool _oid = true)
         {
 
-            foreach (Player el in m_sessions)
+            foreach (var el in m_sessions)
             {
-                if ((_oid ? el.getUID() : el.m_oid) == _uid)
+                if ((_oid ? el.getUID() : (uint)el.m_oid) == _uid)
                 {
-                    return el;
+                    return (Player)el;
                 }
             }
 
@@ -47,7 +41,7 @@ namespace MessengerServer.Session
             Player p = null;
             foreach (var el in m_sessions)
             {
-                if (el._client != null && ((!oid) ? el.getUID() : el.m_oid) == uid)
+                if (el.m_sock != null && ((!oid) ? el.getUID() : (uint)el.m_oid) == uid)
                 {
                     p = (Player)el;
                     break;
@@ -63,7 +57,7 @@ namespace MessengerServer.Session
 
             foreach (var el in m_sessions)
             {
-                if (el._client != null && ((el.getCapability() & 4) != 0 || (el.getCapability() & 128) != 0))
+                if (el.m_sock != null && ((el.getCapability() & 4) != 0 || (el.getCapability() & 128) != 0))
                 {
                     gmList.Add((Player)el);
                 }

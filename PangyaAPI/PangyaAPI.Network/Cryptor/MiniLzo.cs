@@ -205,6 +205,190 @@ namespace PangyaAPI.Network.Cryptor
             Array.Resize(ref @out, (int)op);
             return @out;
         }
+        private static byte[] lzo1x_decompress(in byte[] _lzo_bytep, uint in_len,
+                                        out byte[] lzo_bytep, in uint out_len,
+                                        object wrkmem)
+        {
+            byte[] @in = _lzo_bytep;
+            byte[] @out = new byte[4096]; // Tamanho inicial arbitrário
+            uint op = 0;
+            uint ip = 0;
+            uint t;
+            bool gtFirstLiteralRun = false;
+            bool gtMatchDone = false;
+
+            if (ip < in_len && @in[ip] > 17)
+            {
+                t = (uint)(@in[ip++] - 17);
+                EnsureSpace(t, ref @out, op);
+                if (t > 0)
+                {
+                    do
+                    {
+                        @out[op++] = @in[ip++];
+                    } while (--t > 0);
+
+                    if (t >= 4) gtFirstLiteralRun = true;
+                }
+            }
+
+            while (ip < in_len)
+            {
+                uint mPos;
+
+                if (gtFirstLiteralRun)
+                {
+                    gtFirstLiteralRun = false;
+                    goto FirstLiteralRun;
+                }
+
+                t = @in[ip++];
+                if (t >= 16) goto match;
+
+                if (t == 0)
+                {
+                    while (ip < in_len && @in[ip] == 0)
+                    {
+                        t += 255;
+                        ip++;
+                    }
+
+                    t += (uint)(15 + @in[ip++]);
+                }
+
+                t += 3;
+                EnsureSpace(t, ref @out, op);
+                if (t > 0)
+                {
+                    do
+                    {
+                        @out[op++] = @in[ip++];
+                    } while (--t > 0);
+                }
+
+            FirstLiteralRun:
+                t = @in[ip++];
+                if (t >= 16) goto match;
+
+                mPos = op - (1 + 0x0800);
+                mPos -= t >> 2;
+                mPos -= (uint)@in[ip++] << 2;
+
+                EnsureSpace(3, ref @out, op);
+                @out[op++] = @out[mPos++];
+                @out[op++] = @out[mPos++];
+                @out[op++] = @out[mPos];
+                gtMatchDone = true;
+
+            match:
+                do
+                {
+                    if (gtMatchDone)
+                    {
+                        gtMatchDone = false;
+                        goto MatchDone;
+                    }
+
+                    if (t >= 64)
+                    {
+                        mPos = op - 1;
+                        mPos -= (t >> 2) & 7;
+                        mPos -= (uint)@in[ip++] << 3;
+                        t = (t >> 5) - 1;
+
+                        t += 2;
+                        EnsureSpace(t, ref @out, op);
+                        do
+                        {
+                            @out[op++] = @out[mPos++];
+                        } while (--t > 0);
+
+                        goto MatchDone;
+                    }
+
+                    if (t >= 32)
+                    {
+                        t &= 31;
+                        if (t == 0)
+                        {
+                            while (ip < in_len && @in[ip] == 0)
+                            {
+                                t += 255;
+                                ip++;
+                            }
+
+                            t += (uint)(31 + @in[ip++]);
+                        }
+
+                        mPos = op - 1;
+                        mPos -= ReadU16(@in, ip) >> 2;
+                        ip += 2;
+                    }
+                    else if (t >= 16)
+                    {
+                        mPos = op;
+                        mPos -= (t & 8) << 11;
+                        t &= 7;
+                        if (t == 0)
+                        {
+                            while (ip < in_len && @in[ip] == 0)
+                            {
+                                t += 255;
+                                ip++;
+                            }
+
+                            t += (uint)(7 + @in[ip++]);
+                        }
+
+                        mPos -= ReadU16(@in, ip) >> 2;
+                        ip += 2;
+
+                        if (mPos == op)
+                            goto EofFound;
+
+                        mPos -= 0x4000;
+                    }
+                    else
+                    {
+                        mPos = op - 1;
+                        mPos -= t >> 2;
+                        mPos -= (uint)@in[ip++] << 2;
+                        EnsureSpace(2, ref @out, op);
+                        @out[op++] = @out[mPos++];
+                        @out[op++] = @out[mPos];
+                        goto MatchDone;
+                    }
+
+                    t += 2;
+                    EnsureSpace(t, ref @out, op);
+                    do
+                    {
+                        @out[op++] = @out[mPos++];
+                    } while (--t > 0);
+
+                MatchDone:
+                    t = (uint)(@in[ip - 2] & 3);
+                    if (t == 0) break;
+
+                    EnsureSpace(t, ref @out, op);
+                    if (t > 0)
+                    {
+                        do
+                        {
+                            @out[op++] = @in[ip++];
+                        } while (--t > 0);
+                    }
+
+                    t = @in[ip++];
+                } while (ip < in_len);
+            }
+
+        EofFound:
+            Array.Resize(ref @out, (int)op);
+            lzo_bytep = @out;
+             return @out;
+        }
+
 
         #endregion Decompression
 
@@ -485,8 +669,29 @@ namespace PangyaAPI.Network.Cryptor
             Lzo1X1Compress(input, (uint)input.Length, @out, out var outLen, new ushort[32768]);
             Array.Resize(ref @out, (int)outLen);
             return @out;
+        }       
+        public static void compress_data(byte[] @_uncompress,
+                uint _size_uncompress,
+                byte[] @_compress,
+                uint @_size_compress)
+        {
+             Lzo1X1Compress(@_uncompress,
+                        _size_uncompress, @_compress,
+                       out @_size_compress,
+                        new ushort[32768]);
+            Array.Resize(ref @_uncompress, (int)@_size_compress);
+        }                                 
+        public static void decompress_data(in byte[] @_compress,
+                in uint @_size_compress,
+             out byte[] @_uncompress,
+                in uint @_size_uncompress,
+                in uint @_size_decompress /*usado somente para check*/)
+        {
+            lzo1x_decompress(_compress,
+                        _size_compress, out _uncompress,
+                        _size_uncompress, null);
+            Array.Resize(ref @_uncompress, (int)@_size_compress);
         }
-
         #endregion
     }
 }

@@ -63,6 +63,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\PangyaAPI\PangyaAPI.Discord\PangyaAPI.Discord.csproj">
+      <Project>{c7866f01-f664-4522-85ee-796630f135d4}</Project>
+      <Name>PangyaAPI.Discord</Name>
+    </ProjectReference>
     <ProjectReference Include="..\PangyaAPI\PangyaAPI.IFF.JP\PangyaAPI.IFF.JP.csproj">
       <Project>{03210c5a-2661-4bb2-b3b5-c49603e422f3}</Project>
       <Name>PangyaAPI.IFF.JP</Name>

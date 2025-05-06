@@ -1,13 +1,9 @@
 ﻿using System;
-using PangyaAPI.Network.PangyaPacket;
-using PangyaAPI.Network.PangyaSession;
 using PangyaAPI.Network.PangyaServer;
 using PangyaAPI.Utilities;
 using MessengerServer.Session;
 using PangyaAPI.Utilities.Log;
 using PangyaAPI.IFF.JP.Extensions;
-using MessengerServer.PacketFunc;
-using PangyaAPI.Utilities.BinaryModels;
 using PangyaAPI.SQL;
 using PangyaAPI.Network.Cmd;
 using PangyaAPI.SQL.Manager;
@@ -19,6 +15,10 @@ using System.Runtime.InteropServices;
 using System.Linq;
 using MessengerServer.Manager;
 using PangyaAPI.Network.Pangya_St;
+using PangyaAPI.Network.PangyaUtil;
+using PangyaAPI.Network.PangyaPacket;
+using MessengerServer.PacketFunc;
+using PangyaAPI.Discord;
 
 namespace MessengerServer.MessengerServerTcp
 {
@@ -26,26 +26,29 @@ namespace MessengerServer.MessengerServerTcp
     {
         public const int FRIEND_LIST_LIMIT = 50;
         public const int FRIEND_PAG_LIMIT = 30;
-        static player_manager m_player_manager = new player_manager(2000);
-        public MessengerServer() : base(m_player_manager)
+        player_manager m_player_manager;
+        public MessengerServer()
         {
             if (m_state == ServerState.Failure)
             {
                 message_pool.push(new message("[message_server::message_server][Error] falha ao incializar o message server.", type_msg.CL_FILE_LOG_AND_CONSOLE));
                 return;
             }
-
             try
             {
 
-                ConfigInit();
+                m_player_manager = new player_manager(this, 2000);
+
+                set_sessionManager(m_player_manager);
+
+                config_init();
 
                 // Carrega IFF_STRUCT
                 if (!sIff.getInstance().isLoad())
                     sIff.getInstance().load();
 
                 // Request Cliente
-                init_Packets();
+                init_packets();
 
                 // Initialized complete
                 m_state = ServerState.Initialized;
@@ -59,26 +62,26 @@ namespace MessengerServer.MessengerServerTcp
             }
         }
 
-        public override bool CheckPacket(SessionBase _session, Packet packet)
+        public override bool CheckPacket(PangyaAPI.Network.PangyaSession.Session _session, packet packet)
         {
             var player = (Player)_session;
-            var packetId = (PacketIDClient)packet.Id;
+            var packetId = (PacketIDClient)packet.getTipo();
 
-            // Verifica se o valor de packetId é válido no enum PacketIDClient
+            // Verifica se o valor de packetId é válido no enum packetIDClient
             if (Enum.IsDefined(typeof(PacketIDClient), packetId))
             {
-                WriteConsole.WriteLine($"[MessengerServer.CheckPacket][Log]: PLAYER[UID: {player.m_pi.uid}, CMPID: {packetId}]", ConsoleColor.Cyan);
+                Console.WriteLine($"[MessengerServer.Checkpacket][Log]: PLAYER[UID: {player.m_pi.uid}, CMPID: {packetId}]", ConsoleColor.Cyan);
                 return true;
             }
 
-            else// nao tem no PacketIDClient
+            else// nao tem no packetIDClient
             {
-                WriteConsole.WriteLine($"[MessengerServer.CheckPacket][Log]: PLAYER[UID: {player.m_pi.uid}, CMPID: 0x{packet.Id:X}]");
+                Console.WriteLine($"[MessengerServer.Checkpacket][Log]: PLAYER[UID: {player.m_pi.uid}, CMPID: 0x{packet.getTipo():X}]");
                 return true;
             }
         }
 
-        public override void onDisconnected(SessionBase _session)
+        public override void onDisconnected(PangyaAPI.Network.PangyaSession.Session _session)
         {
 
             if (_session == null)
@@ -140,23 +143,26 @@ namespace MessengerServer.MessengerServerTcp
             Console.Title = $"Messenger Server - P: {m_si.curr_user}";
         }
 
-        protected override void onAcceptCompleted(SessionBase _session)
+        protected override void onAcceptCompleted(PangyaAPI.Network.PangyaSession.Session _session)
         {
             try
             {
-                var Response = new PangyaBinaryWriter();
-                //Gera Packet com chave de criptografia (posisão 8)
-                Response.Write(new byte[] { 0x00, 0x09, 0x00, 0x00 });
-                Response.WriteUInt16(0x2E);
-                Response.WriteByte(1);  // OPTION 1
-                Response.WriteByte(1);	// OPTION 2
-                Response.WriteUInt32(_session.m_key);//key
-                _session.Send(Response.GetBytes,0);
+
+                packet p = new packet(0x2e);
+
+                p.AddUInt8(1);
+                p.AddUInt8(1);
+                p.AddUInt32(_session.m_key);
+                p.makeRaw();
+
+                var mb = p.getBuffer();
+                _session.requestSendBuffer(mb.buf, mb.len);
+                p = null;
             }
-            catch (Exception ex)
+            catch (exception ex)
             {
                 message_pool.push(new message(
-              $"[MessengerServer.onAcceptCompleted][ErrorSt] {ex.Message}\nStack Trace: {ex.StackTrace}",
+              $"[MessengerServer.onAcceptCompleted][ErrorSt]: {ex.getFullMessageError()}",
               type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
         }
@@ -164,7 +170,7 @@ namespace MessengerServer.MessengerServerTcp
         /// <summary>
         /// init packet to call !
         /// </summary>
-        protected void init_Packets()
+        protected void init_packets()
         {
             packet_func.funcs.addPacketCall(0x12, packet_func.packet012, this);
             packet_func.funcs.addPacketCall(0x13, packet_func.packet013, this);
@@ -206,9 +212,9 @@ namespace MessengerServer.MessengerServerTcp
 
 
         // Request Login
-        public void requestLogin(Player _session, Packet _packet)
+        public async void requestLogin(Player _session, packet _packet)
         {
-            PangyaBinaryWriter p = new PangyaBinaryWriter();
+            packet p = new packet();
 
             try
             {
@@ -302,7 +308,7 @@ namespace MessengerServer.MessengerServerTcp
                 {
 
                     message_pool.push(new message("[message_server::requestLogin][Log] Player[UID=" + (uid) + ", OID="
-                            + (_session.m_oid) + ", IP=" + _session.getIP() + "] que esta logando agora, ja tem uma outra session com o mesmo UID logado, desloga o outro Player[UID="
+                            + (_session.m_oid) + ", IP=" + _session.getIP() + "] que esta logando agora, ja tem uma outra Session com o mesmo UID logado, desloga o outro Player[UID="
                             + (s.getUID()) + ", OID=" + (s.m_oid) + ", IP=" + s.getIP() + "]", type_msg.CL_FILE_LOG_AND_CONSOLE));
 
                     if (!DisconnectSession(s))
@@ -325,12 +331,14 @@ namespace MessengerServer.MessengerServerTcp
                 //Log
                 message_pool.push(new message("[Login][Log] player[UID=" + (_session.m_pi.uid) + ", NICKNAME=" + (_session.m_pi.nickname) + "] logou com sucesso!", type_msg.CL_FILE_LOG_AND_CONSOLE));
 
+                await DiscordWebhook.ChatLog($"🟢 Jogador {_session.m_pi.nickname} entrou no servidor.");
+
                 // Resposta para o Pedido de Login
                 p.init_plain(0x2F);
 
-                p.WriteByte(0);	// OK
+                p.AddByte(0);	// OK
 
-                p.WriteUInt32(_session.m_pi.uid);
+                p.AddUInt32(_session.m_pi.uid);
 
                 packet_func.session_send(p, _session, 1);
 
@@ -341,7 +349,7 @@ namespace MessengerServer.MessengerServerTcp
                 // Resposta
                 p.init_plain(0x2F);
 
-                p.WriteByte(1);  // Error;
+                p.AddByte(1);  // Error;
 
                 packet_func.session_send(p, _session, 1);
 
@@ -351,19 +359,19 @@ namespace MessengerServer.MessengerServerTcp
             }
         }
 
-        // public void ConfirmLoginOnOtherServer(Player session, uint reqServerUid, AuthServerPlayerInfo aspi) { }
+        // public void ConfirmLoginOnOtherServer(Player Session, uint reqServerUid, AuthServerPlayerInfo aspi) { }
 
-        public void requestFriendAndGuildMemberList(Player _session, Packet _packet)
+        public void requestFriendAndGuildMemberList(Player _session, packet _packet)
         {   //REQUEST_BEGIN("FriendAndGuildMemberList");
 
-            PangyaBinaryWriter p = new PangyaBinaryWriter();
+            packet p = new packet();
 
             try
             {
 
                 message_pool.push(new message("[FriendList][Log] envia lista de amigos para o player[UID=" + (_session.m_pi.uid) + ", FRIENDS=" + _session.m_pi.m_friend_manager.getAllFriendAndGuildMember().Count + "].", type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-                // Verifica se session est� varrizada para executar esse a��o, 
+                // Verifica se Session est� varrizada para executar esse a��o, 
                 // se ele n�o fez o login com o Server ele n�o pode fazer nada at� que ele fa�a o login
                 //CHECK_SESSION_IS_AUTHORIZED("FriendAndGuildMemberList");
 
@@ -374,14 +382,14 @@ namespace MessengerServer.MessengerServerTcp
                 // UPDATE ON GAME
                 p.init_plain(0x30);
 
-                p.WriteUInt16(0x115);   // Sub Packet Id
+                p.AddUInt16(0x115);   // Sub packet Id
 
-                p.WriteUInt32(_session.m_pi.uid);
-                p.WriteUInt32(_session.m_pi.m_state);
+                p.AddUInt32(_session.m_pi.uid);
+                p.AddUInt32(_session.m_pi.m_state);
 
-                p.WriteByte(1); // OK
+                p.AddByte(1); // OK
 
-                p.WriteBuffer(_session.m_pi.m_cpi, Marshal.SizeOf(_session.m_pi.m_cpi));
+                p.AddBuffer(_session.m_pi.m_cpi, Marshal.SizeOf(_session.m_pi.m_cpi));
 
                 // Send To Player
                 packet_func.session_send(p, _session, 1);
@@ -392,30 +400,30 @@ namespace MessengerServer.MessengerServerTcp
                 if (mp.paginas > 0)
                 {
                     for (var i = 0; i < mp.paginas; i++, mp.increse())
-                    { 
+                    {
                         p.init_plain(0x30);
 
-                        p.WriteUInt16(0x102);   // Sub Packet Id
+                        p.AddUInt16(0x102);   // Sub packet Id
 
-                        p.WriteBuffer(mp.pag, Marshal.SizeOf(mp.pag));
-                      
+                        p.AddBuffer(mp.pag, Marshal.SizeOf(mp.pag));
+
                         var begin = friend_list
                             .Skip(mp.index.start)  // Pula até o índice de início
                             .Take(mp.index.end - mp.index.start); // Pega apenas os elementos entre start e end
 
                         foreach (var fi in begin)
                         {
-                            p.WriteStruct(fi, new FriendInfo());
+                            p.AddBuffer(fi, Marshal.SizeOf(new FriendInfo()));
                             var s = (Player)(m_session_manager.findSessionByUID((fi).uid) == null ? m_session_manager.findSessionByUID((fi).uid) : m_session_manager.FindSessionByNickname((fi).nickname));
 
                             // Se o Player tem ele na lista de amigos, e ele n�o estiver bloqueado na lista do amigo
-                             if (s != null && (pFi = s.m_pi.m_friend_manager.findFriendInAllFriend(_session.m_pi.uid)) != null)
+                            if (s != null && (pFi = s.m_pi.m_friend_manager.findFriendInAllFriend(_session.m_pi.uid)) != null)
                             {   // Player est� online
 
-                                p.WriteBuffer(s.m_pi.m_cpi, Marshal.SizeOf(new ChannelPlayerInfo()));
+                                p.AddBuffer(s.m_pi.m_cpi, Marshal.SizeOf(new ChannelPlayerInfo()));
 
                                 // State Icon Player
-                                p.WriteByte(s.m_pi.m_state);
+                                p.AddByte(s.m_pi.m_state);
 
                                 switch (s.m_pi.m_state)
                                 {
@@ -434,32 +442,32 @@ namespace MessengerServer.MessengerServerTcp
                                         break;
                                 }
 
-                                // Online
-                                (fi).state.online = 1;
+                               // Online
+                               (fi).state.online = 1;
 
                             }
                             else
                             {   // player n�o est� online
-                                p.WriteInt16(-1);       // Sala Numero
-                                p.WriteInt32(-1);       // Sala Tipo
-                                p.WriteInt32(-1);       // Server GUID
-                                p.WriteByte(-1);        // Canal ID
-                                p.WriteZero(64);    // Canal Nome
+                                p.AddInt16(-1);       // Sala Numero
+                                p.AddInt32(-1);       // Sala Tipo
+                                p.AddInt32(-1);       // Server GUID
+                                p.AddByte(-1);        // Canal ID
+                                p.AddZero(64);    // Canal Nome
 
                                 // State Icon Player, OFFLINE not change icon
-                                p.WriteByte(5); // OFFLINE
+                                p.AddByte(5); // OFFLINE
 
                                 // Offline
                                 (fi).state.online = 0;
                             }
 
-                            p.WriteByte(fi.cUnknown_flag);
+                            p.AddByte(fi.cUnknown_flag);
 
                             // Aqui quando � o player e ele est� guild � 1/*Master*/, 2 sub, e outros membro guild � 0, e quando � friend � o level
-                            p.WriteByte(fi.flag.ucFlag == 2/*S� Guild Member*/ ? (fi.uid == _session.m_pi.uid ? 1/*Master*/ : 0) : fi.level);
+                            p.AddByte((byte)(fi.flag.ucFlag == 2/*S� Guild Member*/ ? (fi.uid == _session.m_pi.uid ? 1/*Master*/ : 0) : fi.level));
 
-                            p.WriteByte(fi.state.ucState);
-                            p.WriteByte(fi.flag.ucFlag);
+                            p.AddByte(fi.state.ucState);
+                            p.AddByte(fi.flag.ucFlag);
                         }
 
                         packet_func.session_send(p, _session, 1);
@@ -472,9 +480,9 @@ namespace MessengerServer.MessengerServerTcp
                     // N�o tem nenhum amigo, manda a p�gina vazia
                     p.init_plain(0x30);
 
-                    p.WriteUInt16(0x102);   // Sub Packet Id
+                    p.AddUInt16(0x102);   // Sub packet Id
 
-                    p.WriteBuffer(mp.pag, Marshal.SizeOf(mp.pag));
+                    p.AddBuffer(mp.pag, Marshal.SizeOf(mp.pag));
 
                     packet_func.session_send(p, _session, 1);
                 }
@@ -487,30 +495,30 @@ namespace MessengerServer.MessengerServerTcp
 
                 p.init_plain(0x30);
 
-                p.WriteUInt16(0x102);   // Sub Packet Id
+                p.AddUInt16(0x102);   // Sub packet Id
 
-                p.WriteByte(1); // pagina
+                p.AddByte(1); // pagina
 
-                p.WriteUInt32(0);   // 0 Members
+                p.AddUInt32(0);   // 0 Members
 
                 packet_func.session_send(p, _session, 1);
             }
 
         }
 
-        public void requestUpdateChannelPlayerInfo(Player _session, Packet _packet)
+        public void requestUpdateChannelPlayerInfo(Player _session, packet _packet)
         {   //REQUEST_BEGIN("UpdateChannelPlayerInfo");
 
-            PangyaBinaryWriter p = new PangyaBinaryWriter();
+            packet p = new packet();
 
             try
             {
 
-                var cpi = _packet.ReadStruct<ChannelPlayerInfo>();
+                var cpi = _packet.Read<ChannelPlayerInfo>();
 
                 _session.m_pi.m_cpi = cpi;
 
-                // Verifica se session est� varrizada para executar esse a��o, 
+                // Verifica se Session est� varrizada para executar esse a��o, 
                 // se ele n�o fez o login com o Server ele n�o pode fazer nada at� que ele fa�a o login
                 //CHECK_SESSION_IS_AUTHORIZED("UpdateChannelPlayerInfo");
 
@@ -521,14 +529,14 @@ namespace MessengerServer.MessengerServerTcp
                 // UPDATE ON GAME
                 p.init_plain(0x30);
 
-                p.WriteUInt16(0x115);   // Sub Packet Id
+                p.AddUInt16(0x115);   // Sub packet Id
 
-                p.WriteUInt32(_session.m_pi.uid);
-                p.WriteUInt32(_session.m_pi.m_state);
+                p.AddUInt32(_session.m_pi.uid);
+                p.AddUInt32(_session.m_pi.m_state);
 
-                p.WriteByte(1); // OK
+                p.AddByte(1); // OK
 
-                p.WriteBuffer(_session.m_pi.m_cpi, Marshal.SizeOf(_session.m_pi.m_cpi));
+                p.AddBuffer(_session.m_pi.m_cpi, Marshal.SizeOf(_session.m_pi.m_cpi));
 
                 // Send To Player
                 packet_func.session_send(p, _session, 1);
@@ -544,28 +552,28 @@ namespace MessengerServer.MessengerServerTcp
 
                 p.init_plain(0x30);
 
-                p.WriteUInt16(0x115);   // Sub Packet Id
+                p.AddUInt16(0x115);   // Sub packet Id
 
-                p.WriteUInt32(_session.m_pi.uid);
-                p.WriteUInt32(_session.m_pi.m_state);
+                p.AddUInt32(_session.m_pi.uid);
+                p.AddUInt32(_session.m_pi.m_state);
 
-                p.WriteByte(0); // Error(ACHO)
+                p.AddByte(0); // Error(ACHO)
 
                 packet_func.session_send(p, _session, 1);
             }
         }
-        public void requestUpdatePlayerState(Player _session, Packet _packet)
+        public void requestUpdatePlayerState(Player _session, packet _packet)
         {
             //REQUEST_BEGIN("UpdatePlayerState");
 
-            PangyaBinaryWriter p = new PangyaBinaryWriter();
+            packet p = new packet();
 
             try
             {
 
                 var state = _packet.ReadUInt8();
 
-                // Verifica se session est� varrizada para executar esse a��o, 
+                // Verifica se Session est� varrizada para executar esse a��o, 
                 // se ele n�o fez o login com o Server ele n�o pode fazer nada at� que ele fa�a o login
                 //CHECK_SESSION_IS_AUTHORIZED("UpdatePlayerState");
 
@@ -576,21 +584,21 @@ namespace MessengerServer.MessengerServerTcp
                 // Update ON GAME - To player friend(s)
                 p.init_plain(0x30);
 
-                p.WriteUInt16(0x115);   // Sub Packet Id
+                p.AddUInt16(0x115);   // Sub packet Id
 
-                p.WriteUInt32(_session.m_pi.uid);
-                p.WriteUInt32(_session.m_pi.m_state);
+                p.AddUInt32(_session.m_pi.uid);
+                p.AddUInt32(_session.m_pi.m_state);
 
-                p.WriteByte(1); // OK
+                p.AddByte(1); // OK
 
-                p.WriteBuffer(_session.m_pi.m_cpi, Marshal.SizeOf(_session.m_pi.m_cpi));
+                p.AddBuffer(_session.m_pi.m_cpi, Marshal.SizeOf(_session.m_pi.m_cpi));
 
                 // Send To Player Friend(s)
                 packet_func.friend_broadcast(m_player_manager.findAllFriend(_session.m_pi.m_friend_manager.getAllFriendAndGuildMember(true/*Not Send To Block Friend*/)), p, _session, 1);
                 switch ((USER_STATUS)state)
                 {
                     case USER_STATUS.IS_PLAYING:
-                         // Log
+                        // Log
                         message_pool.push(new message("[MessengerServer::requestUpdatePlayerState][Log] player[UID=" + (_session.m_pi.uid) + "] PLAYING", type_msg.CL_FILE_LOG_AND_CONSOLE));
                         break;
                     case USER_STATUS.IS_RECONNECT:
@@ -618,19 +626,19 @@ namespace MessengerServer.MessengerServerTcp
                 message_pool.push(new message("[message_server::requestUpdatePlayerState][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
         }
-        public void requestUpdatePlayerLogout(Player _session, Packet _packet)
+        public void requestUpdatePlayerLogout(Player _session, packet _packet)
         {
             //REQUEST_BEGIN("UpdatePlayerLogout");
 
             try
             {
 
-                // Verifica se session est� varrizada para executar esse a��o, 
+                // Verifica se Session est� varrizada para executar esse a��o, 
                 // se ele n�o fez o login com o Server ele n�o pode fazer nada at� que ele fa�a o login
                 //CHECK_SESSION_IS_AUTHORIZED("UpdatePlayerLogout");
 
- 		message_pool.push(new message("[PlayerLogout][Log] Player[UID=" + (_session.m_pi.uid) + "] deslogou-se", type_msg.CL_FILE_LOG_AND_CONSOLE));
-                 // Send Update Player Logout to your friends
+                message_pool.push(new message("[PlayerLogout][Log] Player[UID=" + (_session.m_pi.uid) + "] deslogou-se", type_msg.CL_FILE_LOG_AND_CONSOLE));
+                // Send Update Player Logout to your friends
                 sendUpdatePlayerLogoutToFriends(_session);
 
             }
@@ -642,11 +650,11 @@ namespace MessengerServer.MessengerServerTcp
             }
         }
 
-        public void requestChatFriend(Player _session, Packet _packet)
+        public async void requestChatFriend(Player _session, packet _packet)
         {
             //REQUEST_BEGIN("ChatFriend");
 
-            PangyaBinaryWriter p = new PangyaBinaryWriter();
+            packet p = new packet();
 
             try
             {
@@ -654,7 +662,7 @@ namespace MessengerServer.MessengerServerTcp
                 uint uid = _packet.ReadUInt32();
                 var msg = _packet.ReadString();
 
-                // Verifica se session est� varrizada para executar esse a��o, 
+                // Verifica se Session est� varrizada para executar esse a��o, 
                 // se ele n�o fez o login com o Server ele n�o pode fazer nada at� que ele fa�a o login
                 //CHECK_SESSION_IS_AUTHORIZED("ChatFriend");
 
@@ -709,15 +717,17 @@ namespace MessengerServer.MessengerServerTcp
                             // Responde no chat do player
                             p.init_plain(0x40);
 
-                            p.WriteByte(0);
+                            p.AddByte(0);
 
-                            p.WriteString("\\1[MSN.PM]");   // Nickname
+                            p.AddString("\\1[MSN.PM]");   // Nickname
 
-                            p.WriteString(msg_gm);  // Message
+                            p.AddString(msg_gm);  // Message
 
                             packet_func.session_send(p, el, 1);
                         }
                     }
+                    await DiscordWebhook.ChatLog("[MessengerServer::ChatFriend][Log] player[UID=" + (_session.m_pi.nickname) + "] enviou Message[MSG="
+                        + msg + "] para seu Amigo[UID=" + (s.m_pi.nickname) + "]");
                 }
 
                 // Log
@@ -727,13 +737,13 @@ namespace MessengerServer.MessengerServerTcp
                 // Resposta para send chat to friend
                 p.init_plain(0x30);
 
-                p.WriteUInt16(0x113);   // Sub Packet Id
+                p.AddUInt16(0x113);   // Sub packet Id
 
-                p.WriteUInt32(_session.m_pi.uid);           // FROM
-                p.WriteString(_session.m_pi.nickname);  // FROM
-                p.WriteString(msg);
+                p.AddUInt32(_session.m_pi.uid);           // FROM
+                p.AddString(_session.m_pi.nickname);  // FROM
+                p.AddString(msg);
 
-                p.WriteByte(0); // Chat Friend
+                p.AddByte(0); // Chat Friend
 
                 packet_func.session_send(p, s, 1);      // TO
 
@@ -755,26 +765,26 @@ namespace MessengerServer.MessengerServerTcp
 
                 p.init_plain(0x30);
 
-                p.WriteUInt16(0x113);   // Sub Packet Id
+                p.AddUInt16(0x113);   // Sub packet Id
 
-                p.WriteInt32(-1);   // Error
+                p.AddInt32(-1);   // Error
 
                 packet_func.session_send(p, _session, 1);
             }
         }
 
-        public void requestChatGuild(Player _session, Packet _packet)
+        public void requestChatGuild(Player _session, packet _packet)
         {
             //REQUEST_BEGIN("ChatGuild");
 
-            PangyaBinaryWriter p = new PangyaBinaryWriter();
+            packet p = new packet();
 
             try
             {
 
                 var msg = _packet.ReadString();
 
-                // Verifica se session est� varrizada para executar esse a��o, 
+                // Verifica se Session est� varrizada para executar esse a��o, 
                 // se ele n�o fez o login com o Server ele n�o pode fazer nada at� que ele fa�a o login
                 //CHECK_SESSION_IS_AUTHORIZED("ChatGuild");
 
@@ -810,11 +820,11 @@ namespace MessengerServer.MessengerServerTcp
                             // Responde no chat do player
                             p.init_plain(0x40);
 
-                            p.WriteByte(0);
+                            p.AddByte(0);
 
-                            p.WriteString("\\1[CC]");   // Nickname
+                            p.AddString("\\1[CC]");   // Nickname
 
-                            p.WriteString(msg_gm);  // Message
+                            p.AddString(msg_gm);  // Message
 
                             packet_func.session_send(p, el, 1);
                         }
@@ -829,13 +839,13 @@ namespace MessengerServer.MessengerServerTcp
                 // Resposta para send chat to Guild
                 p.init_plain(0x30);
 
-                p.WriteUInt16(0x113);   // Sub Packet Id
+                p.AddUInt16(0x113);   // Sub packet Id
 
-                p.WriteUInt32(_session.m_pi.uid);           // FROM
-                p.WriteString(_session.m_pi.nickname);  // FROM
-                p.WriteString(msg);
+                p.AddUInt32(_session.m_pi.uid);           // FROM
+                p.AddString(_session.m_pi.nickname);  // FROM
+                p.AddString(msg);
 
-                p.WriteByte(1); // Chat Guild
+                p.AddByte(1); // Chat Guild
 
                 packet_func.session_send(p, _session, 1);   // SEND TO PLAYER TOO
 
@@ -861,26 +871,26 @@ namespace MessengerServer.MessengerServerTcp
 
                 p.init_plain(0x30);
 
-                p.WriteUInt16(0x113);   // Sub Packet Id
+                p.AddUInt16(0x113);   // Sub packet Id
 
-                p.WriteInt32(-1);  // Error
+                p.AddInt32(-1);  // Error
 
                 packet_func.session_send(p, _session, 1);
             }
         }
 
-        public void requestCheckNickname(Player _session, Packet _packet)
+        public void requestCheckNickname(Player _session, packet _packet)
         {
             //REQUEST_BEGIN("CheckNickname");
 
-            PangyaBinaryWriter p = new PangyaBinaryWriter();
+            packet p = new packet();
             var nickname = "";
             try
             {
 
                 nickname = _packet.ReadString();
 
-                // Verifica se session est� varrizada para executar esse a��o, 
+                // Verifica se Session est� varrizada para executar esse a��o, 
                 // se ele n�o fez o login com o Server ele n�o pode fazer nada at� que ele fa�a o login
                 //CHECK_SESSION_IS_AUTHORIZED("CheckNickname");
 
@@ -906,12 +916,12 @@ namespace MessengerServer.MessengerServerTcp
                 // Resposta para Check Nickname
                 p.init_plain(0x30);
 
-                p.WriteUInt16(0x117);   // Sub Packet Id
+                p.AddUInt16(0x117);   // Sub packet Id
 
-                p.WriteUInt32(0);   // OK
+                p.AddUInt32(0);   // OK
 
-                p.WriteString(nickname);
-                p.WriteUInt32(cmd_vn.getUID());
+                p.AddString(nickname);
+                p.AddUInt32(cmd_vn.getUID());
 
                 packet_func.session_send(p, _session, 1);
 
@@ -923,19 +933,19 @@ namespace MessengerServer.MessengerServerTcp
 
                 p.init_plain(0x30);
 
-                p.WriteUInt16(0x117);   // Sub Packet Id
+                p.AddUInt16(0x117);   // Sub packet Id
 
-                p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE(e.getCodeError()) == (uint)STDA_ERROR_TYPE.MESSAGE_SERVER) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE(e.getCodeError()) : 0x5200500);
+                p.AddUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE(e.getCodeError()) == (uint)STDA_ERROR_TYPE.MESSAGE_SERVER) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE(e.getCodeError()) : 0x5200500);
 
-                p.WriteString(nickname);
+                p.AddString(nickname);
 
                 packet_func.session_send(p, _session, 1);
             }
         }
-        public void requestAssignApelido(Player _session, Packet _packet)
+        public void requestAssignApelido(Player _session, packet _packet)
         {//REQUEST_BEGIN("AssingApelido");
 
-            PangyaBinaryWriter p = new PangyaBinaryWriter();
+            packet p = new packet();
 
             try
             {
@@ -943,7 +953,7 @@ namespace MessengerServer.MessengerServerTcp
                 uint uid = _packet.ReadUInt32();
                 var apelido = _packet.ReadString();
 
-                // Verifica se session est� varrizada para executar esse a��o, 
+                // Verifica se Session est� varrizada para executar esse a��o, 
                 // se ele n�o fez o login com o Server ele n�o pode fazer nada at� que ele fa�a o login
                 //CHECK_SESSION_IS_AUTHORIZED("AssingApelido");
 
@@ -979,12 +989,12 @@ namespace MessengerServer.MessengerServerTcp
                 // Resposta para assing apelido
                 p.init_plain(0x30);
 
-                p.WriteUInt16(0x119);   // Sub Packet Id
+                p.AddUInt16(0x119);   // Sub packet Id
 
-                p.WriteUInt32(0);   // OK
+                p.AddUInt32(0);   // OK
 
-                p.WriteUInt32(pFi.uid);
-                p.WriteString(pFi.apelido);
+                p.AddUInt32(pFi.uid);
+                p.AddString(pFi.apelido);
 
                 packet_func.session_send(p, _session, 1);
 
@@ -996,25 +1006,25 @@ namespace MessengerServer.MessengerServerTcp
 
                 p.init_plain(0x30);
 
-                p.WriteUInt16(0x119);   // Sub Packet Id
+                p.AddUInt16(0x119);   // Sub packet Id
 
-                p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE(e.getCodeError()) == (uint)STDA_ERROR_TYPE.MESSAGE_SERVER) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE(e.getCodeError()) : 0x5200900);
+                p.AddUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE(e.getCodeError()) == (uint)STDA_ERROR_TYPE.MESSAGE_SERVER) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE(e.getCodeError()) : 0x5200900);
 
                 packet_func.session_send(p, _session, 1);
             }
         }
 
-        public void requestBlockFriend(Player _session, Packet _packet)
+        public void requestBlockFriend(Player _session, packet _packet)
         {//REQUEST_BEGIN("BlockFriend");
 
-            PangyaBinaryWriter p = new PangyaBinaryWriter();
+            packet p = new packet();
 
             try
             {
 
                 uint uid = _packet.ReadUInt32();
 
-                // Verifica se session est� varrizada para executar esse a��o, 
+                // Verifica se Session est� varrizada para executar esse a��o, 
                 // se ele n�o fez o login com o Server ele n�o pode fazer nada at� que ele fa�a o login
                 //CHECK_SESSION_IS_AUTHORIZED("BlockFriend");
 
@@ -1056,20 +1066,20 @@ namespace MessengerServer.MessengerServerTcp
                     // Resposta para o block friend REQUEST
                     p.init_plain(0x30);
 
-                    p.WriteUInt16(0x10C);   // Sub Packet Id
+                    p.AddUInt16(0x10C);   // Sub packet Id
 
-                    p.WriteUInt32(0);   // OK
+                    p.AddUInt32(0);   // OK
 
-                    p.WriteUInt32(s.m_pi.uid);
+                    p.AddUInt32(s.m_pi.uid);
 
                     packet_func.session_send(p, _session, 1);
 
                     // Resposta para o block friend REQUESTED, Envia que o player deslogou
                     p.init_plain(0x30);
 
-                    p.WriteUInt16(0x10F);   // Sub Packet Id
+                    p.AddUInt16(0x10F);   // Sub packet Id
 
-                    p.WriteUInt32(_session.m_pi.uid);
+                    p.AddUInt32(_session.m_pi.uid);
 
                     packet_func.session_send(p, s, 1);
 
@@ -1115,11 +1125,11 @@ namespace MessengerServer.MessengerServerTcp
                     // Resposta para o block friend REQUEST
                     p.init_plain(0x30);
 
-                    p.WriteUInt16(0x10C);   // Sub Packet Id
+                    p.AddUInt16(0x10C);   // Sub packet Id
 
-                    p.WriteUInt32(0);   // OK
+                    p.AddUInt32(0);   // OK
 
-                    p.WriteUInt32(pi.uid);
+                    p.AddUInt32(pi.uid);
 
                     packet_func.session_send(p, _session, 1);
                 }
@@ -1132,24 +1142,24 @@ namespace MessengerServer.MessengerServerTcp
 
                 p.init_plain(0x30);
 
-                p.WriteUInt16(0x10C);   // Sub Packet Id
+                p.AddUInt16(0x10C);   // Sub packet Id
 
-                p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE(e.getCodeError()) == (uint)STDA_ERROR_TYPE.MESSAGE_SERVER) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE(e.getCodeError()) : 0x5300100);
+                p.AddUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE(e.getCodeError()) == (uint)STDA_ERROR_TYPE.MESSAGE_SERVER) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE(e.getCodeError()) : 0x5300100);
 
                 packet_func.session_send(p, _session, 1);
             }
         }
-        public void requestUnblockFriend(Player _session, Packet _packet)
+        public void requestUnblockFriend(Player _session, packet _packet)
         {   //REQUEST_BEGIN("UnblockFriend");
 
-            PangyaBinaryWriter p = new PangyaBinaryWriter();
+            packet p = new packet();
 
             try
             {
 
                 uint uid = _packet.ReadUInt32();
 
-                // Verifica se session est� varrizada para executar esse a��o, 
+                // Verifica se Session est� varrizada para executar esse a��o, 
                 // se ele n�o fez o login com o Server ele n�o pode fazer nada at� que ele fa�a o login
                 //CHECK_SESSION_IS_AUTHORIZED("UnblockFriend");
 
@@ -1191,25 +1201,25 @@ namespace MessengerServer.MessengerServerTcp
                     // Resposta para o unblock friend REQUEST
                     p.init_plain(0x30);
 
-                    p.WriteUInt16(0x10D);   // Sub Packet Id
+                    p.AddUInt16(0x10D);   // Sub packet Id
 
-                    p.WriteUInt32(0);   // OK
+                    p.AddUInt32(0);   // OK
 
-                    p.WriteUInt32(s.m_pi.uid);
+                    p.AddUInt32(s.m_pi.uid);
 
                     packet_func.session_send(p, _session, 1);
 
                     // Resposta para o unblock friend REQUESTED - Passa Pacote que ele esta online
                     p.init_plain(0x30);
 
-                    p.WriteUInt16(0x115);   // Sub Packet Id
+                    p.AddUInt16(0x115);   // Sub packet Id
 
-                    p.WriteUInt32(_session.m_pi.uid);
-                    p.WriteUInt32(_session.m_pi.m_state);
+                    p.AddUInt32(_session.m_pi.uid);
+                    p.AddUInt32(_session.m_pi.m_state);
 
-                    p.WriteByte(1); // OK
+                    p.AddByte(1); // OK
 
-                    p.WriteBuffer(_session.m_pi.m_cpi, Marshal.SizeOf(_session.m_pi.m_cpi));
+                    p.AddBuffer(_session.m_pi.m_cpi, Marshal.SizeOf(_session.m_pi.m_cpi));
 
                     packet_func.session_send(p, s, 1);
 
@@ -1255,11 +1265,11 @@ namespace MessengerServer.MessengerServerTcp
                     // Resposta para o unblock friend REQUEST
                     p.init_plain(0x30);
 
-                    p.WriteUInt16(0x10D);   // Sub Packet Id
+                    p.AddUInt16(0x10D);   // Sub packet Id
 
-                    p.WriteUInt32(0);   // OK
+                    p.AddUInt32(0);   // OK
 
-                    p.WriteUInt32(pi.uid);
+                    p.AddUInt32(pi.uid);
 
                     packet_func.session_send(p, _session, 1);
                 }
@@ -1271,18 +1281,18 @@ namespace MessengerServer.MessengerServerTcp
 
                 p.init_plain(0x30);
 
-                p.WriteUInt16(0x10D);   // Sub Packet Id
+                p.AddUInt16(0x10D);   // Sub packet Id
 
-                p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE(e.getCodeError()) == (uint)STDA_ERROR_TYPE.MESSAGE_SERVER) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE(e.getCodeError()) : 0x5300200);
+                p.AddUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE(e.getCodeError()) == (uint)STDA_ERROR_TYPE.MESSAGE_SERVER) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE(e.getCodeError()) : 0x5300200);
 
                 packet_func.session_send(p, _session, 1);
             }
         }
-        public void requestAddFriend(Player _session, Packet _packet)
+        public void requestAddFriend(Player _session, packet _packet)
         {
             //REQUEST_BEGIN("AddFriend");
 
-            PangyaBinaryWriter p = new PangyaBinaryWriter();
+            packet p = new packet();
 
             try
             {
@@ -1290,7 +1300,7 @@ namespace MessengerServer.MessengerServerTcp
                 uint uid = _packet.ReadUInt32();
                 var nickname = _packet.ReadString();
 
-                // Verifica se session est� varrizada para executar esse a��o, 
+                // Verifica se Session est� varrizada para executar esse a��o, 
                 // se ele n�o fez o login com o Server ele n�o pode fazer nada at� que ele fa�a o login
                 //CHECK_SESSION_IS_AUTHORIZED("AddFriend");
 
@@ -1361,39 +1371,39 @@ namespace MessengerServer.MessengerServerTcp
                     // Resposta para o add Friend
                     p.init_plain(0x30);
 
-                    p.WriteUInt16(0x104);   // Sub Packet Id
+                    p.AddUInt16(0x104);   // Sub packet Id
 
-                    p.WriteUInt32(0);   // OK
+                    p.AddUInt32(0);   // OK
 
-                    p.WriteStruct(fi, new FriendInfo());
+                    p.AddBuffer(fi, Marshal.SizeOf(new FriendInfo()));
 
-                    p.WriteBuffer(s.m_pi.m_cpi, Marshal.SizeOf(new ChannelPlayerInfo()));
+                    p.AddBuffer(s.m_pi.m_cpi, Marshal.SizeOf(new ChannelPlayerInfo()));
 
                     // State Icon Player
-                    p.WriteByte(s.m_pi.m_state);
+                    p.AddByte(s.m_pi.m_state);
 
-                    p.WriteByte(fi.cUnknown_flag);
-                    p.WriteByte(fi.level);
-                    p.WriteByte(fi.state.ucState);
-                    p.WriteByte(fi.flag.ucFlag);
+                    p.AddByte(fi.cUnknown_flag);
+                    p.AddByte(fi.level);
+                    p.AddByte(fi.state.ucState);
+                    p.AddByte(fi.flag.ucFlag);
 
                     packet_func.session_send(p, _session, 1);
 
                     // Resposta para o player que foi adicionado
                     p.init_plain(0x30);
 
-                    p.WriteUInt16(0x106);   // Sub Packet Id
+                    p.AddUInt16(0x106);   // Sub packet Id
 
-                    p.WriteStruct(fi2, new FriendInfo());
-                    p.WriteBuffer(_session.m_pi.m_cpi, Marshal.SizeOf(new ChannelPlayerInfo()));
+                    p.AddBuffer(fi2, Marshal.SizeOf(new FriendInfo()));
+                    p.AddBuffer(_session.m_pi.m_cpi, Marshal.SizeOf(new ChannelPlayerInfo()));
 
                     // State Icon Player
-                    p.WriteByte(_session.m_pi.m_state);
+                    p.AddByte(_session.m_pi.m_state);
 
-                    p.WriteByte(fi2.cUnknown_flag);
-                    p.WriteByte(fi2.level);
-                    p.WriteByte(fi2.state.ucState);
-                    p.WriteByte(fi2.flag.ucFlag);
+                    p.AddByte(fi2.cUnknown_flag);
+                    p.AddByte(fi2.level);
+                    p.AddByte(fi2.state.ucState);
+                    p.AddByte(fi2.flag.ucFlag);
 
                     packet_func.session_send(p, s, 1);
 
@@ -1463,26 +1473,26 @@ namespace MessengerServer.MessengerServerTcp
                     // Resposta para o add Friend
                     p.init_plain(0x30);
 
-                    p.WriteUInt16(0x104);   // Sub Packet Id
+                    p.AddUInt16(0x104);   // Sub packet Id
 
-                    p.WriteUInt32(0);   // OK
+                    p.AddUInt32(0);   // OK
 
-                    p.WriteStruct(fi, new FriendInfo());
-                    p.WriteInt16(-1);       // Sala N�mero
-                    p.WriteInt32(-1);       // Sala Tipo
-                    p.WriteInt32(-1);       // Server GUID
-                    p.WriteByte(-1);        // Canal ID
-                    p.WriteZero(64);    // Canal Nome
+                    p.AddBuffer(fi, Marshal.SizeOf(new FriendInfo()));
+                    p.AddInt16(-1);       // Sala N�mero
+                    p.AddInt32(-1);       // Sala Tipo
+                    p.AddInt32(-1);       // Server GUID
+                    p.AddByte(-1);        // Canal ID
+                    p.AddZero(64);    // Canal Nome
 
                     // State Icon Player
-                    p.WriteByte(5); // OFFLINE
+                    p.AddByte(5); // OFFLINE
 
                     fi.state.online = 0;    // Offline
 
-                    p.WriteByte(fi.cUnknown_flag);
-                    p.WriteByte(fi.level);
-                    p.WriteByte(fi.state.ucState);
-                    p.WriteByte(fi.flag.ucFlag);
+                    p.AddByte(fi.cUnknown_flag);
+                    p.AddByte(fi.level);
+                    p.AddByte(fi.state.ucState);
+                    p.AddByte(fi.flag.ucFlag);
 
                     packet_func.session_send(p, _session, 1);
                 }
@@ -1495,24 +1505,24 @@ namespace MessengerServer.MessengerServerTcp
 
                 p.init_plain(0x30);
 
-                p.WriteUInt16(0x104);   // Sub Packet Id
+                p.AddUInt16(0x104);   // Sub packet Id
 
-                p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE(e.getCodeError()) == (uint)STDA_ERROR_TYPE.MESSAGE_SERVER) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE(e.getCodeError()) : 0x5200600);
+                p.AddUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE(e.getCodeError()) == (uint)STDA_ERROR_TYPE.MESSAGE_SERVER) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE(e.getCodeError()) : 0x5200600);
 
                 packet_func.session_send(p, _session, 1);
             }
         }
-        public void requestConfirmFriend(Player _session, Packet _packet)
+        public void requestConfirmFriend(Player _session, packet _packet)
         {//REQUEST_BEGIN("ConfirmFriend");
 
-            PangyaBinaryWriter p = new PangyaBinaryWriter();
+            packet p = new packet();
 
             try
             {
 
                 uint uid = _packet.ReadUInt32();
 
-                // Verifica se session est� varrizada para executar esse a��o, 
+                // Verifica se Session est� varrizada para executar esse a��o, 
                 // se ele n�o fez o login com o Server ele n�o pode fazer nada at� que ele fa�a o login
                 //CHECK_SESSION_IS_AUTHORIZED("ConfirmFriend");
 
@@ -1563,22 +1573,22 @@ namespace MessengerServer.MessengerServerTcp
                     // Resposta para o confirm friend REQUEST
                     p.init_plain(0x30);
 
-                    p.WriteUInt16(0x109);   // Sub Packet Id
+                    p.AddUInt16(0x109);   // Sub packet Id
 
-                    p.WriteUInt32(0);   // OK
+                    p.AddUInt32(0);   // OK
 
-                    p.WriteUInt32(s.m_pi.uid);
+                    p.AddUInt32(s.m_pi.uid);
 
                     packet_func.session_send(p, _session, 1);
 
                     // Resposta para o confirm friend REQUESTED
                     p.init_plain(0x30);
 
-                    p.WriteUInt16(0x10A);   // Sub Packet Id
+                    p.AddUInt16(0x10A);   // Sub packet Id
 
-                    p.WriteUInt32(0);   // OK
+                    p.AddUInt32(0);   // OK
 
-                    p.WriteUInt32(_session.m_pi.uid);
+                    p.AddUInt32(_session.m_pi.uid);
 
                     packet_func.session_send(p, s, 1);
 
@@ -1632,11 +1642,11 @@ namespace MessengerServer.MessengerServerTcp
                     // Resposta para o confirm friend REQUEST
                     p.init_plain(0x30);
 
-                    p.WriteUInt16(0x109);   // Sub Packet Id
+                    p.AddUInt16(0x109);   // Sub packet Id
 
-                    p.WriteUInt32(0);   // OK
+                    p.AddUInt32(0);   // OK
 
-                    p.WriteUInt32(pi.uid);
+                    p.AddUInt32(pi.uid);
 
                     packet_func.session_send(p, _session, 1);
                 }
@@ -1649,19 +1659,19 @@ namespace MessengerServer.MessengerServerTcp
 
                 p.init_plain(0x30);
 
-                p.WriteUInt16(0x109);   // Sub Packet Id
+                p.AddUInt16(0x109);   // Sub packet Id
 
-                p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE(e.getCodeError()) == (uint)STDA_ERROR_TYPE.MESSAGE_SERVER) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE(e.getCodeError()) : 0x5200800);
+                p.AddUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE(e.getCodeError()) == (uint)STDA_ERROR_TYPE.MESSAGE_SERVER) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE(e.getCodeError()) : 0x5200800);
 
                 packet_func.session_send(p, _session, 1);
             }
         }
 
 
-        public void requestDeleteFriend(Player _session, Packet _packet)
+        public void requestDeleteFriend(Player _session, packet _packet)
         { //REQUEST_BEGIN("DeleteFriend");
 
-            PangyaBinaryWriter p = new PangyaBinaryWriter();
+            packet p = new packet();
 
             try
             {
@@ -1669,7 +1679,7 @@ namespace MessengerServer.MessengerServerTcp
                 uint uid = _packet.ReadUInt32();
                 var nickname = _packet.ReadString();
 
-                // Verifica se session est� varrizada para executar esse a��o, 
+                // Verifica se Session est� varrizada para executar esse a��o, 
                 // se ele n�o fez o login com o Server ele n�o pode fazer nada at� que ele fa�a o login
                 //CHECK_SESSION_IS_AUTHORIZED("DeleteFriend");
 
@@ -1713,22 +1723,22 @@ namespace MessengerServer.MessengerServerTcp
                     // Respsta para o delete friend TO REQUEST
                     p.init_plain(0x30);
 
-                    p.WriteUInt16(0x10B);   // Sub Packet Id
+                    p.AddUInt16(0x10B);   // Sub packet Id
 
-                    p.WriteUInt32(0);   // OK
+                    p.AddUInt32(0);   // OK
 
-                    p.WriteUInt32(s.m_pi.uid);
+                    p.AddUInt32(s.m_pi.uid);
 
                     packet_func.session_send(p, _session, 1);
 
                     // Resposta para o delete friend TO REQUESTED
                     p.init_plain(0x30);
 
-                    p.WriteUInt16(0x10B);   // Sub Packet Id
+                    p.AddUInt16(0x10B);   // Sub packet Id
 
-                    p.WriteUInt32(0);   // OK
+                    p.AddUInt32(0);   // OK
 
-                    p.WriteUInt32(_session.m_pi.uid);
+                    p.AddUInt32(_session.m_pi.uid);
 
                     packet_func.session_send(p, s, 1);
 
@@ -1778,11 +1788,11 @@ namespace MessengerServer.MessengerServerTcp
                     // Respsta para o delete friend TO REQUEST
                     p.init_plain(0x30);
 
-                    p.WriteUInt16(0x10B);   // Sub Packet Id
+                    p.AddUInt16(0x10B);   // Sub packet Id
 
-                    p.WriteUInt32(0);   // OK
+                    p.AddUInt32(0);   // OK
 
-                    p.WriteUInt32(pi.uid);
+                    p.AddUInt32(pi.uid);
 
                     packet_func.session_send(p, _session, 1);
                 }
@@ -1795,22 +1805,22 @@ namespace MessengerServer.MessengerServerTcp
 
                 p.init_plain(0x30);
 
-                p.WriteUInt16(0x10B);   // Sub Packet Id
+                p.AddUInt16(0x10B);   // Sub packet Id
 
-                p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE(e.getCodeError()) == (uint)STDA_ERROR_TYPE.MESSAGE_SERVER) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE(e.getCodeError()) : 0x5200700);
+                p.AddUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE(e.getCodeError()) == (uint)STDA_ERROR_TYPE.MESSAGE_SERVER) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE(e.getCodeError()) : 0x5200700);
 
                 packet_func.session_send(p, _session, 1);
             }
         }
 
-        public void requestNotifyPlayerWasInvitedToRoom(Player _session, Packet _packet)
+        public void requestNotifyPlayerWasInvitedToRoom(Player _session, packet _packet)
         {
             //REQUEST_BEGIN("NotifyPlayerWasInvitedToRoom");
 
             try
             {
 
-                // Verifica se session est� varrizada para executar esse a��o, 
+                // Verifica se Session est� varrizada para executar esse a��o, 
                 // se ele n�o fez o login com o Server ele n�o pode fazer nada at� que ele fa�a o login
                 //CHECK_SESSION_IS_AUTHORIZED("NotifyPlayerWasInvitedToRoom");
 
@@ -1832,12 +1842,12 @@ namespace MessengerServer.MessengerServerTcp
                 message_pool.push(new message("[message_server::requestNotifyPlayerWasInvitedToRoom][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
         }
-        public void requestInvitePlayerToGuildBattleRoom(Player _session, Packet _packet)
+        public void requestInvitePlayerToGuildBattleRoom(Player _session, packet _packet)
         {
             try
             {
 
-                // Verifica se session est� varrizada para executar esse a��o, 
+                // Verifica se Session est� varrizada para executar esse a��o, 
                 // se ele n�o fez o login com o Server ele n�o pode fazer nada at� que ele fa�a o login
                 //CHECK_SESSION_IS_AUTHORIZED("InvitPlayerToGuildBattleRoom");
 
@@ -1868,9 +1878,9 @@ namespace MessengerServer.MessengerServerTcp
             }
         }
 
-        public void requestAcceptGuildMember(Packet packet) { }
-        public void requestMemberExitedFromGuild(Packet packet) { }
-        public void requestKickGuildMember(Packet packet) { }
+        public void requestAcceptGuildMember(packet packet) { }
+        public void requestMemberExitedFromGuild(packet packet) { }
+        public void requestKickGuildMember(packet packet) { }
 
         //// Auth Server Commands
         //public override void AuthCmdShutdown(int timeSec) { }
@@ -1888,10 +1898,10 @@ namespace MessengerServer.MessengerServerTcp
 
         //protected override void ShutdownTime(int timeSec) { }
 
-        protected bool sendUpdatePlayerLogoutToFriends(SessionBase _session)
+        protected bool sendUpdatePlayerLogoutToFriends(PangyaAPI.Network.PangyaSession.Session _session)
         {
             bool ret = true;
-            var p = new PangyaBinaryWriter();
+            var p = new packet();
             try
             {
 
@@ -1905,9 +1915,9 @@ namespace MessengerServer.MessengerServerTcp
                 // Resposta para os amigos do player, que ele deslogou
                 p.init_plain(0x30);
 
-                p.WriteUInt16(0x10F); // Sub Packet Id
+                p.AddUInt16(0x10F); // Sub packet Id
 
-                p.WriteUInt32(((Player)_session).m_pi.uid);
+                p.AddUInt32(((Player)_session).m_pi.uid);
 
                 packet_func.friend_broadcast(m_player_manager.findAllFriend(((Player)_session).m_pi.m_friend_manager.getAllFriendAndGuildMember(true/*Not Send To Block Friend*/)), p, _session, 1);
 
@@ -1923,9 +1933,9 @@ namespace MessengerServer.MessengerServerTcp
 
             return ret;
         }
-        public override void ConfigInit()
+        public override void config_init()
         {
-            base.ConfigInit();
+            base.config_init();
 
             // Tipo Server
             m_si.tipo = 3;
@@ -2037,7 +2047,7 @@ namespace MessengerServer.MessengerServerTcp
                     DisconnectSession(s);
 
                     // UPDATE ON Auth Server
-                    m_unit_connect.sendConfirmDisconnectPlayer(_req_server_uid, _player_uid);
+                    //m_unit_connect.sendConfirmDisconnectPlayer(_req_server_uid, _player_uid);
 
                 }
                 else
@@ -2087,25 +2097,31 @@ namespace MessengerServer.MessengerServerTcp
 
         }
 
-        public override void authCmdSendCommandToOtherServer(Packet _packet)
+        public override void authCmdSendCommandToOtherServer(packet _packet)
         {
 
         }
 
-        public override void authCmdSendReplyToOtherServer(Packet _packet)
+        public override void authCmdSendReplyToOtherServer(packet _packet)
         {
 
         }
 
-        public override void sendCommandToOtherServerWithAuthServer(Packet _packet, uint _send_server_uid_or_type)
+        public override void sendCommandToOtherServerWithAuthServer(packet _packet, uint _send_server_uid_or_type)
         {
 
         }
 
-        public override void sendReplyToOtherServerWithAuthServer(Packet _packet, uint _send_server_uid_or_type)
+        public override void sendReplyToOtherServerWithAuthServer(packet _packet, uint _send_server_uid_or_type)
         {
 
         }
+
+        public override bool CheckCommand(string commandLine)
+        {
+            throw new NotImplementedException();
+        }
+
     }
 }
 

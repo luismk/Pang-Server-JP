@@ -151,7 +151,7 @@ namespace PangyaAPI.IFF.JP.Models.General
         /// <summary>
         /// is hot ou sale
         /// </summary>
-        public bool IsSale
+        public bool is_saleable
         {
             get
             {
@@ -354,7 +354,7 @@ namespace PangyaAPI.IFF.JP.Models.General
                 {
                     return false;
                 }
-                return (IsNew || IsHot || IsSpecial || IsNormal || IsSale || IsDisplay);
+                return (IsNew || IsHot || IsSpecial || IsNormal || is_saleable || IsDisplay);
             }
         }
         // Método auxiliar para definir o valor de um bit específico

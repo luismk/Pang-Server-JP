@@ -25,11 +25,11 @@ namespace PangyaAPI.Network.PangyaUnit
         void authCmdConfirmSendInfoPlayerOnline(uint _req_server_uid, AuthServerPlayerInfo _aspi);
 
         // requests Comandos e respostas dinâmicas
-        void authCmdSendCommandToOtherServer(Packet _packet);
-        void authCmdSendReplyToOtherServer(Packet _packet);
+        void authCmdSendCommandToOtherServer(packet _packet);
+        void authCmdSendReplyToOtherServer(packet _packet);
 
         // Server envia comandos e resposta para outros server com o Auth Server
-        void sendCommandToOtherServerWithAuthServer(Packet _packet, uint _send_server_uid_or_type);
-        void sendReplyToOtherServerWithAuthServer(Packet _packet, uint _send_server_uid_or_type);
+        void sendCommandToOtherServerWithAuthServer(packet _packet, uint _send_server_uid_or_type);
+        void sendReplyToOtherServerWithAuthServer(packet _packet, uint _send_server_uid_or_type);
     }
 }

@@ -5,8 +5,8 @@ using System;
 using System.Collections.Generic;
 using MessengerServer.Session;
 using PangyaAPI.Network.PangyaSession;
-using PangyaAPI.Utilities.BinaryModels;
 
+using SessionBase = PangyaAPI.Network.PangyaSession.Session;
 namespace MessengerServer.PacketFunc
 {
     public class packet_func : packet_func_base
@@ -24,7 +24,7 @@ namespace MessengerServer.PacketFunc
 
                 message_pool.push(new message("[packet_func::packet012][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-                if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != (uint)STDA_ERROR_TYPE.MESSAGE_SERVER)
+                if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != STDA_ERROR_TYPE.MESSAGE_SERVER)
                 {
                     throw;
                 }
@@ -38,9 +38,7 @@ namespace MessengerServer.PacketFunc
             try
             {
 
-                 message_pool.push(new message("[packet_func::packet013][Log] Player[UID=" + Convert.ToString(((Player)pd._session).m_pi.uid) + "] mandou o Pacote013, nao sei o que esse pacote pede ou faz. Hex: \n\r" + pd._packet.Log(), type_msg.CL_FILE_LOG_AND_CONSOLE));
-
-                // Verifica se session est� autorizada para executar esse a��o,
+                // Verifica se Session est� autorizada para executar esse a��o,
                 // se ele n�o fez o login com o Server ele n�o pode fazer nada at� que ele fa�a o login
                 if (!((Player)pd._session).m_is_authorized)
                 {
@@ -54,7 +52,7 @@ namespace MessengerServer.PacketFunc
 
                  message_pool.push(new message("[packet_func::packet013][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-                if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != (uint)STDA_ERROR_TYPE.MESSAGE_SERVER)
+                if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != STDA_ERROR_TYPE.MESSAGE_SERVER)
                 {
                     throw;
                 }
@@ -76,7 +74,7 @@ namespace MessengerServer.PacketFunc
 
                  message_pool.push(new message("[packet_func::packet014][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-                if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != (uint)STDA_ERROR_TYPE.MESSAGE_SERVER)
+                if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != STDA_ERROR_TYPE.MESSAGE_SERVER)
                 {
                     throw;
                 }
@@ -98,7 +96,7 @@ namespace MessengerServer.PacketFunc
 
                  message_pool.push(new message("[packet_func::packet016][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-                if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != (uint)STDA_ERROR_TYPE.MESSAGE_SERVER)
+                if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != STDA_ERROR_TYPE.MESSAGE_SERVER)
                 {
                     throw;
                 }
@@ -120,7 +118,7 @@ namespace MessengerServer.PacketFunc
 
                  message_pool.push(new message("[packet_func::packet017][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-                if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != (uint)STDA_ERROR_TYPE.MESSAGE_SERVER)
+                if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != STDA_ERROR_TYPE.MESSAGE_SERVER)
                 {
                     throw;
                 }
@@ -142,7 +140,7 @@ namespace MessengerServer.PacketFunc
 
                  message_pool.push(new message("[packet_func::packet018][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-                if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != (uint)STDA_ERROR_TYPE.MESSAGE_SERVER)
+                if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != STDA_ERROR_TYPE.MESSAGE_SERVER)
                 {
                     throw;
                 }
@@ -164,7 +162,7 @@ namespace MessengerServer.PacketFunc
 
                  message_pool.push(new message("[packet_func::packet019][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-                if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != (uint)STDA_ERROR_TYPE.MESSAGE_SERVER)
+                if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != STDA_ERROR_TYPE.MESSAGE_SERVER)
                 {
                     throw;
                 }
@@ -186,7 +184,7 @@ namespace MessengerServer.PacketFunc
 
                  message_pool.push(new message("[packet_func::packet01A][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-                if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != (uint)STDA_ERROR_TYPE.MESSAGE_SERVER)
+                if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != STDA_ERROR_TYPE.MESSAGE_SERVER)
                 {
                     throw;
                 }
@@ -208,7 +206,7 @@ namespace MessengerServer.PacketFunc
 
                  message_pool.push(new message("[packet_func::packet01B][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-                if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != (uint)STDA_ERROR_TYPE.MESSAGE_SERVER)
+                if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != STDA_ERROR_TYPE.MESSAGE_SERVER)
                 {
                     throw;
                 }
@@ -230,7 +228,7 @@ namespace MessengerServer.PacketFunc
 
                  message_pool.push(new message("[packet_func::packet01C][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-                if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != (uint)STDA_ERROR_TYPE.MESSAGE_SERVER)
+                if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != STDA_ERROR_TYPE.MESSAGE_SERVER)
                 {
                     throw;
                 }
@@ -252,7 +250,7 @@ namespace MessengerServer.PacketFunc
 
                  message_pool.push(new message("[packet_func::packet01D][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-                if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != (uint)STDA_ERROR_TYPE.MESSAGE_SERVER)
+                if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != STDA_ERROR_TYPE.MESSAGE_SERVER)
                 {
                     throw;
                 }
@@ -274,7 +272,7 @@ namespace MessengerServer.PacketFunc
 
                  message_pool.push(new message("[packet_func::packet01E][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-                if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != (uint)STDA_ERROR_TYPE.MESSAGE_SERVER)
+                if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != STDA_ERROR_TYPE.MESSAGE_SERVER)
                 {
                     throw;
                 }
@@ -296,7 +294,7 @@ namespace MessengerServer.PacketFunc
 
                  message_pool.push(new message("[packet_func::packet01F][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-                if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != (uint)STDA_ERROR_TYPE.MESSAGE_SERVER)
+                if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != STDA_ERROR_TYPE.MESSAGE_SERVER)
                 {
                     throw;
                 }
@@ -318,7 +316,7 @@ namespace MessengerServer.PacketFunc
 
                  message_pool.push(new message("[packet_func::packet023][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-                if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != (uint)STDA_ERROR_TYPE.MESSAGE_SERVER)
+                if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != STDA_ERROR_TYPE.MESSAGE_SERVER)
                 {
                     throw;
                 }
@@ -340,7 +338,7 @@ namespace MessengerServer.PacketFunc
 
                  message_pool.push(new message("[packet_func::packet024][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-                if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != (uint)STDA_ERROR_TYPE.MESSAGE_SERVER)
+                if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != STDA_ERROR_TYPE.MESSAGE_SERVER)
                 {
                     throw;
                 }
@@ -365,7 +363,7 @@ namespace MessengerServer.PacketFunc
 
                  message_pool.push(new message("[packet_func::packet025][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-                if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != (uint)STDA_ERROR_TYPE.MESSAGE_SERVER)
+                if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != STDA_ERROR_TYPE.MESSAGE_SERVER)
                 {
                     throw;
                 }
@@ -390,7 +388,7 @@ namespace MessengerServer.PacketFunc
 
                  message_pool.push(new message("[packet_func::packet028][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-                if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != (uint)STDA_ERROR_TYPE.MESSAGE_SERVER)
+                if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != STDA_ERROR_TYPE.MESSAGE_SERVER)
                 {
                     throw;
                 }
@@ -407,7 +405,7 @@ namespace MessengerServer.PacketFunc
             try
             {
 
-                // Verifica se session est� autorizada para executar esse a��o,
+                // Verifica se Session est� autorizada para executar esse a��o,
                 // se ele n�o fez o login com o Server ele n�o pode fazer nada at� que ele fa�a o login
                 if (!((Player)pd._session).m_is_authorized)
                 {
@@ -426,7 +424,7 @@ namespace MessengerServer.PacketFunc
 
                  message_pool.push(new message("[packet_func::packet029][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-                if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != (uint)STDA_ERROR_TYPE.MESSAGE_SERVER)
+                if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != STDA_ERROR_TYPE.MESSAGE_SERVER)
                 {
                     throw;
                 }
@@ -441,15 +439,8 @@ namespace MessengerServer.PacketFunc
             
 
             try
-            {
-
-#if DEBUG
-                 message_pool.push(new message("[packet_func::packet02A][Log] Player[UID=" + Convert.ToString(((Player)pd._session).m_pi.uid) + "] mandou o Pacote02A, player foi aceito na guild, nao faco o tratamento desse pacote ainda. Hex: \n\r" + pd._packet.Log(), type_msg.CL_FILE_LOG_AND_CONSOLE));
-#else
-					 message_pool.push(new message("[packet_func::packet02A][Log] Player[UID=" + Convert.ToString(((Player)pd._session).m_pi.uid) + "] mandou o Pacote02A, player foi aceito na guild, nao faco o tratamento desse pacote ainda. Hex: \n\r" + pd._packet.Log(), type_msg.CL_ONLY_CONSOLE));
-#endif // _DEBUG
-
-                // Verifica se session est� autorizada para executar esse a��o,
+            {                     
+                // Verifica se Session est� autorizada para executar esse a��o,
                 // se ele n�o fez o login com o Server ele n�o pode fazer nada at� que ele fa�a o login
                 if (!((Player)pd._session).m_is_authorized)
                 {
@@ -463,7 +454,7 @@ namespace MessengerServer.PacketFunc
 
                  message_pool.push(new message("[packet_func::packet02A][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-                if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != (uint)STDA_ERROR_TYPE.MESSAGE_SERVER)
+                if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != STDA_ERROR_TYPE.MESSAGE_SERVER)
                 {
                     throw;
                 }
@@ -479,14 +470,8 @@ namespace MessengerServer.PacketFunc
 
             try
             {
-
-#if DEBUG
-                 message_pool.push(new message("[packet_func::packet02B][Log] Player[UID=" + Convert.ToString(((Player)pd._session).m_pi.uid) + "] mandou o Pacote02B, player foi quicado da guild, nao faco o tratamento desse pacote ainda. Hex: \n\r" + pd._packet.Log(), type_msg.CL_FILE_LOG_AND_CONSOLE));
-#else
-					 message_pool.push(new message("[packet_func::packet02B][Log] Player[UID=" + Convert.ToString(((Player)pd._session).m_pi.uid) + "] mandou o Pacote02B, player foi quicado da guild, nao faco o tratamento desse pacote ainda. Hex: \n\r" + pd._packet.Log(), type_msg.CL_ONLY_CONSOLE));
-#endif // _DEBUG
-
-                // Verifica se session est� autorizada para executar esse a��o,
+                               
+                // Verifica se Session est� autorizada para executar esse a��o,
                 // se ele n�o fez o login com o Server ele n�o pode fazer nada at� que ele fa�a o login
                 if (!((Player)pd._session).m_is_authorized)
                 {
@@ -500,7 +485,7 @@ namespace MessengerServer.PacketFunc
 
                  message_pool.push(new message("[packet_func::packet02B][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-                if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != (uint)STDA_ERROR_TYPE.MESSAGE_SERVER)
+                if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != STDA_ERROR_TYPE.MESSAGE_SERVER)
                 {
                     throw;
                 }
@@ -516,14 +501,8 @@ namespace MessengerServer.PacketFunc
 
             try
             {
-
-#if DEBUG
-                 message_pool.push(new message("[packet_func::packet02C][Log] Player[UID=" + Convert.ToString(((Player)pd._session).m_pi.uid) + "] mandou o Pacote02C, troca a imagem da guild, nao faco o tratamento desse pacote ainda. Hex: \n\r" + pd._packet.Log(), type_msg.CL_FILE_LOG_AND_CONSOLE));
-#else
-					 message_pool.push(new message("[packet_func::packet02C][Log] Player[UID=" + Convert.ToString(((Player)pd._session).m_pi.uid) + "] mandou o Pacote02C, troca a imagem da guild, nao faco o tratamento desse pacote ainda. Hex: \n\r" + pd._packet.Log(), type_msg.CL_ONLY_CONSOLE));
-#endif // _DEBUG
-
-                // Verifica se session est� autorizada para executar esse a��o,
+                    
+                // Verifica se Session est� autorizada para executar esse a��o,
                 // se ele n�o fez o login com o Server ele n�o pode fazer nada at� que ele fa�a o login
                 if (!((Player)pd._session).m_is_authorized)
                 {
@@ -537,7 +516,7 @@ namespace MessengerServer.PacketFunc
 
                  message_pool.push(new message("[packet_func::packet02C][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-                if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != (uint)STDA_ERROR_TYPE.MESSAGE_SERVER)
+                if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != STDA_ERROR_TYPE.MESSAGE_SERVER)
                 {
                     throw;
                 }
@@ -552,15 +531,9 @@ namespace MessengerServer.PacketFunc
             
 
             try
-            {
+            {                              
 
-#if DEBUG
-                 message_pool.push(new message("[packet_func::packet02D][Log] Player[UID=" + Convert.ToString(((Player)pd._session).m_pi.uid) + "] mandou o Pacote02D, troca o nome da guild, nao faco o tratamento desse pacote ainda. Hex: \n\r" + pd._packet.Log(), type_msg.CL_FILE_LOG_AND_CONSOLE));
-#else
-					 message_pool.push(new message("[packet_func::packet02D][Log] Player[UID=" + Convert.ToString(((Player)pd._session).m_pi.uid) + "] mandou o Pacote02D, troca o nome da guild, nao faco o tratamento desse pacote ainda. Hex: \n\r" + pd._packet.Log(), type_msg.CL_ONLY_CONSOLE));
-#endif // _DEBUG
-
-                // Verifica se session est� autorizada para executar esse a��o,
+                // Verifica se Session est� autorizada para executar esse a��o,
                 // se ele n�o fez o login com o Server ele n�o pode fazer nada at� que ele fa�a o login
                 if (!((Player)pd._session).m_is_authorized)
                 {
@@ -574,7 +547,7 @@ namespace MessengerServer.PacketFunc
 
                  message_pool.push(new message("[packet_func::packet02D][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-                if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != (uint)STDA_ERROR_TYPE.MESSAGE_SERVER)
+                if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != STDA_ERROR_TYPE.MESSAGE_SERVER)
                 {
                     throw;
                 }
@@ -610,7 +583,7 @@ namespace MessengerServer.PacketFunc
 
                  message_pool.push(new message("[packet_func::packet_as001][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-                if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != (uint)STDA_ERROR_TYPE.MESSAGE_SERVER)
+                if (    ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != STDA_ERROR_TYPE.MESSAGE_SERVER)
                 {
                     throw;
                 }
@@ -632,7 +605,7 @@ namespace MessengerServer.PacketFunc
 
                  message_pool.push(new message("[packet_func::packet_as002][ErrorSystem] " + e.getFullMessageError()));
 
-                if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != (uint)STDA_ERROR_TYPE.MESSAGE_SERVER)
+                if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != STDA_ERROR_TYPE.MESSAGE_SERVER)
                 {
                     throw;
                 }
@@ -654,7 +627,7 @@ namespace MessengerServer.PacketFunc
 
                  message_pool.push(new message("[packet_func::packet_as003][ErrorSystem] " + e.getFullMessageError()));
 
-                if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != (uint)STDA_ERROR_TYPE.MESSAGE_SERVER)
+                if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) != STDA_ERROR_TYPE.MESSAGE_SERVER)
                 {
                     throw;
                 }
@@ -666,13 +639,13 @@ namespace MessengerServer.PacketFunc
 
         // BroadCast Friend And Guild Member Online
         public static void friend_broadcast(Dictionary<uint, Player> _m_player,
-            PangyaBinaryWriter _p, SessionBase _s,
+            packet _p, SessionBase _s,
             byte _debug)
         {
 
             if (_s == null)
             {
-                throw new exception("[packet_func::friend_broadcast][Error] session *_s is nullptr", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PACKET_FUNC_MS,
+                throw new exception("[packet_func::friend_broadcast][Error] Session *_s is nullptr", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PACKET_FUNC_MS,
                     1, 2));
             }
 
@@ -683,7 +656,7 @@ namespace MessengerServer.PacketFunc
                 {
                     try
                     {
-                        el.Value.Send(_p, _debug == 1);
+                        MAKE_SEND_BUFFER(_p, el.Value);
                     }
                     catch (exception e)
                     {
@@ -695,13 +668,13 @@ namespace MessengerServer.PacketFunc
         }
 
         public static void friend_broadcast(Dictionary<uint, Player> _m_player,
-            List<PangyaBinaryWriter> _v_p,
+            List<packet> _v_p,
             SessionBase _s, byte _debug)
         {
 
             if (_s == null)
             {
-                throw new exception("[packet_func::friend_broadcast][Error] session *_s is nullptr", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PACKET_FUNC_MS,
+                throw new exception("[packet_func::friend_broadcast][Error] Session *_s is nullptr", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PACKET_FUNC_MS,
                     1, 2));
             }
 
@@ -717,8 +690,8 @@ namespace MessengerServer.PacketFunc
                         if (el2.Value != null && el2.Value != _s)
                         {  
                             try
-                            {                                
-                                (el2.Value).Send(el.GetBytes, 1); 
+                            {
+                                MAKE_SEND_BUFFER(el, el2.Value);
                             }
                             catch (exception e)
                             {
@@ -739,13 +712,9 @@ namespace MessengerServer.PacketFunc
             _m_player.Clear();
         }
 
-        public static void session_send(PangyaBinaryWriter p, Player _session, int _debug)
-        {
-            if (_debug == 1)
-            {
-                Console.WriteLine("Send_Session:" + p.GetBytes.HexDump());
-            }
-            _session.Send(p);
+        public static void session_send(packet _p, Player _s, int _debug)
+        {       
+            MAKE_SEND_BUFFER(_p, _s);
         }
     }
 }

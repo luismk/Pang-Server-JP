@@ -14,8 +14,8 @@ using LoginServer.PangyaEnums;
 using System.Threading;
 using PangyaAPI.Network.Pangya_St;
 using LoginServer.Cmd;
-using static PangyaAPI.Network.PangyaUnit.unit_connect_base;
 using LoginServer.GameType;
+using PangyaAPI.Network.PangyaUtil;
 
 namespace LoginServer.LoginServerTcp
 {
@@ -24,11 +24,11 @@ namespace LoginServer.LoginServerTcp
         bool m_access_flag;
         bool m_create_user_flag;
         bool m_same_id_login_flag;
-        static player_manager m_player_manager = new player_manager(2000);
+        player_manager m_player_manager;
 
         public bool IsUnderMaintenance { get; private set; }
 
-        public LoginServer() : base(m_player_manager)
+        public LoginServer()
         {
             if (m_state == ServerState.Failure)
             {
@@ -38,8 +38,11 @@ namespace LoginServer.LoginServerTcp
 
             try
             {
+                m_player_manager = new player_manager(this, 2000);
 
-                ConfigInit();
+                set_sessionManager(m_player_manager);
+
+                config_init();
 
                 // Carrega IFF_STRUCT
                 if (!sIff.getInstance().isLoad())
@@ -60,7 +63,7 @@ namespace LoginServer.LoginServerTcp
             }
         }
 
-        public override bool CheckPacket(SessionBase _session, Packet packet)
+        public override bool CheckPacket(PangyaAPI.Network.PangyaSession.Session _session, packet packet)
         {
             var player = (Player)_session;
             var packetId = (PacketIDClient)packet.Id;
@@ -68,7 +71,7 @@ namespace LoginServer.LoginServerTcp
             // Verifica se o valor de packetId é válido no enum PacketIDClient
             if (Enum.IsDefined(typeof(PacketIDClient), packetId))
             {
-                WriteConsole.WriteLine($"[LoginServer.CheckPacket][Log]: PLAYER[UID: {player.m_pi.uid}, CMPID: {packetId}]", ConsoleColor.Cyan);
+                //WriteConsole.WriteLine($"[LoginServer.CheckPacket][Log]: PLAYER[UID: {player.m_pi.uid}, CMPID: {packetId}]", ConsoleColor.Cyan);
                 return true;
             }
 
@@ -79,7 +82,7 @@ namespace LoginServer.LoginServerTcp
             }
         }
 
-        public override void onDisconnected(SessionBase _session)
+        public override void onDisconnected(PangyaAPI.Network.PangyaSession.Session _session)
         {
 
             if (_session == null)
@@ -127,17 +130,19 @@ namespace LoginServer.LoginServerTcp
             Console.Title = $"Login Server - P: {m_si.curr_user}";
         }
 
-        protected override void onAcceptCompleted(SessionBase _session)
+        protected override void onAcceptCompleted(PangyaAPI.Network.PangyaSession.Session _session)
         {
             try
             {
-                var Response = new PangyaBinaryWriter();
-                //Gera Packet com chave de criptografia (posisão 6)
-                Response.Write(new byte[] { 0x00, 0x0B });
-                Response.WriteUInt32(0); 
-                Response.WriteUInt32(_session.m_key);//key
-                Response.WriteUInt32(getUID());
-                _session.Send(Response.GetBytes, 0);
+                var _packet = new packet(0x0);    // Tipo Packet Login Server initial packet no compress e no crypt
+
+                _packet.AddInt32(_session.m_key); // key
+                _packet.AddInt32(m_si.uid);                 // Server UID
+
+                _packet.makeRaw();
+                var mb = _packet.getBuffer();
+
+                _session.requestSendBuffer(mb.buf, mb.len);
             }
             catch (Exception ex)
             {
@@ -179,9 +184,9 @@ namespace LoginServer.LoginServerTcp
         }
 
 
-        public override void ConfigInit()
+        public override void config_init()
         {
-            base.ConfigInit();
+            base.config_init();
 
             // Server Tipo
             m_si.tipo = 0/*Login Server*/;
@@ -193,14 +198,16 @@ namespace LoginServer.LoginServerTcp
             {
                 m_same_id_login_flag = m_reader_ini.readInt("OPTION", "SAME_ID_LOGIN") == 1;
             }
-            catch (exception e) {
+            catch (exception e)
+            {
                 // Não precisa printar mensagem por que essa opção é de desenvolvimento
-               
-            }
 
             }
-        protected virtual void ReloadFiles() {
-            ConfigInit();
+
+        }
+        protected virtual void ReloadFiles()
+        {
+            config_init();
 
             sIff.getInstance().reload();
         }
@@ -251,7 +258,7 @@ namespace LoginServer.LoginServerTcp
                     DisconnectSession(s);
 
                     // UPDATE ON Auth Server
-                    m_unit_connect.sendConfirmDisconnectPlayer(_req_server_uid, _player_uid);
+                    //m_unit_connect.sendConfirmDisconnectPlayer(_req_server_uid, _player_uid);
 
                 }
                 else
@@ -301,28 +308,28 @@ namespace LoginServer.LoginServerTcp
 
         }
 
-        public override void authCmdSendCommandToOtherServer(Packet _packet)
+        public override void authCmdSendCommandToOtherServer(packet _packet)
         {
 
         }
 
-        public override void authCmdSendReplyToOtherServer(Packet _packet)
+        public override void authCmdSendReplyToOtherServer(packet _packet)
         {
 
         }
 
-        public override void sendCommandToOtherServerWithAuthServer(Packet _packet, uint _send_server_uid_or_type)
+        public override void sendCommandToOtherServerWithAuthServer(packet _packet, uint _send_server_uid_or_type)
         {
 
         }
 
-        public override void sendReplyToOtherServerWithAuthServer(Packet _packet, uint _send_server_uid_or_type)
+        public override void sendReplyToOtherServerWithAuthServer(packet _packet, uint _send_server_uid_or_type)
         {
 
         }
 
         public bool getAccessFlag() => m_access_flag;
-        public bool getCreateUserFlag() => m_create_user_flag; 
+        public bool getCreateUserFlag() => m_create_user_flag;
         public bool canSameIDLogin() => m_same_id_login_flag;
 
         public override bool CheckCommand(string commandLine)
@@ -358,7 +365,7 @@ namespace LoginServer.LoginServerTcp
                         setIsUnderMaintenance(true);//faço o servidor parar de rodar ou simplesmente não ira mais receber conexao!
                         message_pool.push(new message("Server Accept players ~~~.", type_msg.CL_FILE_LOG_AND_CONSOLE));
                     }
-                   else if (subCommand.Equals("gm", StringComparison.OrdinalIgnoreCase))
+                    else if (subCommand.Equals("gm", StringComparison.OrdinalIgnoreCase))
                     {
                         m_access_flag = true;
                         message_pool.push(new message("Now only GM and registered IPs can login.", type_msg.CL_FILE_LOG_AND_CONSOLE));
@@ -383,7 +390,7 @@ namespace LoginServer.LoginServerTcp
                     {
                         setIsUnderMaintenance(false);//faço o servidor parar de rodar ou simplesmente não ira mais receber conexao!
                         message_pool.push(new message("Server close players ~~~.", type_msg.CL_FILE_LOG_AND_CONSOLE));
-                    } 
+                    }
                     else
                     {
                         message_pool.push(new message($"Unknown Command: \"open {subCommand}\"", type_msg.CL_ONLY_CONSOLE));
@@ -437,11 +444,11 @@ namespace LoginServer.LoginServerTcp
             IsUnderMaintenance = value;
         }
 
-        public void requestLogin(Player _session, Packet _packet)
+        public void requestLogin(Player _session, packet _packet)
         {
 
             /// Pacote01 Option 0x0F(15) é manutenção
-            var p = new PangyaBinaryWriter();
+            var p = new packet();
             try
             {
                 // Ler dados do packet de login
@@ -465,7 +472,7 @@ namespace LoginServer.LoginServerTcp
                 var pass_md5 = Tools.MD5Hash(result.password).ToUpper();//deixa em letras maiusculas
                 if (IsUnderMaintenance)
                 {
-                     packet_func.session_send(packet_func.pacote001(_session, 15), _session, 1); // Erro pass
+                    packet_func.session_send(packet_func.pacote001(_session, 15), _session, 1); // Erro pass
                     _session.m_is_authorized = false;
                     return;
                 }
@@ -498,7 +505,7 @@ namespace LoginServer.LoginServerTcp
                 message_pool.push("Senha: " + pass_md5, type_msg.CL_FILE_LOG_AND_CONSOLE);
 
 
-                if (!haveBanList(_session.m_ip, result.mac_address))
+                if (true)
                 {   // Verifica se está na list de ips banidos
 
                     var cmd_verifyId = new CmdVerifyID(result.id); // ID
@@ -523,7 +530,7 @@ namespace LoginServer.LoginServerTcp
 
                             var cmd_pi = new CmdPlayerInfo((uint)cmd_verifyId.getUID());
 
-                            NormalManagerDB.add(0, cmd_pi, null, null); 
+                            NormalManagerDB.add(0, cmd_pi, null, null);
 
                             if (cmd_pi.getException().getCodeError() != 0)
                                 throw cmd_pi.getException();
@@ -538,12 +545,12 @@ namespace LoginServer.LoginServerTcp
                             NormalManagerDB.add(0, cmd_lc, null, null);
                             NormalManagerDB.add(0, cmd_flc, null, null);
                             NormalManagerDB.add(0, cmd_fsc, null, null);
-                             
+
                             if (cmd_lc.getException().getCodeError() != 0)
-                                throw cmd_lc.getException(); 
+                                throw cmd_lc.getException();
 
                             if (cmd_flc.getException().getCodeError() != 0)
-                                throw cmd_flc.getException(); 
+                                throw cmd_flc.getException();
 
                             if (cmd_fsc.getException().getCodeError() != 0)
                                 throw cmd_fsc.getException();
@@ -553,42 +560,42 @@ namespace LoginServer.LoginServerTcp
 
                             if (!canSameIDLogin() && player_logado != null)
                             {   // Verifica se ja nao esta logado
-                                 
+
                                 packet_func.session_send(packet_func.pacote001(_session, 0xE2, 5100107), _session, 0);
 
                                 message_pool.push("[login_server::RequestLogin][Log] player[UID="
                                         + (pi.uid) + ", ID=" + (pi.id) + ", IP=" + _session.m_ip + "] ja tem outro Player conectado[UID=" + (player_logado.getUID())
                                         + ", OID=" + (player_logado.m_oid) + ", IP=" + player_logado.m_ip + "]", type_msg.CL_FILE_LOG_AND_CONSOLE);
 
-                                _session._client.Client.Shutdown(System.Net.Sockets.SocketShutdown.Receive);
+                                _session.m_sock.Client.Shutdown(System.Net.Sockets.SocketShutdown.Receive);
                             }
                             else if (pi.m_state == 1)
                             {   // Verifica se já pediu para logar
 
-                                 packet_func.session_send(packet_func.pacote001(_session, 0xE2, 500010), _session, 0); // Já esta logado, ja enviei o pacote de logar
+                                packet_func.session_send(packet_func.pacote001(_session, 0xE2, 500010), _session, 0); // Já esta logado, ja enviei o pacote de logar
 
                                 if (pi.m_state++ >= 3)  // Ataque, derruba a conexão maliciosa
                                     message_pool.push("[login_server::RequestLogin][Log] Player ja esta logado, o pacote de logar ja foi enviado, player[UID="
                                             + (pi.uid) + ", ID=" + (pi.id) + "]", type_msg.CL_FILE_LOG_AND_CONSOLE);
 
-                                _session._client.Client.Shutdown(System.Net.Sockets.SocketShutdown.Receive);
+                                _session.m_sock.Client.Shutdown(System.Net.Sockets.SocketShutdown.Receive);
                             }
                             else
                             {
 
-                                var cmd_vi = new CmdVerifyIP(pi.uid, _session.m_ip); 
+                                var cmd_vi = new CmdVerifyIP(pi.uid, _session.m_ip);
 
                                 if (cmd_vi.getException().getCodeError() != 0)
                                     throw cmd_vi.getException();
 
                                 if (!Convert.ToBoolean(pi.m_cap & 4) && getAccessFlag() && !cmd_vi.getLastVerify())
                                 {   // Verifica se tem permição para acessar
-                                     
+
                                     packet_func.session_send(packet_func.pacote001(_session, 0xE2, 500015), _session, 0); // Já esta logado, ja enviei o pacote de logar
                                     message_pool.push("[login_server::RequestLogin][Log] acesso restrito para o player [UID=" + (pi.uid)
                                             + ", ID=" + (pi.id) + "]", type_msg.CL_FILE_LOG_AND_CONSOLE);
 
-                                    _session._client.Client.Shutdown(System.Net.Sockets.SocketShutdown.Receive);
+                                    _session.m_sock.Client.Shutdown(System.Net.Sockets.SocketShutdown.Receive);
                                 }
                                 else if (pi.block_flag.m_id_state.ull_IDState != 0)
                                 {   // Verifica se está bloqueado
@@ -600,11 +607,11 @@ namespace LoginServer.LoginServerTcp
 
                                         p.init_plain(0x01);
 
-                                        p.WriteByte(7);
-                                        p.WriteInt32(pi.block_flag.m_id_state.block_time == -1 || tempo == 0 ? 1/*Menos de uma hora*/ : tempo);   // Block Por Tempo
+                                        p.AddByte(7);
+                                        p.AddInt32(pi.block_flag.m_id_state.block_time == -1 || tempo == 0 ? 1/*Menos de uma hora*/ : tempo);   // Block Por Tempo
 
                                         // Aqui pode ter uma  com mensagem que o pangya exibe
-                                        //p.WriteString("ola");
+                                        //p.AddString("ola");
 
                                         packet_func.session_send(p, _session, 0);
 
@@ -613,22 +620,22 @@ namespace LoginServer.LoginServerTcp
                                                 + "min " + (pi.block_flag.m_id_state.block_time % 60) + "sec"))
                                                 + "]. player [UID=" + (pi.uid) + ", ID=" + (pi.id) + "]", type_msg.CL_FILE_LOG_AND_CONSOLE);
 
-                                        _session._client.Client.Shutdown(System.Net.Sockets.SocketShutdown.Receive);
+                                        _session.m_sock.Client.Shutdown(System.Net.Sockets.SocketShutdown.Receive);
                                     }
                                     else if (pi.block_flag.m_id_state.L_BLOCK_FOREVER)
                                     {
 
                                         p.init_plain((ushort)0x01);
 
-                                        p.WriteByte(0x0c);       // Acho que seja block permanente, que fala de email
-                                                                //p.WriteInt32(500012);	// Block Permanente
+                                        p.AddByte(0x0c);       // Acho que seja block permanente, que fala de email
+                                                               //p.AddInt32(500012);	// Block Permanente
 
                                         packet_func.session_send(p, _session, 0);
 
                                         message_pool.push("[login_server::RequestLogin][Log] Bloqueado permanente. player [UID=" + (pi.uid)
                                                 + ", ID=" + (pi.id) + "]", type_msg.CL_FILE_LOG_AND_CONSOLE);
 
-                                        _session._client.Client.Shutdown(System.Net.Sockets.SocketShutdown.Receive);
+                                        _session.m_sock.Client.Shutdown(System.Net.Sockets.SocketShutdown.Receive);
                                     }
                                     else if (pi.block_flag.m_id_state.L_BLOCK_ALL_IP)
                                     {
@@ -641,14 +648,14 @@ namespace LoginServer.LoginServerTcp
                                         // Resposta
                                         p.init_plain((ushort)0x01);
 
-                                        p.WriteByte(16);
-                                        p.WriteInt32(500012);     // Ban por Região;
+                                        p.AddByte(16);
+                                        p.AddInt32(500012);     // Ban por Região;
 
                                         packet_func.session_send(p, _session, 0);
                                         message_pool.push("[login_server::RequestLogin][Log] Player[UID=" + (_session.m_pi.uid)
                                                 + ", IP=" + (_session.m_ip) + "] Block ALL IP que o player fizer login.", type_msg.CL_FILE_LOG_AND_CONSOLE);
 
-                                        _session._client.Client.Shutdown(System.Net.Sockets.SocketShutdown.Receive);
+                                        _session.m_sock.Client.Shutdown(System.Net.Sockets.SocketShutdown.Receive);
                                     }
                                     else if (pi.block_flag.m_id_state.L_BLOCK_MAC_ADDRESS)
                                     {
@@ -662,15 +669,15 @@ namespace LoginServer.LoginServerTcp
                                         // Resposta
                                         p.init_plain((ushort)0x01);
 
-                                        p.WriteByte(16);
-                                        p.WriteInt32(500012);     // Ban por Região;
+                                        p.AddByte(16);
+                                        p.AddInt32(500012);     // Ban por Região;
 
                                         packet_func.session_send(p, _session, 0);
 
                                         message_pool.push("[login_server::RequestLogin][Log] Player[UID=" + (_session.m_pi.uid)
                                                 + ", IP=" + (_session.m_ip) + ", MAC=" + result.mac_address + "] Block MAC Address que o player fizer login.", type_msg.CL_FILE_LOG_AND_CONSOLE);
 
-                                        _session._client.Client.Shutdown(System.Net.Sockets.SocketShutdown.Receive);
+                                        _session.m_sock.Client.Shutdown(System.Net.Sockets.SocketShutdown.Receive);
                                     }
                                     else if (!cmd_flc.getLastCheck())
                                     {   // Verifica se fez o primeiro login
@@ -707,7 +714,7 @@ namespace LoginServer.LoginServerTcp
                                         _session.m_is_authorized = true;
 
                                         p.init_plain((ushort)0x01);
-                                        p.WriteByte(4);
+                                        p.AddByte(4);
 
                                         packet_func.session_send(p, _session, 0);
 
@@ -772,7 +779,7 @@ namespace LoginServer.LoginServerTcp
                                     _session.m_is_authorized = true;
 
                                     p.init_plain((ushort)0x01);
-                                    p.WriteByte(4);
+                                    p.AddByte(4);
 
                                     packet_func.session_send(p, _session, 0);
 
@@ -803,14 +810,14 @@ namespace LoginServer.LoginServerTcp
                             }
                         }
                         else
-                        { 
+                        {
                             packet_func.session_send(packet_func.pacote001(_session, 6/* ID ou PW errado*/), _session, 1); // Erro pass
 
 
                             message_pool.push("[login_server::RequestLogin][Log] senha errada. ID: " + cmd_verifyId.getID()
                                     + "  senha: " + pass_md5/*cmd_verifyPass.getPass()*/, type_msg.CL_FILE_LOG_AND_CONSOLE);
 
-                            _session._client.Client.Shutdown(System.Net.Sockets.SocketShutdown.Receive);
+                            _session.m_sock.Client.Shutdown(System.Net.Sockets.SocketShutdown.Receive);
                         }
 
                     }
@@ -826,7 +833,7 @@ namespace LoginServer.LoginServerTcp
 
                         var ip = _session.m_ip;
 
-                        var cmd_cu = new CmdCreateUser(cmd_verifyId.getID(), result.password, ip,getUID());
+                        var cmd_cu = new CmdCreateUser(cmd_verifyId.getID(), result.password, ip, getUID());
 
 
                         cmd_cu.exec();
@@ -854,11 +861,11 @@ namespace LoginServer.LoginServerTcp
                                 + ", ID=" + pi.id + ", PASSWORD=" + pass_md5/*pi.pass*/ + "]", type_msg.CL_FILE_LOG_AND_CONSOLE);
                     }
                     else
-                    { 
+                    {
                         packet_func.session_send(packet_func.pacote001(_session, 6/*ID é 2, 6 é o ID ou pw errado*/), _session, 1);
                         _session.m_pi.id = result.id;
                         message_pool.push("[login_server::RequestLogin][Log] ID nao existe, ID: " + cmd_verifyId.getID(), type_msg.CL_FILE_LOG_AND_CONSOLE);
-                        _session._client.Client.Shutdown(System.Net.Sockets.SocketShutdown.Receive);
+                        _session.m_sock.Client.Shutdown(System.Net.Sockets.SocketShutdown.Receive);
                     }
 
                 }
@@ -867,11 +874,11 @@ namespace LoginServer.LoginServerTcp
 
                     p.init_plain((ushort)0x01);
 
-                    p.WriteByte(16);
+                    p.AddByte(16);
 
                     packet_func.session_send(p, _session, 0);
                     message_pool.push("[login_server::RequestLogin][Log] Block por Regiao o IP/MAC: " + (_session.m_ip) + "/" + result.mac_address, type_msg.CL_FILE_LOG_AND_CONSOLE);
-                    _session._client.Client.Shutdown(System.Net.Sockets.SocketShutdown.Receive);
+                    _session.m_sock.Client.Shutdown(System.Net.Sockets.SocketShutdown.Receive);
                 }
             }
             catch (exception e)
@@ -890,15 +897,15 @@ namespace LoginServer.LoginServerTcp
                     // Unknown Error (System Fail)
                     p.init_plain((ushort)0x01);
 
-                    p.WriteByte(0xE2);
+                    p.AddByte(0xE2);
 
                     packet_func.session_send(p, _session, 0);
                 }
-                _session._client.Client.Shutdown(System.Net.Sockets.SocketShutdown.Receive);
+                _session.m_sock.Client.Shutdown(System.Net.Sockets.SocketShutdown.Receive);
             }
         }
 
-        public void requestDownPlayerOnGameServer(Player _session, Packet packet)
+        public void requestDownPlayerOnGameServer(Player _session, packet packet)
         {
 
             try
@@ -910,18 +917,18 @@ namespace LoginServer.LoginServerTcp
 
                 // Derruba o player que está logado no game server
                 // Se o Auth Server Estiver ligado manda por ele, se não tira pelo banco de dados mesmo
-                if (m_unit_connect.isLive())
-                {
+                //if (m_unit_connect.isLive())
+                //{
 
-                    // [Auth Server] . Game Server UID = _session.m_pi.m_server_uid;
-                    m_unit_connect.sendDisconnectPlayer(_session.m_pi.m_server_uid, _session.m_pi.uid);
+                //    // [Auth Server] . Game Server UID = _session.m_pi.m_server_uid;
+                //    m_unit_connect.sendDisconnectPlayer(_session.m_pi.m_server_uid, _session.m_pi.uid);
 
-                }
-                else
-                {
+                //}
+                //else
+                //{
 
-                    // Auth Server não está online, resolver por aqui mesmo
-                    var cmd_rl = new CmdRegisterLogon(_session.m_pi.uid, 1);
+                // Auth Server não está online, resolver por aqui mesmo
+                var cmd_rl = new CmdRegisterLogon(_session.m_pi.uid, 1);
 
                 cmd_rl.exec();
 
@@ -934,7 +941,7 @@ namespace LoginServer.LoginServerTcp
                 message_pool.push("[login_server::requestDownPlayerOnGameServer][Log] Player[UID=" + (_session.m_pi.uid)
                         + ", ID=" + (_session.m_pi.id) + "] derrubou o outro do game server[UID="
                         + (_session.m_pi.m_server_uid) + "] com sucesso.");
-                }
+                //}
 
             }
             catch (exception e)
@@ -948,8 +955,8 @@ namespace LoginServer.LoginServerTcp
             }
         }
 
-        public void requestTryReLogin(Player _session, Packet _packet)
-        { 
+        public void requestTryReLogin(Player _session, packet _packet)
+        {
             try
             {
 
@@ -974,7 +981,7 @@ namespace LoginServer.LoginServerTcp
                 var cmd_pi = new CmdPlayerInfo((uint)cmd_verifyId.getUID());
 
                 NormalManagerDB.add(0, cmd_pi, null, null);
-                 
+
                 if (cmd_pi.getException().getCodeError() != 0)
                     throw cmd_pi.getException();
 
@@ -986,7 +993,7 @@ namespace LoginServer.LoginServerTcp
 
                 var cmd_akli = new CmdAuthKeyLoginInfo((int)_session.m_pi.uid);
 
-                NormalManagerDB.add(0, cmd_akli, null, null); 
+                NormalManagerDB.add(0, cmd_akli, null, null);
 
                 if (cmd_akli.getException().getCodeError() != 0)
                     throw cmd_akli.getException();
@@ -1006,7 +1013,7 @@ namespace LoginServer.LoginServerTcp
                 var cmd_vi = new CmdVerifyIP(_session.m_pi.uid, _session.m_ip);
 
                 NormalManagerDB.add(0, cmd_vi, null, null);
-                 
+
                 if (cmd_vi.getException().getCodeError() != 0)
                     throw cmd_vi.getException();
 
@@ -1083,16 +1090,16 @@ namespace LoginServer.LoginServerTcp
                 message_pool.push("[login_server::requestReLogin][ErrorSystem] " + e.getFullMessageError());
             }
         }
-         
+
         protected void FIRST_SET(Player _session)
         {
-            (_session).m_pi.m_state = 3; 
-            packet_func.session_send(packet_func.pacote00F((_session), 1), (_session), 1); 
+            (_session).m_pi.m_state = 3;
+            packet_func.session_send(packet_func.pacote00F((_session), 1), (_session), 1);
             packet_func.session_send(packet_func.pacote001((_session), 0xD9), (_session), 1);
         }
         protected void FIRST_LOGIN(Player _session)
         {
-            _session.m_pi.m_state = 2; 
+            _session.m_pi.m_state = 2;
             packet_func.session_send(packet_func.pacote00F((_session), 1), (_session), 1);
             packet_func.session_send(packet_func.pacote001((_session), 0xD8), (_session), 1);
         }

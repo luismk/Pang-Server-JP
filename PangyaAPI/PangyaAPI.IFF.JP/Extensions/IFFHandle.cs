@@ -742,7 +742,7 @@ namespace PangyaAPI.IFF.JP.Extensions
             var commom = findCommomItem(_typeid);
 
             if (commom != null)
-                return (commom.Active && commom.Shop.flag_shop.IsSale);
+                return (commom.Active && commom.Shop.flag_shop.is_saleable);
 
             return false;
         }
@@ -1007,7 +1007,7 @@ namespace PangyaAPI.IFF.JP.Extensions
             // Ex: 0 + 0 = 0 Não é
             if (commom != null)
                 return (commom.Active && commom.Shop.flag_shop.IsCash
-                    && (commom.Shop.flag_shop.IsSale ^ commom.Shop.flag_shop.IsGift));
+                    && (commom.Shop.flag_shop.is_saleable ^ commom.Shop.flag_shop.IsGift));
 
             return false;
         }
@@ -1027,7 +1027,7 @@ namespace PangyaAPI.IFF.JP.Extensions
             var commom = findCommomItem(_typeid);
 
             if (commom != null)
-                return (commom.Active && commom.Shop.flag_shop.IsSale
+                return (commom.Active && commom.Shop.flag_shop.is_saleable
                     && commom.Shop.flag_shop.IsGift);
 
             return false;
@@ -1039,7 +1039,7 @@ namespace PangyaAPI.IFF.JP.Extensions
 
             if (commom != null)
                 return (commom.Active && commom.Shop.flag_shop.IsCash
-                    && commom.Shop.flag_shop.IsGift && commom.Shop.flag_shop.IsSale);
+                    && commom.Shop.flag_shop.IsGift && commom.Shop.flag_shop.is_saleable);
 
             return false;
         }

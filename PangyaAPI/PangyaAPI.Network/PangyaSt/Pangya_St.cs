@@ -13,11 +13,25 @@ using PangyaAPI.IFF.JP.Models.Flags;
 using PangyaAPI.IFF.JP.Extensions;
 
 namespace PangyaAPI.Network.Pangya_St
-{
+{      
     public class Global
     {
+  
         public static readonly uint[] angel_wings = { 134309888u, 134580224u, 134842368u, 135120896u, 135366656u, 135661568u, 135858176u, 136194048u, 136398848u, 136660992u, 137185294u, 137447424u, 138004480u };
         public static readonly uint[] gacha_angel_wings = { 134309903u, 134580239u, 134842383u, 135120911u, 135366671u, 135661583u, 135858191u, 136194063u, 136398863u, 136661007u, 136923153u, 137185284u, 137447436u, 138004492u };
+                                                                                               
+	public const int INFINITE = -1;                                                           
+	public const int ERROR_SUCCESS = 0;                                                      
+	public const int INVALID_HANDLE_VALUE = -1;                                             
+	public const int SOCKET_ERROR = -1;                                                    
+        public const int MAX_BUFFER_SIZE = 0x4000; //0x2000 //0xFFFF // 0x2000
+        public const uint STDA_TIME_LIMIT_NON_AUTHORIZED = 10000;
+        public const int CHK_PCKT_INTERVAL_LIMIT = 1000; // Miliseconds
+        public const int CHK_PCKT_COUNT_LIMIT = 5; // Vezes que pode solicitar pacote dentro do intervalo
+        public const int CHK_PCKT_NUM_PCKT_MRY = 3; // Ele Guarda os 3 ultimos pacotes verificados 
+        public const string PATH_LIBZIP_LIB = "../../Projeto IOCP/ZIP/lib/zip-64.lib";    
+        public const string PATH_PANGYA_IFF = "data/pangya_jp.iff";
+        public const int IFF_VERSION = 0x0D;
     }
     public class IPBan
     {
@@ -753,12 +767,7 @@ namespace PangyaAPI.Network.Pangya_St
         public CharacterInfo()
         {
             clear();
-        }
-
-        public CharacterInfo(Packet packet)
-        {
-
-        }
+        }       
 
         public enum Stats : int
         {

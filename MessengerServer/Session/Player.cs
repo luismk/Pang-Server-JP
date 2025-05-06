@@ -1,28 +1,17 @@
-﻿using MessengerServer.Cmd;
-using MessengerServer.Manager;
-using MessengerServer.MessengerServerTcp;
-using MessengerServer.GameType;
-using PangyaAPI.IFF.JP.Models.Data;
-using PangyaAPI.Network.Pangya_St;
-using PangyaAPI.Network.PangyaSession;
-using PangyaAPI.SQL.Manager;
-using PangyaAPI.Utilities;
-using PangyaAPI.Utilities.BinaryModels;
-using PangyaAPI.Utilities.Log;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography;
-
+﻿using MessengerServer.GameType; 
+using PangyaAPI.Network.PangyaPacket;
 namespace MessengerServer.Session
 {
-    public class Player : SessionBase
+    public class Player : PangyaAPI.Network.PangyaSession.Session
     {
         public PlayerInfo m_pi { get; set; }
-         public Player()
+ 
+        public Player(pangya_packet_handle_base _threadpool) : base(_threadpool)
         {
             m_pi = new PlayerInfo();
-         }
+        }
+           
+
         public override string getNickname()
         {
             return m_pi.nickname;
@@ -40,10 +29,10 @@ namespace MessengerServer.Session
 
         public override uint getCapability() { return (uint)m_pi.m_cap; }
 
-        public override bool Clear()
+        public override bool clear()
         {
             bool ret;
-            if ((ret = base.Clear()))
+            if ((ret = base.clear()))
             {
 
                 // Player Info
@@ -51,7 +40,11 @@ namespace MessengerServer.Session
                                  
             }
             return ret;
-        } 
-         
+        }
+
+        public override byte getStateLogged()
+        {
+            return 1;
+        }
     }
 }

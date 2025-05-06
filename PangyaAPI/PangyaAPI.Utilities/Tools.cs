@@ -13,6 +13,8 @@ using System.Web.UI.WebControls.WebParts;
 using System.Net.Sockets;
 using System.Globalization;
 using PangyaAPI.Utilities.BinaryModels;
+using System.Diagnostics.Contracts;
+using System.Diagnostics;
 
 namespace PangyaAPI.Utilities
 {
@@ -34,6 +36,88 @@ namespace PangyaAPI.Utilities
         // P/Invoke para chamar o getsockopt
         [DllImport("ws2_32.dll", SetLastError = true)]
         private static extern int getsockopt(IntPtr s, int level, int optname, ref int optval, ref int optlen);
+        public static (bool check, byte[] _buffer, int len) Read(this TcpClient client)
+        {
+            return client.GetStream().Read();
+        }
+        public static bool Send(this TcpClient client, byte[] buffer, int offset, int len)
+        {
+            return client.GetStream().Send(buffer, offset, len);
+        }
+        public static bool Send(this TcpClient client, byte[] buffer, int len = 0)
+        {
+            Debug.WriteLine("Send=>" + buffer.HexDump());
+            return client.GetStream().Send(buffer, 0, len);
+        }
+        public static bool Send(this TcpClient client, byte[] buffer)
+        {
+            return client.GetStream().Send(buffer);
+        }
+        public static bool Send(this NetworkStream stream, byte[] buffer)
+        {
+            try
+            {
+                stream.Write(buffer, 0, buffer.Length);
+
+                return (true);
+            }
+            catch (IOException ioEx)
+            {
+                Debug.WriteLine($"[Send] Erro de leitura: {ioEx.Message}");
+                return (false);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[Send] Erro inesperado: {ex.Message}");
+                return (false);
+            }
+        }
+
+        public static bool Send(this NetworkStream stream, byte[] buffer, int offset, int len)
+        {
+            try
+            {
+                stream.Write(buffer, offset, len);
+
+                return (true);
+            }
+            catch (IOException ioEx)
+            {
+                Debug.WriteLine($"[Send] Erro de leitura: {ioEx.Message}");
+                return (false);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[Send] Erro inesperado: {ex.Message}");
+                return (false);
+            }
+        }
+        public static (bool check, byte[] _buffer, int len) Read(this NetworkStream stream)
+        {
+            try
+            {
+                byte[] buffer = new byte[500000];
+                int bytesRead = stream.Read(buffer, 0, buffer.Length);
+
+                if (bytesRead == 0)
+                {
+                    Debug.WriteLine("O cliente desconectou durante a leitura.");
+                    return (false, new byte[0], 0);
+                }
+                buffer = buffer.Take(bytesRead).ToArray();
+                return (true, buffer.Take(bytesRead).ToArray(), bytesRead);
+            }
+            catch (IOException ioEx)
+            {
+                Debug.WriteLine($"[Read] Erro de leitura: {ioEx.Message}");
+                return (false, new byte[0], 0);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[Read] Erro inesperado: {ex.Message}");
+                return (false, new byte[0], 0);
+            }
+        }
 
         // Função para obter o tempo de conexão
         public static int GetConnectTime(this TcpClient socket)
@@ -52,7 +136,6 @@ namespace PangyaAPI.Utilities
             {
                 // Chama o getsockopt para obter o tempo de conexão
                 int result = getsockopt(socket.Client.Handle, SOL_SOCKET, SO_CONNECT_TIME, ref seconds, ref size_seconds);
-
                 if (result == 0)  // 0 significa sucesso
                 {
                     return seconds;  // Retorna o tempo de conexão em segundos
@@ -127,10 +210,10 @@ namespace PangyaAPI.Utilities
         {
             return new DateTime(Year, Month, Day, Hour, Minute, Second, MilliSecond);
         }
-        public _SYSTEMTIME(bool opt =false)
+        public _SYSTEMTIME(bool opt = false)
         {
             if (opt)
-            ConvertDateTimeToIFF(DateTime.Now);
+                ConvertDateTimeToIFF(DateTime.Now);
         }
         public _SYSTEMTIME ConvertDateTimeToIFF(DateTime date)
         {
@@ -145,36 +228,28 @@ namespace PangyaAPI.Utilities
         }
     }
 
-    public class Singleton<_ST> where _ST : new()
+    public class Singleton<_ST> where _ST : class, new()
     {
-
-        static readonly _ST myInstance = new _ST();
-
-        public Singleton() { }
+        private static _ST myInstance = default;
 
         public static _ST getInstance()
         {
-            return myInstance;
+            try
+            {
+                if (myInstance == null)
+                    myInstance = new _ST();
+
+                return myInstance;
+            }
+            catch (Exception e)
+            {
+
+                throw e;
+            }
         }
 
-        // Impede a clonagem do objeto
-        private object Clone()
+        protected Singleton()
         {
-            throw new NotSupportedException();
-        }
-
-        // Impede a serialização do objeto
-        [System.Runtime.Serialization.OnSerializing]
-        private void OnSerializing(System.Runtime.Serialization.StreamingContext context)
-        {
-            throw new NotSupportedException();
-        }
-
-        // Impede a desserialização do objeto
-        [System.Runtime.Serialization.OnDeserialized]
-        private void OnDeserialized(System.Runtime.Serialization.StreamingContext context)
-        {
-            throw new NotSupportedException();
         }
     }
     public class UtilTime
@@ -228,7 +303,7 @@ namespace PangyaAPI.Utilities
             return diff.Ticks / TimeSpan.TicksPerMillisecond;
         }
 
-        
+
         public static long UnixTimeConvert(DateTime? unixtime)
         {
             if (unixtime.HasValue == false || unixtime?.Ticks == 0)
@@ -237,7 +312,7 @@ namespace PangyaAPI.Utilities
             return (long)timeSpan.TotalSeconds;
         }
 
-        
+
         public static DateTime UnixTimeConvert(long unixtime)
         {
             DateTime dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
@@ -322,12 +397,12 @@ namespace PangyaAPI.Utilities
         {
             long fileTime = (time * 10000000) + 116444736000000000;
             FILETIME ft;
-           
+
             ft.dwLowDateTime = (int)fileTime;
             ft.dwHighDateTime = (int)(fileTime >> 32);
             return ft;
         }
-                  
+
         public static long TzLocalUnixToUnixUTC(long localUnixTime)
         {
             DateTimeOffset localTime = DateTimeOffset.FromUnixTimeSeconds(localUnixTime);
@@ -338,7 +413,7 @@ namespace PangyaAPI.Utilities
         public static string FormatDate(DateTime date)
         {
             return date.ToString("yyyy-MM-dd HH:mm:ss.fff");
-        }              
+        }
         // Função para traduzir data de Unix para SYSTEMTIME (UTC)
         public static int TranslateDateSystem(long timeUnix, out DateTime dateDst)
         {
@@ -368,7 +443,7 @@ namespace PangyaAPI.Utilities
 
             return 0;
         }
-                            
+
 
         // Função para formatar hora para string
         public static string FormatTime(DateTime date)
@@ -403,7 +478,7 @@ namespace PangyaAPI.Utilities
         }
     }
     public static class Tools
-    {             
+    {
         public static T IfCompare<T>(bool expression, T trueValue, T falseValue)
         {
             if (expression)
@@ -512,7 +587,7 @@ namespace PangyaAPI.Utilities
         public static void ClearArray(this Array array)
         {
             if (array != null)
-                Array.Clear(array, 0, array.Length);        
+                Array.Clear(array, 0, array.Length);
         }
 
         public static int SizeOf<T>(T structure)
@@ -523,6 +598,58 @@ namespace PangyaAPI.Utilities
         public static int SizeOf(Type t)
         {
             return Marshal.SizeOf(t);
+        }
+
+        public static T memcpy<T>(byte[] buffer, int offset = 0) where T : class
+        {
+            int size = Marshal.SizeOf<T>();
+
+            if (buffer == null || buffer.Length < offset + size)
+                throw new ArgumentException("Buffer inválido ou muito pequeno para o tipo especificado.");
+
+            byte[] raw = new byte[size];
+            Buffer.BlockCopy(buffer, offset, raw, 0, size);
+
+            GCHandle handle = GCHandle.Alloc(raw, GCHandleType.Pinned);
+            try
+            {
+                return Marshal.PtrToStructure<T>(handle.AddrOfPinnedObject());
+            }
+            finally
+            {
+                handle.Free();
+            }
+        }
+
+        public static byte[] Slice(this byte[] source, uint startIndex)
+        {
+            byte[] result = new byte[source.Length - startIndex];
+            Buffer.BlockCopy(source, (int)startIndex, result, 0, (int)(source.Length - startIndex));
+            return result;
+        }
+
+        public static byte[] memcpy(this byte[] source, int len)
+        {
+            byte[] result = new byte[len];
+            
+            Buffer.BlockCopy(source, 0, result, 0, len);
+            return result;
+        }
+
+        public static void BlockCpy(this byte[] source, byte[] dest, int index)
+        {
+            for (int i = 0; i < index; i++)
+            {
+                dest[index + i] = source[i];
+            }
+        }
+
+        public static void BlockCpy(this byte[] source, byte[] dest, int index, int len)
+        {
+            for (int i = 0; i < len; i++)
+            {
+                dest[i] = source[i];
+            }
         }
 
         public static int SizeOf<T>()
@@ -595,7 +722,7 @@ namespace PangyaAPI.Utilities
         {
             return string.IsNullOrEmpty(a);
         }
-        
+
         public static int size(this string a)
         {
             return a.Length;
@@ -915,30 +1042,30 @@ namespace PangyaAPI.Utilities
             PropertyInfo[] properties = obj.GetType().GetProperties();
             foreach (var propertyInfo in properties)
             {
-                stringname += "\n" +propertyInfo.Name +" = " + propertyInfo.GetValue(obj, null);
+                stringname += "\n" + propertyInfo.Name + " = " + propertyInfo.GetValue(obj, null);
                 //System.Diagnostics.Debug.WriteLine(propertyInfo.Name +" = " + propertyInfo.GetValue(obj, null));
-//                stringname = "";
+                //                stringname = "";
             }
             System.IO.File.WriteAllText(System.IO.Directory.GetCurrentDirectory() + "\\card.txt", stringname);
 
         }
 
-		public static string ByteArrayToString(byte[] ba)
-		{
-			StringBuilder stringBuilder = new StringBuilder(checked(ba.Length * 2));
-			foreach (byte b in ba)
-			{
-				stringBuilder.AppendFormat("{0:x2}", b);
-			}
-			return stringBuilder.ToString();
-		}
+        public static string ByteArrayToString(byte[] ba)
+        {
+            StringBuilder stringBuilder = new StringBuilder(checked(ba.Length * 2));
+            foreach (byte b in ba)
+            {
+                stringBuilder.AppendFormat("{0:x2}", b);
+            }
+            return stringBuilder.ToString();
+        }
 
-		public static string ByteToString(byte ba)
-		{
-			StringBuilder stringBuilder = new StringBuilder(2);
-			stringBuilder.AppendFormat("{0:x2}", ba);
-			return stringBuilder.ToString();
-		}
+        public static string ByteToString(byte ba)
+        {
+            StringBuilder stringBuilder = new StringBuilder(2);
+            stringBuilder.AppendFormat("{0:x2}", ba);
+            return stringBuilder.ToString();
+        }
 
         public static byte[] c_str(this string _string)
         {
@@ -947,137 +1074,137 @@ namespace PangyaAPI.Utilities
 
 
         public static List<string> lerArquivo(string arquivo, ref byte[] Inicio, ref long Qtd, int totalB)
-		{
-			byte[] array = File.ReadAllBytes(arquivo);
-			List<byte> list = new List<byte>();
-			List<string> list2 = new List<string>();
-			checked
-			{
-				int num = array.Length - 1;
-				int num2 = 0;
-				while (true)
-				{
-					int num3 = num2;
-					int num4 = num;
-					if (num3 > num4)
-					{
-						break;
-					}
-					if (num2 < 8)
-					{
-						list.Add(array[num2]);
-					}
-					list2.Add(ByteToString(array[num2]));
-					num2++;
-				}
-				Inicio = list.ToArray();
-				string value = ByteToString(list[3]) + ByteToString(list[2]) + ByteToString(list[1]) + ByteToString(list[0]);
-				Qtd = Convert.ToInt32(value, 16);
-				if (verificarEstrutura(array.Length, (int)Qtd, totalB))
-				{
-					return list2;
-				}
-				return list2;
-			}
-		}
+        {
+            byte[] array = File.ReadAllBytes(arquivo);
+            List<byte> list = new List<byte>();
+            List<string> list2 = new List<string>();
+            checked
+            {
+                int num = array.Length - 1;
+                int num2 = 0;
+                while (true)
+                {
+                    int num3 = num2;
+                    int num4 = num;
+                    if (num3 > num4)
+                    {
+                        break;
+                    }
+                    if (num2 < 8)
+                    {
+                        list.Add(array[num2]);
+                    }
+                    list2.Add(ByteToString(array[num2]));
+                    num2++;
+                }
+                Inicio = list.ToArray();
+                string value = ByteToString(list[3]) + ByteToString(list[2]) + ByteToString(list[1]) + ByteToString(list[0]);
+                Qtd = Convert.ToInt32(value, 16);
+                if (verificarEstrutura(array.Length, (int)Qtd, totalB))
+                {
+                    return list2;
+                }
+                return list2;
+            }
+        }
 
-		public static object lerArquivoCauldron(string arquivo, ref byte[] Inicio, ref long Qtd, int totalB)
-		{
-			byte[] array = File.ReadAllBytes(arquivo);
-			List<byte> list = new List<byte>();
-			List<string> list2 = new List<string>();
-			checked
-			{
-				int num = array.Length - 1;
-				int num2 = 0;
-				while (true)
-				{
-					int num3 = num2;
-					int num4 = num;
-					if (num3 > num4)
-					{
-						break;
-					}
-					if (num2 < 8)
-					{
-						list.Add(array[num2]);
-					}
-					list2.Add(ByteToString(array[num2]));
-					num2++;
-				}
-				Inicio = list.ToArray();
-				string value = ByteToString(list[1]) + ByteToString(list[0]);
-				Qtd = Convert.ToInt32(value, 16);
-				if (verificarEstrutura(array.Length, (int)Qtd, totalB))
-				{
-					return list2;
-				}
-				return false;
-			}
-		}
+        public static object lerArquivoCauldron(string arquivo, ref byte[] Inicio, ref long Qtd, int totalB)
+        {
+            byte[] array = File.ReadAllBytes(arquivo);
+            List<byte> list = new List<byte>();
+            List<string> list2 = new List<string>();
+            checked
+            {
+                int num = array.Length - 1;
+                int num2 = 0;
+                while (true)
+                {
+                    int num3 = num2;
+                    int num4 = num;
+                    if (num3 > num4)
+                    {
+                        break;
+                    }
+                    if (num2 < 8)
+                    {
+                        list.Add(array[num2]);
+                    }
+                    list2.Add(ByteToString(array[num2]));
+                    num2++;
+                }
+                Inicio = list.ToArray();
+                string value = ByteToString(list[1]) + ByteToString(list[0]);
+                Qtd = Convert.ToInt32(value, 16);
+                if (verificarEstrutura(array.Length, (int)Qtd, totalB))
+                {
+                    return list2;
+                }
+                return false;
+            }
+        }
 
-		public static bool verificarEstrutura(int bytes, int qtd, int total)
-		{
-			checked
-			{
-				double number = (double)(bytes + 8) / (double)total;
-				if ((Convert.ToInt32(number) < (double)(qtd + 100)) & (Convert.ToInt32(number) > (double)(qtd - 100)))
-				{
-					return true;
-				}
-				return false;
-			}
-		}
+        public static bool verificarEstrutura(int bytes, int qtd, int total)
+        {
+            checked
+            {
+                double number = (double)(bytes + 8) / (double)total;
+                if ((Convert.ToInt32(number) < (double)(qtd + 100)) & (Convert.ToInt32(number) > (double)(qtd - 100)))
+                {
+                    return true;
+                }
+                return false;
+            }
+        }
 
-		public static object StringToByte(string Str)
-		{
-			ASCIIEncoding aSCIIEncoding = new ASCIIEncoding();
-			return aSCIIEncoding.GetBytes(Str);
-		}
+        public static object StringToByte(string Str)
+        {
+            ASCIIEncoding aSCIIEncoding = new ASCIIEncoding();
+            return aSCIIEncoding.GetBytes(Str);
+        }
 
-		
-		public static List<List<string>> dividirArquivo(List<string> Lista, int tamanho)
-		{
-			List<List<string>> list = new List<List<string>>();
-			List<string> list2 = new List<string>();
-			new List<byte>();
-			int num = 0;
-			int num2 = 0;
-			checked
-			{
-				int num3 = Lista.Count - 1;
-				int num4 = 0;
-				while (true)
-				{
-					int num5 = num4;
-					int num6 = num3;
-					if (num5 > num6)
-					{
-						break;
-					}
-					if (num4 >= 8)
-					{
-						if (num < tamanho - 1)
-						{
-							num++;
-						}
-						else
-						{
-							num2++;
-							num = 0;
-						}
-						list2.Add(Lista[num4]);
-						if (unchecked(num == 0 && num2 > 0))
-						{
-							list.Add(list2);
-							list2 = new List<string>();
-						}
-					}
-					num4++;
-				}
-				return list;
-			}
-		}
 
-	}
+        public static List<List<string>> dividirArquivo(List<string> Lista, int tamanho)
+        {
+            List<List<string>> list = new List<List<string>>();
+            List<string> list2 = new List<string>();
+            new List<byte>();
+            int num = 0;
+            int num2 = 0;
+            checked
+            {
+                int num3 = Lista.Count - 1;
+                int num4 = 0;
+                while (true)
+                {
+                    int num5 = num4;
+                    int num6 = num3;
+                    if (num5 > num6)
+                    {
+                        break;
+                    }
+                    if (num4 >= 8)
+                    {
+                        if (num < tamanho - 1)
+                        {
+                            num++;
+                        }
+                        else
+                        {
+                            num2++;
+                            num = 0;
+                        }
+                        list2.Add(Lista[num4]);
+                        if (unchecked(num == 0 && num2 > 0))
+                        {
+                            list.Add(list2);
+                            list2 = new List<string>();
+                        }
+                    }
+                    num4++;
+                }
+                return list;
+            }
+        }
+
+    }
 }

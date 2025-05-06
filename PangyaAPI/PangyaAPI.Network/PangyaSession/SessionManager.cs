@@ -4,34 +4,44 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
 using System.Net;
-using PangyaAPI.Network.PangyaServer;
-using System.Threading;
-using PangyaAPI.Network.PangyaUnit;
+using PangyaAPI.Network.PangyaServer; 
+using PangyaAPI.Network.PangyaPacket;
 
 namespace PangyaAPI.Network.PangyaSession
 {
     public class SessionManager
     {
         public readonly uint m_max_session;
-        public readonly List<SessionBase> m_sessions = new List<SessionBase>();
-        private readonly List<SessionBase> m_session_del = new List<SessionBase>();
-        private uint _ttl;
+        public readonly List<Session> m_sessions = new List<Session>();
+        private readonly List<Session> m_session_del = new List<Session>();
+        private uint m_ttl;
         public uint m_count = 0;
-        private static bool _isInit = false;
-        private readonly IniHandle m_reader_ini;
+        private static bool m_is_init = false;
+        protected IniHandle m_reader_ini;
         public readonly object _lockObject = new object();
-
-        public SessionManager(uint maxSession)
+        public pangya_packet_handle_base m_threadpool;
+        public SessionManager(pangya_packet_handle_base _threadpool, uint _max_session)
         {
-            m_max_session = maxSession;
-            m_reader_ini = new IniHandle("server.ini");
-            loadini();
-            _isInit = true;
+            m_threadpool = _threadpool;
+            m_max_session = _max_session;
+            m_ttl = 0u;
+            // Carrega as config do arquivo server.ini
+            config_init();
+            m_is_init = true;
         }
 
-        public void loadini()
+        public void config_init()
         {
-            _ttl = m_reader_ini.ReadUInt32("OPTION", "TTL", 0);
+            try
+            {
+                m_reader_ini = new IniHandle("server.ini");
+//read file
+                m_ttl = m_reader_ini.ReadUInt32("OPTION", "TTL", 0);
+            }
+            catch (Exception e)
+            { 
+                throw;
+            }
         }
 
         public virtual void Clear()
@@ -47,160 +57,127 @@ namespace PangyaAPI.Network.PangyaSession
             }
         }
 
-        public SessionBase AddSession(Server _server,TcpClient socket, IPEndPoint address, byte key)
+        public Session AddSession(Server _server, TcpClient socket, IPEndPoint address, byte key)
         {
             if (socket == null || !socket.Connected)
             {
-                throw new InvalidOperationException("[SessionManager::AddSession] _client is invalid.");
+                throw new InvalidOperationException("[SessionManager::AddSession] m_sock is invalid.");
             }
 
-            SessionBase session = null;
+            Session pSession = null;
             lock (_lockObject)
             {
-                uint index = findSessionFree();
-                if (index == uint.MaxValue)
+                int index = findSessionFree();
+                if (index == int.MaxValue)
                 {
-                    throw new InvalidOperationException("[SessionManager::AddSession] Already reached session limit.");
+                    throw new InvalidOperationException("[SessionManager::AddSession] Already reached Session limit.");
                 }
                 //socket.ReceiveTimeout = 60000; // 20 segundos
                 //socket.SendTimeout = 60000;
-                session = m_sessions[(int)index];
-                session._client = socket;
-                session.Server = _server;// server! 
-                session.Address = address;
-                session.m_key = key;
-                session.m_oid = index;
-                session.m_start_time = Environment.TickCount;
-                session.m_tick = Environment.TickCount;
+                pSession = m_sessions[index];   
+                pSession.m_sock = socket;
+                pSession.Server = _server;
+                pSession.m_addr = address;
+                pSession.m_key = key;
+                pSession.m_oid = index;
+                pSession.m_time_start = pSession.m_tick = Environment.TickCount;
 
-                session.SetState(true);
+                pSession.setState(true);
+                pSession.setConnected(true);
 
-                m_count++;
+                m_count++;   
             }
 
-            return session;
-        }
+            return pSession;
+        }   
 
-        public SessionBase AddSession(unit _server, TcpClient socket, IPEndPoint address, byte key)
-        {
-            if (socket == null || !socket.Connected)
-            {
-                throw new InvalidOperationException("[SessionManager::AddSession] _client is invalid.");
-            }
-
-            SessionBase session = null;
-            lock (_lockObject)
-            {
-                uint index = findSessionFree();
-                if (index == uint.MaxValue)
-                {
-                    throw new InvalidOperationException("[SessionManager::AddSession] Already reached session limit.");
-                }
-                //socket.ReceiveTimeout = 60000; // 20 segundos
-                //socket.SendTimeout = 60000;
-                session = m_sessions[(int)index];
-                session._client = socket;
-                session.Address = address;
-                session.m_key = key;
-                session.m_oid = index;
-                session.m_start_time = Environment.TickCount;
-                session.m_tick = Environment.TickCount;
-
-                session.SetState(true);
-
-                m_count++;
-            }
-
-            return session;
-        }
-
-        public virtual bool DeleteSession(SessionBase session)
+        public virtual bool DeleteSession(Session session)
         {
             if (session == null)
             {
-                throw new ArgumentNullException(nameof(session), "[SessionManager::DeleteSession] session is null.");
+                throw new ArgumentNullException(nameof(session), "[SessionManager::DeleteSession] Session is null.");
             }
 
             bool ret = true;
             lock (_lockObject)
             {
-                if (!session.getState() && session._client == null)
+                if (!session.getState() && session.m_sock == null)
                 {
-                    throw new InvalidOperationException("[SessionManager::DeleteSession] SessionBase is not connected.");
+                    throw new InvalidOperationException("[SessionManager::DeleteSession] Session is not connected.");
                 }
 
-                session.Lock();
-                                                
-                if (ret = session.Clear())
-                {                                            
-                    m_count--; 
-                }
-                session.Unlock();
+                session.@lock();
+
+                if (ret = session.clear())
+                    m_count--;
+
+                session.unlock();
             }
-
+            if (m_sessions.Count(c => c.isConnected() == true) != m_count)
+                m_count = (uint)m_sessions.Count(c => c.isConnected() == true);
             return ret;
         }
 
 
-        public List<SessionBase> findAllGM()
+        public List<Session> findAllGM()
         {
-            List<SessionBase> v_gm = new List<SessionBase>();
+            List<Session> v_gm = new List<Session>();
 
-            foreach (SessionBase el in m_sessions)
+            foreach (Session el in m_sessions)
             {
-                if ((el.getCapability() & 4) != 0 || (el.getCapability() & 128 ) != 0)    // GM
+                if ((el.getCapability() & 4) != 0 || (el.getCapability() & 128) != 0)    // GM
                     v_gm.Add(el);
             }
 
             return v_gm;
         }
-        public virtual SessionBase FindSessionByOid(uint oid)
+        public virtual Session FindSessionByOid(uint oid)
         {
-            SessionBase session = null;
+            Session session = null;
             lock (_lockObject)
             {
-                foreach (var el in m_sessions.Where(el=> el._client != null))
+                foreach (var el in m_sessions.Where(el => el.m_sock != null))
                 {
                     if (el.m_oid == oid)
-                        session = el;    
+                        session = el;
                 }
             }
             return session;
         }
 
-        public virtual SessionBase findSessionByUID(uint uid)
+        public virtual Session findSessionByUID(uint uid)
         {
-            SessionBase session = null;
+            Session session = null;
             lock (_lockObject)
             {
-                session = m_sessions.FirstOrDefault(el => el._client != null && el.getUID() == uid);
+                session = m_sessions.FirstOrDefault(el => el.m_sock != null && el.getUID() == uid);
             }
             return session;
         }
 
-        public virtual List<SessionBase> FindAllSessionByUid(uint uid)
+        public virtual List<Session> FindAllSessionByUid(uint uid)
         {
-            List<SessionBase> sessions = new List<SessionBase>();
+            List<Session> sessions = new List<Session>();
             lock (_lockObject)
             {
-                sessions = m_sessions.Where(el => el._client != null && el.getUID() == uid).ToList();
+                sessions = m_sessions.Where(el => el.m_sock != null && el.getUID() == uid).ToList();
             }
             return sessions;
         }
 
-        public virtual SessionBase FindSessionByNickname(string nickname)
+        public virtual Session FindSessionByNickname(string nickname)
         {
-            SessionBase session = null;
+            Session session = null;
             lock (_lockObject)
             {
-                session = m_sessions.FirstOrDefault(el => el._client != null && el.Nickname == nickname);
+                session = m_sessions.FirstOrDefault(el => el.m_sock != null && el.getNickname() == nickname);
             }
             return session;
         }
 
-        public SessionBase GetSessionToDelete(int timeoutMs)
+        public Session GetSessionToDelete(int timeoutMs)
         {
-            SessionBase session = null;
+            Session session = null;
             try
             {
                 session = m_session_del.FirstOrDefault(); // Simulate the `get` functionality here with a simple select.
@@ -222,10 +199,10 @@ namespace PangyaAPI.Network.PangyaSession
         {
             foreach (var session in m_sessions)
             {
-                if (session._client != null)
+                if (session.m_sock != null)
                 {
-                    int connTime = session._client.GetConnectTime();
-                    if (!session.IsCreated())
+                    int connTime = session.m_sock.GetConnectTime();
+                    if (!session.isCreated())
                     {
                         m_session_del.Add(session);
                     }
@@ -233,7 +210,7 @@ namespace PangyaAPI.Network.PangyaSession
                     {
                         m_session_del.Add(session);
                     }
-                    else if (_ttl > 0 && (Environment.TickCount - session.m_tick) > (_ttl / 1000.0))
+                    else if (m_ttl > 0 && (Environment.TickCount - session.m_tick) > (m_ttl / 1000.0))
                     {
                         m_session_del.Add(session);
                     }
@@ -241,12 +218,12 @@ namespace PangyaAPI.Network.PangyaSession
             }
         }
 
-        public bool IsFull()
+        public bool isFull()
         {
             bool isFull;
             lock (_lockObject)
             {
-                isFull = m_sessions.Count(session => session._client != null) == m_sessions.Count;
+                isFull = m_sessions.Count(session => session.m_sock != null) == m_sessions.Count;
             }
             return isFull;
         }
@@ -263,21 +240,37 @@ namespace PangyaAPI.Network.PangyaSession
 
         public bool IsInit()
         {
-            return _isInit;
+            return m_is_init;
         }
 
-        public virtual uint findSessionFree()
-        {           
-            uint i = 0;
+        public virtual int findSessionFree()
+        {
+            int i = 0;
             foreach (var _session in m_sessions)
             {
-                if (_session.m_oid == uint.MaxValue)
+                if (_session.m_oid == int.MaxValue)
                 {
                     return i;
                 }
                 i++;
             }
-            return uint.MaxValue;
+            return int.MaxValue;
         }
+
+        public bool HasSessionWithIP(string ip)
+        {
+            return m_sessions.Any(s => s.isConnected() && s.getIP() == ip);
+        }
+
+        public Session findSessionByIP(string ip)
+        {
+            return m_sessions.FirstOrDefault(s => s.isConnected() && s.getIP() == ip);
+        }
+
+        public List<Session> findAllSessionByIP(string ip)
+        {
+            return m_sessions.Where(s => s.isConnected() && s.getIP() == ip).ToList();
+        }
+
     }
 }

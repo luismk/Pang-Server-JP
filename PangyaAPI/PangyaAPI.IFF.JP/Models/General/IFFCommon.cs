@@ -197,7 +197,7 @@ namespace PangyaAPI.IFF.JP.Models.General
             // Ex: 0 + 1 = 1 OK
             // Ex: 0 + 0 = 0 N�o �
             byte is_giftable = Convert.ToByte(Shop.flag_shop.IsGift);
-            byte _is_saleable = Convert.ToByte(Shop.flag_shop.IsSale);
+            byte _is_saleable = Convert.ToByte(Shop.flag_shop.is_saleable);
             if (Active && Shop.flag_shop.IsCash
                     && (_is_saleable ^ is_giftable) == 1)
             {
@@ -217,14 +217,14 @@ namespace PangyaAPI.IFF.JP.Models.General
 
         public bool IsOnlyPurchase()
         {
-            return (Active && Shop.flag_shop.IsSale
+            return (Active && Shop.flag_shop.is_saleable
                     && Shop.flag_shop.IsGift);
         }
 
         public bool IsOnlyGift()
         {
             return (Active && Shop.flag_shop.IsCash
-                    && Shop.flag_shop.IsSale && Shop.flag_shop.IsGift == false);
+                    && Shop.flag_shop.is_saleable && Shop.flag_shop.IsGift == false);
         }
 
         public bool IsPSQ()
@@ -328,7 +328,7 @@ namespace PangyaAPI.IFF.JP.Models.General
                 {
                     return true;
                 }
-                if (!Shop.flag_shop.IsNormal && (!Shop.flag_shop.IsSale || !Shop.flag_shop.can_send_mail_and_personal_shop || !Shop.flag_shop.IsDuplication) && !Shop.flag_shop.IsNew && !IsGiftItem() && !Shop.flag_shop.IsHot && !Shop.flag_shop.IsDisplay)
+                if (!Shop.flag_shop.IsNormal && (!Shop.flag_shop.is_saleable || !Shop.flag_shop.can_send_mail_and_personal_shop || !Shop.flag_shop.IsDuplication) && !Shop.flag_shop.IsNew && !IsGiftItem() && !Shop.flag_shop.IsHot && !Shop.flag_shop.IsDisplay)
                 {
                     return true;
                 }

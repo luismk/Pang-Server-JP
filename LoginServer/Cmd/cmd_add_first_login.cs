@@ -16,9 +16,7 @@ namespace LoginServer.Cmd
 			public CmdAddFirstLogin(uint _uid,
 				byte _flag)
 				{
-// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
-this.m_uid = _uid;
-				this.m_uid.CopyFrom(_uid);
+this.m_uid = _uid; 
 				this.m_flag = _flag;
 				}
 
@@ -28,14 +26,12 @@ this.m_uid = _uid;
 
 			public uint getUID()
 			{
-				return new uint(m_uid);
+				return (m_uid);
 			}
 
 			public void setUID(uint _uid)
 			{
-// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
-m_uid = _uid;
-				m_uid.CopyFrom(_uid);
+ m_uid = _uid; 
 			}
 
 			public byte getFLag()
@@ -54,24 +50,16 @@ m_uid = _uid;
 				// N�o usa por que � um UPDATE
 			}
 
-			protected override response prepareConsulta()
+			protected override Response prepareConsulta()
 			{
 
-				var r = _update(_db, m_szConsulta[0] + Convert.ToString((ushort)m_flag) + m_szConsulta[1] + Convert.ToString(m_uid));
+				var r = _update(m_szConsulta[0] + Convert.ToString((ushort)m_flag) + m_szConsulta[1] + Convert.ToString(m_uid));
 
 				checkResponse(r, "nao conseguiu atualizar o first login do player: " + Convert.ToString(m_uid));
 
 				return r;
 			}
-
-			protected override string _getName()
-			{
-				return "CmdAddFirstLogin";
-			}
-			protected override string _wgetName()
-			{
-				return "CmdAddFirstLogin";
-			}
+		 
 
 			private uint m_uid = new uint();
 			private byte m_flag;

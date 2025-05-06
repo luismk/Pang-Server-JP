@@ -61,8 +61,9 @@ namespace PangyaAPI.Network.Cryptor
             if (serverCryptKey >= 0x10) throw new ArgumentOutOfRangeException(nameof(serverCryptKey), $"Key too large ({serverCryptKey} >= 0x10)");
 
             if (source.Length < 8)
-                throw new ArgumentOutOfRangeException(nameof(source), $"Packet too small ({source.Length} < 8)");
-
+            {
+                return source; 
+            }
             byte oracleByte = CryptoOracle.CryptTable2[(serverCryptKey << 8) + source[0]];
             byte[] buffer = (byte[])source.Clone();
 
@@ -72,7 +73,14 @@ namespace PangyaAPI.Network.Cryptor
 
             byte[] compressedData = new byte[source.Length - 8];
             Array.Copy(buffer, 8, compressedData, 0, source.Length - 8);
-            return MiniLzo.Decompress(compressedData);
+            try
+            {
+                return MiniLzo.Decompress(compressedData);
+            }
+            catch (Exception)
+            { 
+                return source;
+            }
         }
 
         public static uint DecryptClient(uint source)

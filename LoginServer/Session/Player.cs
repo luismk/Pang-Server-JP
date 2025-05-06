@@ -1,15 +1,22 @@
-﻿using LoginServer.GameType;
+﻿using System.Net;
+using System.Net.Sockets;
+using LoginServer.GameType;
+using PangyaAPI.Network.PangyaPacket;
 using PangyaAPI.Network.PangyaSession;
+using PangyaAPI.Network.PangyaUtil;
 
 namespace LoginServer.Session
 {
-    public class Player : SessionBase
+    public class Player : PangyaAPI.Network.PangyaSession.Session
     {
         public PlayerInfo m_pi { get; set; }
-         public Player()
+
+        public Player(pangya_packet_handle_base _threadpool) : base(_threadpool)
         {
             m_pi = new PlayerInfo();
-         }
+        }
+
+
         public override string getNickname()
         {
             return m_pi.nickname;
@@ -27,18 +34,22 @@ namespace LoginServer.Session
 
         public override uint getCapability() { return (uint)m_pi.m_cap; }
 
-        public override bool Clear()
+        public override bool clear()
         {
             bool ret;
-            if ((ret = base.Clear()))
+            if ((ret = base.clear()))
             {
 
                 // Player Info
                 m_pi.clear();
-                                 
+
             }
             return ret;
-        } 
-         
+        }
+
+        public override byte getStateLogged()
+        {
+            return 1;
+        }
     }
 }

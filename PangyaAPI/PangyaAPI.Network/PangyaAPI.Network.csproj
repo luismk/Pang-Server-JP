@@ -31,6 +31,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -73,20 +76,28 @@
     <Compile Include="Cryptor\CryptoOracle.cs" />
     <Compile Include="Cryptor\MiniLzo.cs" />
     <Compile Include="Cryptor\ToServerBuffer.cs" />
+    <Compile Include="PangyaCrypt\crypt.cs" />
+    <Compile Include="PangyaNative\Interop.cs" />
     <Compile Include="PangyaPacket\Packet.cs" />
     <Compile Include="PangyaPacket\func_arr.cs" />
     <Compile Include="PangyaPacket\packet_func_base.cs" />
     <Compile Include="PangyaServer\Server.cs" />
+    <Compile Include="PangyaSession\Session.cs" />
     <Compile Include="PangyaSession\SessionBase.cs" />
     <Compile Include="PangyaSession\SessionBaseSend.cs" />
     <Compile Include="PangyaSession\SessionManager.cs" />
     <Compile Include="PangyaSt\Pangya_St.cs" />
     <Compile Include="PangyaSt\sIff.cs" />
+    <Compile Include="PangyaPacket\pangya_packet_handle_base.cs" />
+    <Compile Include="PangyaPacket\pangya_packet_packet_handle_server.cs" />
     <Compile Include="PangyaUnit\unit.cs" />
     <Compile Include="PangyaUnit\unit_auth_interface.cs" />
     <Compile Include="PangyaUnit\unit_auth_server_connect.cs" />
     <Compile Include="PangyaUnit\unit_connect.cs" />
+    <Compile Include="PangyaUtil\PangyaBuffer.cs" />
+    <Compile Include="PangyaUtil\WinPort.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="PangyaPacket\pangya_packet_handle.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\PangyaAPI.IFF.JP\PangyaAPI.IFF.JP.csproj">
@@ -101,6 +112,12 @@
       <Project>{1e2be994-1794-47ce-b66b-65f02d42570c}</Project>
       <Name>PangyaAPI.Utilities</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="PangyaThread\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

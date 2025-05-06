@@ -7,17 +7,15 @@ using PangyaAPI.Network.Pangya_St;
 using System.Threading;
 using PangyaAPI.Utilities.Log;
 using PangyaAPI.Utilities;
-using PangyaAPI.Network.PangyaPacket;
 using PangyaAPI.SQL.Manager;
 using PangyaAPI.SQL;
 using PangyaAPI.Network.Cmd;
 using PangyaAPI.Network.PangyaSession;
-using System.IO;
 using System.Linq;
-using System.Diagnostics;
 using PangyaAPI.Network.Cryptor;
 using System.Threading.Tasks;
 using PangyaAPI.Network.PangyaUnit;
+using PangyaAPI.Network.PangyaPacket;
 
 namespace PangyaAPI.Network.PangyaServer
 {
@@ -29,10 +27,12 @@ namespace PangyaAPI.Network.PangyaServer
         Initialized,
         Failure
     }
-    public abstract partial class Server : IUnitAuthServer
+    public abstract class Server : pangya_packet_packet_handle_server, IUnitAuthServer
     {
         #region Fields
 
+        // Shutdown timer
+        public System.Threading.Timer m_shutdown;                                                                    
 
         public ServerState m_state;
         //DECRYPT FIELDS
@@ -40,14 +40,16 @@ namespace PangyaAPI.Network.PangyaServer
         private ToServerBuffer ToServerBuffer = new ToServerBuffer();
         private List<string> v_mac_ban_list;
         private List<IPBan> v_ip_ban_list;
-        public  readonly SessionManager m_session_manager;
-        public ServerInfoEx m_si;
+        public SessionManager m_session_manager;
+        public ServerInfoEx m_si = new ServerInfoEx();
         private int m_Bot_TTL; // Anti-bot Time-to-live
         private bool m_chatDiscord;
         public bool _isRunning => m_state == ServerState.Good;
         public IniHandle m_reader_ini { get; set; }
-        public List<TableMac> ListBlockMac { get; set; }
-        public List<ServerInfo> m_server_list { get; set; }
+        public List<TableMac> ListBlockMac { get; set; } = new List<TableMac>();
+        public List<ServerInfo> m_server_list { get; set; } = new List<ServerInfo>();
+        public IntPtr EventMoreAccept { get; private set; }
+
         public ServerInfoEx getInfo() => m_si;
         public uint getUID() => (uint)(m_si?.uid);
         public TcpListener _server;
@@ -62,70 +64,75 @@ namespace PangyaAPI.Network.PangyaServer
         /// <summary>
         /// check packet, packet is real
         /// </summary>
-        /// <param db_name="session"></param>
+        /// <param db_name="Session"></param>
         /// <param db_name="packet"></param>
         /// <returns></returns>
-        public abstract bool CheckPacket(SessionBase session, Packet packet);
+        public abstract bool CheckPacket(Session session, packet _packet);
         /// <summary>
         /// disconnect players !
         /// </summary>
         /// <param db_name="_session"></param>
-        public abstract void onDisconnected(SessionBase _session);
+        public abstract void onDisconnected(Session _session);
 
         /// <summary>
         /// Send Key
         /// </summary>
         /// <param name="_session"></param>
-        protected abstract void onAcceptCompleted(SessionBase _session);
+        protected abstract void onAcceptCompleted(Session _session);
 
         #endregion
 
         #region Constructor
-        public Server(SessionManager manager)
+        public Server()
         {
             try
-            {
-                m_server_list = new List<ServerInfo>();
-
+            {                     
                 m_state = ServerState.Uninitialized;
-
-                m_reader_ini = new IniHandle("server.ini");
-
-
-                ConfigInit();
-
-                m_session_manager = manager;
-
+                                                            
+                config_init(); 
                 // Inicializa o Unit_Connect, que conecta com o Auth Server
-                m_unit_connect = new unit_auth_server_connect(this, m_si);
+               /// m_unit_connect = new unit_auth_server_connect(this, m_si);
             }
             catch (exception e)
             {
                 _smp::message_pool.push(new message("[server::construtor][Error] " + e.getFullMessageError(), type_msg.CL_ONLY_CONSOLE));
             }
         }
+         
+        public void set_sessionManager(SessionManager manager)
+        {
+            m_session_manager = manager;
+        }
 
         #endregion
 
         #region Private Methods    
 
-        public virtual void ConfigInit()
+        public virtual void config_init()
         {
-            m_reader_ini = new IniHandle("server.ini");
-            m_si = new ServerInfoEx
+            try
             {
-                version = m_reader_ini.ReadString("SERVERINFO", "VERSION"),
-                version_client = m_reader_ini.ReadString("SERVERINFO", "CLIENTVERSION"),
-                nome = m_reader_ini.ReadString("SERVERINFO", "NAME", "Pangya Server Csharp"),
-                uid = m_reader_ini.ReadInt32("SERVERINFO", "GUID"),
-                port = m_reader_ini.ReadInt32("SERVERINFO", "PORT"),
-                ip = m_reader_ini.ReadString("SERVERINFO", "IP"),
-                max_user = m_reader_ini.ReadInt32("SERVERINFO", "MAXUSER"),
-                propriedade = new uProperty(m_reader_ini.ReadUInt32("SERVERINFO", "PROPERTY")),
-                rate = new RateConfigInfo(),
-                event_flag = new uEventFlag(),
-                flag = new uFlag(0)
-            };
+                m_reader_ini = new IniHandle("server.ini");
+                m_si = new ServerInfoEx
+                {
+                    version = m_reader_ini.ReadString("SERVERINFO", "VERSION"),
+                    version_client = m_reader_ini.ReadString("SERVERINFO", "CLIENTVERSION"),
+                    nome = m_reader_ini.ReadString("SERVERINFO", "NAME", "Pangya Server Csharp"),
+                    uid = m_reader_ini.ReadInt32("SERVERINFO", "GUID"),
+                    port = m_reader_ini.ReadInt32("SERVERINFO", "PORT"),
+                    ip = m_reader_ini.ReadString("SERVERINFO", "IP"),
+                    max_user = m_reader_ini.ReadInt32("SERVERINFO", "MAXUSER"),
+                    propriedade = new uProperty(m_reader_ini.ReadUInt32("SERVERINFO", "PROPERTY")),
+                    rate = new RateConfigInfo(),
+                    event_flag = new uEventFlag(),
+                    flag = new uFlag(0)
+                };
+            }
+            catch (exception e)
+            {
+                _smp::message_pool.push(new message("[server::config_init][Error] " + e.getFullMessageError(), type_msg.CL_ONLY_CONSOLE));
+             }
+
             try
             {
                 m_Bot_TTL = m_reader_ini.ReadInt32("OPTION", "ANTIBOTTTL", 1000);
@@ -147,15 +154,27 @@ namespace PangyaAPI.Network.PangyaServer
             {
                 try
                 {
+                    var newClient = _server.AcceptTcpClient();
+                    var remoteEndPoint = newClient.Client.RemoteEndPoint as IPEndPoint;
+                    string ipAddress = remoteEndPoint?.Address.ToString();
 
-                    TcpClient newClient = _server.AcceptTcpClient();
-                    newClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
+                    // Verifica se já existe conexão com o mesmo IP 
+                    if (m_session_manager.HasSessionWithIP(ipAddress) && m_session_manager.findAllSessionByIP(ipAddress).Count > 1)
+                    {
+                        newClient.Close(); // Rejeita
+                        var _session = m_session_manager.findSessionByIP(ipAddress);
+
+                        _session.Disconnect();
+                        _smp.message_pool.push(new message($"[Server] IP {ipAddress} já conectado. Conexão rejeitada.", type_msg.CL_FILE_LOG_AND_CONSOLE));
+
+                        continue;
+                    }
+                    init_option_accepted_socket(newClient.Client);
+
                     // Processa o cliente utilizando o pool de threads
-                    Task.Run(() => HandleSession(newClient));
-
+                    Task.Run(() => accept_completed(newClient));
                 }
-
-                catch (exception e) // Exceção específica da aplicação
+                catch (exception e)
                 {
                     _smp.message_pool.push(new message(
                         $"[Server.HandleWaitConnections][ErrorSystem] {e.getFullMessageError()}",
@@ -167,7 +186,7 @@ namespace PangyaAPI.Network.PangyaServer
         /// <summary>
         /// Manuseia Comunicação do Cliente
         /// </summary>
-        private void HandleSession(TcpClient client)
+        protected override void accept_completed(TcpClient client)
         {
             //add player
             var Session = m_session_manager.AddSession(this, client, client.Client.RemoteEndPoint as IPEndPoint, (byte)(new Random().Next() % 16));
@@ -175,80 +194,9 @@ namespace PangyaAPI.Network.PangyaServer
             _smp.message_pool.push(new message("[server::HandleSession][Log] New Player Connected [IP: " + Session.getIP() + ", Key: " + Session.m_key + "]", type_msg.CL_FILE_LOG_AND_CONSOLE));
 
             onAcceptCompleted(Session);
-
-
-            while (Session.getConnected())
-            {
-                try
-                {
-                    if (!Session.getConnected())
-                    {
-                        DisconnectSession(Session);
-                        break;
-                    }
-
-                    byte[] message = ReceivePacket(client.GetStream());
-
-                    if (message.Length >= 5)
-                    {
-                        ////New
-                        //var decryptedPackets = ToServerBuffer.PutPacket(message, Session.m_key);
-
-                        //foreach (var packet in decryptedPackets)
-                        //{
-                        //Dispara evento OnPacketReceived
-                        DispatchPacketSameThread(Session, new Packet(message, Session.m_key)); // Processa o pacote recebido
-                        //}             
-                    }
-                    else
-                    {
-                        DisconnectSession(Session);
-                        break;
-                    }
-                }
-                catch (exception erro)
-                {
-                    try
-                    {
-                        if (erro.Message.ToUpper().Contains("FOI FORÇADO O CANCELAMENTO DE UMA CONEXÃO EXISTENTE PELO HOST REMOTO."))
-                        {
-                            DisconnectSession(Session);
-                            return;
-                        }
-                        message_pool.push(new message("[server::HandleSession][IOError] " + erro.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
-                    }
-                    catch { }
-                }
-            }
-            DisconnectSession(Session);
         }
 
-        protected byte[] ReceivePacket(NetworkStream stream)
-        {
-            try
-            {
-                byte[] buffer = new byte[500000];
-                int bytesRead = stream.Read(buffer, 0, buffer.Length);
-
-                if (bytesRead == 0)
-                {
-                    Debug.WriteLine("O cliente desconectou durante a leitura.");
-                    return new byte[0];
-                }
-
-                return buffer.Take(bytesRead).ToArray();
-            }
-            catch (IOException ioEx)
-            {
-                Debug.WriteLine($"[ReceivePacket] Erro de leitura: {ioEx.Message}");
-                return new byte[0];
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[ReceivePacket] Erro inesperado: {ex.Message}");
-                return new byte[0];
-            }
-        }
+       
 
         protected void OnMonitor()
         {
@@ -355,9 +303,9 @@ namespace PangyaAPI.Network.PangyaServer
             v_mac_ban_list = cmd_lmb.getList();
         }
 
-        protected void DispatchPacketSVThread(SessionBase session, Packet packet)
+        protected override void dispach_packet_sv_same_thread(Session session, packet _packet)
         {
-            if (session == null || session.getConnected() == false || packet == null)
+            if (session == null || session.isConnected() == false || _packet == null)
             {
                 return;//nao esta mais conectado!
             }
@@ -367,11 +315,11 @@ namespace PangyaAPI.Network.PangyaServer
             try
             {
                 // Obtém a função correspondente ao tipo de pacote
-                func = packet_func_base.funcs_sv.getPacketCall(packet.Id);
+                func = packet_func_base.funcs_sv.getPacketCall(_packet.getTipo());
             }
             catch (exception e)
             {
-                _smp::message_pool.push(new message($"[Server.DispatchPacketSameThread][ErrorSystem] {e.Message}, {e.getStackTrace()}"));
+                _smp::message_pool.push(new message($"[Server.DispatchpacketSameThread][ErrorSystem] {e.Message}, {e.getStackTrace()}"));
                 // Desconecta a sessão
                 DisconnectSession(session);
             }
@@ -384,23 +332,23 @@ namespace PangyaAPI.Network.PangyaServer
                 var pd = new ParamDispatch
                 {
                     _session = session,
-                    _packet = packet
+                    _packet = _packet
                 };
 
-                if (CheckPacket(session, packet))
+                if (CheckPacket(session, _packet))
                 {
                     try
                     {
                         if (func != null && func.ExecCmd(pd) != 0)
                         {
-                            _smp.message_pool.push(new message($"[Server.DispatchPacketSameThread][Error][MY] Ao tratar o pacote. ID: {packet.Id}(0x{packet.Id:X})," + pd._packet.Log(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                           // _smp.message_pool.push(new message($"[Server.DispatchpacketSameThread][Error][MY] Ao tratar o pacote. ID: {_packet.getTipo()}(0x{_packet.getTipo():X})," + pd._packet.Log(), type_msg.CL_FILE_LOG_AND_CONSOLE));
                             DisconnectSession(session);
                         }
                     }
 
                     catch (exception e)
                     {
-                        _smp::message_pool.push(new message($"[Server.DispatchPacketSameThread][Error][MY] {e.getFullMessageError()}"));
+                        _smp::message_pool.push(new message($"[Server.DispatchpacketSameThread][Error][MY] {e.getFullMessageError()}"));
 
                         DisconnectSession(session);
                     }
@@ -408,15 +356,15 @@ namespace PangyaAPI.Network.PangyaServer
             }
             catch (exception e)
             {
-                _smp::message_pool.push(new message($"[Server.DispatchPacketSameThread][Error][MY] {e.Message}"));
+                _smp::message_pool.push(new message($"[Server.DispatchpacketSameThread][Error][MY] {e.Message}"));
 
                 DisconnectSession(session);
             }
         }
 
-        protected void DispatchPacketSameThread(SessionBase session, Packet packet)
+        protected override void dispach_packet_same_thread(Session session, packet _packet)
         {
-            if (session == null || session.getConnected() == false || packet == null)
+            if (session == null || session.isConnected() == false || _packet == null)
             {
                 return;//nao esta mais conectado!
             }
@@ -426,11 +374,11 @@ namespace PangyaAPI.Network.PangyaServer
             try
             {
                 // Obtém a função correspondente ao tipo de pacote
-                func = packet_func_base.funcs.getPacketCall(packet.Id);
+                func = packet_func_base.funcs.getPacketCall(_packet.getTipo());
             }
             catch (exception e)
             {
-                _smp::message_pool.push(new message($"[Server.DispatchPacketSameThread][ErrorSystem] {e.Message}, {e.getStackTrace()}"));
+                _smp::message_pool.push(new message($"[Server.DispatchpacketSameThread][ErrorSystem] {e.Message}, {e.getStackTrace()}"));
                 // Desconecta a sessão
                 DisconnectSession(session);
             }
@@ -443,23 +391,23 @@ namespace PangyaAPI.Network.PangyaServer
                 var pd = new ParamDispatch
                 {
                     _session = session,
-                    _packet = packet
+                    _packet = _packet
                 };
 
-                if (CheckPacket(session, packet))
+                if (CheckPacket(session, _packet))
                 {
                     try
                     {
                         if (func != null && func.ExecCmd(pd) != 0)
                         {
-                            _smp.message_pool.push(new message($"[Server.DispatchPacketSameThread][Error][MY] Ao tratar o pacote. ID: {packet.Id}(0x{packet.Id:X})," + pd._packet.Log(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                          //  _smp.message_pool.push(new message($"[Server.DispatchpacketSameThread][Error][MY] Ao tratar o pacote. ID: {_packet.getTipo()}(0x{_packet.getTipo():X})," + pd._packet.Log(), type_msg.CL_FILE_LOG_AND_CONSOLE));
                             DisconnectSession(session);
-                        }
+                        } 
                     }
 
                     catch (exception e)
                     {
-                        _smp::message_pool.push(new message($"[Server.DispatchPacketSameThread][Error][MY] {e.getFullMessageError()}"));
+                        _smp::message_pool.push(new message($"[Server.DispatchpacketSameThread][Error][MY] {e.getFullMessageError()}"));
 
                         DisconnectSession(session);
                     }
@@ -467,70 +415,12 @@ namespace PangyaAPI.Network.PangyaServer
             }
             catch (exception e)
             {
-                _smp::message_pool.push(new message($"[Server.DispatchPacketSameThread][Error][MY] {e.Message}"));
+                _smp::message_pool.push(new message($"[Server.DispatchpacketSameThread][Error][MY] {e.Message}"));
 
                 DisconnectSession(session);
             }
-        }
-
-        protected void DispatchPacket_AS_Thread(SessionBase session, Packet packet)
-        {
-            if (session == null || session.getConnected() == false || packet == null)
-            {
-                return;//nao esta mais conectado!
-            }
-
-            func_arr.func_arr_ex func = null;
-
-            try
-            {
-                // Obtém a função correspondente ao tipo de pacote
-                func = packet_func_base.funcs_as.getPacketCall(packet.Id);
-            }
-            catch (exception e)
-            {
-                _smp::message_pool.push(new message($"[Server.DispatchPacketSameThread][ErrorSystem] {e.Message}, {e.getStackTrace()}"));
-                // Desconecta a sessão
-                DisconnectSession(session);
-            }
-
-            try
-            {
-                // Atualiza o tick do cliente
-                session.m_tick = Environment.TickCount;
-
-                var pd = new ParamDispatch
-                {
-                    _session = session,
-                    _packet = packet
-                };
-
-                if (CheckPacket(session, packet))
-                {
-                    try
-                    {
-                        if (func != null && func.ExecCmd(pd) != 0)
-                        {
-                            _smp.message_pool.push(new message($"[Server.DispatchPacketSameThread][Error][MY] Ao tratar o pacote. ID: {packet.Id}(0x{packet.Id:X})," + pd._packet.Log(), type_msg.CL_FILE_LOG_AND_CONSOLE));
-                            DisconnectSession(session);
-                        }
-                    }
-
-                    catch (exception e)
-                    {
-                        _smp::message_pool.push(new message($"[Server.DispatchPacketSameThread][Error][MY] {e.getFullMessageError()}"));
-
-                        DisconnectSession(session);
-                    }
-                }
-            }
-            catch (exception e)
-            {
-                _smp::message_pool.push(new message($"[Server.DispatchPacketSameThread][Error][MY] {e.Message}"));
-
-                DisconnectSession(session);
-            }
-        }
+        } 
+          
 
         #endregion
 
@@ -554,7 +444,7 @@ namespace PangyaAPI.Network.PangyaServer
 
                         // Start Unit Connect for Try Connection with Auth Server
                         //if (m_unit_connect != null)
-                        //    m_unit_connect.start();
+                        //    //m_unit_connect.start();
 
                         //Inicia Thread para exec. registrar/att o servidor    
 
@@ -597,16 +487,59 @@ namespace PangyaAPI.Network.PangyaServer
         }
 
 
-        public virtual SessionBase HasLoggedWithOuterSocket(SessionBase _session)
+        public virtual Session HasLoggedWithOuterSocket(Session _session)
         {
             var s = m_session_manager.FindAllSessionByUid(_session.getUID());
             foreach (var el in s)
             {
-                if (el.m_oid != _session.m_oid && el.getConnected())
+                if (el.m_oid != _session.m_oid && el.isConnected())
                     return el;
             }
 
             return null;
+        }
+        protected virtual void init_option_accepted_socket(in Socket _accepted)
+        {
+            bool tcp_nodelay = true;
+
+            // ---------- DESEMPENHO COM OS SOCKOPT -----------  
+            // COM NO_TCPDELAY                 AVG(MEDIA) 0.552
+            // COM SO_SNDBUF 0                AVG(MEDIA) 0.560
+            // COM SO_RCVBUF 0                AVG(MEDIA) 0.570
+            // COM NO_TCPDELAY e SO_SNDBUF 0  AVG(MEDIA) 0.569
+            // COM NO_TCPDELAY e SO_RCVBUF 0  AVG(MEDIA) 0.566
+            // SEM NENHUM SOCKOPT             AVG(MEDIA) 0.569
+            // Não tem muita diferença, vou deixar só o NO_TCPDELAY mesmo
+
+            try
+            {
+                // Ativa TCP_NODELAY (desabilita Nagle)
+                _accepted.NoDelay = tcp_nodelay;
+            }
+            catch (SocketException ex)
+            {
+                throw new Exception("[server::init_option_accepted_socket][Error] não conseguiu desabilitar tcp delay (nagle algorithm).", ex);
+            }
+
+            try
+            {
+                // KEEPALIVE: habilita + configura tempo
+                byte[] keepAlive = new byte[12];
+                BitConverter.GetBytes((uint)1).CopyTo(keepAlive, 0);     // onoff
+                BitConverter.GetBytes((uint)20000).CopyTo(keepAlive, 4); // keepalivetime (20s)
+                BitConverter.GetBytes((uint)2000).CopyTo(keepAlive, 8);  // keepaliveinterval (2s)
+
+                _accepted.IOControl(IOControlCode.KeepAliveValues, keepAlive, null);
+
+                message_pool.push(new message(
+                    $"[server::init_option_accepted_socket][Log] socket[ID={_accepted.Handle}] KEEPALIVE[ONOFF=1, TIME=20000, INTERVAL=2000] foi ativado para esse",
+                    type_msg.CL_FILE_LOG_AND_CONSOLE
+                ));
+            }
+            catch (SocketException ex)
+            {
+                throw new Exception("[server::init_option_accepted_socket][Error] não conseguiu setar o socket option KEEPALIVE.", ex);
+            }
         }
 
         public bool haveBanList(string _ip_address, string _mac_address, bool _check_mac = true)
@@ -673,9 +606,7 @@ namespace PangyaAPI.Network.PangyaServer
         protected void _disconnect_session()
         {
             try
-            {
-
-
+            {         
                 if (m_session_manager.IsInit())
                 {
 
@@ -695,32 +626,32 @@ namespace PangyaAPI.Network.PangyaServer
             }
         }
 
-        public virtual List<SessionBase> FindAllGM()
+        public virtual List<Session> FindAllGM()
         {
             return m_session_manager.findAllGM();
         }
 
-        public virtual SessionBase FindSessionByOid(uint oid)
+        public virtual Session FindSessionByOid(uint oid)
         {
             return m_session_manager.FindSessionByOid(oid);
         }
 
-        public virtual SessionBase FindSessionByUid(uint uid)
+        public virtual Session FindSessionByUid(uint uid)
         {
             return m_session_manager.findSessionByUID(uid);
         }
 
-        public virtual List<SessionBase> FindAllSessionByUid(uint uid)
+        public virtual List<Session> FindAllSessionByUid(uint uid)
         {
             return m_session_manager.FindAllSessionByUid(uid);
         }
 
-        public virtual SessionBase FindSessionByNickname(string nickname)
+        public virtual Session FindSessionByNickname(string nickname)
         {
             return m_session_manager.FindSessionByNickname(nickname);
         }
 
-        public virtual bool DisconnectSession(SessionBase _session)
+        public override bool DisconnectSession(Session _session)
         {
             if (_session == null)
             {
@@ -738,8 +669,7 @@ namespace PangyaAPI.Network.PangyaServer
             {
                 // Remove a sessão do gerenciador        
                 result = m_session_manager.DeleteSession(_session);
-                if (m_session_manager.m_sessions.Count(c => c.getConnected() == true) != m_session_manager.m_count)
-                    m_session_manager.m_count = (uint)m_session_manager.m_sessions.Count(c => c.getConnected() == true);
+               
             }
             catch (Exception ex)
             {
@@ -775,11 +705,10 @@ namespace PangyaAPI.Network.PangyaServer
         #endregion
 
         #region Auth                                                                           
-      public  unit_auth_server_connect m_unit_connect;		// Ponteiro Connecta com o Auth Server                  
+    //  public  unit_auth_server_connect m_unit_connect;		// Ponteiro Connecta com o Auth Server                  
 
         public virtual void authCmdShutdown(int _time_sec)
-        {
-
+        {              
         }
 
         public virtual void authCmdBroadcastNotice(string _notice)
@@ -834,13 +763,13 @@ namespace PangyaAPI.Network.PangyaServer
                     var aspi = new AuthServerPlayerInfo(s.getUID(), s.getID(), s.getIP());
 
                     // UPDATE ON Auth Server
-                    m_unit_connect.sendInfoPlayerOnline(_req_server_uid, aspi);
+                    //m_unit_connect.sendInfoPlayerOnline(_req_server_uid, aspi);
 
                 }
                 else
                 {
                     // UPDATE ON Auth Server
-                    m_unit_connect.sendInfoPlayerOnline(_req_server_uid, new AuthServerPlayerInfo(_player_uid));
+                    //m_unit_connect.sendInfoPlayerOnline(_req_server_uid, new AuthServerPlayerInfo(_player_uid));
                 }
 
             }
@@ -848,7 +777,7 @@ namespace PangyaAPI.Network.PangyaServer
             {
 
                 // UPDATE ON Auth Server - Error reply
-                m_unit_connect.sendInfoPlayerOnline(_req_server_uid, new AuthServerPlayerInfo(_player_uid));
+                //m_unit_connect.sendInfoPlayerOnline(_req_server_uid, new AuthServerPlayerInfo(_player_uid));
 
                 _smp::message_pool.push(new message("[server::authCmdInfoPlayerOnline][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
@@ -859,96 +788,96 @@ namespace PangyaAPI.Network.PangyaServer
 
         }
 
-        public virtual void authCmdSendCommandToOtherServer(Packet _packet)
+        public virtual void authCmdSendCommandToOtherServer(packet _packet)
         {
 
-            try
-            {
+            //try
+            //{
 
-                func_arr.func_arr_ex func = null;
+            //    func_arr.func_arr_ex func = null;
 
-                uint req_server_uid = _packet.ReadUInt32();
-                var command_id = _packet.ReadInt16();
+            //    uint req_server_uid = _packet.ReadUInt32();
+            //    var command_id = _packet.ReadInt16();
 
-                try
-                {
+            //    try
+            //    {
 
-                    func = packet_func_base.funcs_as.getPacketCall(command_id);
+            //        func = packet_func_base.funcs_as.getpacketCall(command_id);
 
-                    if (func != null && func.ExecCmd(new ParamDispatch(m_unit_connect.m_session, _packet)) == 1)
-                        throw new exception("[server::authCmdSendCommandToOtherServer][Error] Ao tratar o Comando. ID: " + (command_id)
-                                + "(0x" + (command_id) + ").", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.GAME_SERVER, 5000, 0));
+            //        if (func != null && func.ExecCmd(new ParamDispatch(m_unit_connect.m_session, _packet)) == 1)
+            //            throw new exception("[server::authCmdSendCommandToOtherServer][Error] Ao tratar o Comando. ID: " + (command_id)
+            //                    + "(0x" + (command_id) + ").", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.GAME_SERVER, 5000, 0));
 
-                }
-                catch (exception e)
-                {
+            //    }
+            //    catch (exception e)
+            //    {
 
-                    if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) == (uint)STDA_ERROR_TYPE.FUNC_ARR/*Packet_func Erro, Warning e etc*/)
-                    {
+            //        if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) == STDA_ERROR_TYPE.FUNC_ARR/*packet_func Erro, Warning e etc*/)
+            //        {
 
-                        message_pool.push(new message("[server::authCmdSendCommandToOtherServer][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+            //            message_pool.push(new message("[server::authCmdSendCommandToOtherServer][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-                    }
-                    else
-                        throw;
-                }
+            //        }
+            //        else
+            //            throw;
+            //    }
 
-            }
-            catch (exception e)
-            {
+            //}
+            //catch (exception e)
+            //{
 
-                message_pool.push(new message("[server::authCmdSendCommandToOtherServer][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
-            }
+            //    message_pool.push(new message("[server::authCmdSendCommandToOtherServer][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+            //}
         }
 
-        public virtual void authCmdSendReplyToOtherServer(Packet _packet)
+        public virtual void authCmdSendReplyToOtherServer(packet _packet)
         {
-            try
-            {
+            //try
+            //{
 
-                func_arr.func_arr_ex func = null;
+            //    func_arr.func_arr_ex func = null;
 
-                uint req_server_uid = _packet.ReadUInt32();
-                var command_id = _packet.ReadInt16();
+            //    uint req_server_uid = _packet.ReadUInt32();
+            //    var command_id = _packet.ReadInt16();
 
-                try
-                {
+            //    try
+            //    {
 
-                    func = packet_func_base.funcs_as.getPacketCall(command_id);
+            //        func = packet_func_base.funcs_as.getpacketCall(command_id);
 
-                    if (func != null && func.ExecCmd(new ParamDispatch(m_unit_connect.m_session, _packet)) == 1)
-                        throw new exception("[server::authCmdSendCommandToOtherServer][Error] Ao tratar o Comando. ID: " + (command_id)
-                                + "(0x" + (command_id) + ").", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.GAME_SERVER, 5000, 0));
+            //        if (func != null && func.ExecCmd(new ParamDispatch(m_unit_connect.m_session, _packet)) == 1)
+            //            throw new exception("[server::authCmdSendCommandToOtherServer][Error] Ao tratar o Comando. ID: " + (command_id)
+            //                    + "(0x" + (command_id) + ").", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.GAME_SERVER, 5000, 0));
 
-                }
-                catch (exception e)
-                {
+            //    }
+            //    catch (exception e)
+            //    {
 
-                    if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) == (uint)STDA_ERROR_TYPE.FUNC_ARR/*Packet_func Erro, Warning e etc*/)
-                    {
+            //        if (ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) == STDA_ERROR_TYPE.FUNC_ARR/*packet_func Erro, Warning e etc*/)
+            //        {
 
-                        message_pool.push(new message("[server::authCmdSendCommandToOtherServer][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+            //            message_pool.push(new message("[server::authCmdSendCommandToOtherServer][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-                    }
-                    else
-                        throw;
-                }
+            //        }
+            //        else
+            //            throw;
+            //    }
 
-            }
-            catch (exception e)
-            {
+            //}
+            //catch (exception e)
+            //{
 
-                message_pool.push(new message("[server::authCmdSendCommandToOtherServer][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
-            }
+            //    message_pool.push(new message("[server::authCmdSendCommandToOtherServer][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+            //}
         }
 
-        public virtual void sendCommandToOtherServerWithAuthServer(Packet _packet, uint _send_server_uid_or_type)
+        public virtual void sendCommandToOtherServerWithAuthServer(packet _packet, uint _send_server_uid_or_type)
         {
             try
             {
 
                 // Envia o comando para o outro server com o Auth Server
-                m_unit_connect.sendCommandToOtherServer(_send_server_uid_or_type, _packet);
+                //m_unit_connect.sendCommandToOtherServer(_send_server_uid_or_type, _packet);
 
             }
             catch (exception e)
@@ -958,13 +887,13 @@ namespace PangyaAPI.Network.PangyaServer
             }
         }
 
-        public virtual void sendReplyToOtherServerWithAuthServer(Packet _packet, uint _send_server_uid_or_type)
+        public virtual void sendReplyToOtherServerWithAuthServer(packet _packet, uint _send_server_uid_or_type)
         {
             try
             {
 
                 // Envia a resposta para o outro server com o Auth Server
-                m_unit_connect.sendReplyToOtherServer(_send_server_uid_or_type, _packet);
+                //m_unit_connect.sendReplyToOtherServer(_send_server_uid_or_type, _packet);
 
             }
             catch (exception e)
@@ -972,7 +901,10 @@ namespace PangyaAPI.Network.PangyaServer
 
                 _smp::message_pool.push(new message("[server::sendReplyToOtherServerWithAuthServer][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
-        }
+        } 
+
+       
+             
         #endregion
     }
 

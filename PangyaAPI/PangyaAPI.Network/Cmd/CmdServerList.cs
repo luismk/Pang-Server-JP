@@ -52,6 +52,7 @@ namespace PangyaAPI.Network.Cmd
                 si.img_no = short.Parse(_result.data[10].ToString());
                 si.app_rate = short.Parse(_result.data[11].ToString());
                 si.scratch_rate = short.Parse(_result.data[12].ToString());    // Estava o rate_scratchy mas realoquei ele para o ServerInfoEx::Rate
+                if (!v_server_list.Any(c=> c.uid == si.uid))
                     v_server_list.Add(si);
             }
             catch (Exception ex)
