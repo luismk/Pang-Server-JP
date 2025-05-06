@@ -22,11 +22,15 @@ read the comments in each part of the code and understand how it works!
 - [Requirements](#start) 
 
 ### Authors
-* **Luis MK** - *Project contributor* - [Pangya Unogames](https://github.com/luismk)
+* **Luis MK** - *Idea/Creator* - [Dev Pangya Unogames](https://github.com/luismk) 
+* **Eric Antonio** - *contributor* - [Old ADM Pangya Unogames](https://github.com/eantoniobr)
+* **Narwyn** - *contributor* - [Pangya Reborn](https://github.com/Narwyn)
 
 ### Information 
-* GameServer: 15% completed 
- 
+* GameServer: 25% completed 
+* MessengerServer: 25% completed 
+* LoginServer: 2% completed 
+
  
 ### Start
 
