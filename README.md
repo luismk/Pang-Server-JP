@@ -1,41 +1,93 @@
 # Pang-Server-JP
-Server basead code Acrisio SuperSS Dev
-  
-feel free to modify and do whatever you want with the code!
 
-i won't teach you how to connect it.
+Servidor baseado no código de Acrisio (SuperSS Dev) — reconstruído e adaptado em C#.
 
-but i can give you tips!
+> ⚠️ **Este projeto é fornecido como base de estudo. Você é livre para modificar, adaptar ou utilizar como quiser.**
 
-read the comments in each part of the code and understand how it works!
- 
-![pangya_001](https://cdn.discordapp.com/attachments/538368768380764161/1333100803023573063/image.png?ex=67a4d95f&is=67a387df&hm=f750dc7471d9d848bbd0bf0b6813018f4f5b346444c989a8ff22e76fab8b15a6&)
+---
+ ### 📌 Visão Geral
 
+Este projeto simula os principais componentes de um servidor PangYa:
 
-![pangya_002](https://cdn.discordapp.com/attachments/538368768380764161/1334356540345548820/image.png?ex=67a4cd9e&is=67a37c1e&hm=0a060edcda0d06231a2514ab3c5502a367062d82350cb19679a792e26bd9ebf6&)
+- **LoginServer** – Autenticação de jogadores.
+- **MessengerServer** – Sistema de mensagens e amigos.
+- **GameServer** – Lobby, salas e partidas.
 
-![pangya_003](https://cdn.discordapp.com/attachments/521180240542826498/1336607115162419241/image.png?ex=67a514a1&is=67a3c321&hm=7ee1ac6be5a03b7f53d78d5f24af26d0b7fdd14ec5ce400ff7d2fcc96f636276&)
-![pangya_004](https://cdn.discordapp.com/attachments/521180240542826498/1336607265955774555/image.png?ex=67a514c5&is=67a3c345&hm=15d6f22a9e058cf6bb3142c5280e86b8fe43b8ad34786e0d3a09847b1f02a2c3&) 
+É compatível com o cliente japonês **ProjectG JP versão 972.00 ou superior**.
 
-- [Authors](#authors)
-- [Information](#information) 
-- [Requirements](#start) 
+---
+### ✅ Status do Projeto
 
-### Authors
-* **Luis MK** - *Idea/Creator* - [Dev Pangya Unogames](https://github.com/luismk) 
-* **Eric Antonio** - *contributor* - [Old ADM Pangya Unogames](https://github.com/eantoniobr)
-* **Narwyn** - *contributor* - [Pangya Reborn](https://github.com/Narwyn)
+| Componente       | Progresso |
+|------------------|-----------|
+| GameServer       | 15%       |
+| MessengerServer  | 98%       |
+| LoginServer      | 100%        |
 
-### Information 
-* GameServer: 25% completed 
-* MessengerServer: 25% completed 
-* LoginServer: 2% completed 
+---
 
- 
-### Start
+### 🧩 Requisitos
 
-some programs are needed to run the project
+Você vai precisar de alguns programas e ferramentas:
 
-* [Visual Studio](https://visualstudio.microsoft.com/pt-br/) used to compile the project
-* [SQL SERVER](https://www.microsoft.com/pt-br/sql-server/sql-server-downloads) or higher used to create the database that will be used
-* [Pangya Client JP] Server Is Available with ProjectG JP 972.00 or hight 
+- [Visual Studio](https://visualstudio.microsoft.com/pt-br/) – para compilar o projeto.
+- [SQL Server](https://www.microsoft.com/pt-br/sql-server/sql-server-downloads) – para gerenciar o banco de dados.
+- Cliente do **Pangya JP** – compatível com versão **972.00 ou superior** (ProjectG JP).
+
+---
+---
+
+### 🧱 Arquitetura do Projeto
+
+O Pang-Server-JP é dividido em 5 principais bibliotecas (`PangyaAPI`) que organizam o código de forma modular:
+
+| API                         | Função principal                                                                 |
+|----------------------------|----------------------------------------------------------------------------------|
+| **PangyaAPI.Network**      | Gerencia conexões TCP, sessões, buffers, envio/recebimento e tratamento de pacotes. |
+| **PangyaAPI.SQL**          | Interface de acesso ao banco de dados (SQL Server), comandos e respostas assíncronas. |
+| **PangyaAPI.IFF.JP**       | Manipula os arquivos IFF do cliente japonês (itens, personagens, cursos etc.).     |
+| **PangyaAPI.Discord**      | Integração com Discord para logs, status do servidor ou notificações.             |
+| **PangyaAPI.Utilities**    | Ferramentas auxiliares: logging, enums, config `.ini`, criptografia, estrutura de erros. |
+
+Essa separação torna o código mais limpo, reutilizável e facilita a manutenção e expansão.
+
+### 🚀 Como começar
+
+> **Nota:** Eu não vou ensinar como conectar o servidor ao cliente, mas...  
+> 💡 **Dica:** leia os comentários no código — cada parte tem explicações úteis para te guiar!
+
+---
+
+### 🧠 Dicas rápidas
+
+- Confira os arquivos `.ini` para ajustar configurações de porta, IP e nome do servidor.
+- Observe o `SessionManager` e `PacketHandler` para entender como os pacotes são tratados.
+- Use os logs no console para debugar conexões e autenticações.
+
+---
+
+### 🖼️ Capturas de Tela
+
+![pangya_001](https://cdn.discordapp.com/attachments/538368768380764161/1333100803023573063/image.png)
+![pangya_002](https://cdn.discordapp.com/attachments/538368768380764161/1334356540345548820/image.png)
+![pangya_003](https://cdn.discordapp.com/attachments/521180240542826498/1336607115162419241/image.png)
+![pangya_004](https://cdn.discordapp.com/attachments/521180240542826498/1336607265955774555/image.png)
+
+---
+
+### 👨‍💻 Autores
+
+| Nome           | Função         | Projeto                          |
+|----------------|----------------|----------------------------------|
+| **Luis MK**    | Criador        | [Dev Pangya Unogames](https://github.com/luismk)  
+| **Eric Antonio** | Contribuidor | [Old ADM Pangya Unogames](https://github.com/eantoniobr)
+| **Narwyn**     | Contribuidor   | [Pangya Reborn](https://github.com/Narwyn)
+
+---
+
+### 📜 Licença
+
+Este projeto não possui uma licença formal. Use por sua conta e risco.  
+**Não recomendado para uso comercial sem entendimento profundo do código.**
+
+---
