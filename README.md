@@ -69,7 +69,7 @@ Essa separação torna o código mais limpo, reutilizável e facilita a manuten�
 ### 🖼️ Capturas de Tela
 
 ![pangya_001](https://cdn.discordapp.com/attachments/521180240542826498/1376218557020504064/image-12.png?ex=683486e8&is=68333568&hm=95a745f9d436116f5f4a7d9c44de4aacef9b056a66ecfec1cf6644387e536b1a&)
-![pangya_002](https://cdn.discordapp.com/attachments/521180240542826498/1376218557020504064/image-12.png?ex=683486e8&is=68333568&hm=95a745f9d436116f5f4a7d9c44de4aacef9b056a66ecfec1cf6644387e536b1a&)
+![pangya_002](https://cdn.discordapp.com/attachments/521180240542826498/1376365845080444998/image-18.png?ex=68351015&is=6833be95&hm=1adc41a7b5229d2ae59663ba2d46aaa960b16600e945588181e649c300286b49&)
 ---
 
 ### 👨‍💻 Autores
