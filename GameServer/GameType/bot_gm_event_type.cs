@@ -1,5 +1,5 @@
-﻿using System;                             
-namespace GameServer.GameType
+﻿using System;
+namespace Pangya_GameServer.GameType
 {
     public class stRangeTime : System.IDisposable
     {

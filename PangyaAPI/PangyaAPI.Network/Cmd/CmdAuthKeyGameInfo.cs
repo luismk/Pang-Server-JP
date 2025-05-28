@@ -1,11 +1,9 @@
-﻿using PangyaAPI.Network.Pangya_St;
+﻿using System;
+using PangyaAPI.Network.Pangya_St;
 using PangyaAPI.SQL;
-
-using System;
-using System.Data;
 namespace PangyaAPI.Network.Cmd
 {
-    public class CmdAuthKeyGameInfo: Pangya_DB
+    public class CmdAuthKeyGameInfo : Pangya_DB
     {
         uint m_uid = 0;
         int m_server_uid = -1;
@@ -16,7 +14,7 @@ namespace PangyaAPI.Network.Cmd
         {
             m_akgi = new AuthKeyGameInfo();
             m_uid = _uid;
-            m_server_uid= _server_uid;
+            m_server_uid = _server_uid;
         }
 
         public CmdAuthKeyGameInfo()
@@ -64,7 +62,7 @@ namespace PangyaAPI.Network.Cmd
             return m_uid;
         }
 
-       public void setUID(uint _server_uid)
+        public void setUID(uint _server_uid)
         {
             m_uid = _server_uid;
         }

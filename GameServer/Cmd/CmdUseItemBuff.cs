@@ -1,9 +1,8 @@
-﻿using GameServer.GameType;
+﻿using System;
+using Pangya_GameServer.GameType;
 using PangyaAPI.SQL;
-using System;
-using System.Data;
 using PangyaAPI.Utilities;
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     public class CmdUseItemBuff : Pangya_DB
     {

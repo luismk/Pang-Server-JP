@@ -1,18 +1,19 @@
-﻿using GameServer.Cmd;
-using GameServer.GameType;
-using PangyaAPI.Utilities.Log;
-using PangyaAPI.Utilities;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using PangyaAPI.IFF.JP.Models.Data;
 using System.Linq;
-using PangyaAPI.SQL.Manager;
-using GameServer.Session;
-using PangyaAPI.Utilities.BinaryModels;
-using GameServer.PacketFunc;
-using static GameServer.GameType._Define;
+using Pangya_GameServer.Cmd;
+using Pangya_GameServer.GameType;
+using Pangya_GameServer.PacketFunc;
+using Pangya_GameServer.Session;
+using PangyaAPI.IFF.JP.Extensions;
+using PangyaAPI.IFF.JP.Models.Data;
 using PangyaAPI.SQL;
-namespace GameServer.Game.Utils
+using PangyaAPI.SQL.Manager;
+using PangyaAPI.Utilities;
+using PangyaAPI.Utilities.BinaryModels;
+using PangyaAPI.Utilities.Log;
+using static Pangya_GameServer.GameType._Define;
+namespace Pangya_GameServer.Game.Utils
 {
     public partial class MgrAchievement
     {
@@ -333,7 +334,7 @@ namespace GameServer.Game.Utils
             };
 
             {
-                if (!(_session).getConnected() || !(_session).getState())
+                if (!(_session).isConnected() || !(_session).getState())
                 {
                     throw new exception("[MgrAchievement::" + "sendAchievementGuiToPlayer" + "][Error] session is invalid", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.MGR_ACHIEVEMENT,
                         1, 0));
@@ -407,7 +408,7 @@ namespace GameServer.Game.Utils
             };
 
             {
-                if (!(_session).getConnected() || !(_session).getState())
+                if (!(_session).isConnected() || !(_session).getState())
                 {
                     throw new exception("[MgrAchievement::" + "" + "][Error] session is invalid", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.MGR_ACHIEVEMENT,
                         1, 0));
@@ -474,7 +475,7 @@ namespace GameServer.Game.Utils
             };
 
             {
-                if (!(_session).getConnected() || !(_session).getState())
+                if (!(_session).isConnected() || !(_session).getState())
                 {
                     throw new exception("[MgrAchievement::" + "" + "][Error] session is invalid", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.MGR_ACHIEVEMENT,
                         1, 0));

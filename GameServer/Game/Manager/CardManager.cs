@@ -1,15 +1,13 @@
-﻿using GameServer.GameType;
-using PangyaAPI.Utilities.BinaryModels;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Pangya_GameServer.GameType;
+using PangyaAPI.Utilities.BinaryModels;
 
-namespace GameServer.Game.Manager
+namespace Pangya_GameServer.Game.Manager
 {
     public class CardManager : Dictionary<uint, CardInfo>
-    {               
+    {
         public byte[] Build()
         {
             var p = new PangyaBinaryWriter();
@@ -19,7 +17,7 @@ namespace GameServer.Game.Manager
                 p.WriteUInt16((short)Count);
                 foreach (var item in Values)
                 {
-                    p.WriteBytes(item.Build());
+                    p.WriteBytes(item.ToArray());
                 }
                 return p.GetBytes;
             }
@@ -37,7 +35,7 @@ namespace GameServer.Game.Manager
             else
             {
                 var p = new PangyaBinaryWriter();
-                p.WriteBytes(char_info.Build());
+                p.WriteBytes(char_info.ToArray());
                 return p.GetBytes;
             }
         }

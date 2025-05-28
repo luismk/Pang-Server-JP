@@ -1,14 +1,14 @@
-﻿using GameServer.GameType;
+﻿using System;
 using System.Collections.Generic;
-using System;
+using Pangya_GameServer.GameType;
 using PangyaAPI.SQL;
 
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     public class CmdTrophySpecial : Pangya_DB
-    {            
+    {
         public CmdTrophySpecial(uint _uid, TYPE_SEASON _season, TYPE _type)
-        {                                        
+        {
             this.m_uid = _uid;
             this.m_season = _season;
             this.m_type = _type;
@@ -21,16 +21,16 @@ namespace GameServer.Cmd
 
             TrofelEspecialInfo tei = new TrofelEspecialInfo
             {
-                id = uint.Parse(_result.data[0].ToString()),
-                _typeid = uint.Parse(_result.data[1].ToString()),
-                qntd = uint.Parse(_result.data[2].ToString())
+                id = IFNULL<int>(_result.data[0].ToString()),
+                _typeid = IFNULL(_result.data[1].ToString()),
+                qntd = IFNULL(_result.data[2].ToString())
             };
             v_tei.Add(tei);
         }
 
         protected override Response prepareConsulta()
-        {              
-            v_tei.Clear(); 
+        {
+            v_tei.Clear();
 
             var r = procedure(
                 (m_type == TYPE.NORMAL) ? m_szConsulta[0] : m_szConsulta[1],

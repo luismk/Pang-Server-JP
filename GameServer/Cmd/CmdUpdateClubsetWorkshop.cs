@@ -1,8 +1,9 @@
-﻿using GameServer.GameType;
+﻿using System;
+using Pangya_GameServer.GameType;
+using PangyaAPI.IFF.JP.Extensions;
 using PangyaAPI.SQL;
 using PangyaAPI.Utilities;
-using System;
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     public class CmdUpdateClubSetWorkshop : Pangya_DB
     {
@@ -91,12 +92,12 @@ namespace GameServer.Cmd
 
             var r = procedure(
                 m_szConsulta,
-                Convert.ToString(m_uid) + ", " + Convert.ToString(m_wi.id) + ", " + Convert.ToString(m_wi.clubset_workshop.level) + ", " + Convert.ToString(m_wi.clubset_workshop.c[0]) + ", " + Convert.ToString(m_wi.clubset_workshop.c[1]) + ", " + Convert.ToString(m_wi.clubset_workshop.c[2]) + ", " + Convert.ToString(m_wi.clubset_workshop.c[3]) + ", " + Convert.ToString(m_wi.clubset_workshop.c[4]) + ", " + Convert.ToString(m_wi.clubset_workshop.mastery) + ", " + Convert.ToString(m_wi.clubset_workshop.rank) + ", " + Convert.ToString(m_wi.clubset_workshop.recovery_pts) + ", " + Convert.ToString(m_flag));
+                Convert.ToString(m_uid) + ", " + Convert.ToString(m_wi.id) + ", " + Convert.ToString(m_wi.clubset_workshop.level) + ", " + Convert.ToString(m_wi.clubset_workshop.c[0]) + ", " + Convert.ToString(m_wi.clubset_workshop.c[1]) + ", " + Convert.ToString(m_wi.clubset_workshop.c[2]) + ", " + Convert.ToString(m_wi.clubset_workshop.c[3]) + ", " + Convert.ToString(m_wi.clubset_workshop.c[4]) + ", " + Convert.ToString(m_wi.clubset_workshop.mastery) + ", " + Convert.ToString(m_wi.clubset_workshop.rank) + ", " + Convert.ToString(m_wi.clubset_workshop.recovery_pts) + ", " + Convert.ToInt32(m_flag));
 
             checkResponse(r, "nao conseguiu atualizar ClubSet[TYPEID=" + Convert.ToString(m_wi._typeid) + ", ID=" + Convert.ToString(m_wi.id) + "] WorkShop[C0=" + Convert.ToString(m_wi.clubset_workshop.c[0]) + ", C1=" + Convert.ToString(m_wi.clubset_workshop.c[1]) + ", C2=" + Convert.ToString(m_wi.clubset_workshop.c[2]) + ", C3=" + Convert.ToString(m_wi.clubset_workshop.c[3]) + ", C4=" + Convert.ToString(m_wi.clubset_workshop.c[4]) + ", Level=" + Convert.ToString(m_wi.clubset_workshop.level) + ", Mastery=" + Convert.ToString(m_wi.clubset_workshop.mastery) + ", Rank=" + Convert.ToString(m_wi.clubset_workshop.rank) + ", Recovery=" + Convert.ToString(m_wi.clubset_workshop.recovery_pts) + "] Flag=" + Convert.ToString(m_wi.clubset_workshop.flag) + " do player[UID=" + Convert.ToString(m_uid) + "]");
 
             return r;
-        }               
+        }
 
         private uint m_uid = new uint();
         private FLAG m_flag;

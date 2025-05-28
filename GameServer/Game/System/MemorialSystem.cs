@@ -1,15 +1,16 @@
-﻿using GameServer.GameType;
-using GameServer.Session;
-using PangyaAPI.Utilities;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Pangya_GameServer.Cmd;
+using Pangya_GameServer.Game.Utils;
+using Pangya_GameServer.GameType;
+using Pangya_GameServer.Session;
+using PangyaAPI.IFF.JP.Extensions;
 using PangyaAPI.SQL.Manager;
-using GameServer.Game.Utils;
+using PangyaAPI.Utilities;
 using PangyaAPI.Utilities.Log;
-using GameServer.Cmd;
 
-namespace GameServer.Game.System
+namespace Pangya_GameServer.Game.System
 {
     public class MemorialSystem
     {
@@ -85,7 +86,7 @@ namespace GameServer.Game.System
                     } // Fim do loop de Coin Item
                 }
                 catch (exception e)
-                {             
+                {
                     throw e;
                 }
             }
@@ -133,10 +134,10 @@ namespace GameServer.Game.System
         public bool isLoad()
         {
 
-            bool isLoad = false; 
+            bool isLoad = false;
             // + 1 no MEMORIAL_LEVEL_MAX por que � do 0 a 24, da 25 Levels
             isLoad = (m_load && m_coin.Any() && m_level.Any() && m_level.Count == (MEMORIAL_LEVEL_MAX) && m_consolo_premio.Any());
-                                 
+
             return isLoad;
         }
 
@@ -152,7 +153,7 @@ namespace GameServer.Game.System
 
         /*static*/
         public ctx_coin findCoin(uint _typeid)
-        {            
+        {
             var it = m_coin.Find(_typeid);
 
             if (it.Any())
@@ -199,7 +200,7 @@ namespace GameServer.Game.System
         }/*static*/
         public List<ctx_coin_item_ex> Test(ctx_coin _ctx_c)
         {
-            {      
+            {
                 if (!isLoad())
                 {
                     throw new exception("[MemorialSystem::" + "drawCoin" + "][Error] Memorial System not loadded, please call load method first.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.MEMORIAL_SYSTEM,
@@ -290,7 +291,7 @@ namespace GameServer.Game.System
 
             while (count > 0)
             {
-                  
+
 
                 lc = lottery.SpinRoleta(); // Remove os Item que j� foi sorteado
 
@@ -352,7 +353,7 @@ namespace GameServer.Game.System
             {
                 {
                     if (!_session.getState()
-                        || !_session.getConnected() )
+                        || !_session.isConnected())
                     {
                         throw new exception("[MemorialSystem::" + (("drawCoin")) + "][Error] session is not connected", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.MEMORIAL_SYSTEM,
                             1, 0));
@@ -377,14 +378,14 @@ namespace GameServer.Game.System
 
             List<ctx_coin_item_ex> v_item = new List<ctx_coin_item_ex>();
 
-            
+
             Lottery lottery = new Lottery();
 
             ctx_coin_item_ex ci = null;
             ctx_coin_set_item csi = null;
 
             // Calcula Memorial Level Pelos Achievement Pontos
-            uint level =1/* calculeMemorialLevel(_session.m_pi.mgr_achievement.getPontos())*/;
+            uint level = 1/* calculeMemorialLevel(_session.m_pi.mgr_achievement.getPontos())*/;
 
             // Initialize Rare Item e add � roleta
             foreach (var el in _ctx_c.item)
@@ -446,12 +447,12 @@ namespace GameServer.Game.System
             Lottery.LotteryCtx lc = null;
             uint count = 1; // Qntd de pr�mios sorteados
 
-            while(count > 0)
+            while (count > 0)
             {
 
                 {
                     if (!_session.getState()
-                       || !_session.getConnected())
+                       || !_session.isConnected())
                     {
                         throw new exception("[MemorialSystem::" + "drawCoin" + "][Error] session is not connected", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.MEMORIAL_SYSTEM,
                             1, 0));
@@ -475,7 +476,7 @@ namespace GameServer.Game.System
                 // Tempor�rio Coin Item
 
                 // Verifica se � SetItem ou Item
-                bool is_set = lc.Value is ctx_coin_item_ex ? false: true; 
+                bool is_set = lc.Value is ctx_coin_item_ex ? false : true;
                 if (is_set)
                 { // SetItem
                     csi = (ctx_coin_set_item)lc.Value;
@@ -505,7 +506,7 @@ namespace GameServer.Game.System
                 }
 
                 // Decrementa o count, que 1 item voi sorteado
-               count = 0;
+                count = 0;
 
             }
 

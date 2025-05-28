@@ -1,7 +1,7 @@
-﻿using PangyaAPI.Network.PangyaPacket;
-using PangyaAPI.Utilities;
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
+using PangyaAPI.Network.PangyaPacket;
+using PangyaAPI.Utilities;
 
 namespace PangyaAPI.Network.PangyaUtil
 {
@@ -54,7 +54,7 @@ namespace PangyaAPI.Network.PangyaUtil
             m_index_w = 0;
             m_sequence = static_sequence++;
             m_mwsab = new _WSABUF();
-         }
+        }
 
         public void init(byte[] buffer, int size, int seq_mode)
         {
@@ -73,7 +73,7 @@ namespace PangyaAPI.Network.PangyaUtil
                 m_index_w = 0;
             }
         }
-         
+
         public int addSize(uint size)
         {
             lock (m_cs_wr)
@@ -98,7 +98,7 @@ namespace PangyaAPI.Network.PangyaUtil
         public int write(byte[] buffer, int size)
         {
             if (buffer == null)
-                throw new exception("Erro: buffer is null. Buffer::write()", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.BUFFER, 1, 0)); 
+                throw new exception("Erro: buffer is null. Buffer::write()", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.BUFFER, 1, 0));
 
 
             lock (m_cs_wr)
@@ -135,7 +135,7 @@ namespace PangyaAPI.Network.PangyaUtil
             }
         }
 
-       public int checkSize(int size)
+        public int checkSize(int size)
         {
             if ((size + m_index_w) <= MAX_BUFFER_SIZE)
                 return size;
@@ -145,8 +145,8 @@ namespace PangyaAPI.Network.PangyaUtil
 
         public int read(byte[] buffer, uint size)
         {
-            if (buffer == null)                           
-            throw new exception("Erro: buffer is null. Buffer::read()", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.BUFFER, 1, 0));
+            if (buffer == null)
+                throw new exception("Erro: buffer is null. Buffer::read()", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.BUFFER, 1, 0));
 
             lock (m_cs_wr)
             {
@@ -162,7 +162,7 @@ namespace PangyaAPI.Network.PangyaUtil
         public int peek(ref byte[] buffer, int size)
         {
             if (buffer == null)
-                throw new exception("Erro: buffer is null. Buffer::peek()", ExceptionError. STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.BUFFER, 1, 0));
+                throw new exception("Erro: buffer is null. Buffer::peek()", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.BUFFER, 1, 0));
 
             lock (m_cs_wr)
             {
@@ -173,7 +173,7 @@ namespace PangyaAPI.Network.PangyaUtil
                 return size;
             }
         }
-        
+
         public T peek<T>(int size) where T : new()
         {
             T local;
@@ -210,7 +210,7 @@ namespace PangyaAPI.Network.PangyaUtil
                 Buffer.BlockCopy(m_buffer, (int)size, m_buffer, 0, m_index_w - (int)size);
                 m_index_w -= (int)size;
             }
-        } 
+        }
 
         public byte[] getBuffer()
         {
@@ -248,7 +248,7 @@ namespace PangyaAPI.Network.PangyaUtil
                 throw new InvalidOperationException("WSABUF não foi inicializado.");
 
             m_mwsab.buf = m_buffer.memcpy(m_index_w);
-            m_mwsab.len = (uint)m_index_w; 
+            m_mwsab.len = (uint)m_index_w;
             return m_mwsab;
         }
 

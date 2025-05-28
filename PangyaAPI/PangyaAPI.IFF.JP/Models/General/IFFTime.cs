@@ -65,7 +65,7 @@ namespace PangyaAPI.IFF.JP.Models.General
                     return new DateTime(Year, Month, Day, Hour, Minute, Second, MilliSecond);
                 }
                 //for grand prix :D
-                else if(Hour > 0 || Minute > 0)
+                else if (Hour > 0 || Minute > 0)
                 {
 
                     var value = DateTime.Now; Year = (ushort)value.Year;
@@ -84,7 +84,7 @@ namespace PangyaAPI.IFF.JP.Models.General
                 Day = (ushort)value.Day;
                 Hour = (ushort)value.Hour;
                 Minute = (ushort)value.Minute;
-                MilliSecond = (ushort)value.Millisecond == 0? (ushort)DateTime.Now.Millisecond: (ushort)value.Millisecond;
+                MilliSecond = (ushort)value.Millisecond == 0 ? (ushort)DateTime.Now.Millisecond : (ushort)value.Millisecond;
                 Second = (ushort)value.Second;
             }
         }
@@ -95,7 +95,7 @@ namespace PangyaAPI.IFF.JP.Models.General
                 if (Year == 0 && Month == 0 && Day == 0)
                     return new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, Hour, Minute, Second, MilliSecond);
                 else
-                return new DateTime(Year, Month, Day, Hour, Minute, Second, MilliSecond);//aqui tem que setar, dia mes e ano
+                    return new DateTime(Year, Month, Day, Hour, Minute, Second, MilliSecond);//aqui tem que setar, dia mes e ano
             }
             set
             {
@@ -115,7 +115,7 @@ namespace PangyaAPI.IFF.JP.Models.General
             Month = (ushort)DateTime.Now.Month;         // Mês
             DayOfWeek = (ushort)DateTime.Now.DayOfWeek;      // Dia da semana (não utilizado aqui)
             Day = (ushort)DateTime.Now.Day;           // Dia do mês
-            
+
             // Criação de um novo DateTime com os valores decodificados
             var value = new DateTime(Year, Month, Day, Hour, Minute, Second, MilliSecond);
 
@@ -220,7 +220,7 @@ namespace PangyaAPI.IFF.JP.Models.General
             if (active)
             {
                 return true;
-            } 
+            }
             return false;
         }
         public void Clear()

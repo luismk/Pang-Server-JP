@@ -1,15 +1,13 @@
 ﻿using PangyaAPI.SQL;
 
-using System.Data;
-
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     public class CmdRegisterLogonServer : Pangya_DB
     {
-       uint m_uid = 0;
+        uint m_uid = 0;
         int m_server_uid = 0;
 
-        public CmdRegisterLogonServer(uint _uid, int _server_uid) 
+        public CmdRegisterLogonServer(uint _uid, int _server_uid)
         {
             m_uid = _uid;
             m_server_uid = _server_uid;

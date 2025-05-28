@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Net;
-using System.Net.Http;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using PangyaAPI.Network.PangyaSession;
 
 namespace PangyaAPI.Network.PangyaUtil

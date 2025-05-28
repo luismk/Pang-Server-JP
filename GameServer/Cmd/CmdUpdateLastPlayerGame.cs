@@ -1,4 +1,4 @@
-﻿//using GameServer.GameType;
+﻿//using Pangya_GameServer.GameType;
 //using System;
 
 //// Arquivo cmd_update_last_player_game.cpp
@@ -28,7 +28,7 @@
 //// C++ TO C# CONVERTER NOTE: The following #define macro was replaced in-line:
 // #define STDA_C_ITEM_TIME c[3]
 
-//namespace GameServer.Cmd
+//namespace Pangya_GameServer.Cmd
 //{
 //	public class CmdUpdateLastPlayerGame : Pangya_DB
 //	{
@@ -60,7 +60,7 @@
 //			{
 //// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
 // m_uid = _uid;
-				
+
 //			}
 
 //			public Last5PlayersGame getInfo()

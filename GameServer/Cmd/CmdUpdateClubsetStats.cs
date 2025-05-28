@@ -1,98 +1,98 @@
-﻿using GameServer.GameType;
+﻿using System;
+using Pangya_GameServer.GameType;
 using PangyaAPI.Network.Pangya_St;
 using PangyaAPI.SQL;
 using PangyaAPI.Utilities;
-using System;
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
-	public class CmdUpdateClubSetStats : Pangya_DB
-	{			  
-			public CmdUpdateClubSetStats(uint _uid,
-				WarehouseItemEx _wi,
-				uint _pang)
-				{
-// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
- this.m_uid = _uid;
-				//this.
-// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
- this.m_pang = _pang;
-				this.m_wi = (_wi);
-				}
+    public class CmdUpdateClubSetStats : Pangya_DB
+    {
+        public CmdUpdateClubSetStats(uint _uid,
+            WarehouseItemEx _wi,
+            uint _pang)
+        {
+            // C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+            this.m_uid = _uid;
+            //this.
+            // C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+            this.m_pang = _pang;
+            this.m_wi = (_wi);
+        }
 
-			public virtual void Dispose()
-			{
-			}
+        public virtual void Dispose()
+        {
+        }
 
-			public uint getUID()
-			{
-				return (m_uid);
-			}
+        public uint getUID()
+        {
+            return (m_uid);
+        }
 
-			public void setUID(uint _uid)
-			{
-// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
- m_uid = _uid;
-				
-			}
+        public void setUID(uint _uid)
+        {
+            // C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+            m_uid = _uid;
 
-			public ulong getPang()
-			{
-				return (m_pang);
-			}
+        }
 
-			public void setPang(ulong _pang)
-			{
-// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
- m_pang = _pang;
-			}
+        public ulong getPang()
+        {
+            return (m_pang);
+        }
 
-			public WarehouseItemEx getInfo()
-			{
-// C++ TO C# CONVERTER TASK: The following line was determined to contain a copy constructor call - this should be verified and a copy constructor should be created:
- return m_wi;
-			}
+        public void setPang(ulong _pang)
+        {
+            // C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+            m_pang = _pang;
+        }
 
-			public void setInfo(WarehouseItemEx _wi)
-			{
-// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
- m_wi = _wi;
-			}
+        public WarehouseItemEx getInfo()
+        {
+            // C++ TO C# CONVERTER TASK: The following line was determined to contain a copy constructor call - this should be verified and a copy constructor should be created:
+            return m_wi;
+        }
 
-			protected override void lineResult(ctx_res _result, uint _index_result)
-			{
+        public void setInfo(WarehouseItemEx _wi)
+        {
+            // C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+            m_wi = _wi;
+        }
 
-				// N�o usa por que � um UPDATE
-				return;
-			}
+        protected override void lineResult(ctx_res _result, uint _index_result)
+        {
 
-			protected override Response prepareConsulta()
-			{
+            // N�o usa por que � um UPDATE
+            return;
+        }
 
-				if(m_uid == 0)
-				{
-					throw new exception("[CmdUpdateClubSetStats][Error] m_uid is invalid(zero)", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PANGYA_DB,
-						4, 0));
-				}
+        protected override Response prepareConsulta()
+        {
 
-				if(m_wi.id <= 0 || m_wi._typeid == 0)
-				{
-					throw new exception("[CmdUpdateClubSetStats][Error] WarehouseItem[TYPEID=" + Convert.ToString(m_wi._typeid) + ", ID=" + Convert.ToString(m_wi.id) + "] is invalid", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PANGYA_DB,
-						4, 0));
-				}
+            if (m_uid == 0)
+            {
+                throw new exception("[CmdUpdateClubSetStats][Error] m_uid is invalid(zero)", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PANGYA_DB,
+                    4, 0));
+            }
 
-				var r = procedure(
-					m_szConsulta,
-					Convert.ToString(m_uid) + ", " + Convert.ToString(m_wi.id) + ", " + Convert.ToString(m_pang) + ", " + Convert.ToString(m_wi.c[(int)CharacterInfo.Stats.S_POWER]) + ", " + Convert.ToString(m_wi.c[(int)CharacterInfo.Stats.S_CONTROL]) + ", " + Convert.ToString(m_wi.c[(int)CharacterInfo.Stats.S_ACCURACY]) + ", " + Convert.ToString(m_wi.c[(int)CharacterInfo.Stats.S_SPIN]) + ", " + Convert.ToString(m_wi.c[(int)CharacterInfo.Stats.S_CURVE]));
+            if (m_wi.id <= 0 || m_wi._typeid == 0)
+            {
+                throw new exception("[CmdUpdateClubSetStats][Error] WarehouseItem[TYPEID=" + Convert.ToString(m_wi._typeid) + ", ID=" + Convert.ToString(m_wi.id) + "] is invalid", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PANGYA_DB,
+                    4, 0));
+            }
 
-				checkResponse(r, "nao conseguiu Atualizar ClubSet[ID=" + Convert.ToString(m_wi.id) + "] Stats[C0=" + Convert.ToString(m_wi.c[(int)CharacterInfo.Stats.S_POWER]) + ", C1=" + Convert.ToString(m_wi.c[(int)CharacterInfo.Stats.S_CONTROL]) + ", C2=" + Convert.ToString(m_wi.c[(int)CharacterInfo.Stats.S_ACCURACY]) + ", C3=" + Convert.ToString(m_wi.c[(int)CharacterInfo.Stats.S_SPIN]) + ", C4=" + Convert.ToString(m_wi.c[(int)CharacterInfo.Stats.S_CURVE]) + "] do player[UID=" + Convert.ToString(m_uid) + "]");
+            var r = procedure(
+                m_szConsulta,
+                Convert.ToString(m_uid) + ", " + Convert.ToString(m_wi.id) + ", " + Convert.ToString(m_pang) + ", " + Convert.ToString(m_wi.c[(int)CharacterInfo.Stats.S_POWER]) + ", " + Convert.ToString(m_wi.c[(int)CharacterInfo.Stats.S_CONTROL]) + ", " + Convert.ToString(m_wi.c[(int)CharacterInfo.Stats.S_ACCURACY]) + ", " + Convert.ToString(m_wi.c[(int)CharacterInfo.Stats.S_SPIN]) + ", " + Convert.ToString(m_wi.c[(int)CharacterInfo.Stats.S_CURVE]));
 
-				return r;
-			}
-						    
-			private uint m_uid = new uint();
-			private ulong m_pang = new ulong();
-			private WarehouseItemEx m_wi = new WarehouseItemEx();
+            checkResponse(r, "nao conseguiu Atualizar ClubSet[ID=" + Convert.ToString(m_wi.id) + "] Stats[C0=" + Convert.ToString(m_wi.c[(int)CharacterInfo.Stats.S_POWER]) + ", C1=" + Convert.ToString(m_wi.c[(int)CharacterInfo.Stats.S_CONTROL]) + ", C2=" + Convert.ToString(m_wi.c[(int)CharacterInfo.Stats.S_ACCURACY]) + ", C3=" + Convert.ToString(m_wi.c[(int)CharacterInfo.Stats.S_SPIN]) + ", C4=" + Convert.ToString(m_wi.c[(int)CharacterInfo.Stats.S_CURVE]) + "] do player[UID=" + Convert.ToString(m_uid) + "]");
 
-			private const string m_szConsulta = "pangya.ProcUpdateClubSetStats";
-	}
+            return r;
+        }
+
+        private uint m_uid = new uint();
+        private ulong m_pang = new ulong();
+        private WarehouseItemEx m_wi = new WarehouseItemEx();
+
+        private const string m_szConsulta = "pangya.ProcUpdateClubSetStats";
+    }
 }

@@ -1,7 +1,7 @@
-﻿using PangyaAPI.SQL;
-using System;
+﻿using System;
+using PangyaAPI.SQL;
 
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     public class CmdUpdateCharacterEquiped : Pangya_DB
     {

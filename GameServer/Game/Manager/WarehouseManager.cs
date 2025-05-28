@@ -1,28 +1,27 @@
-﻿using PangyaAPI.Utilities.BinaryModels;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Pangya_GameServer.GameType;
 using PangyaAPI.Utilities;
-using System.Collections.Generic;
-using GameServer.GameType;
-using System;
-using System.Linq;           
-namespace GameServer.Game.Manager
+using PangyaAPI.Utilities.BinaryModels;
+namespace Pangya_GameServer.Game.Manager
 {
-    public class WarehouseManager   : Dictionary<uint/*ID*/, WarehouseItemEx>
-    {                                                                              
+    public class WarehouseManager : Dictionary<uint/*ID*/, WarehouseItemEx>
+    {
         public WarehouseManager()
-        {                                                                                 
+        {
         }
-                                
+
         protected PangyaBinaryWriter Build(List<WarehouseItemEx> list)
-        {                                       
+        {
             try
-            {                                   
+            {
                 return PacketFunc.packet_func.pacote073(list);
             }
             catch
             {
                 return PacketFunc.packet_func.pacote073(new List<WarehouseItemEx>());
             }
-        }                                                                  
+        }
 
         public List<PangyaBinaryWriter> Build(uint itensPerPacket = 20)
         {
@@ -39,16 +38,16 @@ namespace GameServer.Game.Manager
                 splitList.ForEach(lista => responses.Add(Build(lista)));
             }
             return responses;
-        }                                 
+        }
 
-        public List<KeyValuePair<uint, WarehouseItemEx>>  GetValues(uint _id)
+        public List<KeyValuePair<uint, WarehouseItemEx>> GetValues(uint _id)
         {
             return this.Where(c => c.Key == _id).ToList();
         }
 
         public bool Insert(uint _id, WarehouseItemEx item)
         {
-             Add(_id, item);
+            Add(_id, item);
             return true;
         }
 
@@ -65,6 +64,6 @@ namespace GameServer.Game.Manager
         public WarehouseItemEx findWarehouseItemByTypeidAndId(uint _typeid, uint _id)
         {
             return this.Values.FirstOrDefault(c => c.id == _id && c._typeid == _typeid);
-        }                     
+        }
     }
 }

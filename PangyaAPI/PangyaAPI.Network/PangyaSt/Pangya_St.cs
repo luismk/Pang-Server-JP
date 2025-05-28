@@ -1,35 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
+using PangyaAPI.IFF.JP.Extensions;
+using PangyaAPI.IFF.JP.Models.Data;
 using PangyaAPI.Utilities;
 using PangyaAPI.Utilities.BinaryModels;
-using System.Diagnostics;
-using PangyaAPI.Network.PangyaPacket;
 using Part = PangyaAPI.IFF.JP.Models.Data.Part;
-using System.Linq;
-using PangyaAPI.Utilities.Log;
-using PangyaAPI.IFF.JP.Models.Data;
-using PangyaAPI.IFF.JP.Models.Flags;
-using PangyaAPI.IFF.JP.Extensions;
 
 namespace PangyaAPI.Network.Pangya_St
-{      
+{
     public class Global
     {
-  
+
         public static readonly uint[] angel_wings = { 134309888u, 134580224u, 134842368u, 135120896u, 135366656u, 135661568u, 135858176u, 136194048u, 136398848u, 136660992u, 137185294u, 137447424u, 138004480u };
         public static readonly uint[] gacha_angel_wings = { 134309903u, 134580239u, 134842383u, 135120911u, 135366671u, 135661583u, 135858191u, 136194063u, 136398863u, 136661007u, 136923153u, 137185284u, 137447436u, 138004492u };
-                                                                                               
-	public const int INFINITE = -1;                                                           
-	public const int ERROR_SUCCESS = 0;                                                      
-	public const int INVALID_HANDLE_VALUE = -1;                                             
-	public const int SOCKET_ERROR = -1;                                                    
+
+        public const int INFINITE = -1;
+        public const int ERROR_SUCCESS = 0;
+        public const int INVALID_HANDLE_VALUE = -1;
+        public const int SOCKET_ERROR = -1;
         public const int MAX_BUFFER_SIZE = 0x4000; //0x2000 //0xFFFF // 0x2000
         public const uint STDA_TIME_LIMIT_NON_AUTHORIZED = 10000;
         public const int CHK_PCKT_INTERVAL_LIMIT = 1000; // Miliseconds
         public const int CHK_PCKT_COUNT_LIMIT = 5; // Vezes que pode solicitar pacote dentro do intervalo
         public const int CHK_PCKT_NUM_PCKT_MRY = 3; // Ele Guarda os 3 ultimos pacotes verificados 
-        public const string PATH_LIBZIP_LIB = "../../Projeto IOCP/ZIP/lib/zip-64.lib";    
+        public const string PATH_LIBZIP_LIB = "../../Projeto IOCP/ZIP/lib/zip-64.lib";
         public const string PATH_PANGYA_IFF = "data/pangya_jp.iff";
         public const int IFF_VERSION = 0x0D;
     }
@@ -50,6 +46,13 @@ namespace PangyaAPI.Network.Pangya_St
     {
         public uProperty(uint _ul = 0u)
         {
+			//2048 = Grand Prix
+//64 = only rookie
+//128 = Natural Mode(TH, JP)
+//16 = Invisible(Only GM AND ADM)
+//256 = Unknown
+//1024 = BLUE (Blue+Channel Natural)?
+//512 = GREEN
             ulProperty = _ul;
         }
 
@@ -70,6 +73,7 @@ namespace PangyaAPI.Network.Pangya_St
             get => (ulProperty & (1 << 3)) != 0;
             set => ulProperty = value ? (ulProperty | (1 << 3)) : (ulProperty & ~(1u << 3));
         }
+		//128
         public bool mantle
         {
             get => (ulProperty & (1 << 4)) != 0;
@@ -80,13 +84,13 @@ namespace PangyaAPI.Network.Pangya_St
             get => (ulProperty & (1 << 5)) != 0;
             set => ulProperty = value ? (ulProperty | (1 << 5)) : (ulProperty & ~(1u << 5));
         }
-
+//64
         public bool only_rookie
         {
             get => (ulProperty & (1 << 6)) != 0;
             set => ulProperty = value ? (ulProperty | (1 << 6)) : (ulProperty & ~(1u << 6));
         }
-
+//128
         public bool natural
         {
             get => (ulProperty & (1 << 7)) != 0;
@@ -98,18 +102,19 @@ namespace PangyaAPI.Network.Pangya_St
             get => (ulProperty & (1 << 8)) != 0;
             set => ulProperty = value ? (ulProperty | (1 << 8)) : (ulProperty & ~(1u << 8));
         }
+		//1024
         public bool azul
         {
             get => (ulProperty & (1 << 9)) != 0;
             set => ulProperty = value ? (ulProperty | (1 << 9)) : (ulProperty & ~(1u << 9));
         }
-
+//512
         public bool verde
         {
             get => (ulProperty & (1 << 10)) != 0;
             set => ulProperty = value ? (ulProperty | (1 << 10)) : (ulProperty & ~(1u << 10));
         }
-
+//2048
         public bool grand_prix
         {
             get => (ulProperty & (1 << 11)) != 0;
@@ -558,7 +563,7 @@ namespace PangyaAPI.Network.Pangya_St
             name_bytes = new byte[40];
         }
 
-        public byte[] Build()
+        public byte[] ToArray()
         {
             using (var p = new PangyaBinaryWriter())
             {
@@ -687,7 +692,7 @@ namespace PangyaAPI.Network.Pangya_St
         }
     }
 
-    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public class chat_macro_user
     {
         [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 64)]
@@ -767,7 +772,7 @@ namespace PangyaAPI.Network.Pangya_St
         public CharacterInfo()
         {
             clear();
-        }       
+        }
 
         public enum Stats : int
         {
@@ -1260,11 +1265,12 @@ namespace PangyaAPI.Network.Pangya_St
                     parts_typeid[i] = part_typeid;
             }
         }
+
         /// <summary>
         /// size = 513 bytes
         /// </summary>
         /// <returns></returns>
-        public byte[] Build()
+        public byte[] ToArray()
         {
             using (var p = new PangyaBinaryWriter())
             {
@@ -1273,37 +1279,19 @@ namespace PangyaAPI.Network.Pangya_St
                 p.Write(default_hair);
                 p.Write(default_shirts);
                 p.Write(gift_flag);
-                p.Write(purchase);
+                p.Write(purchase); 
+                    p.WriteUInt32(parts_typeid); 
+                    p.WriteUInt32(parts_id);
 
-                for (var Index = 0; Index < 24; Index++)
-                    p.Write(parts_typeid[Index]);
+                p.WriteZero(216); //deve ser algum objeto ainda nao terminado 
+                    p.WriteUInt32(auxparts); 
+                    p.WriteUInt32(cut_in); 
+                    p.WriteBytes(pcl);
 
-                for (var Index = 0; Index < 24; Index++)
-                    p.Write(parts_id[Index]);
-
-                p.WriteZero(216); //deve ser algum objeto ainda nao terminado
-
-                for (int i = 0; i < 5; i++)
-                    p.WriteUInt32(auxparts[i]);
-
-                for (int i = 0; i < 4; i++)
-                    p.WriteUInt32(cut_in[i]);
-
-                for (int i = 0; i < 5; i++)
-                    p.WriteByte(pcl[i]);
-
-                p.WriteUInt32(mastery);
-
-                for (int i = 0; i < 4; i++)
-                    p.WriteUInt32(Card_Caddie[i]);
-
-                for (int i = 0; i < 4; i++)
-                    p.WriteUInt32(Card_Character[i]);
-
-                for (int i = 0; i < 4; i++)
-                    p.WriteUInt32(Card_NPC[i]);
-                //if (p.GetSize == 513)
-                //    Debug.WriteLine("GetCharacterInfo size Okay");
+                p.WriteUInt32(mastery); 
+                    p.WriteUInt32(Card_Caddie); 
+                    p.WriteUInt32(Card_Character); 
+                    p.WriteUInt32(Card_NPC); 
 
                 return p.GetBytes;
             }

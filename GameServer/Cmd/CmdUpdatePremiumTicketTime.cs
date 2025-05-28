@@ -1,7 +1,7 @@
-﻿//using GameServer.Cmd;
+﻿//using Pangya_GameServer.Cmd;
 //using System;   
 
-//namespace GameServer.Cmd
+//namespace Pangya_GameServer.Cmd
 //{
 //	public class CmdUpdatePremiumTicketTime : Pangya_DB
 //	{                                          

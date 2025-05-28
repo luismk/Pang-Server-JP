@@ -1,16 +1,15 @@
-﻿using GameServer.GameType;
+﻿using System;
 using PangyaAPI.SQL;
 using PangyaAPI.Utilities;
-using System;
 
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     public class CmdUpdateItemSlot : Pangya_DB
     {
         public CmdUpdateItemSlot(uint _uid, uint[] _slot)
         {
             this.m_uid = _uid;
-            m_slot[0] = 0;
+            m_slot = _slot;
 
             if (_slot == null)
             {
@@ -26,7 +25,6 @@ namespace GameServer.Cmd
 
         public void setUID(uint _uid)
         {
-            // C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
             m_uid = _uid;
 
         }

@@ -1,33 +1,16 @@
-﻿using PangyaAPI.Utilities.BinaryModels;
+﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System;
-using PangyaAPI.Utilities;
-using System.Collections;
 using System.Runtime.InteropServices;
-using System.Reflection;
-using int8_t = System.SByte;
-using uint8_t = System.Byte;
-using int16_t = System.Int16;
-using uint16_t = System.UInt16;
-using int32_t = System.Int32;
-using uint32_t = System.UInt32;
-using int64_t = System.Int64;
-using uint64_t = System.UInt64;
-using float_t = System.Single;
-using double_t = System.Double;
-using size_t = System.Int32;
-using size_tt = System.UInt32;
-using PangyaAPI.Network.PangyaUtil;
+using System.Text;
+using Newtonsoft.Json.Linq;
 using PangyaAPI.Network.Cryptor;
-using PangyaAPI.Network.PangyaCrypt;
-using PangyaAPI.Network.Pangya_St;
-using System.Runtime.Remoting.Messaging;
+using PangyaAPI.Utilities;
+using PangyaAPI.Utilities.BinaryModels;
 using PangyaAPI.Utilities.Log;
-using System.Diagnostics;
-using System.Net.Http.Headers;
+using uint8_t = System.Byte;
 
 namespace PangyaAPI.Network.PangyaPacket
 {
@@ -165,7 +148,7 @@ namespace PangyaAPI.Network.PangyaPacket
         }
     }
 
-    public class packet
+    public class packet : IDisposable
     {
         private MemoryStream _stream;
         /// <summary>
@@ -176,6 +159,8 @@ namespace PangyaAPI.Network.PangyaPacket
         /// Leitor do packet
         /// </summary>
         private PangyaBinaryWriter Reply;
+        private bool disposedValue;
+
         /// <summary>
         /// Mensagem do Packet
         /// </summary>
@@ -189,42 +174,53 @@ namespace PangyaAPI.Network.PangyaPacket
 
         public packet(ushort _id)
         {
-            if (Reply == null)
-                Reply = new PangyaBinaryWriter();
+
+            Reply = new PangyaBinaryWriter();
 
             Reply.init_plain(_id);
         }
         public packet()
         { clear(); }
 
-        /// <summary>
-        /// client
-        /// </summary>
-        /// <param name="rawPacket"></param>
-        /// <param name="key"></param>
-        public void decrypt(byte[] rawPacket, byte key)
-        {
-            Id = BitConverter.ToInt16(new byte[] { rawPacket[5], rawPacket[6] }, 0);
-            Decrypt_Msg = Cipher.DecryptClient(rawPacket, key);
-             _stream = new MemoryStream(Decrypt_Msg);
-            Reader = new PangyaBinaryReader(_stream);
-            Reply = new PangyaBinaryWriter();
-            Debug.WriteLine("packet::decrypt=>" + Log()); 
-        }
-
         public packet(byte[] rawPacket)
         {
             Decrypt_Msg = rawPacket;
-            Reply = new PangyaBinaryWriter();
+            Reply = new PangyaBinaryWriter(new MemoryStream(Decrypt_Msg));
             _stream = new MemoryStream(Decrypt_Msg);
             Reader = new PangyaBinaryReader(_stream);
             Id = ReadInt16();
         }
 
 
+        /// <summary>
+        /// client
+        /// </summary>
+        /// <param name="rawPacket"></param>
+        /// <param name="key"></param>
+        public void decrypt_client(byte[] rawPacket, byte key)
+        {
+            Decrypt_Msg = Cipher.DecryptClient(rawPacket, key);
+            _stream = new MemoryStream(Decrypt_Msg);
+            Reader = new PangyaBinaryReader(_stream);
+            Reply = new PangyaBinaryWriter();
+            Debug.WriteLine("packet::decrypt_cliente=>" + Log());
+            Id = ReadInt16();
+        }
+
+
+        public void decrypt_server(byte[] rawPacket, byte key)
+        {
+            Decrypt_Msg = Cipher.DecryptClient(rawPacket, key);
+            _stream = new MemoryStream(Decrypt_Msg);
+            Reader = new PangyaBinaryReader(_stream);
+            Reply = new PangyaBinaryWriter();
+            Debug.WriteLine("packet::decrypt_server=>" + Log());
+            Id = Reader.ReadInt16();
+        }
+
         public void encrypt(byte[] rawPacket, byte key)
         {
-            Encrypt_Msg = Cipher.ServerEncrypt(rawPacket, key, 0); 
+            Encrypt_Msg = Cipher.ServerEncrypt(rawPacket, key, 0);
             Reply = new PangyaBinaryWriter();
         }
 
@@ -251,7 +247,7 @@ namespace PangyaAPI.Network.PangyaPacket
             if (Reply == null)
                 Reply = new PangyaBinaryWriter();
 
-            Reply.init_plain(value); 
+            Reply.init_plain(value);
         }
 
         public uint GetSize
@@ -259,12 +255,11 @@ namespace PangyaAPI.Network.PangyaPacket
             get => Reader.Size;
         }
 
-        public (int len, byte[] buf) getBuffer()
+        public byte[] getBuffer()
         {
-            if (Encrypt_Msg == null)
-                Encrypt_Msg = Reply.GetBytes;
+            Encrypt_Msg = Reply.GetBytes;
 
-            return (Encrypt_Msg.Length, Encrypt_Msg);
+            return (Encrypt_Msg);
         }
 
         public short getTipo() => Id;
@@ -298,6 +293,10 @@ namespace PangyaAPI.Network.PangyaPacket
         public uint ReadUInt32()
         {
             return Reader.ReadUInt32();
+        }
+        public int[] ReadInt32(int size)
+        {
+            return Reader.Read(size).ToArray();
         }
         public int ReadInt32()
         {
@@ -443,6 +442,21 @@ namespace PangyaAPI.Network.PangyaPacket
             return Reader.ReadSingle(out value);
         }
 
+        public sbyte ReadSByte()
+        {
+            return Reader.ReadSByte();
+        }
+
+        public void ReadBuffer<T>(ref T value, int size)
+        {
+            Reader.ReadBuffer(ref value, size);
+        }
+
+        public float ReadFloat()
+        {
+            return Reader.ReadSingle();
+        }
+
 
         public byte[] GetRemainingData
         {
@@ -459,301 +473,28 @@ namespace PangyaAPI.Network.PangyaPacket
         {
             Reader = read;
         }
-
-
-        public void Version_Decrypt(ref uint @packet_version)
+ 
+        public void Version_Decrypt(ref uint packetVer)
         {
-            @packet_version = Cryptor.Cipher.DecryptClient(@packet_version);
+           string PacketVerKey = "{873AE210-2EEF-4c61-B030-A54F17634A7D}";
+
+            byte[] tmpPVer = BitConverter.GetBytes(packetVer);
+            int index = 0;
+
+            for (int i = 0; i < PacketVerKey.Length; i++)
+            {
+                tmpPVer[index] ^= (byte)PacketVerKey[i];
+                index = (index == 3) ? 0 : index + 1;
+            }
+
+            packetVer = BitConverter.ToUInt32(tmpPVer, 0);
         }
 
-        public sbyte ReadSByte()
-        {
-            return Reader.ReadSByte();
-        }
-
-
-        public void AddBuffer(object value1, int value2)
-        {
-            try
-            {
-                Reply.WriteBuffer(value1, value2);
-            }
-            catch (Exception ex)
-            {
-                message_pool.push("[PacketBase::AddBuffer]", ex);
-            }
-        }
-
-
-        public void Add(byte[] data)
-        {
-            try
-            {
-                Reply.Write(data);
-            }
-            catch
-            {
-            }
-
-        }
-
-        public void Add(byte[] data, int len)
-        {
-            try
-            {
-                Reply.Write(data, len);
-            }
-            catch
-            {
-            }
-
-        }
-
-
-
-        public void AddStruct(object data, object or)
-        {
-            try
-            {
-                Reply.WriteStruct(data, or);
-            }
-            catch(exception e)
-            {
-                throw e;
-            }
-
-        }
-
-
-        public void AddStr(string message, int length)
-        {
-
-            try
-            {
-                if (message == null)
-                {
-                    message = string.Empty;
-                }
-
-                message = message.PadRight(length, (char)0x00);
-                Reply.Write(message.Select(Convert.ToByte).ToArray());
-            }
-            catch
-            {
-            }
-
-        }
-
-        public bool AddStr(string message)
-        {
-            try
-            {
-                AddStr(message, message.Length);
-            }
-            catch
-            {
-                return false;
-            }
-            return true;
-
-        }
-
-        public void AddPStr(string value)
-        {
-
-            try
-            {
-                Reply.WritePStr(value);
-
-            }
-            catch
-            {
-
-            }
-        }
-
-        public void AddString(string value)
-        {
-
-            try
-            {
-                Reply.WritePStr(value);
-
-            }
-            catch
-            {
-
-            }
-        }
-
-        public void AddZero(int count)
-        {
-            try
-            {
-                Reply.WriteZero(count);
-            }
-            catch
-            {
-
-            }
-
-        }
-        public void AddUInt16(ushort value)
-        {
-            try
-            {
-                Reply.Write(value);
-            }
-            catch
-            {
-
-            }
-
-        }
-
-        public void AddInt16(short value)
-        {
-            try
-            {
-                Reply.Write(value);
-            }
-            catch
-            {
-
-            }
-
-        }
-        public void AddByte(byte value)
-        {
-            try
-            {
-                Reply.Write(value);
-            }
-            catch
-            {
-
-            }
-
-        }
-
-        public void AddBytes(byte[] value)
-        {
-            try
-            {
-                Reply.WriteBytes(value);
-            }
-            catch
-            {
-
-            }
-
-        }
-        public void AddByte(sbyte value)
-        {
-            try
-            {
-                Reply.Write(value);
-            }
-            catch
-            {
-
-            }
-
-        }
-        public void AddUInt8(byte value)
-        {
-            try
-            {
-                Reply.Write(value);
-            }
-            catch
-            {
-
-            }
-
-        }
-
-        public void AddSingle(float value)
-        {
-            try
-            {
-                Reply.Write(value);
-            }
-            catch
-            {
-
-            }
-
-        }
-
-        public void AddUInt32(uint value)
-        {
-            try
-            {
-                Reply.Write(value);
-            }
-            catch
-            {
-
-            }
-
-        }
-
-        public void AddInt32(int value)
-        {
-            try
-            {
-                Reply.Write(value);
-            }
-            catch
-            {
-
-            }
-
-        }
-
-        public void AddUInt64(ulong value)
-        {
-            try
-            {
-                Reply.Write(value);
-            }
-            catch
-            {
-
-            }
-
-        }
-
-        public void AddInt64(long value)
-        {
-            try
-            {
-                Reply.Write(value);
-            }
-            catch
-            {
-
-            }
-
-        }
-
-        public void AddDouble(double value)
-        {
-            try
-            {
-                Reply.Write(value);
-            }
-            catch
-            {
-
-            }
-
-        }
         public string Log()
         {
-            return " [HexDump:" + Decrypt_Msg.HexDump() + "]";
+            return Decrypt_Msg.HexDump();
         }
+
         public void makeRaw()
         {
             packet_head ph = new packet_head();
@@ -767,13 +508,13 @@ namespace PangyaAPI.Network.PangyaPacket
             ph.low_key = 0; // low part of key random - 0 nesse pacote porque ele é o primiero que passa a chave
             ph.size = (ushort)(Reply.GetBytes.Length + 1);
 
-           var m_maked = Reply.GetBytes;
+            var m_maked = Reply.GetBytes;
             // Maked Reset
             Reply.Clear();
 
-            Reply.WriteBuffer(ph, 3); 
+            Reply.WriteBuffer(ph, 3);
             Reply.WriteByte(0);// byte com valor 0 para dizer que é um pacote raw
-            Reply.WriteBytes(m_maked); 
+            Reply.WriteBytes(m_maked);
         }
 
         public void clear()
@@ -784,10 +525,48 @@ namespace PangyaAPI.Network.PangyaPacket
             Decrypt_Msg = new byte[0];
             Encrypt_Msg = new uint8_t[0];
         }
+         
 
-        public void AddTime(DateTime login_time)
+        protected virtual void Dispose(bool disposing)
         {
-            Reply.WriteTime(login_time);
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    // TODO: descartar o estado gerenciado (objetos gerenciados)
+                    if (Reply != null)
+                        Reply.Dispose();
+                    if (Reader != null)
+                        Reader.Dispose();
+                    if (_stream != null)
+                        _stream.Dispose();
+                    Encrypt_Msg = new uint8_t[0];
+                    Decrypt_Msg = new uint8_t[0];
+                }
+
+                // TODO: liberar recursos não gerenciados (objetos não gerenciados) e substituir o finalizador
+                // TODO: definir campos grandes como nulos
+                disposedValue = true;
+            }
+        }
+
+        // // TODO: substituir o finalizador somente se 'Dispose(bool disposing)' tiver o código para liberar recursos não gerenciados
+        // ~packet()
+        // {
+        //     // Não altere este código. Coloque o código de limpeza no método 'Dispose(bool disposing)'
+        //     Dispose(disposing: false);
+        // }
+
+        void IDisposable.Dispose()
+        {
+            // Não altere este código. Coloque o código de limpeza no método 'Dispose(bool disposing)'
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
+
+        public void AddByte(byte value)
+        {
+            Reply.WriteByte(value);
         }
     }
 }

@@ -2,10 +2,10 @@
 using PangyaAPI.SQL;
 using PangyaAPI.Utilities;
 
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     internal class CmdGrandZodiacPontos : Pangya_DB
-    {                                         
+    {
         public enum eCMD_GRAND_ZODIAC_TYPE : byte
         {
             CGZT_GET,
@@ -14,7 +14,7 @@ namespace GameServer.Cmd
 
         public CmdGrandZodiacPontos(uint _uid,
             eCMD_GRAND_ZODIAC_TYPE _type)
-        { 
+        {
             this.m_uid = (_uid);
             this.m_pontos = 0;
             this.m_type = _type;
@@ -29,7 +29,7 @@ namespace GameServer.Cmd
             this.m_type = _type;
         }
 
-        public CmdGrandZodiacPontos() 
+        public CmdGrandZodiacPontos()
         {
             this.m_uid = 0u;
             this.m_pontos = 0;
@@ -55,7 +55,7 @@ namespace GameServer.Cmd
             if (m_type == eCMD_GRAND_ZODIAC_TYPE.CGZT_GET)
             {
 
-                checkColumnNumber(1);                              
+                checkColumnNumber(1);
                 m_pontos = IFNULL(_result.data[0]);
             }
         }

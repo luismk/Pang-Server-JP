@@ -1,17 +1,9 @@
-﻿
-using PangyaAPI.Network.Pangya_St;
+﻿using System;
 using PangyaAPI.SQL;
-
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PangyaAPI.Network.Cmd
 {
-    public class CmdNewAuthServerKey: Pangya_DB
+    public class CmdNewAuthServerKey : Pangya_DB
     {
         readonly int m_server_uid = -1;
         string m_key;
@@ -46,7 +38,7 @@ namespace PangyaAPI.Network.Cmd
                 throw new Exception("[CmdNewAuthServerKey::prepareConsulta][Error] m_server_uid is invalid(zero).");
 
 
-            var r = procedure("pangya.ProcGetNewAuthServerKey",m_server_uid.ToString());
+            var r = procedure("pangya.ProcGetNewAuthServerKey", m_server_uid.ToString());
 
             checkResponse(r, "Server[UID=" + (m_server_uid) + "] nao conseguiu gerar uma nova key para o Auth Server");
             return r;

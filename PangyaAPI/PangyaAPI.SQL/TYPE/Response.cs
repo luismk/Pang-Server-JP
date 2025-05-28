@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 
 namespace PangyaAPI.SQL
 {
@@ -52,7 +51,7 @@ namespace PangyaAPI.SQL
         }
 
         public List<Result_Set> getResultSet()
-        {                                   
+        {
             return m_result_set;
         }
 

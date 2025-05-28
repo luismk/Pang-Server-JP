@@ -1,8 +1,6 @@
-﻿using PangyaAPI.IFF.JP.Extensions;
+﻿using System.Runtime.InteropServices;
 using PangyaAPI.IFF.JP.Models.General;
 using PangyaAPI.Utilities.BinaryModels;
-using System.IO;
-using System.Runtime.InteropServices;
 namespace PangyaAPI.IFF.JP.Models.Data
 {
     #region Struct ClubSet.iff

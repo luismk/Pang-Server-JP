@@ -1,61 +1,60 @@
-﻿using GameServer.Cmd;
-using GameServer.GameType;
+﻿using System;
+using Pangya_GameServer.GameType;
 using PangyaAPI.SQL;
 using PangyaAPI.Utilities;
-using System;
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
-	public class CmdUpdatePlayerLocation : Pangya_DB
-	{ 
-			public CmdUpdatePlayerLocation(uint _uid, stPlayerLocationDB _pl)
-				{
-				this.m_uid = _uid;
-				this.m_pl = _pl;
-				}
- 
-			public uint getUID()
-			{
-				return (m_uid);
-			}
+    public class CmdUpdatePlayerLocation : Pangya_DB
+    {
+        public CmdUpdatePlayerLocation(uint _uid, stPlayerLocationDB _pl)
+        {
+            this.m_uid = _uid;
+            this.m_pl = _pl;
+        }
 
-			public void setUID(uint _uid)
-			{
-				m_uid = _uid;
-			}
+        public uint getUID()
+        {
+            return (m_uid);
+        }
 
-			public stPlayerLocationDB getInfo()
-			{
-				return m_pl;
-			}
+        public void setUID(uint _uid)
+        {
+            m_uid = _uid;
+        }
 
-			protected override void lineResult(ctx_res _result, uint _index_result)
-			{
+        public stPlayerLocationDB getInfo()
+        {
+            return m_pl;
+        }
 
-				// Não usa por que é um UPDATE
-				return;
-			}
+        protected override void lineResult(ctx_res _result, uint _index_result)
+        {
 
-			protected override Response prepareConsulta()
-			{
+            // Não usa por que é um UPDATE
+            return;
+        }
 
-				if(m_uid == 0u)
-				{
-					throw new exception("[CmdUpdatePlayerLocation::prepareConsulta][Error] Player[UID=" + Convert.ToString(m_uid) + "] is invalid.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PANGYA_DB,
-						4, 0));
-				}
+        protected override Response prepareConsulta()
+        {
 
-				var r = procedure(
-					m_szConsulta,
-					Convert.ToString(m_uid) + ", " + Convert.ToString((short)m_pl.channel) + ", " + Convert.ToString((short)m_pl.lobby) + ", " + Convert.ToString((short)m_pl.room) + ", " + Convert.ToString(m_pl.place.ulPlace));
+            if (m_uid == 0u)
+            {
+                throw new exception("[CmdUpdatePlayerLocation::prepareConsulta][Error] Player[UID=" + Convert.ToString(m_uid) + "] is invalid.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PANGYA_DB,
+                    4, 0));
+            }
 
-				checkResponse(r, "nao conseguiu atualizar Player[UID=" + Convert.ToString(m_uid) + "] Location[CHANNEL=" + Convert.ToString((short)m_pl.channel) + ", LOBBY=" + Convert.ToString((short)m_pl.lobby) + ", ROOM=" + Convert.ToString(m_pl.room) + ", PLACE=" + Convert.ToString((ushort)m_pl.place.ulPlace) + "]");
+            var r = procedure(
+                m_szConsulta,
+                Convert.ToString(m_uid) + ", " + Convert.ToString((short)m_pl.channel) + ", " + Convert.ToString((short)m_pl.lobby) + ", " + Convert.ToString((short)m_pl.room) + ", " + Convert.ToString(m_pl.place.ulPlace));
 
-				return r;
-			}
- 
-			private stPlayerLocationDB m_pl;
-			private uint m_uid = new uint();
+            checkResponse(r, "nao conseguiu atualizar Player[UID=" + Convert.ToString(m_uid) + "] Location[CHANNEL=" + Convert.ToString((short)m_pl.channel) + ", LOBBY=" + Convert.ToString((short)m_pl.lobby) + ", ROOM=" + Convert.ToString(m_pl.room) + ", PLACE=" + Convert.ToString((ushort)m_pl.place.ulPlace) + "]");
 
-			private const string m_szConsulta = "pangya.ProcUpdatePlayerLocation";
-	}
+            return r;
+        }
+
+        private stPlayerLocationDB m_pl;
+        private uint m_uid = new uint();
+
+        private const string m_szConsulta = "pangya.ProcUpdatePlayerLocation";
+    }
 }

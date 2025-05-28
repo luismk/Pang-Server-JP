@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace GameServer.Game.Utils
+namespace Pangya_GameServer.Game.Utils
 {
     public class BroadcastList
     {

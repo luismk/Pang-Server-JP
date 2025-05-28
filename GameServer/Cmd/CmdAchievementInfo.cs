@@ -2,21 +2,21 @@
 // Criado em 21/03/2018 às 21:56 por Acrisio
 // Implementação da classe CmdAchievementInfo
 
-using GameServer.GameType;
-using PangyaAPI.SQL;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
+using Pangya_GameServer.GameType;
+using PangyaAPI.IFF.JP.Extensions;
+using PangyaAPI.SQL;
 
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     public class CmdAchievementInfo : Pangya_DB
     {
         private uint m_uid;
         private readonly Dictionary<uint, List<AchievementInfoEx>> map_ai = new Dictionary<uint, List<AchievementInfoEx>>();
 
-      
+
         public CmdAchievementInfo(uint _uid)
         {
             m_uid = _uid;
@@ -77,7 +77,7 @@ namespace GameServer.Cmd
         {
             map_ai.Clear();
 
-            var response = procedure(m_szConsulta, m_uid.ToString());          
+            var response = procedure(m_szConsulta, m_uid.ToString());
 
             checkResponse(response, $"Failed to retrieve achievement info for player: {m_uid}");
 

@@ -1,7 +1,6 @@
-﻿using PangyaAPI.IFF.JP.Extensions;
-using PangyaAPI.Utilities.BinaryModels;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using System.Text;
+using PangyaAPI.Utilities.BinaryModels;
 namespace PangyaAPI.IFF.JP.Models.Data
 {
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
@@ -15,11 +14,11 @@ namespace PangyaAPI.IFF.JP.Models.Data
             Active = Reader.ReadUInt32();
             ID = Reader.ReadUInt32();
             NameInBytes = Reader.ReadBytes(40);
-            Texture = Reader.ReadPStr(40);    
-            Texture2 = Reader.ReadPStr(40);                                                 
-            Texture3 = Reader.ReadPStr(40);                                                                                                                                             
-            Texture4 = Reader.ReadPStr(40);                                                                                                                                                                                                                                                                                                                                     
-            Texture5 = Reader.ReadPStr(40);  
+            Texture = Reader.ReadPStr(40);
+            Texture2 = Reader.ReadPStr(40);
+            Texture3 = Reader.ReadPStr(40);
+            Texture4 = Reader.ReadPStr(40);
+            Texture5 = Reader.ReadPStr(40);
             Texture6 = Reader.ReadPStr(40);
         }
 

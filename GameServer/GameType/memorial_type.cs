@@ -1,15 +1,7 @@
-﻿using GameServer.Game.Utils;
-using GameServer.Session;
-using PangyaAPI.Utilities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static GameServer.GameType.ShotSyncData;
+﻿using System.Collections.Generic;
 
-namespace GameServer.GameType
-{                   
+namespace Pangya_GameServer.GameType
+{
     public enum MEMORIAL_COIN_TYPE : uint
     {
         MCT_NORMAL,
@@ -27,9 +19,9 @@ namespace GameServer.GameType
             uint __typeid,
             uint _qntd)
         {
-             this.tipo = _tipo;
-             this._typeid = __typeid;
-             this.qntd = _qntd;
+            this.tipo = _tipo;
+            this._typeid = __typeid;
+            this.qntd = _qntd;
         }
         public void clear()
         {
@@ -48,7 +40,7 @@ namespace GameServer.GameType
         {
             clear();
         }
-              
+
         public ctx_coin_item_ex(int _tipo,
            uint __typeid,
            uint _qntd,
@@ -79,12 +71,12 @@ namespace GameServer.GameType
         public uint gacha_number = new uint(); // número máximo do gacha
     }
 
-    public class ctx_coin_set_item 
+    public class ctx_coin_set_item
     {
         public ctx_coin_set_item(uint _ul = 0u)
         {
             clear();
-        }                            
+        }
         public void clear()
         {
 

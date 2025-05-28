@@ -1,17 +1,20 @@
-﻿using GameServer.Game.Utils;
-using GameServer.Session;
-using PangyaAPI.Utilities;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static GameServer.GameType.ShotSyncData;
+using System.Net.NetworkInformation;
+using System.Runtime.InteropServices;
+using System.Security.Cryptography;
+using Pangya_GameServer.Game;
+using Pangya_GameServer.Game.Utils;
+using Pangya_GameServer.Session;
+using PangyaAPI.Utilities.BinaryModels;
+using static Pangya_GameServer.Game.PersonalShop;
+using static PangyaAPI.IFF.JP.Models.Data.Mascot;
 
-namespace GameServer.GameType
+namespace Pangya_GameServer.GameType
 {
-
-    public class uSpecialShot
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
+     public class uSpecialShot
     {
         public uSpecialShot()
         {
@@ -21,7 +24,7 @@ namespace GameServer.GameType
         {
             ulSpecialShot = 0;
         }
-        uint ulSpecialShot;
+      public  uint ulSpecialShot;
         public uint spin_front { get => (ulSpecialShot & (1 << 0)) != 0 ? 1U : 0U; set { if (value != 0) ulSpecialShot |= (1 << 0); else ulSpecialShot &= ~(1U << 0); } }
         public uint spin_back { get => (ulSpecialShot & (1 << 1)) != 0 ? 1U : 0U; set { if (value != 0) ulSpecialShot |= (1 << 1); else ulSpecialShot &= ~(1U << 1); } }
         public uint curve_left { get => (ulSpecialShot & (1 << 2)) != 0 ? 1U : 0U; set { if (value != 0) ulSpecialShot |= (1 << 2); else ulSpecialShot &= ~(1U << 2); } }
@@ -35,57 +38,121 @@ namespace GameServer.GameType
             return "Spin Front: " + (spin_front) + " Spin Back: " + (spin_back) + " Curve Left: " + (curve_left) + " Curve Right: " + (curve_right) + " Tomahwak: " + (tomahawk) + " Cobra: " + (cobra) + " Spike: " + (spike) + " Unused: " + (_unused);
         }
     }
-
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public class ShotDataBase
     {
-        public ShotDataBase(uint _ul = 0)
+        public ShotDataBase()
         {
             clear();
         }
         public void clear()
         {
+            Array.Clear(bar_point, 0, 2);
+            Array.Clear(ball_effect, 0, 2);
+            acerto_pangya_flag = 0;
+            special_shot = new uSpecialShot();
+            time_hole_sync = 0;
+            mira = 0;
+            time_shot = 0;
+            bar_point1 = 0;
+            club = 0;
+            Array.Clear(fUnknown, 0, 2);
+            impact_zone_pixel = 0;
+            Array.Clear(natural_wind, 0, 2);
         }
-        public string toString()
+        public override string ToString()
         {
-            return "Bar Point: Forca: " + Convert.ToString(bar_point[0]) + " Hit PangYa: " + Convert.ToString(bar_point[1]) + Environment.NewLine + "Ball Effect: X: " + Convert.ToString(ball_effect[0]) + " Y: " + Convert.ToString(ball_effect[1]) + Environment.NewLine + "Acerto PangYa Flag: " + Convert.ToString((ushort)acerto_pangya_flag) + Environment.NewLine + "Special Shot: " + special_shot.toString() + Environment.NewLine + "Time Hole SYNC: " + Convert.ToString(time_hole_sync) + Environment.NewLine + "Mira(shot): " + Convert.ToString(mira) + Environment.NewLine + "Time Shot: " + Convert.ToString(time_shot) + Environment.NewLine + "Bar Point: Start: " + Convert.ToString(bar_point1) + Environment.NewLine + "Club: " + Convert.ToString((ushort)club) + Environment.NewLine + "fUnknown: [1]: " + Convert.ToString(fUnknown[0]) + " [2]: " + Convert.ToString(fUnknown[1]) + Environment.NewLine + "Impact Zone Size Pixel: " + Convert.ToString(impact_zone_pixel) + Environment.NewLine + "Natural Wind: X: " + Convert.ToString(natural_wind[0]) + " Y: " + Convert.ToString(natural_wind[1]) + Environment.NewLine;
+            return "Bar Point: Forca: " + bar_point[0] + " Hit PangYa: " + bar_point[1] + Environment.NewLine +
+                   "Ball Effect: X: " + ball_effect[0] + " Y: " + ball_effect[1] + Environment.NewLine +
+                   "Acerto PangYa Flag: " + acerto_pangya_flag + Environment.NewLine +
+                   "Special Shot: " + special_shot.ToString() + Environment.NewLine +
+                   "Time Hole SYNC: " + time_hole_sync + Environment.NewLine +
+                   "Mira(shot): " + mira + Environment.NewLine +
+                   "Time Shot: " + time_shot + Environment.NewLine +
+                   "Bar Point: Start: " + bar_point1 + Environment.NewLine +
+                   "Club: " + club + Environment.NewLine +
+                   "fUnknown: [1]: " + fUnknown[0] + " [2]: " + fUnknown[1] + Environment.NewLine +
+                   "Impact Zone Size Pixel: " + impact_zone_pixel + Environment.NewLine +
+                   "Natural Wind: X: " + natural_wind[0] + " Y: " + natural_wind[1] + Environment.NewLine;
         }
+
+
+
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 2)]
         public float[] bar_point = new float[2]; // [0] 2 Força, [1] 3 Impact Zone
+
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 2)]
         public float[] ball_effect = new float[2]; // [0] X Spin,  [1] Y Spin
+
         public byte acerto_pangya_flag;
-        public uSpecialShot special_shot = new uSpecialShot(); // Especial Short, Tomahawk, Cobra e Spike
-        public uint time_hole_sync = new uint();
+
+        [MarshalAs(UnmanagedType.Struct)]
+        public uSpecialShot special_shot = new uSpecialShot(); // Especial Shot, Tomahawk, Cobra e Spike
+
+        public uint time_hole_sync = 0;
+
         public float mira; // Mira da tacada do player, seria o R do location[x,y,z,r]
-        public uint time_shot = new uint();
+
+        public uint time_shot = 0;
+
         public float bar_point1;
+
         public byte club;
+
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 2)]
         public float[] fUnknown = new float[2]; // Float Unknown [0] 1 unknown, [1] 2 unknown
+
         public float impact_zone_pixel;
+
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 2)]
         public int[] natural_wind = new int[2]; // Natural Wind Valor [0] X valor, [1] Y valor
+        public byte[] ToArray()
+        {
+            using (var p = new PangyaBinaryWriter())
+            {
+                p.WriteFloat(bar_point);
+                p.WriteFloat(ball_effect);
+                p.Write(acerto_pangya_flag);
+                p.Write(special_shot.ulSpecialShot);
+                p.Write(time_hole_sync);
+                p.Write(mira);
+                p.Write(time_shot);
+                p.Write(bar_point1);
+                p.Write(club);
+                p.WriteFloat(fUnknown);
+                p.Write(impact_zone_pixel);
+                p.WriteInt32(natural_wind);
+                return p.GetBytes;
+            }
+        }
+
     }
 
     // Separei o spand time, que o pang battle não tem ele
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public class ShotData : ShotDataBase
     {
-        public ShotData(uint _ul = 0) : base(_ul)
+        public ShotData()
         {
             clear();
         }
-        public new string toString()
+        public string toString()
         {
-            return base.toString() + "Spend Time Game: " + Convert.ToString(spend_time_game) + Environment.NewLine;
+            return base.ToString() + "Spend Time Game: " + Convert.ToString(spend_time_game) + Environment.NewLine;
         }
         public float spend_time_game; // O Acumolo de tempo gasto no jogo, é o tempo decorrido geral
     }
-
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public class ShotDataEx : ShotData
     {
-        public ShotDataEx(uint _ul = 0) : base(_ul)
+        public ShotDataEx()
         {
             clear();
-        }
+        } 
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
         public class PowerShot
         {
-            public PowerShot(uint _ul = 0)
+            public PowerShot()
             {
                 clear();
             }
@@ -96,22 +163,24 @@ namespace GameServer.GameType
             public void clear()
             { }
             public byte option;
-            public int decrease_power_shot = new int();
-            public int increase_power_shot = new int();
+            public int decrease_power_shot = 0;
+            public int increase_power_shot = 0;
         }
         public new string toString()
         {
             return (option != 0) ? (power_shot.toString() + base.toString()) : base.toString();
         }
         public ushort option;
+        [field: MarshalAs(UnmanagedType.Struct)]
         public PowerShot power_shot = new PowerShot();
     }
-
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public class ShotSyncData
     {
         public void clear()
         {
         }
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
         public class Location
         {
             public void clear()
@@ -135,25 +204,30 @@ namespace GameServer.GameType
         {
             return "OID: " + Convert.ToString(oid) + Environment.NewLine + "Location: " + location.toString() + Environment.NewLine + "STATE: " + Convert.ToString((ushort)state) + Environment.NewLine + "Bunker Flag: " + Convert.ToString((ushort)bunker_flag) + Environment.NewLine + "ucUnknown: " + Convert.ToString((ushort)ucUnknown) + Environment.NewLine + "Pang: " + Convert.ToString(pang) + Environment.NewLine + "Pang Bonus: " + Convert.ToString(bonus_pang) + Environment.NewLine + "State Shot: " + state_shot.toString() + Environment.NewLine + "Tempo Shot: " + Convert.ToString(tempo_shot) + Environment.NewLine + "Grand Prix Penalidade: " + Convert.ToString((ushort)grand_prix_penalidade) + Environment.NewLine;
         }
-        public uint oid = new uint();
+        public uint oid = 0;
+        [field: MarshalAs(UnmanagedType.Struct)]
         public Location location = new Location();
+        //nao sei se e bit ou 
+        [field: MarshalAs(UnmanagedType.U1)] 
         public SHOT_STATE state = new SHOT_STATE();
         public byte bunker_flag;
         public byte ucUnknown; // Deve ser relacionando ao bunker esses negocios
-        public uint pang = new uint();
-        public uint bonus_pang = new uint();
+        public uint pang = 0;
+        public uint bonus_pang = 0;
         public bool isMakeHole()
         {
             return state_shot.display.acerto_hole == 1u;
         }
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
         public class stStateShot
         {
             public void clear()
             {
             }
+            [StructLayout(LayoutKind.Sequential, Pack = 1)]
             public class uDisplayState
             {
-                void clear()
+                public void clear()
                 {
                     ulState = 0;
                 }
@@ -328,7 +402,7 @@ namespace GameServer.GameType
 
                 public void Clear() => ulState = 0;
             }
-
+            [StructLayout(LayoutKind.Sequential, Pack = 1)]
             public class uShotState
             {
                 public uint ulState;
@@ -361,7 +435,9 @@ namespace GameServer.GameType
 
                 public void Clear() => ulState = 0;
             }
+            [field: MarshalAs(UnmanagedType.Struct)]
             public uDisplayState display = new uDisplayState();
+            [field: MarshalAs(UnmanagedType.Struct)]
             public uShotState shot = new uShotState();
             public string toString()
             {
@@ -394,16 +470,39 @@ namespace GameServer.GameType
                 return s;
             }
         }
+        [field: MarshalAs(UnmanagedType.Struct)]
         public stStateShot state_shot = new stStateShot();
         public ushort tempo_shot; // Acho que seja o tempo da tacada
         public byte grand_prix_penalidade; // Flag(valor) de penalidade do Grand Prix quando tem regras com penalidades
+ 
+    public byte[] ToArray()
+        {
+            using (var p = new PangyaBinaryWriter())
+            {
+                p.Write(oid);
+                p.Write(location.x);
+                p.Write(location.y);
+                p.Write(location.z);
+                p.Write((byte)state);
+                p.Write(bunker_flag);
+                p.Write(ucUnknown);
+                p.Write(pang);
+                p.Write(bonus_pang);
+                p.Write(state_shot.display.ulState);
+                p.Write(state_shot.shot.ulState);
+                p.Write(tempo_shot);
+                p.Write(grand_prix_penalidade);
+                return p.GetBytes;
+            }
+        }
     }
-
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]//348
     public class ShotEndLocationData
     {
         public void clear()
         {
         }
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]//348
         public class stLocation
         {
             public void clear()
@@ -416,7 +515,18 @@ namespace GameServer.GameType
             {
                 return "X: " + Convert.ToString(x) + " Y: " + Convert.ToString(y) + " Z: " + Convert.ToString(z);
             }
+            public byte[] ToArray()
+            {
+                using (var p = new PangyaBinaryWriter())
+                {
+                    p.WriteFloat(x);
+                    p.WriteFloat(y);
+                    p.WriteFloat(z);
+                    return p.GetBytes;
+                }
+            }
         }
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]//348
         public class BallPoint
         {
             public void clear()
@@ -428,13 +538,26 @@ namespace GameServer.GameType
             }
             public float x;
             public float y;
+            public byte[] ToArray()
+            {
+                using (var p = new PangyaBinaryWriter())
+                {
+                    p.WriteFloat(x);
+                    p.WriteFloat(y);
+                    return p.GetBytes;
+                } }
         }
         public float porcentagem;
+        [field: MarshalAs(UnmanagedType.Struct)]
         public stLocation ball_velocity = new stLocation();
         public byte option;
+        [field: MarshalAs(UnmanagedType.Struct)]
         public stLocation location = new stLocation();
+        [field: MarshalAs(UnmanagedType.Struct)]
         public stLocation wind_influence = new stLocation();
+        [field: MarshalAs(UnmanagedType.Struct)]
         public BallPoint ball_point = new BallPoint();
+        [field: MarshalAs(UnmanagedType.Struct)]
         public uSpecialShot special_shot = new uSpecialShot(); // Tipo da tacada
         public float ball_rotation_spin;
         public float ball_rotation_curve; // Esse é a quantidade do efeito final depois de todos os algorithmos do pangya
@@ -445,13 +568,38 @@ namespace GameServer.GameType
         public float rotation_spin_factor;
         public float rotation_curve_factor;
         public float power_factor_shot;
-        public uint time_hole_sync = new uint();
+        public uint time_hole_sync = 0;
         public string toString()
         {
             return "Porcentagem: " + Convert.ToString(porcentagem) + Environment.NewLine + "Option: " + Convert.ToString((ushort)option) + Environment.NewLine + "Ball Velocity (Initial): " + ball_velocity.toString() + Environment.NewLine + "Location (Begin Shot): " + location.toString() + Environment.NewLine + "Wind Influence: " + wind_influence.toString() + Environment.NewLine + "Ball Point: " + ball_point.toString() + Environment.NewLine + "Special Shot(Tipo da tacada): " + special_shot.toString() + Environment.NewLine + "Ball Rotation (Spin): " + Convert.ToString(ball_rotation_spin) + Environment.NewLine + "Ball Rotation (Curva): " + Convert.ToString(ball_rotation_curve) + Environment.NewLine + "ucUnknown: " + Convert.ToString((ushort)ucUnknown) + Environment.NewLine + "Taco: " + Convert.ToString((ushort)taco) + Environment.NewLine + "Power Factor (Full): " + Convert.ToString(power_factor) + Environment.NewLine + "Power Club(Range): " + Convert.ToString(power_club) + Environment.NewLine + "Rotation Spin Factor: " + Convert.ToString(rotation_spin_factor) + Environment.NewLine + "Rotation Curve Factor: " + Convert.ToString(rotation_curve_factor) + Environment.NewLine + "Power Factor (Shot): " + Convert.ToString(power_factor_shot) + Environment.NewLine + "Time Hole SYNC: " + Convert.ToString(time_hole_sync) + Environment.NewLine;
         }
-    }
 
+        internal byte[] ToArray()
+        {
+            using (var p = new PangyaBinaryWriter())
+            {
+                p.Write(porcentagem);
+                p.WriteBytes(ball_velocity.ToArray());
+                p.Write(option);
+                p.WriteBytes(location.ToArray());
+                p.WriteBytes(wind_influence.ToArray());
+                p.WriteBytes(ball_point.ToArray());
+                p.WriteUInt32(special_shot.ulSpecialShot);
+                p.Write(ball_rotation_spin);
+                p.Write(ball_rotation_curve);
+                p.Write(ucUnknown);
+                p.Write(taco);
+                p.Write(power_factor);
+                p.Write(power_club);
+                p.Write(rotation_spin_factor);
+                p.Write(rotation_curve_factor);
+                p.Write(power_factor_shot);
+                p.Write(time_hole_sync); 
+                return p.GetBytes;
+            }
+        }
+    }
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public class DropItem
     {
         public enum eTYPE : ulong
@@ -465,23 +613,47 @@ namespace GameServer.GameType
         }
         public void clear()
         {
-        }
-        public uint _typeid = new uint();
+        } 
+
+        public uint _typeid = 0;
         public byte course;
         public byte numero_hole;
         public short qntd;
         public eTYPE type = new eTYPE();
-    }
 
+        public DropItem()
+        {
+        }
+
+        public DropItem(uint typeid, byte map, byte nhole, short _qntd, eTYPE _eTYPE)
+        {
+            _typeid = typeid;
+            course = map;
+            numero_hole = nhole;
+            qntd = _qntd;
+            type = _eTYPE;
+        }
+        public byte[] ToArray()
+        {
+            using (var p = new PangyaBinaryWriter())
+            { 
+        p.WriteUInt32(_typeid);
+                p.WriteByte(course);
+                p.WriteByte(numero_hole);
+                p.WriteInt16(qntd);
+                p.WriteUInt64((ulong)type);
+                return p.GetBytes;
+            }
+        }
+    }
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public class DropItemRet
     {
-        public DropItemRet(uint _ul = 0)
+        public DropItemRet()
         {
             clear();
         }
-        public void Dispose()
-        {
-        }
+        
         public void clear()
         {
 
@@ -492,29 +664,29 @@ namespace GameServer.GameType
         }
         public List<DropItem> v_drop = new List<DropItem>();
     }
-
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public class GameData
     {
         public void clear()
         {
         }
-        public uint tacada_num = new uint();
-        public uint total_tacada_num = new uint();
-        public int score = new int();
+        public uint tacada_num = 0;
+        public uint total_tacada_num = 0;
+        public int score = 0;
         public byte giveup = 1;
-        public uint bad_condute = new uint(); // Má conduta, 3 give ups o jogo kika o player
-        public uint penalidade = new uint(); // Penalidade do Grand Prix Rule
-        public ulong pang = new ulong();
-        public ulong bonus_pang = new ulong();
-        public long pang_pang_battle = new long(); // Pang do Pang Battle que o player ganhou ou perdeu
-        public int pang_battle_run_hole = new int(); // Player saiu do pang battle(-1) ou alguém saiu(+1)
-        public uint time_out = new uint(); // Count de time outs do player, 3 time outs o jogo kika o player
-        public uint exp = new uint(); // Exp que o player, ganhou no jogo
+        public uint bad_condute = 0; // Má conduta, 3 give ups o jogo kika o player
+        public uint penalidade = 0; // Penalidade do Grand Prix Rule
+        public ulong pang = 0;
+        public ulong bonus_pang = 0;
+        public long pang_pang_battle = 0; // Pang do Pang Battle que o player ganhou ou perdeu
+        public int pang_battle_run_hole = 0; // Player saiu do pang battle(-1) ou alguém saiu(+1)
+        public uint time_out = 0; // Count de time outs do player, 3 time outs o jogo kika o player
+        public uint exp = 0; // Exp que o player, ganhou no jogo
     }
-
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public class BarSpace
     {
-        public BarSpace(uint _ul = 0)
+        public BarSpace()
         {
             clear();
         }
@@ -568,9 +740,10 @@ namespace GameServer.GameType
             return "Point. Start: " + Convert.ToString(point[0]) + " Impact Zone: " + Convert.ToString(point[1]) + " Forca: " + Convert.ToString(point[2]) + " Hit PangYa: " + Convert.ToString(point[3]);
         }
         protected byte state;
+        [field: MarshalAs(UnmanagedType.ByValArray)]
         protected float[] point = new float[4]; // 0 ainda não está tacando, 1 início, 2 força, 3 impact zone
     }
-
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public class UsedItem
     {
         public void Dispose()
@@ -588,14 +761,22 @@ namespace GameServer.GameType
                 v_active.Clear();
             }
         }
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
         public class Passive
         {
             public void clear()
             {
             }
-            public uint _typeid = new uint();
-            public uint count = new uint();
+            public uint _typeid = 0;
+            public uint count = 0;
+            public Passive() { }
+            public Passive(uint typeid, uint _count)
+            {
+                _typeid = typeid;
+                this.count = _count;
+            }
         }
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
         public class Active
         {
             public void Dispose()
@@ -612,10 +793,19 @@ namespace GameServer.GameType
                     v_slot.Clear();
                 }
             }
-            public uint _typeid = new uint();
-            public uint count = new uint();
+            public uint _typeid = 0;
+            public uint count = 0;
             public List<byte> v_slot = new List<byte>();
+            public Active()
+            { }
+            public Active(uint typeid, uint _count, List<byte> _slot)
+            {
+                _typeid = typeid;
+                count = _count;
+                v_slot = _slot;
+            }
         }
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
         public class Rate
         {
             public void clear()
@@ -626,18 +816,19 @@ namespace GameServer.GameType
                 club = 100;
                 drop = 100;
             }
-            public uint pang = new uint();
-            public uint exp = new uint();
-            public uint club = new uint();
-            public uint drop = new uint();
+            public uint pang = 0;
+            public uint exp = 0;
+            public uint club = 0;
+            public uint drop = 0;
         }
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
         public class ClubMastery
         {
             public void clear()
             {
             }
-            public uint _typeid = new uint();
-            public uint count = new uint();
+            public uint _typeid = 0;
+            public uint count = 0;
             public float rate;
         }
         public Dictionary<uint, Passive> v_passive = new Dictionary<uint, Passive>();
@@ -647,6 +838,7 @@ namespace GameServer.GameType
     }
 
     // Effect Item Flag
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public class uEffectFlag
     {
         public uEffectFlag(ulong _ull = 0)
@@ -702,7 +894,7 @@ namespace GameServer.GameType
     }
 
     // Bit value                                                          
-
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public class PlayerGameInfo
     {
         public enum eCARD_WIND_FLAG : byte
@@ -728,15 +920,11 @@ namespace GameServer.GameType
             T_BLUE,
             T_NONE
         }
-        public PlayerGameInfo(uint _ul = 0)
+        public PlayerGameInfo()
         {
             clear();
-        }
-        public virtual void Dispose()
-        {
-            clear();
-        }
-        public void clear()
+        }       
+        public virtual void clear()
         {
 
             uid = 0;
@@ -797,6 +985,8 @@ namespace GameServer.GameType
             typeing = -1;
             hole = 255;
         }
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+
         public class stProgress
         {
             public void clear()
@@ -839,14 +1029,18 @@ namespace GameServer.GameType
             public float best_chipin;
             public float best_long_puttin;
             public float best_drive;
+            [field: MarshalAs(UnmanagedType.ByValArray)]
             public byte[] finish_hole = new byte[18]; // Flag para verificar se o player terminou o hole
-            public byte[] par_hole = new byte[18]; // Par do hole, [18 Holes o máximo de um jogo]
-            public uint[] tacada = new uint[18]; // Tacadas do hole, [18 Holes o máximo de um jogo]
-            public string score = new string(new char[18]); // Score do hole, [18 Holes o máximo de um jogo]
+            [field: MarshalAs(UnmanagedType.ByValArray)]
+            public sbyte[] par_hole = new sbyte[18]; // Par do hole, [18 Holes o máximo de um jogo]negativo
+            [field: MarshalAs(UnmanagedType.ByValArray)] public uint[] tacada = new uint[18]; // Tacadas do hole, [18 Holes o máximo de um jogo](negativo)
+            [field: MarshalAs(UnmanagedType.ByValArray)] public sbyte[] score = new sbyte[18]; // Score do hole, [18 Holes o máximo de um jogo](negativo)
         }
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+
         public class stTreasureHunterInfo
         {
-            public stTreasureHunterInfo(uint _ul = 0)
+            public stTreasureHunterInfo()
             {
                 clear();
             }
@@ -868,7 +1062,7 @@ namespace GameServer.GameType
                     v_item.Clear();
                 }
             }
-            public uint getPoint(uint _tacada, byte _par_hole)
+            public uint getPoint(uint _tacada, sbyte _par_hole)
             {
                 byte point = all_score;
 
@@ -902,19 +1096,20 @@ namespace GameServer.GameType
                 lhs.par_score += rhs.par_score;
                 lhs.birdie_score += rhs.birdie_score;
                 lhs.eagle_score += rhs.eagle_score;
-                lhs.treasure_point += rhs.treasure_point;  
+                lhs.treasure_point += rhs.treasure_point;
                 return lhs; // Retorna a instância lhs após a soma
-            }                 
-            public uint treasure_point = new uint(); // Treasure Hunter point do player no game
+            }
+            public uint treasure_point = 0; // Treasure Hunter point do player no game
             public List<TreasureHunterItem> v_item = new List<TreasureHunterItem>(); // Treasure Hunter Item
             public byte all_score;
             public byte par_score;
             public byte birdie_score;
             public byte eagle_score;
         }
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
         public class TickTimeSync
         {
-            public TickTimeSync(uint _ul = 0)
+            public TickTimeSync()
             {
                 clear();
             }
@@ -924,8 +1119,9 @@ namespace GameServer.GameType
             public byte count;
 
             public byte active = 1;
-            public ulong tick = new ulong();
+            public ulong tick = 0;
         }
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
         public class uBoostItemFlag
         {
             public void clear()
@@ -938,8 +1134,8 @@ namespace GameServer.GameType
             public uint exp { get => (ucFlag & (1 << 2)) != 0 ? 1U : 0U; set { if (value != 0) ucFlag |= (1 << 2); else ucFlag &= (sbyte)~(1 << 2); } }
 
         }
-        public uint uid = new uint();
-        public uint oid = new uint();
+        public uint uid = 0;
+        public uint oid = 0;
         public byte level;
         public byte hole; // Número do Hole que o player está
 
@@ -978,14 +1174,14 @@ namespace GameServer.GameType
         public byte finish_item_used = 1; // 1 Player já finalizou os itens usados no jogo, não finalizar de novo se ele já estiver finalizado
         public byte trofel; // Trofel que ele ganhou, 1 ouro, 2 prate, 3 bronze
         public ushort progress_bar;
-        public uint tempo = new uint();
+        public uint tempo = 0;
         public byte power_shot;
         public byte club; // Taco
         public short typeing; // Escrevendo
         public byte chat_block; // Chat Block
         public ushort degree; // Degree(Graus) do player no Hole
-        public uint mascot_typeid = new uint(); // Typeid do Mascot equipado
-        public uint item_active_used_shot = new uint(); // O item Active usado na tacada
+        public uint mascot_typeid = 0; // Typeid do Mascot equipado
+        public uint item_active_used_shot = 0; // O item Active usado na tacada
         public float earcuff_wind_angle_shot; // Ângulo que o efeito earcuff ativou na tacada para o player
         public uEffectFlag effect_flag_shot = new uEffectFlag(); // Effect Flag Shot(tacada), Wind 1m, Safety, Patinha e etc
         public eFLAG_GAME flag = new eFLAG_GAME(); // Flag se acabou o camp, ainda esta jogando, quitou, saiu, ou o jogo terminou pro ele
@@ -1011,9 +1207,10 @@ namespace GameServer.GameType
     }
 
     // Ticket Report Info
+    [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public class TicketReportInfo
     {
-        public TicketReportInfo(uint _ul = 0)
+        public TicketReportInfo()
         {
             clear();
         }
@@ -1025,60 +1222,81 @@ namespace GameServer.GameType
             id = -1;
             v_dados.Clear();
         }
+        [StructLayout(LayoutKind.Sequential, Pack = 4)]
         public class stTicketReportDados
         {
             public void clear()
             {
             }
-            public uint uid = new uint();
-            public int score = new int();
+            public uint uid = 0;
+            public int score = 0;
+            [field: MarshalAs(UnmanagedType.Struct)]
             public uMedalWin medal = new uMedalWin();
             public byte trofel;
-            public ulong pang = new ulong();
-            public ulong bonus_pang = new ulong();
-            public uint exp = new uint();
-            public uint mascot_typeid = new uint();
-            public uint flag_item_pang = new uint();
-            public uint premium = new uint();
-            public uint state = new uint();
+            public ulong pang = 0;
+            public ulong bonus_pang = 0;
+            public uint exp = 0;
+            public uint mascot_typeid = 0;
+            public uint flag_item_pang = 0;
+            public uint premium = 0;
+            public uint state = 0;
+            [field: MarshalAs(UnmanagedType.Struct)]
             public PangyaTime finish_time = new PangyaTime();
         }
-        public int id = new int();
+        public int id = 0;
         public List<stTicketReportDados> v_dados = new List<stTicketReportDados>();
     }
 
     // Enter After Start Info
+    [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public class EnterAfterStartInfo
     {
         public void clear()
         {
         }
+         
+
+        [field: MarshalAs(UnmanagedType.ByValArray)]
         public byte[] tacada = new byte[18]; // 18 Holes
+        [field: MarshalAs(UnmanagedType.ByValArray)]
         public int[] score = new int[18]; // 18 Holes
+        [field: MarshalAs(UnmanagedType.ByValArray)]
         public ulong[] pang = new ulong[18]; // 18 Holes
-        public uint request_oid = new uint();
-        public uint owner_oid = new uint();
+        public uint request_oid = 0;
+        public uint owner_oid = 0;
+
+        public byte[] ToArray()
+        {
+            using (var p = new PangyaBinaryWriter())
+            {
+                p.WriteBytes(tacada);
+                p.WriteInt32(score);
+                p.WriteUInt64(pang);
+                p.WriteUInt32(request_oid);
+                p.WriteUInt32(owner_oid);
+                return p.GetBytes;
+            }
+        }
     }
 
 
     public class PlayerOrderTurnCtx
     {
-        public PlayerOrderTurnCtx(uint _ul = 0)
+        public PlayerOrderTurnCtx()
         {
             clear();
         }
-        public PlayerOrderTurnCtx(PlayerGameInfo _pgi/*, Hole _hole*/)
+        public PlayerOrderTurnCtx(PlayerGameInfo _pgi, Hole _hole)//@ver depois@@@@@
         {
             this.pgi = _pgi;
-           // this.hole = _hole;
+            this.hole = _hole;
         }
         public void clear()
         {
             pgi = null;
-          //  hole = null;
         }
         public PlayerGameInfo pgi;
-        //public Hole[] hole;
+        public Hole hole;
     }
 
     // Table Rate Voice And Effect On Versus
@@ -1091,7 +1309,7 @@ namespace GameServer.GameType
             R_BIGBONGDARI,
             VOICE_CLUB
         }
-        public TableRateVoiceAndEffect(uint _ul = 0)
+        public TableRateVoiceAndEffect()
         {
             clear();
         }
@@ -1125,15 +1343,15 @@ namespace GameServer.GameType
         }
         public string name = "";
         public eTYPE type = new eTYPE();
-        public byte[] table = new byte[100];
+        [field: MarshalAs(UnmanagedType.ByValArray)] public byte[] table = new byte[100];
     }
 
     public class TreasureHunterVersusInfo
     {
-        public TreasureHunterVersusInfo(uint _ul = 0)
+        public TreasureHunterVersusInfo()
         {
             clear();
-        }                                          
+        }
         public void clear()
         {
 
@@ -1148,6 +1366,20 @@ namespace GameServer.GameType
             {
                 v_item.Clear();
             }
+        }
+        public void increment(TreasureHunterVersusInfo other)
+        {
+            all_score += other.all_score;
+            par_score += other.par_score;
+            birdie_score += other.birdie_score;
+            eagle_score += other.eagle_score;
+        }
+        public void increment(PlayerGameInfo.stTreasureHunterInfo _thi)
+        {
+            all_score += _thi.all_score;
+            par_score += _thi.par_score;
+            birdie_score += _thi.birdie_score;
+            eagle_score += _thi.eagle_score;
         }
         public uint getPoint(uint _tacada, byte _par_hole)
         {
@@ -1175,10 +1407,10 @@ namespace GameServer.GameType
 
             return point;
         }
-        
+
         public class _stTreasureHunterItem
         {
-            public _stTreasureHunterItem(uint _ul = 0)
+            public _stTreasureHunterItem()
             {
                 clear();
             }
@@ -1192,11 +1424,11 @@ namespace GameServer.GameType
                 uid = 0;
                 thi.clear();
             }
-            public uint uid = new uint(); // Player UID
+            public uint uid = 0; // Player UID
             public TreasureHunterItem thi = new TreasureHunterItem();
         }
-        public uint treasure_point = new uint(); // Treasure Hunter point do player no game
-        public List<_stTreasureHunterItem> v_item = new List<_stTreasureHunterItem>(); // Treasure Hunter Item
+        public uint treasure_point = 0; // Treasure Hunter point do player no game
+        public Dictionary<uint,_stTreasureHunterItem> v_item = new Dictionary<uint, _stTreasureHunterItem>(); // Treasure Hunter Item
         public byte all_score;
         public byte par_score;
         public byte birdie_score;
@@ -1206,22 +1438,22 @@ namespace GameServer.GameType
     // Ret Finish Shot
     public class RetFinishShot
     {
-        public RetFinishShot(uint _ul = 0)
+        public RetFinishShot()
         {
             clear();
         }
         public void clear()
         {
-            p = new List<Player>();
+           // p = new Player();
         }
         public int ret;
-        public List<Player> p;
+        public Player p;
     }
 
     // Holes rain count
     public class HolesRain
     {
-        public HolesRain(uint _ul = 0)
+        public HolesRain()
         {
             clear();
         }
@@ -1266,13 +1498,15 @@ namespace GameServer.GameType
 
             rain[_index] = _value;
         }
+        [field: MarshalAs(UnmanagedType.ByValArray)]
         protected byte[] rain = new byte[18]; // Máximo número de holes de um jogo
     }
 
     // Consecutivos Holes Rain(Recovery) Tempo Ruim
+    [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public class ConsecutivosHolesRain
     {
-        public ConsecutivosHolesRain(uint _ul = 0)
+        public ConsecutivosHolesRain()
         {
             clear();
         }
@@ -1283,8 +1517,11 @@ namespace GameServer.GameType
         {
             return (_4_pluss_count.getCountHolesRain() > 0 || _3_count.getCountHolesRain() > 0 || _2_count.getCountHolesRain() > 0);
         }
+        [field: MarshalAs(UnmanagedType.Struct)]
         public HolesRain _4_pluss_count = new HolesRain();
+        [field: MarshalAs(UnmanagedType.Struct)]
         public HolesRain _3_count = new HolesRain();
+        [field: MarshalAs(UnmanagedType.Struct)]
         public HolesRain _2_count = new HolesRain();
     }
 }

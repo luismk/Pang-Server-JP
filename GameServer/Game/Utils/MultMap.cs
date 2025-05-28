@@ -1,9 +1,7 @@
-﻿using PangyaAPI.Utilities;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
+﻿using System.Collections.Generic;
 using System.Linq;
-namespace GameServer.Game.Utils
+using PangyaAPI.Utilities;
+namespace Pangya_GameServer.Game.Utils
 {
     public class MultiMap<TKey, TValue>
     {
@@ -130,6 +128,6 @@ namespace GameServer.Game.Utils
         /// <summary>
         /// Retorna todos os valores armazenados no dicionário.
         /// </summary>
-        public IEnumerable<TValue> Values => _dict.Values.SelectMany(v=> v);
+        public IEnumerable<TValue> Values => _dict.Values.SelectMany(v => v);
     }
 }

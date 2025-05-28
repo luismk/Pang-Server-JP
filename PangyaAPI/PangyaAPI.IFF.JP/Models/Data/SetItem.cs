@@ -1,8 +1,8 @@
-﻿using PangyaAPI.IFF.JP.Models.General;
-using System;
+﻿using System;
+using System.Linq;
 using System.Runtime.InteropServices;
 using PangyaAPI.IFF.JP.Extensions;
-using System.Linq;
+using PangyaAPI.IFF.JP.Models.General;
 using PangyaAPI.Utilities.BinaryModels;
 
 namespace PangyaAPI.IFF.JP.Models.Data
@@ -49,13 +49,13 @@ namespace PangyaAPI.IFF.JP.Models.Data
         public int getCharacter(bool memorial = false)
         {
             if (memorial)
-            {        
+            {
                 switch (CharacterType)
                 {
-                    case 0:             
-                    case 2:        
-                    case 4:     
-                    case 7:     
+                    case 0:
+                    case 2:
+                    case 4:
+                    case 7:
                     case 11:
                     case 13:
                         return 17; //man 
@@ -71,7 +71,7 @@ namespace PangyaAPI.IFF.JP.Models.Data
                         return 18;
                     default:
                         return 0;
-                }                         
+                }
             }
             else
             {
@@ -155,24 +155,24 @@ namespace PangyaAPI.IFF.JP.Models.Data
             var club = (Utils.GetItemGroup(Item_TypeID[idx]) == 4);
             var caddie = (Utils.GetItemGroup(Item_TypeID[idx]) == 7);
             var mascot = (Utils.GetItemGroup(Item_TypeID[idx]) == 16);
-            if (part || _char || club|| caddie || mascot)
+            if (part || _char || club || caddie || mascot)
             {
                 if (ushort.Parse(text) == 1)
                 {
                     text = "0";
-                }  
+                }
             }
             Item_Qty[idx] = ushort.Parse(text);
         }
 
         public void SetIDSet(int idx, string text)
-        {     
+        {
             Item_TypeID[idx] = uint.Parse(text);
         }
 
         public uint[] GetIDS()
         {
-            return Item_TypeID.Where(c=> c!= 0).ToArray();         
+            return Item_TypeID.Where(c => c != 0).ToArray();
         }
 
         public bool IsSet()
@@ -183,11 +183,11 @@ namespace PangyaAPI.IFF.JP.Models.Data
                 if (Item_TypeID[i] > 0 && Utils.GetItemGroup(Item_TypeID[i]) == 2)
                 {
                     result = true;
-                }  
+                }
             }
             return result;
         }
-             
+
     }
     #endregion     
 }

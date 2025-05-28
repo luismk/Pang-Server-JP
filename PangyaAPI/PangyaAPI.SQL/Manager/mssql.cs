@@ -1,11 +1,11 @@
 ﻿using System;
-using PangyaAPI.Utilities;
 using System.Data;
-using result_set = PangyaAPI.SQL.Result_Set;
-using response = PangyaAPI.SQL.Response;
 using System.Data.SqlClient;
 using System.Linq;
+using PangyaAPI.Utilities;
 using _smp = PangyaAPI.Utilities.Log;
+using response = PangyaAPI.SQL.Response;
+using result_set = PangyaAPI.SQL.Result_Set;
 
 namespace PangyaAPI.SQL.Manager
 {
@@ -136,7 +136,7 @@ namespace PangyaAPI.SQL.Manager
                             for (i = 0; i < numResults; i++)
                             {
                                 result = new result_set((uint)result_set.STATE_TYPE.HAVE_DATA, numResults, (uint)numRows, _data.Rows[i]);
-                               
+
                                 res.addResultSet(result);
                             }
                             ret++;
@@ -186,7 +186,7 @@ namespace PangyaAPI.SQL.Manager
                     if (numResults > 0)
                     {
                         foreach (DataRow item in _data.Rows)
-                        {                                                                                                     
+                        {
                             res.addResultSet(new result_set((uint)result_set.STATE_TYPE.HAVE_DATA, numResults, (uint)numRows, item));
                         }
                     }
@@ -231,7 +231,7 @@ namespace PangyaAPI.SQL.Manager
         }
 
         protected class ctx_db
-        {           
+        {
             public SqlCommand hEnv;
             public SqlConnection hDbc;
             public DataSet hStmt;

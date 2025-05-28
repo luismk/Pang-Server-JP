@@ -1,7 +1,7 @@
-﻿using GameServer.GameType;           
-using PangyaAPI.SQL;                
-using System;                      
-namespace GameServer.Cmd
+﻿using System;
+using Pangya_GameServer.GameType;
+using PangyaAPI.SQL;
+namespace Pangya_GameServer.Cmd
 {
     public class CmdMemberInfo : Pangya_DB
     {
@@ -12,7 +12,7 @@ namespace GameServer.Cmd
             m_uid = _uid;
             m_mi = new MemberInfoEx();
         }
-                        
+
         protected override void lineResult(ctx_res _result, uint _index_result)
         {
             checkColumnNumber(28);
@@ -20,14 +20,14 @@ namespace GameServer.Cmd
             {
                 // Aqui faz as coisas
                 if (_result.IsNotNull(0))
-                   (m_mi.id) = (string)_result.data[0];
+                    (m_mi.id) = (string)_result.data[0];
 
                 m_mi.uid = Convert.ToUInt32(_result.data[1]);
                 m_mi.sexo = Convert.ToByte(_result.data[2]);
                 m_mi.do_tutorial = Convert.ToByte(_result.data[3]);
 
                 if (_result.IsNotNull(4))
-                   m_mi.nick_name = Convert.ToString(_result.data[4]);
+                    m_mi.nick_name = Convert.ToString(_result.data[4]);
 
                 m_mi.nick_NT = "@NT_" + m_mi.nick_name;
                 m_mi.school = Convert.ToUInt32(_result.data[5]);
@@ -35,7 +35,7 @@ namespace GameServer.Cmd
                 m_mi.manner_flag = Convert.ToUInt32(_result.data[9]);
 
                 if (_result.IsNotNull(11))
-                  m_mi.guild_name = Convert.ToString(_result.data[11]);
+                    m_mi.guild_name = Convert.ToString(_result.data[11]);
 
                 m_mi.guild_uid = Convert.ToUInt32(_result.data[12]);
                 m_mi.guild_pang = Convert.ToInt64(_result.data[13]);
@@ -45,14 +45,14 @@ namespace GameServer.Cmd
                 m_mi.event_2 = Convert.ToByte(_result.data[17]);
 
                 // 1 Player loga primeira vezes, 2 é o um player que já logou mais de 1x
-                m_mi.flag_login_time = 2;
+                m_mi.flag_login_time = 2;//eu uso 0
 
                 // Sexo do player
                 m_mi.state_flag.sexo = m_mi.sexo == 1 ? true : false; //tem que setar uma identidade aqui.
                 m_mi.state_flag.ucByte = m_mi.sexo;
-                m_mi.papel_shop.limit_count = Convert.ToInt16(_result.data[18]);
-                m_mi.papel_shop.current_count = Convert.ToInt16(_result.data[22]);
-                m_mi.papel_shop.remain_count = Convert.ToInt16(_result.data[23]);
+                m_mi.papel_shop.limit_count = Convert.ToUInt16(_result.data[18]);
+                m_mi.papel_shop.current_count = Convert.ToUInt16(_result.data[22]);
+                m_mi.papel_shop.remain_count = Convert.ToUInt16(_result.data[23]);
 
                 if (_result.IsNotNull(24))
                     m_mi.papel_shop_last_update.CreateTime(_result.data[24].ToString());
@@ -69,7 +69,7 @@ namespace GameServer.Cmd
             }
             catch (Exception ex)
             {
-                Console.WriteLine("[CmdMemberInfo::lineResult][Error]: "+ ex.Message);       
+                Console.WriteLine("[CmdMemberInfo::lineResult][Error]: " + ex.Message);
             }
         }
 
@@ -78,10 +78,11 @@ namespace GameServer.Cmd
             return m_mi;
         }
 
-        public MemberInfo getMemberInfo()
+        public uCapability getCap()
         {
-            return m_mi;
+            return m_mi.capability;
         }
+
 
         protected override Response prepareConsulta()
         {

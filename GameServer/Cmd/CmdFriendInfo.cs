@@ -1,15 +1,14 @@
-﻿using GameServer.GameType;
+﻿using System.Collections.Generic;
+using Pangya_GameServer.GameType;
 using PangyaAPI.SQL;
 using PangyaAPI.Utilities;
 using PangyaAPI.Utilities.Log;
-using System;
-using System.Collections.Generic;
 using _smp = PangyaAPI.Utilities.Log;
 
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     public class CmdFriendInfo : Pangya_DB
-    {     
+    {
         public CmdFriendInfo(uint _uid)
         {
             m_uid = _uid;
@@ -80,7 +79,7 @@ namespace GameServer.Cmd
 
             return r;
         }
-         
+
         private uint m_uid;
         private Dictionary<uint, FriendInfo> m_fi;
 

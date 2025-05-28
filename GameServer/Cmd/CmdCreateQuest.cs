@@ -1,12 +1,9 @@
-﻿using GameServer.GameType;
+﻿using System;
+using PangyaAPI.IFF.JP.Models.Data;
 using PangyaAPI.SQL;
 using PangyaAPI.Utilities;
-using System.Collections.Generic;
-using System;
-using System.Linq;
-using PangyaAPI.IFF.JP.Models.Data;
 
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     public class CmdCreateQuest : Pangya_DB
     {
@@ -22,7 +19,7 @@ namespace GameServer.Cmd
         public CmdCreateQuest(uint _uid)
         {
             this.m_uid = _uid;
-             this.m_id = -1;
+            this.m_id = -1;
             this.m_counter_item_id = -1;
             this.m_quest = new QuestStuff();
             this.m_include_counter = false;
@@ -34,13 +31,13 @@ namespace GameServer.Cmd
             bool _include_counter)
         {
             this.m_uid = _uid;
-             this.m_achievement_id = _achievement_id;
-             this.m_id = -1;
+            this.m_achievement_id = _achievement_id;
+            this.m_id = -1;
             this.m_counter_item_id = -1;
             this.m_quest = _quest;
-             this.m_include_counter = _include_counter;
+            this.m_include_counter = _include_counter;
         }
-  
+
         public uint getUID()
         {
             return m_uid;
@@ -49,7 +46,7 @@ namespace GameServer.Cmd
         public void setUID(uint _uid)
         {
             m_uid = _uid;
-         }
+        }
 
         public uint getAchievementID()
         {

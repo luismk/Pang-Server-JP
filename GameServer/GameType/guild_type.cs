@@ -1,25 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace GameServer.GameType
+﻿namespace Pangya_GameServer.GameType
 {
     // Dados dos holes no jogo
     public class Dados
     {
-        public ushort score;
+        public short score;
         public uint tacada;
         public byte finish = 1;
     }
 
     // Guild Match register
     public class GuildMatch
-    {
-        void clear()
-        {
-        }
+    { 
         public uint[] uid = new uint[2];        // Guild UID: [0] e [1]
         public uint[] point = new uint[2];      // Guild Point: [0] e [1]
         public uint[] pang = new uint[2];       // Guild Pang: [0] e [1]
@@ -45,14 +36,11 @@ namespace GameServer.GameType
 
     // Guild Member Points
     public class GuildMemberPoints
-    {
-        void clear()
-        {
-        }
-        public uint guild_uid;
-        public uint member_uid;
-        public uint point;
-        public uint pang;
+    { 
+        public int guild_uid = 0;
+        public uint member_uid = 0;
+        public int point = 0;
+        public uint pang = 0;
     }
 
 }

@@ -1,16 +1,9 @@
-﻿using PangyaAPI.Network.Pangya_St;
+﻿using System;
 using PangyaAPI.SQL;
-
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PangyaAPI.Network.Cmd
 {
-    public class CmdInsertBlockIp: Pangya_DB
+    public class CmdInsertBlockIp : Pangya_DB
     {
         string m_ip;
         string m_mask;
@@ -38,7 +31,7 @@ namespace PangyaAPI.Network.Cmd
                 throw new Exception("[CmdInsertBlockIP::prepareConsulta][Error] m_ip[" + m_ip + "] or m_mask["
             + m_mask + "] is invalid");
 
-            var r = procedure("pangya.ProcInsertBlocIP",  m_ip);
+            var r = procedure("pangya.ProcInsertBlocIP", m_ip);
 
             checkResponse(r, "nao conseguiu inserir um Block IP[IP=" + m_ip + ", MASK=" + m_mask + "]");
             return r;

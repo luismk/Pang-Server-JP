@@ -1,11 +1,8 @@
-﻿using PangyaAPI.IFF.JP.Extensions;
+﻿using System.Runtime.InteropServices;
 using PangyaAPI.IFF.JP.Models.General;
 using PangyaAPI.Utilities.BinaryModels;
-using System;
-using System.IO;
-using System.Runtime.InteropServices;
 namespace PangyaAPI.IFF.JP.Models.Data
-{                     
+{
     #region Struct Caddie.iff
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public class Caddie : IFFCommon
@@ -16,7 +13,7 @@ namespace PangyaAPI.IFF.JP.Models.Data
         [field: MarshalAs(UnmanagedType.Struct, SizeConst = 10)]
         public IFFStats Stats { get; set; }
         public ushort Point { get; set; }
-               
+
 
         public Caddie()
         { }
@@ -33,7 +30,7 @@ namespace PangyaAPI.IFF.JP.Models.Data
             MPet = reader.ReadPStr(40);
             Stats = reader.Read<IFFStats>();
             Point = reader.ReadUInt16();
-        }    
+        }
     }
     #endregion
 }

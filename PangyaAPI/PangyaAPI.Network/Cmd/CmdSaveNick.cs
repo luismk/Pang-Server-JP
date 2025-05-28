@@ -1,11 +1,9 @@
-﻿using PangyaAPI.SQL;
-
-using System;
-using System.Data;
+﻿using System;
+using PangyaAPI.SQL;
 
 namespace PangyaAPI.Network.Cmd
 {
-    public class CmdSaveNick: Pangya_DB
+    public class CmdSaveNick : Pangya_DB
     {
         uint m_uid = 0;
         string m_nick = "";
@@ -17,7 +15,7 @@ namespace PangyaAPI.Network.Cmd
         }
         protected override void lineResult(ctx_res _result, uint _index_result)
         {
-          
+
         }
 
         protected override Response prepareConsulta()

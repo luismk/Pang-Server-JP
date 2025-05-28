@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
+using Pangya_GameServer.GameType;
 using PangyaAPI.SQL;
-using GameServer.GameType;
 
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     public class CmdMailBoxInfo : Pangya_DB
     {
@@ -149,7 +149,7 @@ namespace GameServer.Cmd
             mb.type = (short)IFNULL(_result.data[17]);
             return mb;
         }
-         
+
         private uint m_uid;
         private uint m_page;
         private uint m_total_page;

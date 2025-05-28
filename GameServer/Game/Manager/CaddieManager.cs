@@ -1,10 +1,11 @@
-﻿using GameServer.GameType;
-using PangyaAPI.Utilities.BinaryModels;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
+using Pangya_GameServer.GameType;
+using PangyaAPI.Utilities.BinaryModels;
 
-namespace GameServer.Game.Manager
+namespace Pangya_GameServer.Game.Manager
 {
     public class CaddieManager : Dictionary<uint/*ID*/, CaddieInfoEx>
     {
@@ -17,26 +18,7 @@ namespace GameServer.Game.Manager
         {
             // this.(keys);    add array 
         }
-
-        public byte[] Build()
-        {
-            var p = new PangyaBinaryWriter();
-            try
-            {
-                p.WriteUInt16((short)Count);
-                p.WriteUInt16((short)Count);
-                foreach (var item in Values)
-                {
-                    p.WriteBytes(item.Build());
-                }
-                return p.GetBytes;
-            }
-            catch (Exception)
-            {
-                return new byte[0];
-            }
-        }
-                                       
+         
         public CaddieInfoEx findCaddieById(uint _id)
         {
             return this.Values.FirstOrDefault(c => c.id == _id);

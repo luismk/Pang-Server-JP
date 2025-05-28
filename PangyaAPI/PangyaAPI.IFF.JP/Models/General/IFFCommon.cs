@@ -1,8 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
-using PangyaAPI.IFF.JP.Models.Flags;
-using PangyaAPI.IFF.JP.Extensions;
 using System.Text;
+using PangyaAPI.IFF.JP.Models.Flags;
 using PangyaAPI.Utilities.BinaryModels;
 
 namespace PangyaAPI.IFF.JP.Models.General
@@ -124,7 +123,7 @@ namespace PangyaAPI.IFF.JP.Models.General
             //-------------------- TIME IFF--------------\\
             date = (IFFDate)reader.Read(new IFFDate(), 36);
             //--------------------------------------------------\\
-        }           
+        }
 
 
         public string GetItemName()
@@ -158,7 +157,7 @@ namespace PangyaAPI.IFF.JP.Models.General
             return MemberwiseClone();
         }
 
-        
+
         public bool IsDupItem()
         {
             return Active && Shop.flag_shop.IsDuplication;
@@ -253,16 +252,16 @@ namespace PangyaAPI.IFF.JP.Models.General
             {
                 if (date.Start.TimeActive)
                 {
-                    
+
                     if (date.Start.Year >= DateTime.Now.Year && date.Start.Day >= DateTime.Now.Day && date.Start.Month >= DateTime.Now.Month)
                         return false;
                     if (DateTime.Now.Year > date.Start.Year && DateTime.Now.Day > date.Start.Day && DateTime.Now.Month > date.Start.Month && !Shop.flag_shop.IsShop)
                     {
-                        
+
                         return true;
                     }
                     if (date.Start.Year < DateTime.Now.Year && Shop.flag_shop.IsShop)   //tempo antigo 2007-2008
-                    {      
+                    {
                         return true;
                     }
                 }
@@ -344,16 +343,16 @@ namespace PangyaAPI.IFF.JP.Models.General
                 if (Shop.flag_shop.ShopFlag == ShopFlag.Giftable && Shop.flag_shop.MoneyFlag == MoneyFlag.Active)
                 {
                     return true;
-                }   
+                }
 
                 if (Shop.flag_shop.ShopFlag == ShopFlag.Combine96 && Shop.flag_shop.MoneyFlag == MoneyFlag.Active)
                 {
                     return false;
                 }
-                       
+
                 return false;
             }
-        }   
+        }
 
         /// <summary>
         /// verifica � pang, cookie ou esta oculto dentro do shopping
@@ -363,7 +362,7 @@ namespace PangyaAPI.IFF.JP.Models.General
         {
             if (IsHide)
                 return 0;
-             
+
             else if (Shop.flag_shop.IsCash)
                 return 1;
             else if (Shop.flag_shop.IsPang)
@@ -380,6 +379,6 @@ namespace PangyaAPI.IFF.JP.Models.General
             }
             return 0;
         }
-              
+
     }
 }

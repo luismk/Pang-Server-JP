@@ -1,6 +1,5 @@
-﻿using GameServer.GameType;
+﻿using System;
 using PangyaAPI.SQL;
-using System;
 
 // Arquivo cmd_update_mascot_equiped.cpp
 // Criado em 25/03/2018 as 11:46 por Acrisio
@@ -19,76 +18,76 @@ using System;
 // C++ TO C# CONVERTER WARNING: The following #include directive was ignored:
 //#include "../../Projeto IOCP/PANGYA_DB/pangya_db.h"
 
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
-	public class CmdUpdateMascotEquiped : Pangya_DB
-	{
-			public CmdUpdateMascotEquiped()
-			{
-				this.m_uid = 0;
-				this.m_mascot_id = -1;
-			}
+    public class CmdUpdateMascotEquiped : Pangya_DB
+    {
+        public CmdUpdateMascotEquiped()
+        {
+            this.m_uid = 0;
+            this.m_mascot_id = -1;
+        }
 
-			public CmdUpdateMascotEquiped(uint _uid,
-				int _mascot_id)
-				{
-// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
- this.m_uid = _uid;
-				//this.
-// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
- this.m_mascot_id = _mascot_id;
-				}
+        public CmdUpdateMascotEquiped(uint _uid,
+            int _mascot_id)
+        {
+            // C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+            this.m_uid = _uid;
+            //this.
+            // C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+            this.m_mascot_id = _mascot_id;
+        }
 
-			public virtual void Dispose()
-			{
-			}
+        public virtual void Dispose()
+        {
+        }
 
-			public uint getUID()
-			{
-				return (m_uid);
-			}
+        public uint getUID()
+        {
+            return (m_uid);
+        }
 
-			public void setUID(uint _uid)
-			{
-// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
- m_uid = _uid;
-				
-			}
+        public void setUID(uint _uid)
+        {
+            // C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+            m_uid = _uid;
 
-			public int getMascotID()
-			{
-				return (m_mascot_id);
-			}
+        }
 
-			public void setMascotID(int _mascot_id)
-			{
-// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
- m_mascot_id = _mascot_id;
-			}
+        public int getMascotID()
+        {
+            return (m_mascot_id);
+        }
 
-			protected override void lineResult(ctx_res _result, uint _index_result)
-			{
+        public void setMascotID(int _mascot_id)
+        {
+            // C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+            m_mascot_id = _mascot_id;
+        }
 
-				// N�o usa por que � um UPDATE
-				return;
-			}
+        protected override void lineResult(ctx_res _result, uint _index_result)
+        {
 
-			protected override Response prepareConsulta()
-			{
+            // N�o usa por que � um UPDATE
+            return;
+        }
 
-				var r = procedure(
-					m_szConsulta,
-					Convert.ToString(m_uid) + ", " + Convert.ToString(m_mascot_id));
+        protected override Response prepareConsulta()
+        {
 
-				checkResponse(r, "nao conseguiu atualizar o mascot[ID=" + Convert.ToString(m_mascot_id) + "] equipado do player: " + Convert.ToString(m_uid));
+            var r = procedure(
+                m_szConsulta,
+                Convert.ToString(m_uid) + ", " + Convert.ToString(m_mascot_id));
 
-				return r;
-			}
-						    
+            checkResponse(r, "nao conseguiu atualizar o mascot[ID=" + Convert.ToString(m_mascot_id) + "] equipado do player: " + Convert.ToString(m_uid));
 
-			private uint m_uid = new uint();
-			private int m_mascot_id = new int();
+            return r;
+        }
 
-			private const string m_szConsulta = "pangya.USP_FLUSH_MASCOT";
-	}
+
+        private uint m_uid = new uint();
+        private int m_mascot_id = new int();
+
+        private const string m_szConsulta = "pangya.USP_FLUSH_MASCOT";
+    }
 }

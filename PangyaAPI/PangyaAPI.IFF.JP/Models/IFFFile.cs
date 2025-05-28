@@ -1,14 +1,13 @@
-﻿using PangyaAPI.IFF.JP.Extensions;
-using PangyaAPI.IFF.JP.Models.Data;
-using PangyaAPI.IFF.JP.Models.General;
-using PangyaAPI.Utilities.BinaryModels;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using PangyaAPI.IFF.JP.Models.Data;
+using PangyaAPI.IFF.JP.Models.General;
+using PangyaAPI.Utilities.BinaryModels;
 
 namespace PangyaAPI.IFF.JP.Models
 {
@@ -168,7 +167,7 @@ namespace PangyaAPI.IFF.JP.Models
             }
             return List;
         }
-               
+
 
         /// <summary>
         ///so obtem se for IFFCommon
@@ -212,7 +211,7 @@ namespace PangyaAPI.IFF.JP.Models
 
             return default;
         }
-                             
+
         public virtual uint GetPrice(uint TypeID)
         {
             return GetItemCommon(TypeID).Shop.Price;
@@ -288,7 +287,7 @@ namespace PangyaAPI.IFF.JP.Models
                 {
                     Header.Count = (short)Count;
                 }
-                Update = true;                
+                Update = true;
             }
             catch (Exception ex)
             {
@@ -339,7 +338,7 @@ namespace PangyaAPI.IFF.JP.Models
                 //reader object and convert is class IFF
                 var item = Reader.ReadStruct<T>(Header.Count);
                 //add item in List<T>
-                 if (item[0] is IFFCommon)
+                if (item[0] is IFFCommon)
                     AddRange(item.OrderBy(c => (c as IFFCommon).ID));
                 else
                     AddRange(item);
@@ -435,7 +434,7 @@ namespace PangyaAPI.IFF.JP.Models
                 //is dispose memory :D
                 Reader.Dispose();
             }
-        }              
+        }
 
         private string GetDebuggerDisplay()
         {
@@ -515,10 +514,11 @@ namespace PangyaAPI.IFF.JP.Models
             return b >= 0x40 && b <= 0xFC && b != 0x7F && b != 0xFF;
         }
 
+
         ~IFFFile()
         {
         }
 
-        
+
     }
 }

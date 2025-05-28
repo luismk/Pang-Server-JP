@@ -1,10 +1,10 @@
-﻿using GameServer.GameType;
-using System;
+﻿using System;
+using Pangya_GameServer.GameType;
 using PangyaAPI.SQL;
 using PangyaAPI.Utilities;
 using PangyaAPI.Utilities.Log;
 
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     public class CmdLastPlayerGameInfo : Pangya_DB
     {

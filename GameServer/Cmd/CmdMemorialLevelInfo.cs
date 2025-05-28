@@ -1,14 +1,9 @@
-﻿using GameServer.GameType;
-using PangyaAPI.SQL;
-using PangyaAPI.Utilities;
-using System.Collections.Generic;
-using System;
+﻿using System.Collections.Generic;
 using System.Linq;
-using PangyaAPI.IFF.JP.Models.Data;
-using GameServer.PangyaEnums;
-using PangyaAPI.Utilities.Log;
+using Pangya_GameServer.GameType;
+using PangyaAPI.SQL;
 
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     public class CmdMemorialLevelInfo : Pangya_DB
     {
@@ -30,13 +25,13 @@ namespace GameServer.Cmd
 
             ctx_memorial_level ml = new ctx_memorial_level();
 
-            ml.level = IFNULL(_result.data[0]);    
+            ml.level = IFNULL(_result.data[0]);
             var it = m_level.Any(c => c.Key == ml.level);
             if (!it)
             {
                 ml.gacha_number = (uint)IFNULL(_result.data[1]);
                 m_level.Add(ml.level, ml);
-            }   
+            }
         }
         protected override Response prepareConsulta()
         {

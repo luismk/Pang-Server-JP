@@ -1,16 +1,17 @@
-﻿using GameServer.GameType;
-using GameServer.Cmd;
-using GameServer.Session;
-using PangyaAPI.SQL;
-using PangyaAPI.Utilities;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Pangya_GameServer.Cmd;
+using Pangya_GameServer.Game.Utils;
+using Pangya_GameServer.GameType;
+using Pangya_GameServer.Session;
+using PangyaAPI.IFF.JP.Extensions;
+using PangyaAPI.SQL;
 using PangyaAPI.SQL.Manager;
-using _smp = PangyaAPI.Utilities.Log;
+using PangyaAPI.Utilities;
 using PangyaAPI.Utilities.Log;
-using GameServer.Game.Utils;
-namespace GameServer.Game.System
+using _smp = PangyaAPI.Utilities.Log;
+namespace Pangya_GameServer.Game.System
 {
     public class PapelShopSystem
     {
@@ -290,13 +291,13 @@ namespace GameServer.Game.System
 
         /*static*/
         public ulong getPriceNormal()
-        {                                
+        {
             return m_ctx_ps.price_normal;
         }
 
         /*static*/
         public ulong getPriceBig()
-        {                             
+        {
             return m_ctx_ps.price_big;
         }
 
@@ -496,20 +497,14 @@ namespace GameServer.Game.System
             Console.Write("Sorteou as quantidade de bolas: " + num_ball + ", Win=>");
             while (num_ball > 0)
             {
-                // Sortea um valor
-                Lottery.LotteryCtx lc = null;
-
-
-                    lc = lottery.SpinRoleta();
-
+                Lottery.LotteryCtx lc = lottery.SpinRoleta();
                 if (lc == null)
                 {
-                    throw new exception("[PapelShopSystem::dropsBalls][Error] nao conseguiu sortear Bola. Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PAPEL_SHOP_SYSTEM,
-                        1, 0));
+                    throw new exception("[PapelShopSystem::dropBalls][Error] nao conseguiu sortear Bola. Bug",
+                        ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PAPEL_SHOP_SYSTEM, 1, 0));
                 }
 
-                ctx_b.clear();
-
+                 ctx_b = new ctx_papel_shop_ball(); // ✅ NOVA instância
                 var ctx_psi = (ctx_papel_shop_item)lc.Value;
 
 
@@ -530,20 +525,13 @@ namespace GameServer.Game.System
                 {
                     ctx_b.qntd = (uint)(PAPEL_SHOP_ITEM_MIN_QNTD + (new Random().Next() % (PAPEL_SHOP_ITEM_MAX_QNTD - PAPEL_SHOP_ITEM_MIN_QNTD + 1)));
                 }
-
                 // Item
                 ctx_b.ctx_psi = ctx_psi;
-
                 // Add Ball ao vector de bolas dropadas
-                v_ball.Add(ctx_b);
-                //salva o ultimo id
-                _type_id = ctx_b.ctx_psi._typeid;
+                v_ball.Add(ctx_b); // ✅ adiciona instância única
                 Console.WriteLine(Environment.NewLine);
-                Console.WriteLine("itemID:" + ctx_b.ctx_psi._typeid + ", ItemName: " + sIff.getInstance().GetItemName(ctx_b.ctx_psi._typeid));
-
-                // Decrementa o num_ball, que uma bola já foi dropada
+                Console.WriteLine("itemID:" + ctx_b.ctx_psi._typeid +", itemQnt:" + ctx_b.qntd + ", ItemName: " + sIff.getInstance().GetItemName(ctx_b.ctx_psi._typeid));
                 num_ball--;
-
             }
             Console.WriteLine(Environment.NewLine);
             return v_ball;

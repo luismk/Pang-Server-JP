@@ -15,21 +15,21 @@ namespace PangyaAPI.SQL.Manager
         {
             m_type = 0;
         }
-        public exec_query(string _query, byte _type = 0) 
+        public exec_query(string _query, byte _type = 0)
         {
             setQuery(_query);
             m_type = _type;
         }
-    
+
 
         public exec_query(string _name_proc, string[] _params_proc, byte _tipo = (byte)QUERY_TYPE._PROCEDURE)
         {
             setQuery(_name_proc);
             setParam(_params_proc);
         }
-    
 
-        
+
+
         public void Dispose() { }
 
 
@@ -48,7 +48,7 @@ namespace PangyaAPI.SQL.Manager
         public void setRes(response _res) { }
 
 
-      public  void waitEvent(int milliseconds = -1) { }
+        public void waitEvent(int milliseconds = -1) { }
 
         public void setEvent() { }
 

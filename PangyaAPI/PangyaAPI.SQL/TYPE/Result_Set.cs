@@ -30,10 +30,10 @@ namespace PangyaAPI.SQL
                 if (value == null || (value is string str && string.IsNullOrEmpty(str)))
                 {
                     return false;
-                }                          
+                }
                 return true; // O valor não é nulo, nem vazio
             }
-            catch 
+            catch
             {
                 return false;
             }
@@ -132,10 +132,10 @@ namespace PangyaAPI.SQL
             this.m_cols = _cols;
         }
 
-        public Result_Set(uint _state,uint _lines_affected, uint _cols, DataRow row): this(_state, _cols, (int)_lines_affected)
+        public Result_Set(uint _state, uint _lines_affected, uint _cols, DataRow row) : this(_state, _cols, (int)_lines_affected)
         {
-             addLine();   // Adiciona linha
-            if(row != null) 
+            addLine();   // Adiciona linha
+            if (row != null)
                 setRow(row);
         }
 
@@ -278,9 +278,9 @@ namespace PangyaAPI.SQL
             {
                 if (data[i] is DBNull)
                     data[i] = null;
-            } 
+            }
             m_data.data = data;
-            m_data.data_row = dataRow;  
+            m_data.data_row = dataRow;
         }
 
         protected STATE_TYPE m_state = 0;

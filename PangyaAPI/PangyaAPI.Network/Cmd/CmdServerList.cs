@@ -1,8 +1,8 @@
-﻿using PangyaAPI.SQL;
-using PangyaAPI.Network.Pangya_St;    
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using PangyaAPI.Network.Pangya_St;
+using PangyaAPI.SQL;
 
 namespace PangyaAPI.Network.Cmd
 {
@@ -14,8 +14,8 @@ namespace PangyaAPI.Network.Cmd
         RANK,
         AUTH,
     }
-    public class CmdServerList: Pangya_DB
-    {                  
+    public class CmdServerList : Pangya_DB
+    {
         TYPE_SERVER m_type;
         List<ServerInfo> v_server_list;
         protected override string _getName { get; } = "CmdServerList";
@@ -52,7 +52,7 @@ namespace PangyaAPI.Network.Cmd
                 si.img_no = short.Parse(_result.data[10].ToString());
                 si.app_rate = short.Parse(_result.data[11].ToString());
                 si.scratch_rate = short.Parse(_result.data[12].ToString());    // Estava o rate_scratchy mas realoquei ele para o ServerInfoEx::Rate
-                if (!v_server_list.Any(c=> c.uid == si.uid))
+                if (!v_server_list.Any(c => c.uid == si.uid))
                     v_server_list.Add(si);
             }
             catch (Exception ex)

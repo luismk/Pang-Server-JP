@@ -1,12 +1,9 @@
-﻿using PangyaAPI.Network.Pangya_St;
+﻿using System;
 using PangyaAPI.SQL;
-
-using System;
-using System.Data;
 using AuthKeyLoginInfo = PangyaAPI.Network.Pangya_St.AuthKeyInfo;
 namespace PangyaAPI.Network.Cmd
 {
-    public class CmdAuthKeyLoginInfo: Pangya_DB
+    public class CmdAuthKeyLoginInfo : Pangya_DB
     {
         int m_uid = -1;
         AuthKeyLoginInfo m_akli;
@@ -55,7 +52,7 @@ namespace PangyaAPI.Network.Cmd
             return m_uid;
         }
 
-       public void setUID(int _server_uid)
+        public void setUID(int _server_uid)
         {
             m_uid = _server_uid;
         }

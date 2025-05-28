@@ -2,13 +2,13 @@
 using System.IO;
 using System.IO.Compression;
 using System.Text;
-using System.Threading.Tasks;                                              
+using System.Threading.Tasks;
 namespace PangyaAPI.IFF.JP.Extensions
 {
     public class ZipFileEx : IDisposable
     {
         private ZipArchive _archive;
-        private MemoryStream _stream;           
+        private MemoryStream _stream;
         public ZipArchive GetZip() => _archive;
 
         public ZipFileEx()
@@ -56,7 +56,7 @@ namespace PangyaAPI.IFF.JP.Extensions
         }
 
         public bool CheckFile(byte[] fileData)
-        {                                              
+        {
             byte[] headerBytes = new byte[2];
             Array.Copy(fileData, 0, headerBytes, 0, 2);
 
@@ -69,7 +69,7 @@ namespace PangyaAPI.IFF.JP.Extensions
             }
             return true;
         }
-        
+
         public async Task AddFileAsync(string fileName, Stream stream)
         {
             var entry = _archive.CreateEntry(fileName);
@@ -97,7 +97,7 @@ namespace PangyaAPI.IFF.JP.Extensions
             using (var fileStream = File.OpenWrite(tempFilePath))
             {
                 stream.CopyTo(fileStream);
-            }       
+            }
             _archive.CreateEntryFromFile(tempFilePath, fileName);
         }
 
@@ -130,7 +130,7 @@ namespace PangyaAPI.IFF.JP.Extensions
             _archive.ExtractToDirectory(directory);
         }
 
-        public void ExtractFile(string entry,string directory)
+        public void ExtractFile(string entry, string directory)
         {
             GetEntry(entry).ExtractToFile(directory);
         }
@@ -170,7 +170,7 @@ namespace PangyaAPI.IFF.JP.Extensions
                 await _stream.CopyToAsync(fileStream);
             }
         }
-                                    
+
         public ZipArchiveEntry GetEntry(string iffName)
         {
             foreach (var entry in _archive.Entries)

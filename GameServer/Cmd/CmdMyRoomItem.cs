@@ -1,10 +1,10 @@
-﻿using GameServer.GameType;
+﻿using System;
+using System.Collections.Generic;
+using Pangya_GameServer.GameType;
 using PangyaAPI.SQL;
 using PangyaAPI.Utilities;
-using System.Collections.Generic;
-using System;
 
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     internal class CmdMyRoomItem : Pangya_DB
     {
@@ -13,17 +13,17 @@ namespace GameServer.Cmd
             ALL,
             ONE
         }
-               
+
         public CmdMyRoomItem(uint _uid,
             TYPE _type,
             int _item_id = -1)
         {
-             this.m_uid = _uid;         
+            this.m_uid = _uid;
             this.m_type = (_type);
-           this.m_item_id = _item_id;          
+            this.m_item_id = _item_id;
             this.v_mri = new List<MyRoomItem>();
         }
-           
+
         public List<MyRoomItem> getMyRoomItem()
         {
             return new List<MyRoomItem>(v_mri);
@@ -36,7 +36,7 @@ namespace GameServer.Cmd
 
         public void setUID(uint _uid)
         {
-        m_uid = _uid;
+            m_uid = _uid;
         }
 
         public int getItemID()
@@ -46,7 +46,7 @@ namespace GameServer.Cmd
 
         public void setItemID(int _item_id)
         {
-             m_item_id = _item_id;           
+            m_item_id = _item_id;
         }
 
         public CmdMyRoomItem.TYPE getType()
@@ -72,11 +72,11 @@ namespace GameServer.Cmd
                 mri.id = IFNULL<uint>(_result.data[0]);
                 uid_req = IFNULL<uint>(_result.data[1]);
                 mri._typeid = IFNULL<uint>(_result.data[2]);
-                mri.number = IFNULL< short> (_result.data[3]);
+                mri.number = IFNULL<short>(_result.data[3]);
                 mri.location.x = IFNULL<float>(_result.data[4]);
                 mri.location.y = IFNULL<float>(_result.data[5]);
                 mri.location.z = IFNULL<float>(_result.data[6]);
-                mri.location.r =IFNULL<float>(_result.data[7]);
+                mri.location.r = IFNULL<float>(_result.data[7]);
                 mri.equiped = IFNULL<byte>(_result.data[8]);
 
                 v_mri.Add(mri);
@@ -87,7 +87,7 @@ namespace GameServer.Cmd
                 }
             }
             catch (Exception e)
-            {           
+            {
                 throw e;
             }
         }
@@ -95,7 +95,7 @@ namespace GameServer.Cmd
         protected override Response prepareConsulta()
         {
 
-            v_mri.Clear();             
+            v_mri.Clear();
 
             var r = procedure(
                 (m_type == (CmdMyRoomItem.TYPE)TYPE.ALL) ? m_szConsulta[0] : m_szConsulta[1],
@@ -105,7 +105,7 @@ namespace GameServer.Cmd
 
             return r;
         }
-                          
+
         private uint m_uid = new uint();
         private int m_item_id = -1;
         private TYPE m_type;

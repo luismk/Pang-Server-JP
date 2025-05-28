@@ -1,11 +1,10 @@
-﻿using GameServer.GameType;
+﻿using System;
 using PangyaAPI.SQL;
-using System;
 
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     public class CmdUpdateCaddieEquiped : Pangya_DB
-    {           
+    {
         public CmdUpdateCaddieEquiped(uint _uid,
             int _caddie_id)
         {

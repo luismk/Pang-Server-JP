@@ -2,9 +2,8 @@
 using PangyaAPI.Network.Pangya_St;
 using PangyaAPI.SQL;
 using PangyaAPI.Utilities;
-using System;
 
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     public class CmdUpdateCharacterMastery : Pangya_DB
     {

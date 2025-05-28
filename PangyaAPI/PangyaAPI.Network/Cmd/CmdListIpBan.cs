@@ -1,18 +1,13 @@
 ﻿
+using System;
+using System.Collections.Generic;
+using System.Net;
 using PangyaAPI.Network.Pangya_St;
 using PangyaAPI.SQL;
 
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Net;
-
 namespace PangyaAPI.Network.Cmd
 {
-    public class CmdListIpBan: Pangya_DB                                      //
+    public class CmdListIpBan : Pangya_DB                                      //
     {
         List<IPBan> v_list_ip_ban;
         protected override string _getName { get; } = "CmdListIpBan";
@@ -69,7 +64,7 @@ namespace PangyaAPI.Network.Cmd
                         pb.ip = (uint)IPAddress.NetworkToHostOrder(BitConverter.ToInt32(ipAddr.GetAddressBytes(), 0));
 
                         error = IPAddress.TryParse(mask, out IPAddress maskAddr);
-                       // pb.mask = (uint)IPAddress.NetworkToHostOrder(BitConverter.ToInt32(maskAddr.GetAddressBytes(), 0));
+                        pb.mask = (uint)IPAddress.NetworkToHostOrder(BitConverter.ToInt32(maskAddr.GetAddressBytes(), 0));
                     }
                 }
 

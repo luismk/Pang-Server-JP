@@ -1,4 +1,4 @@
-﻿//using GameServer.GameType;
+﻿//using Pangya_GameServer.GameType;
 //using System;
 
 //// Arquivo cmd_update_golden_time.cpp
@@ -17,7 +17,7 @@
 //// C++ TO C# CONVERTER WARNING: The following #include directive was ignored:
 ////#include "../../Projeto IOCP/PANGYA_DB/pangya_db.h"
 
-//namespace GameServer.Cmd
+//namespace Pangya_GameServer.Cmd
 //{
 
 //	public class CmdUpdateGoldenTime : Pangya_DB

@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 namespace PangyaAPI.IFF.JP.Models.Data
 {
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
-    public class PointShop  : ICloneable
+    public class PointShop : ICloneable
     {
         // Propriedades da classe
         public uint Active { get; set; }

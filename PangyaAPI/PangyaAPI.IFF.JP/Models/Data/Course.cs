@@ -1,5 +1,5 @@
-﻿using PangyaAPI.IFF.JP.Models.General;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
+using PangyaAPI.IFF.JP.Models.General;
 namespace PangyaAPI.IFF.JP.Models.Data
 {
     /// <summary>
@@ -21,7 +21,7 @@ namespace PangyaAPI.IFF.JP.Models.Data
         [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 12)]
         public uint[] ulUnknown { get; set; }
         [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 18)]
-        public byte[] Par_Hole { get; set; }
+        public sbyte[] Par_Hole { get; set; }
         [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 18)]
         public byte[] Min_Score_Hole { get; set; }
         [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 18)]

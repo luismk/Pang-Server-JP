@@ -1,15 +1,16 @@
-﻿using GameServer.GameType;
+﻿using System;
+using Pangya_GameServer.GameType;
 using PangyaAPI.SQL;
 using PangyaAPI.Utilities;
-using System;
 
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     public class CmdUpdateEmail : Pangya_DB
     {
         public CmdUpdateEmail(uint _uid,
             EmailInfoEx _ei)
-        {                      this.m_uid = _uid;   
+        {
+            this.m_uid = _uid;
             this.m_ei = _ei;
         }
 
@@ -18,7 +19,7 @@ namespace GameServer.Cmd
             this.m_uid = 0u;
             this.m_ei = new EmailInfoEx();
         }
-                                           
+
         public uint getUID()
         {
             return m_uid;
@@ -31,12 +32,12 @@ namespace GameServer.Cmd
 
         public EmailInfoEx getEmail()
         {
-             return m_ei;
+            return m_ei;
         }
 
         public void setEmail(EmailInfoEx _ei)
         {
-             m_ei = _ei;
+            m_ei = _ei;
         }
 
         protected override void lineResult(ctx_res _result, uint _index_result)
@@ -59,15 +60,15 @@ namespace GameServer.Cmd
                 throw new exception("[CmdUpdateEmail::prepareConsulta][Error] Email[ID=" + Convert.ToString(m_ei.id) + "] is invalid.");
             }
 
-            var r = consulta( m_szConsulta[0] + Convert.ToString((ushort)m_ei.lida_yn) + m_szConsulta[1] + Convert.ToString(m_ei.visit_count) + m_szConsulta[2] + Convert.ToString(m_uid) + m_szConsulta[3] + Convert.ToString(m_ei.id));
+            var r = consulta(m_szConsulta[0] + Convert.ToString((ushort)m_ei.lida_yn) + m_szConsulta[1] + Convert.ToString(m_ei.visit_count) + m_szConsulta[2] + Convert.ToString(m_uid) + m_szConsulta[3] + Convert.ToString(m_ei.id));
 
             checkResponse(r, "nao conseguiu atualizar o Email[ID=" + Convert.ToString(m_ei.id) + ", LIDA_YN=" + Convert.ToString((ushort)m_ei.lida_yn) + ", VISIT_COUNT=" + Convert.ToString(m_ei.visit_count) + "] do Player[UID=" + Convert.ToString(m_uid) + "]");
 
             return r;
-        }        
+        }
 
         private EmailInfoEx m_ei = new EmailInfoEx();
-        private uint m_uid =0;
+        private uint m_uid = 0;
 
         private string[] m_szConsulta = { "UPDATE pangya.pangya_gift_table SET Lida_YN = ", ", Contador_Vista = ", " WHERE UID = ", " AND Msg_ID = " };
     }

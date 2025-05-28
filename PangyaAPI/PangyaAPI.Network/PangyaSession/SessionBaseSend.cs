@@ -17,7 +17,7 @@
 //            SafeSend(data); // Adiciona à fila sem bloquear
 //        } 
 
-//        public virtual void Send(PangyaBinaryWriter packet, bool debug_log = true)
+//        public virtual void Send(packet packet, bool debug_log = true)
 //        {
 //            if (debug_log)
 //                Console.WriteLine("[SessionBase::Send][HexLog]: " + packet.GetBytes.HexDump() + Environment.NewLine);
@@ -27,9 +27,9 @@
 
 //        }
 
-//        public virtual void Send(List<PangyaBinaryWriter> packet)
+//        public virtual void Send(List<packet> packet)
 //        {
- 
+
 //            if (m_key != 255)
 //                for (int i = 0; i < packet.Count; i++)
 //                    SafeSend(packet[i].GetBytes.ServerEncrypt(m_key, 0));

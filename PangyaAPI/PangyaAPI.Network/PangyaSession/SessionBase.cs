@@ -54,7 +54,7 @@
 //        {
 //            m_threadpool = (_threadpool);
 //            m_key = 0;
-             
+
 //            m_tick = 0;
 //            m_tick_bot = 0;       
 
@@ -63,7 +63,7 @@
 //            m_is_authorized = false;            
 //            m_state = false;             
 //        }
-       
+
 //        public SessionBase(threadpool_base _threadpool, TcpClient _sock, IPEndPoint _addr, byte _key)
 //        {
 //            m_threadpool = (_threadpool);
@@ -151,7 +151,7 @@
 //            m_state = state;
 //        }
 
-//        public bool getConnected()
+//        public bool isConnected()
 //        {
 //            try
 //            {
@@ -175,7 +175,7 @@
 
 //        public bool Devolve()
 //        {
-//            return getConnected() == false ? true : false;
+//            return isConnected() == false ? true : false;
 //        }
 
 //        public abstract uint getUID();
@@ -227,7 +227,7 @@
 //        {
 //            try
 //            {
-//                if (getConnected())
+//                if (isConnected())
 //                {
 //                    if (m_key != 255)   ///no necessary
 //                        SendBytes(buffer);

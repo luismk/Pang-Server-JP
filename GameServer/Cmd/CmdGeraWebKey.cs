@@ -1,7 +1,6 @@
-﻿using GameServer.Cmd;
+﻿using System;
 using PangyaAPI.SQL;
-using System;
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     public class CmdGeraWebKey : Pangya_DB
     {
@@ -23,12 +22,12 @@ namespace GameServer.Cmd
         }
 
         public void setUID(uint _uid)
-        {                     
+        {
             m_uid = _uid;
         }
 
         protected override void lineResult(ctx_res _result, uint _index_result)
-        {                               
+        {
             checkColumnNumber(1);
 
             if (is_valid_c_string(_result.data[0]))
@@ -50,7 +49,7 @@ namespace GameServer.Cmd
 
             return r;
         }
-                  
+
         private uint m_uid = new uint();
         private string m_web_key = "";
 

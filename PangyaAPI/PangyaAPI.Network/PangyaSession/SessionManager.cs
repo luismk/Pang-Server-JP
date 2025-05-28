@@ -1,29 +1,27 @@
-﻿using PangyaAPI.Utilities;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Sockets;
 using System.Net;
-using PangyaAPI.Network.PangyaServer; 
+using System.Net.Sockets;
 using PangyaAPI.Network.PangyaPacket;
+using PangyaAPI.Network.PangyaServer;
+using PangyaAPI.Utilities;
 
 namespace PangyaAPI.Network.PangyaSession
 {
     public class SessionManager
     {
-        public readonly uint m_max_session;
+        public uint m_max_session;
         public readonly List<Session> m_sessions = new List<Session>();
         private readonly List<Session> m_session_del = new List<Session>();
         private uint m_ttl;
         public uint m_count = 0;
         private static bool m_is_init = false;
         protected IniHandle m_reader_ini;
-        public readonly object _lockObject = new object();
-        public pangya_packet_handle_base m_threadpool;
-        public SessionManager(pangya_packet_handle_base _threadpool, uint _max_session)
-        {
-            m_threadpool = _threadpool;
-            m_max_session = _max_session;
+        public readonly object _lockObject = new object(); 
+        public SessionManager()
+        { 
+            m_max_session = 0u;
             m_ttl = 0u;
             // Carrega as config do arquivo server.ini
             config_init();
@@ -35,11 +33,12 @@ namespace PangyaAPI.Network.PangyaSession
             try
             {
                 m_reader_ini = new IniHandle("server.ini");
-//read file
+                //read file
+                m_max_session = m_reader_ini.ReadUInt32("SERVERINFO", "MAXUSER");
                 m_ttl = m_reader_ini.ReadUInt32("OPTION", "TTL", 0);
             }
             catch (Exception e)
-            { 
+            {
                 throw;
             }
         }
@@ -51,7 +50,7 @@ namespace PangyaAPI.Network.PangyaSession
                 m_session_del.Clear();
                 foreach (var session in m_sessions)
                 {
-                    session?.Dispose();
+                    session.clear();
                 }
                 m_sessions.Clear();
             }
@@ -68,13 +67,13 @@ namespace PangyaAPI.Network.PangyaSession
             lock (_lockObject)
             {
                 int index = findSessionFree();
-                if (index == int.MaxValue)
+                if (index == -1)
                 {
-                    throw new InvalidOperationException("[SessionManager::AddSession] Already reached Session limit.");
+                    throw new exception("[SessionManager::AddSession] Already reached Session limit.");
                 }
                 //socket.ReceiveTimeout = 60000; // 20 segundos
                 //socket.SendTimeout = 60000;
-                pSession = m_sessions[index];   
+                pSession = m_sessions[index];
                 pSession.m_sock = socket;
                 pSession.Server = _server;
                 pSession.m_addr = address;
@@ -85,11 +84,11 @@ namespace PangyaAPI.Network.PangyaSession
                 pSession.setState(true);
                 pSession.setConnected(true);
 
-                m_count++;   
+                m_count++;
             }
 
             return pSession;
-        }   
+        }
 
         public virtual bool DeleteSession(Session session)
         {
@@ -101,7 +100,7 @@ namespace PangyaAPI.Network.PangyaSession
             bool ret = true;
             lock (_lockObject)
             {
-                if (!session.getState() && session.m_sock == null)
+                if (!session.getState())
                 {
                     throw new InvalidOperationException("[SessionManager::DeleteSession] Session is not connected.");
                 }
@@ -112,9 +111,7 @@ namespace PangyaAPI.Network.PangyaSession
                     m_count--;
 
                 session.unlock();
-            }
-            if (m_sessions.Count(c => c.isConnected() == true) != m_count)
-                m_count = (uint)m_sessions.Count(c => c.isConnected() == true);
+            } 
             return ret;
         }
 
@@ -199,7 +196,7 @@ namespace PangyaAPI.Network.PangyaSession
         {
             foreach (var session in m_sessions)
             {
-                if (session.m_sock != null)
+                if (session.m_sock != null&& session.m_sock.Connected)
                 {
                     int connTime = session.m_sock.GetConnectTime();
                     if (!session.isCreated())
@@ -248,13 +245,13 @@ namespace PangyaAPI.Network.PangyaSession
             int i = 0;
             foreach (var _session in m_sessions)
             {
-                if (_session.m_oid == int.MaxValue)
+                if (_session.m_oid < 0)
                 {
                     return i;
                 }
                 i++;
             }
-            return int.MaxValue;
+            return -1;
         }
 
         public bool HasSessionWithIP(string ip)

@@ -1,8 +1,7 @@
-﻿using PangyaAPI.IFF.JP.Extensions;
+﻿using System;
+using System.Runtime.InteropServices;
 using PangyaAPI.IFF.JP.Models.General;
 using PangyaAPI.Utilities.BinaryModels;
-using System;
-using System.Runtime.InteropServices;
 namespace PangyaAPI.IFF.JP.Models.Data
 {
     #region Struct AuxPart.iff
@@ -64,7 +63,7 @@ namespace PangyaAPI.IFF.JP.Models.Data
 
         // Método para identificar o tipo de um typeid
         public string IdentifyType()
-        {             
+        {
             byte result;
 
             result = (byte)((ID & ~0xFC000000) >> 21);

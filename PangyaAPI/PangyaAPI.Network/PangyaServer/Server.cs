@@ -1,21 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using _smp = PangyaAPI.Utilities.Log;
-using PangyaAPI.Network.Pangya_St;
 using System.Threading;
-using PangyaAPI.Utilities.Log;
-using PangyaAPI.Utilities;
-using PangyaAPI.SQL.Manager;
-using PangyaAPI.SQL;
-using PangyaAPI.Network.Cmd;
-using PangyaAPI.Network.PangyaSession;
-using System.Linq;
-using PangyaAPI.Network.Cryptor;
 using System.Threading.Tasks;
-using PangyaAPI.Network.PangyaUnit;
+using PangyaAPI.Network.Cmd;
+using PangyaAPI.Network.Cryptor;
+using PangyaAPI.Network.Pangya_St;
 using PangyaAPI.Network.PangyaPacket;
+using PangyaAPI.Network.PangyaSession;
+using PangyaAPI.Network.PangyaUnit;
+using PangyaAPI.Network.PangyaUtil;
+using PangyaAPI.SQL;
+using PangyaAPI.SQL.Manager;
+using PangyaAPI.Utilities;
+using PangyaAPI.Utilities.Log;
+using _smp = PangyaAPI.Utilities.Log;
 
 namespace PangyaAPI.Network.PangyaServer
 {
@@ -27,17 +28,18 @@ namespace PangyaAPI.Network.PangyaServer
         Initialized,
         Failure
     }
-    public abstract class Server : pangya_packet_packet_handle_server, IUnitAuthServer
+    public abstract class Server : pangya_packet_handle, IUnitAuthServer
     {
         #region Fields
+        private IpDdosFilter _ipFilter;
+        private AntiDdosConfig _ddosConfig;
 
         // Shutdown timer
-        public System.Threading.Timer m_shutdown;                                                                    
+        public System.Threading.Timer m_shutdown;
 
         public ServerState m_state;
         //DECRYPT FIELDS
 
-        private ToServerBuffer ToServerBuffer = new ToServerBuffer();
         private List<string> v_mac_ban_list;
         private List<IPBan> v_ip_ban_list;
         public SessionManager m_session_manager;
@@ -64,14 +66,15 @@ namespace PangyaAPI.Network.PangyaServer
         /// <summary>
         /// check packet, packet is real
         /// </summary>
-        /// <param db_name="Session"></param>
-        /// <param db_name="packet"></param>
+        /// <param name="session">client</param>
+        /// <param name="_packet">packet read</param>
+        /// <param name="opt">0 = server, 1 = client</param>
         /// <returns></returns>
-        public abstract bool CheckPacket(Session session, packet _packet);
+        public abstract bool CheckPacket(Session session, packet _packet, int opt = 0);
         /// <summary>
         /// disconnect players !
         /// </summary>
-        /// <param db_name="_session"></param>
+        /// <param name="_session"></param>
         public abstract void onDisconnected(Session _session);
 
         /// <summary>
@@ -83,27 +86,26 @@ namespace PangyaAPI.Network.PangyaServer
         #endregion
 
         #region Constructor
-        public Server()
+        public Server(SessionManager manager)
         {
             try
-            {                     
+            {
+                m_session_manager = manager;
+
                 m_state = ServerState.Uninitialized;
-                                                            
-                config_init(); 
+
+                _ipFilter = new IpDdosFilter();
+
+                config_init();
                 // Inicializa o Unit_Connect, que conecta com o Auth Server
-               /// m_unit_connect = new unit_auth_server_connect(this, m_si);
+                /// m_unit_connect = new unit_auth_server_connect(this, m_si);
             }
             catch (exception e)
             {
                 _smp::message_pool.push(new message("[server::construtor][Error] " + e.getFullMessageError(), type_msg.CL_ONLY_CONSOLE));
             }
         }
-         
-        public void set_sessionManager(SessionManager manager)
-        {
-            m_session_manager = manager;
-        }
-
+ 
         #endregion
 
         #region Private Methods    
@@ -131,7 +133,7 @@ namespace PangyaAPI.Network.PangyaServer
             catch (exception e)
             {
                 _smp::message_pool.push(new message("[server::config_init][Error] " + e.getFullMessageError(), type_msg.CL_ONLY_CONSOLE));
-             }
+            }
 
             try
             {
@@ -156,19 +158,17 @@ namespace PangyaAPI.Network.PangyaServer
                 {
                     var newClient = _server.AcceptTcpClient();
                     var remoteEndPoint = newClient.Client.RemoteEndPoint as IPEndPoint;
-                    string ipAddress = remoteEndPoint?.Address.ToString();
+                    string ipAddress = remoteEndPoint?.Address.ToString(); 
 
-                    // Verifica se já existe conexão com o mesmo IP 
-                    if (m_session_manager.HasSessionWithIP(ipAddress) && m_session_manager.findAllSessionByIP(ipAddress).Count > 1)
+                    if (_ipFilter != null && _ipFilter.IsBlocked(ipAddress))
                     {
-                        newClient.Close(); // Rejeita
-                        var _session = m_session_manager.findSessionByIP(ipAddress);
-
-                        _session.Disconnect();
-                        _smp.message_pool.push(new message($"[Server] IP {ipAddress} já conectado. Conexão rejeitada.", type_msg.CL_FILE_LOG_AND_CONSOLE));
-
+                        newClient.Close();
+                        _smp.message_pool.push(new message($"[Server] Conexão de IP bloqueado: {ipAddress}", type_msg.CL_FILE_LOG_AND_CONSOLE));
                         continue;
                     }
+
+                    _ipFilter?.OnConnect(ipAddress);
+
                     init_option_accepted_socket(newClient.Client);
 
                     // Processa o cliente utilizando o pool de threads
@@ -189,14 +189,49 @@ namespace PangyaAPI.Network.PangyaServer
         protected override void accept_completed(TcpClient client)
         {
             //add player
-            var Session = m_session_manager.AddSession(this, client, client.Client.RemoteEndPoint as IPEndPoint, (byte)(new Random().Next() % 16));
+            var _session = m_session_manager.AddSession(this, client, client.Client.RemoteEndPoint as IPEndPoint, (byte)(new Random().Next() % 16));
             //
-            _smp.message_pool.push(new message("[server::HandleSession][Log] New Player Connected [IP: " + Session.getIP() + ", Key: " + Session.m_key + "]", type_msg.CL_FILE_LOG_AND_CONSOLE));
+            _smp.message_pool.push(new message("[server::HandleSession][Log] New Player Connected [IP: " + _session.getIP() + ", Key: " + _session.m_key + "]", type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-            onAcceptCompleted(Session);
+            onAcceptCompleted(_session);
+            //send key
+
+            while (_session.isConnected())
+            {
+                try
+                {
+                    if (!_session.isConnected())
+                    {
+                        DisconnectSession(_session);
+                        break;
+                    }
+
+                    if (recv_new(_session))
+                    {
+                        // Processa o pacote recebido
+                    }
+                    else
+                    {
+                        DisconnectSession(_session);
+                        break;
+                    }
+                }
+                catch (IOException ioEx)
+                {
+                    _smp.message_pool.push(new message("[server::Handle_session][IOError] " + ioEx.Message, type_msg.CL_FILE_LOG_AND_CONSOLE));
+                    DisconnectSession(_session);
+                    break;
+                }
+                catch (exception ex)
+                {
+                    _smp.message_pool.push(new message("[server::Handle_session][ErrorSystem] " + ex.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                    DisconnectSession(_session);
+                    break;
+                }
+            }
         }
 
-       
+
 
         protected void OnMonitor()
         {
@@ -212,6 +247,8 @@ namespace PangyaAPI.Network.PangyaServer
 
                     try
                     {
+                        m_session_manager.CheckSessionLive();
+
                         // Atualiza o número de sessões conectadas
                         m_si.curr_user = (int)m_session_manager.NumSessionConnected();
                         NormalManagerDB.add(0, new CmdRegisterServer(m_si), SQLDBResponse, this);
@@ -250,11 +287,10 @@ namespace PangyaAPI.Network.PangyaServer
                             Console.Title = $"Unknown Server - P: {m_si.curr_user}";
                             break;
                     }
-
-                    // Atualiza a lista de servidores online e bloqueios de IP/MAC
+                    // pega a lista de servidores online
                     cmdUpdateServerList();
-                    //cmdUpdateListBlock_IP_MAC();
-
+                    // Atualiza a lista de bloqueios de IP/MAC
+                    cmdUpdateListBlock_IP_MAC(); 
                     // Evento de heartbeat
                     OnHeartBeat();
 
@@ -303,7 +339,7 @@ namespace PangyaAPI.Network.PangyaServer
             v_mac_ban_list = cmd_lmb.getList();
         }
 
-        protected override void dispach_packet_sv_same_thread(Session session, packet _packet)
+        public override void dispach_packet_sv_same_thread(Session session, packet _packet)
         {
             if (session == null || session.isConnected() == false || _packet == null)
             {
@@ -341,7 +377,7 @@ namespace PangyaAPI.Network.PangyaServer
                     {
                         if (func != null && func.ExecCmd(pd) != 0)
                         {
-                           // _smp.message_pool.push(new message($"[Server.DispatchpacketSameThread][Error][MY] Ao tratar o pacote. ID: {_packet.getTipo()}(0x{_packet.getTipo():X})," + pd._packet.Log(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                            // _smp.message_pool.push(new message($"[Server.DispatchpacketSameThread][Error][MY] Ao tratar o pacote. ID: {_packet.getTipo()}(0x{_packet.getTipo():X})," + pd._packet.Log(), type_msg.CL_FILE_LOG_AND_CONSOLE));
                             DisconnectSession(session);
                         }
                     }
@@ -394,15 +430,15 @@ namespace PangyaAPI.Network.PangyaServer
                     _packet = _packet
                 };
 
-                if (CheckPacket(session, _packet))
+                if (CheckPacket(session, _packet, 1))
                 {
                     try
                     {
                         if (func != null && func.ExecCmd(pd) != 0)
                         {
-                          //  _smp.message_pool.push(new message($"[Server.DispatchpacketSameThread][Error][MY] Ao tratar o pacote. ID: {_packet.getTipo()}(0x{_packet.getTipo():X})," + pd._packet.Log(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                            //  _smp.message_pool.push(new message($"[Server.DispatchpacketSameThread][Error][MY] Ao tratar o pacote. ID: {_packet.getTipo()}(0x{_packet.getTipo():X})," + pd._packet.Log(), type_msg.CL_FILE_LOG_AND_CONSOLE));
                             DisconnectSession(session);
-                        } 
+                        }
                     }
 
                     catch (exception e)
@@ -419,8 +455,8 @@ namespace PangyaAPI.Network.PangyaServer
 
                 DisconnectSession(session);
             }
-        } 
-          
+        }
+
 
         #endregion
 
@@ -606,7 +642,7 @@ namespace PangyaAPI.Network.PangyaServer
         protected void _disconnect_session()
         {
             try
-            {         
+            {
                 if (m_session_manager.IsInit())
                 {
 
@@ -667,9 +703,11 @@ namespace PangyaAPI.Network.PangyaServer
             bool result;
             try
             {
+                _ipFilter?.OnDisconnect(_session.getIP());
+
                 // Remove a sessão do gerenciador        
                 result = m_session_manager.DeleteSession(_session);
-               
+
             }
             catch (Exception ex)
             {
@@ -705,10 +743,10 @@ namespace PangyaAPI.Network.PangyaServer
         #endregion
 
         #region Auth                                                                           
-    //  public  unit_auth_server_connect m_unit_connect;		// Ponteiro Connecta com o Auth Server                  
+        //  public  unit_auth_server_connect m_unit_connect;		// Ponteiro Connecta com o Auth Server                  
 
         public virtual void authCmdShutdown(int _time_sec)
-        {              
+        {
         }
 
         public virtual void authCmdBroadcastNotice(string _notice)
@@ -901,10 +939,10 @@ namespace PangyaAPI.Network.PangyaServer
 
                 _smp::message_pool.push(new message("[server::sendReplyToOtherServerWithAuthServer][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
-        } 
+        }
 
-       
-             
+
+
         #endregion
     }
 

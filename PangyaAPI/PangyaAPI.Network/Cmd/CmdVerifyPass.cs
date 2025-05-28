@@ -1,21 +1,15 @@
 ﻿
-using PangyaAPI.SQL;
-
 using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using PangyaAPI.SQL;
 
 namespace PangyaAPI.Network.Cmd
 {
-    public class CmdVerifyPass: Pangya_DB
+    public class CmdVerifyPass : Pangya_DB
     {
         uint m_uid = 0;
         string m_pass = "";
         bool m_lastVerify = false;
-       
+
         public CmdVerifyPass(uint _uid, string pass)
         {
             m_pass = pass;
@@ -28,7 +22,7 @@ namespace PangyaAPI.Network.Cmd
             checkColumnNumber(1);
             try
             {
-               var uid_req = int.Parse(_result.data[0].ToString());
+                var uid_req = int.Parse(_result.data[0].ToString());
                 m_lastVerify = uid_req == m_uid;
 
                 if (!m_lastVerify)
@@ -43,10 +37,10 @@ namespace PangyaAPI.Network.Cmd
 
         protected override Response prepareConsulta()
         {
-            
+
             m_lastVerify = false;
 
-            var r = procedure("pangya.ProcVerifyPass",m_uid.ToString() + ", " + m_pass);
+            var r = procedure("pangya.ProcVerifyPass", m_uid.ToString() + ", " + m_pass);
 
             checkResponse(r, "nao conseguiu pegar a uid do player pela senha: " + m_pass);
 

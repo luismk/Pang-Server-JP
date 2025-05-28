@@ -1,8 +1,8 @@
-﻿//using GameServer.Cmd;
+﻿//using Pangya_GameServer.Cmd;
 //using PangyaAPI.SQL;
 //using System;					  
 
-//namespace GameServer.Cmd
+//namespace Pangya_GameServer.Cmd
 //{
 //	public class CmdUpdateTrofelEspecialQntd : Pangya_DB
 //	{
@@ -10,7 +10,7 @@
 //			{
 //				ESPECIAL,
 //				GRAND_PRIX
-				
+
 //			}
 
 //			public CmdUpdateTrofelEspecialQntd()

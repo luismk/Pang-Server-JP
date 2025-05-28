@@ -1,15 +1,8 @@
-﻿using GameServer.GameType;
-
+﻿using System;
+using Pangya_GameServer.GameType;
 using PangyaAPI.SQL;
 
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     public class CmdCouponGacha : Pangya_DB
     {
@@ -17,7 +10,7 @@ namespace GameServer.Cmd
         CouponGacha m_cg = new CouponGacha();
         protected override string _getName { get; } = "CmdCouponGacha";
 
-        public CmdCouponGacha(uint _uid) 
+        public CmdCouponGacha(uint _uid)
         {
             m_uid = _uid;
         }

@@ -1,16 +1,7 @@
-﻿using int8_t = System.SByte;
-using uint8_t = System.Byte;
-using unsigned_char = System.Byte;
-using int16_t = System.Int16;
-using uint16_t = System.UInt16;
-using int32_t = System.Int32;
-using uint32_t = System.UInt32;
-using int64_t = System.Int64;
-using uint64_t = System.UInt64;
-using float_t = System.Single;
-using double_t = System.Double;
+﻿using PangyaAPI.Utilities;
 using size_t = System.Int32;
-using PangyaAPI.Utilities;
+using uint32_t = System.UInt32;
+using uint8_t = System.Byte;
 namespace PangyaAPI.Network.PangyaCrypt
 {
     #region keys
@@ -535,7 +526,7 @@ namespace PangyaAPI.Network.PangyaCrypt
 };
     }
     #endregion
-   
+
     public class crypt : System.IDisposable
     {
 
@@ -561,7 +552,7 @@ namespace PangyaAPI.Network.PangyaCrypt
         }
 
         public void decrypt(byte[] @_cipher,
-            size_t @_size, ref byte[] @_plain )
+            size_t @_size, ref byte[] @_plain)
         {
             if (_cipher == null)
             {

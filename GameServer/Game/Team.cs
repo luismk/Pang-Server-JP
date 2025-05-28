@@ -1,25 +1,13 @@
-﻿using GameServer.GameType;
-using PangyaAPI.Utilities;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using static GameServer.GameType._Define;
-using System;
-using _smp = PangyaAPI.Utilities.Log;
-using GameServer.Session;
-using PangyaAPI.Utilities.BinaryModels;
+using Pangya_GameServer.GameType;
+using Pangya_GameServer.Session;
+using PangyaAPI.Utilities;
 using PangyaAPI.Utilities.Log;
-using GameServer.Game.System;
-using GameServer.Game.Manager;
-using GameServer.PangyaEnums;
-using GameServer.PacketFunc;
-using PangyaAPI.Network.PangyaPacket;
-using PangyaAPI.Network.Pangya_St;
-using PangyaAPI.SQL.Manager;
-using GameServer.Cmd;
-using System.Runtime.InteropServices;
-using static GameServer.GameType.ShotSyncData;
+using _smp = PangyaAPI.Utilities.Log;
 
-namespace GameServer.Game
+namespace Pangya_GameServer.Game
 {
 
     public class Team
@@ -42,7 +30,7 @@ namespace GameServer.Game
             public ushort finish; // State finish Hole, 9 finish with int putt, 10 finish with chip-in
             public byte quit = 1; // Player ou o Team desistiu
             public GameData data = new GameData();
-            public Location location = new Location();
+            public GameType.Location location = new GameType.Location();
         }
 
         public Team(in int _id)
@@ -54,7 +42,7 @@ namespace GameServer.Game
         }
 
         public virtual void Dispose()
-        {                                    
+        {
             clear_players();
         }
 
@@ -66,7 +54,7 @@ namespace GameServer.Game
                     throw new exception("[Team::" + "addPlayer" + "][Error] _player is invalid(nullptr)", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.TEAM,
                         1, 0));
                 }
-                if (!(_player).getState() || !(_player).getConnected())
+                if (!(_player).getState() || !(_player).isConnected())
                 {
                     throw new exception("[Team::" + "addPlayer" + "][Error] _player is not connected.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.TEAM,
                         2, 0));
@@ -76,7 +64,7 @@ namespace GameServer.Game
             var it = m_players.FirstOrDefault(_el =>
             {
                 return _el.m_pi.uid == _player.m_pi.uid;
-            });  
+            });
 
             if (it != null) // Add um playe ao team
             {
@@ -97,7 +85,7 @@ namespace GameServer.Game
                     throw new exception("[Team::" + "deletePlayer" + "][Error] _player is invalid(nullptr)", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.TEAM,
                         1, 0));
                 }
-                if ((!(_player).getState() || !(_player).getConnected()) && (_option) != 3)
+                if ((!(_player).getState() || !(_player).isConnected()) && (_option) != 3)
                 {
                     throw new exception("[Team::" + "deletePlayer" + "][Error] _player is not connected.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.TEAM,
                         2, 0));
@@ -125,16 +113,16 @@ namespace GameServer.Game
         // finders
         public Player findPlayerByOID(int _oid)
         {
-             var it = m_players.FirstOrDefault(_el =>
-            {
-                return _el.m_oid == _oid;
-            });
+            var it = m_players.FirstOrDefault(_el =>
+           {
+               return _el.m_oid == _oid;
+           });
 
-                return it;
+            return it;
         }
 
         public Player findPlayerByUID(uint _uid)
-        {      
+        {
             var it = m_players.FirstOrDefault(_el =>
             {
                 return _el.m_pi.uid == _uid;
@@ -144,7 +132,7 @@ namespace GameServer.Game
         }
 
         public Player findPlayerByNickname(string _nickname)
-        {               
+        {
 
             var it = m_players.FirstOrDefault(_el =>
             {
@@ -197,12 +185,12 @@ namespace GameServer.Game
             m_team_ctx.degree = _degree;
         }
 
-        public Location getLocation()
+        public GameType.Location getLocation()
         {
             return m_team_ctx.location;
         }
 
-        public void setLocation(in Location _location)
+        public void setLocation(in GameType.Location _location)
         {
             m_team_ctx.location = _location;
         }
@@ -351,12 +339,12 @@ namespace GameServer.Game
         // increment
 
         // increment
-        public void incrementTacadaNum(uint _inc = 1u)
+        public void incrementTacadaNum(uint _inc = 1)
         {
             m_team_ctx.data.tacada_num += _inc;
         }
 
-        public void incrementTotalTacadaNum(uint _inc = 1u)
+        public void incrementTotalTacadaNum(uint _inc = 1)
         {
             m_team_ctx.data.total_tacada_num += _inc;
         }
@@ -366,22 +354,22 @@ namespace GameServer.Game
             m_team_ctx.player_start_hole += _inc;
         }
 
-        public void incrementPoint(uint _inc = 1u)
+        public void incrementPoint(uint _inc = 1)
         {
             m_team_ctx.point += _inc;
         }
 
-        public void incrementBadCondute(uint _inc = 1u)
+        public void incrementBadCondute(uint _inc = 1)
         {
             m_team_ctx.data.bad_condute += _inc;
         }
 
-        public void incrementPang(ulong _inc = 1Ul)
+        public void incrementPang(ulong _inc = 1l)
         {
             m_team_ctx.data.pang += _inc;
         }
 
-        public void incrementBonusPang(ulong _inc = 1Ul)
+        public void incrementBonusPang(ulong _inc = 1l)
         {
             m_team_ctx.data.bonus_pang += _inc;
         }
@@ -440,10 +428,10 @@ namespace GameServer.Game
         }
 
         protected virtual void clear_players()
-        {                               
+        {
             if (m_players.Any())
             {
-                m_players.Clear();            
+                m_players.Clear();
             }
         }
 

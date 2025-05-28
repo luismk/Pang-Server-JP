@@ -1,4 +1,4 @@
-﻿//using GameServer.GameType;
+﻿//using Pangya_GameServer.GameType;
 //using System;
 
 //// Arquivo cmd_update_guild_points.cpp
@@ -18,7 +18,7 @@
 //// C++ TO C# CONVERTER WARNING: The following #include directive was ignored:
 ////#include "../../Projeto IOCP/PANGYA_DB/pangya_db.h"
 
-//namespace GameServer.Cmd
+//namespace Pangya_GameServer.Cmd
 //{
 //	public class CmdUpdateGuildPoints : Pangya_DB
 //	{
@@ -27,7 +27,7 @@
 //				this.m_gp = new GuildPoints(0u);
 //			}
 
-//			public CmdUpdateGuildPoints(GuildPoints _gp, bool _waiter = false) : base(_waiter)
+//			public CmdUpdateGuildPoints(GuildPoints _gp)
 //			{
 //				this.m_gp = new GuildPoints(_gp);
 //			}

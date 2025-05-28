@@ -1,10 +1,10 @@
-﻿using GameServer.GameType;
-using PangyaAPI.SQL;
+﻿using System;
 using System.Collections.Generic;
-using System;
 using System.Linq;
+using Pangya_GameServer.GameType;
+using PangyaAPI.SQL;
 
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     public class CmdMemorialNormalItemInfo : Pangya_DB
     {
@@ -12,7 +12,7 @@ namespace GameServer.Cmd
         {
             this.m_item = new Dictionary<uint, ctx_coin_set_item>();
         }
-                                    
+
         public Dictionary<uint, ctx_coin_set_item> getInfo()
         {
             return m_item;
@@ -25,30 +25,37 @@ namespace GameServer.Cmd
 
             ctx_coin_set_item csi = new ctx_coin_set_item();
             ctx_coin_item_ex ci = new ctx_coin_item_ex();
-
-            csi.flag = -100; // SetItem Flag, SEMPRE TEM QUE SER -100
-                 csi._typeid = (uint)IFNULL(_result.data[0]);
- 
-            ci.tipo = -1; // Normal Item
-            ci.gacha_number = -1;
-            ci.probabilidade = 0;
-                               
-            ci._typeid = (uint)IFNULL(_result.data[2]);
-              ci.qntd = (uint)IFNULL(_result.data[3]);
-             
-            var it = m_item.FirstOrDefault(c=> c.Key == csi._typeid);
-
-             if (it.Value != null) // add um item novo ao vector do map
+            try
             {
-                 it.Value.item.Add(ci);
-            }
-            else
-            { // Add um novo ao map
-                csi.tipo = (byte)IFNULL(_result.data[1]);
 
-                csi.item.Add(ci);
-                m_item[csi._typeid] = csi;
-             }
+                csi.flag = -100; // SetItem Flag, SEMPRE TEM QUE SER -100
+                csi._typeid = (uint)IFNULL(_result.data[0]);
+
+                ci.tipo = -1; // Normal Item
+                ci.gacha_number = -1;
+                ci.probabilidade = 0;
+
+                ci._typeid = (uint)IFNULL(_result.data[2]);
+                ci.qntd = (uint)IFNULL(_result.data[3]);
+
+                var it = m_item.FirstOrDefault(c => c.Key == csi._typeid);
+
+                if (it.Value != null) // add um item novo ao vector do map
+                {
+                    it.Value.item.Add(ci);
+                }
+                else
+                { // Add um novo ao map
+                    csi.tipo = (byte)IFNULL(_result.data[1]);
+
+                    csi.item.Add(ci);
+                    m_item[csi._typeid] = csi;
+                }
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
         }
 
         protected override Response prepareConsulta()
@@ -61,7 +68,7 @@ namespace GameServer.Cmd
 
             return r;
         }
-                                            
+
         private Dictionary<uint, ctx_coin_set_item> m_item = new Dictionary<uint, ctx_coin_set_item>();
 
         private const string m_szConsulta = "pangya.ProcGetMemorialNormalItemInfo";

@@ -1,12 +1,12 @@
-﻿using GameServer.GameType;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using Pangya_GameServer.GameType;
 using PangyaAPI.SQL;
 using PangyaAPI.Utilities;
 using PangyaAPI.Utilities.Log;
-using System.Linq;
 using _smp = PangyaAPI.Utilities.Log;
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     public class CmdMailBoxInfo2 : Pangya_DB
     {
@@ -20,7 +20,7 @@ namespace GameServer.Cmd
             this.m_uid = 0u;
         }
 
-       
+
         public uint GetUID()
         {
             return m_uid;

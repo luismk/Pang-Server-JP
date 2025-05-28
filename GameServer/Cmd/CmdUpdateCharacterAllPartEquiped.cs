@@ -1,8 +1,8 @@
-﻿using PangyaAPI.Network.Pangya_St;
+﻿using System;
+using PangyaAPI.Network.Pangya_St;
 using PangyaAPI.SQL;
-using System;
 
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     public class CmdUpdateCharacterAllPartEquiped : Pangya_DB
     {
@@ -21,8 +21,8 @@ namespace GameServer.Cmd
         }
 
         public void setUID(uint _uid)
-        {                     
-            m_uid = _uid; 
+        {
+            m_uid = _uid;
         }
 
         public CharacterInfo getInfo()
@@ -31,8 +31,8 @@ namespace GameServer.Cmd
         }
 
         public void setInfo(CharacterInfo _ci)
-        {                     
-            m_ci = _ci;          
+        {
+            m_ci = _ci;
         }
 
         protected override void lineResult(ctx_res _result, uint _index_result)
@@ -55,22 +55,22 @@ namespace GameServer.Cmd
             {
                 q += "|" + Convert.ToString(m_ci.parts_typeid[@is]);
             }
-                                                                                                              
+
             for (@is = 0u; @is < (m_ci.parts_id.Length); ++@is)
             {
                 q += "|" + Convert.ToString(m_ci.parts_id[@is]);
             }
-                                                                                                             
+
             for (@is = 0u; @is < (m_ci.auxparts.Length); ++@is)
             {
                 q += "|" + Convert.ToString(m_ci.auxparts[@is]);
             }
-                                                                                                        
+
             for (@is = 0u; @is < (m_ci.cut_in.Length); ++@is)
             {
                 q += "|" + Convert.ToString(m_ci.cut_in[@is]);
             }
-                                                                                                  
+
             for (@is = 0u; @is < (m_ci.pcl.Length); ++@is)
             {
                 q += "|" + Convert.ToString((ushort)m_ci.pcl[@is]);
@@ -85,7 +85,7 @@ namespace GameServer.Cmd
             checkResponse(r, "nao conseguiu atualizar o character[ID=" + Convert.ToString(m_ci.id) + "] parts equipado do player: " + Convert.ToString(m_uid));
 
             return r;
-        }                                            
+        }
 
         private const string m_szConsulta = "pangya.USP_CHAR_EQUIP_SAVE_S4";
     }

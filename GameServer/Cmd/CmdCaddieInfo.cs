@@ -1,13 +1,9 @@
-﻿using GameServer.Game.Manager;
-using GameServer.GameType;
+﻿using System;
+using Pangya_GameServer.Game.Manager;
+using Pangya_GameServer.GameType;
 using PangyaAPI.SQL;
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using _smp = PangyaAPI.Utilities.Log;
 
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     public class CmdCaddieInfo : Pangya_DB
     {
@@ -66,12 +62,12 @@ namespace GameServer.Cmd
             m_caddie_id = _caddie_id;
         }
         protected override void lineResult(ctx_res _result, uint _index_result)
-        { 
-			checkColumnNumber(11);
+        {
+            checkColumnNumber(11);
 
             try
             {
-                if (_result.data_row == null || _result.data_row.ItemArray.Length == 0)    
+                if (_result.data_row == null || _result.data_row.ItemArray.Length == 0)
                     return;
 
                 CaddieInfoEx ci = new CaddieInfoEx
@@ -88,18 +84,18 @@ namespace GameServer.Cmd
                     ci.end_date.CreateTime(_result.GetDateTime(7));
 
                 ci.purchase = _result.GetByte(8);
-				
+
                 if (_result.IsNotNull(9))
                     ci.end_parts_date.CreateTime(_result.GetDateTime(9));
-				
+
                 ci.check_end = _result.GetByte(10);
-				
-				v_ci.Add(ci.id, ci);
-                
+
+                v_ci.Add(ci.id, ci);
+
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);  
+                Console.WriteLine(ex.Message);
             }
         }
 

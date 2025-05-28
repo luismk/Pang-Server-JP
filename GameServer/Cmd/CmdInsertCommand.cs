@@ -1,8 +1,8 @@
-﻿using GameServer.GameType;
+﻿using System;
+using Pangya_GameServer.GameType;
 using PangyaAPI.SQL;
-using System;
 
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     public class CmdInsertCommand : Pangya_DB
     {

@@ -1,21 +1,15 @@
 ﻿
-using PangyaAPI.SQL;
-
 using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using PangyaAPI.SQL;
 
 namespace PangyaAPI.Network.Cmd
 {
-    public class CmdVerifyNick: Pangya_DB
+    public class CmdVerifyNick : Pangya_DB
     {
-       uint m_uid = 0;
+        uint m_uid = 0;
         string m_nick = "";
         bool m_check = false;
-       
+
         public CmdVerifyNick(string nick)
         {
             m_nick = nick;

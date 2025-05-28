@@ -1,9 +1,7 @@
-﻿using PangyaAPI.IFF.JP.Extensions;
+﻿using System.Linq;
+using System.Runtime.InteropServices;
 using PangyaAPI.IFF.JP.Models.General;
 using PangyaAPI.Utilities.BinaryModels;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices;
 namespace PangyaAPI.IFF.JP.Models.Data
 {
     #region class Mascot.iff
@@ -15,7 +13,7 @@ namespace PangyaAPI.IFF.JP.Models.Data
         {
             LoadFile(ref reader, strLen);
         }
-        
+
         public void LoadFile(ref PangyaBinaryReader reader, uint strLen)
         {
             Load(ref reader, strLen);
@@ -107,7 +105,7 @@ namespace PangyaAPI.IFF.JP.Models.Data
         [field: MarshalAs(UnmanagedType.Struct)]
         public Mensagem msg { get; set; }
         [field: MarshalAs(UnmanagedType.Struct)]
-        public BonusPangya bonus_pangya { get; set; }           
+        public BonusPangya bonus_pangya { get; set; }
     }
     #endregion
 

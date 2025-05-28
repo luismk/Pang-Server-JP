@@ -1,21 +1,21 @@
-﻿using GameServer.Cmd;
-using GameServer.Game.Manager;
-using GameServer.Game.Utils;
-using GameServer.GameType;
-using GameServer.PacketFunc;
-using GameServer.Session;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Pangya_GameServer.Cmd;
+using Pangya_GameServer.Game.Manager;
+using Pangya_GameServer.Game.Utils;
+using Pangya_GameServer.GameType;
+using Pangya_GameServer.PacketFunc;
+using Pangya_GameServer.Session;
 using PangyaAPI.Network.PangyaPacket;
 using PangyaAPI.SQL;
 using PangyaAPI.SQL.Manager;
 using PangyaAPI.Utilities;
 using PangyaAPI.Utilities.BinaryModels;
 using PangyaAPI.Utilities.Log;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using static GameServer.GameType._Define;
+using static Pangya_GameServer.GameType._Define;
 
-namespace GameServer.Game.System
+namespace Pangya_GameServer.Game.System
 {
     public class AttendanceRewardSystem
     {
@@ -30,7 +30,7 @@ namespace GameServer.Game.System
             m_cs = new object();
             v_item = new List<AttendanceRewardItemCtx>();
             m_load = false;
-           initialize();
+            initialize();
 
         }
 
@@ -54,18 +54,18 @@ namespace GameServer.Game.System
         public bool isLoad()
         {
 
-            bool isLoad = false;  
+            bool isLoad = false;
 
             isLoad = (m_load && v_item.Any());
-                                              
+
             return isLoad;
         }
 
         // Solicita verificação de presença (attendance)
-        public void requestCheckAttendance(Player _session, Packet _packet)
+        public void requestCheckAttendance(Player _session, packet _packet)
         {
             try
-            {                                                     
+            {
 
                 if (passedOneDay(_session))
                 {   // Passou 1 dia depois que o player logou no pangya
@@ -86,7 +86,7 @@ namespace GameServer.Game.System
                     _session.m_pi.ari.login = 1;   // Ainda n�o passou 1 dia desde que ele logou no pangya
 
 
-                _session.Send(packet_func.pacote248(_session.m_pi.ari));
+                packet_func.session_send(packet_func.pacote248(_session.m_pi.ari), _session);
             }
             catch (exception e)
             {
@@ -98,15 +98,15 @@ namespace GameServer.Game.System
 
                     p.WriteUInt32(ExceptionError.STDA_SYSTEM_ERROR_DECODE_TYPE(e.getCodeError()) == (int)STDA_ERROR_TYPE.ATTENDANCE_REWARD_SYSTEM ? ExceptionError.STDA_SYSTEM_ERROR_DECODE_TYPE(e.getCodeError()) : ~0u);
 
-                    _session.Send(p);
+                    packet_func.session_send(p, _session);
                 }
                 throw e;
             }
-            
+
         }
 
         // Solicita atualização do contador de login
-        public void requestUpdateCountLogin(Player _session, Packet _packet)
+        public void requestUpdateCountLogin(Player _session, packet _packet)
         {
 
             try
@@ -181,7 +181,7 @@ namespace GameServer.Game.System
                 //sys_achieve.incrementCounter(0x6C4000A0u/*Login Count por dia, 1 por dia*/);
 
 
-                _session.Send(packet_func.pacote249(_session.m_pi.ari));
+                packet_func.session_send(packet_func.pacote249(_session.m_pi.ari), _session);
 
                 // UPDATE Achievement ON SERVER, DB and GAME
                 ///sys_achieve.finish_and_update(_session);
@@ -196,9 +196,9 @@ namespace GameServer.Game.System
 
                     p.WriteUInt32(ExceptionError.STDA_SYSTEM_ERROR_DECODE_TYPE(e.getCodeError()) == (int)STDA_ERROR_TYPE.ATTENDANCE_REWARD_SYSTEM ? ExceptionError.STDA_SYSTEM_ERROR_DECODE_TYPE(e.getCodeError()) : ~0u);
 
-                    _session.Send(p);
+                    packet_func.session_send(p, _session);
                 }
-                throw e;                                
+                throw e;
             }
         }
 
@@ -211,7 +211,7 @@ namespace GameServer.Game.System
             // Carrega os Itens do Attendance Reward
             var cmd_aric = new Cmd.CmdAttendanceRewardItemInfo(); // Waiter
 
-            NormalManagerDB.add(0,cmd_aric, null, null);
+            NormalManagerDB.add(0, cmd_aric, null, null);
 
             if (cmd_aric.getException().getCodeError() != 0)
                 throw cmd_aric.getException();
@@ -219,6 +219,7 @@ namespace GameServer.Game.System
             v_item = cmd_aric.getInfo();
 
             //#ifdef _DEBUG
+            if (v_item.Count > 0) 
             message_pool.push(new message("[AttendanceRewardSystem::initialize][Log] Attendance Reward System Carregado com sucesso.", type_msg.CL_FILE_LOG_AND_CONSOLE));
             //#else
             //message_pool.push(new message("[AttendanceRewardSystem::initialize][Log] Attendance Reward System Carregado com sucesso.", type_msg.CL_ONLY_FILE_LOG));
@@ -226,7 +227,7 @@ namespace GameServer.Game.System
 
             // Carregou com sucesso
             m_load = true;
-                       
+
         }
 
         // Limpa os dados do sistema
@@ -253,44 +254,69 @@ namespace GameServer.Game.System
         }
 
         // Retorna um objeto de recompensa com base no tipo informado
-        protected AttendanceRewardItemCtx drawReward(byte _tipo)
+        public AttendanceRewardItemCtx drawReward(byte _tipo)
         {
-            if (!isLoad())
-                throw new exception("[AttendanceRewardSystem::drawReward][Error] Attendance Reward not load, please call load method first.",ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.ATTENDANCE_REWARD_SYSTEM, 4, 0));
+            try
+            {
+                if (!isLoad())
+                    throw new exception("[AttendanceRewardSystem::drawReward][Error] Attendance Reward not load, please call load method first.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.ATTENDANCE_REWARD_SYSTEM, 4, 0));
 
-            AttendanceRewardItemCtx aric = null;
+                AttendanceRewardItemCtx aric = null;
 
 
-           var lottery = new Lottery();
+                var lottery = new Lottery();
 
-            foreach(var el in v_item)
-                if (el.tipo == _tipo)
-                    lottery.Push(400, el);
+                if (v_item.Any(el => el.tipo == _tipo))
+                {
+                    var collection = v_item.Where(el => el.tipo == _tipo).ToList();
+                    foreach (var item in collection)
+                        lottery.Push(400, item);
+                }
+                else
+                {
+                    var collection = v_item.ToList();//nao tem o de cima, vou pegar do tipo '0'
+                    foreach (var item in collection)
+                        lottery.Push(400, item);
+                }
+                var lc = lottery.SpinRoleta();
 
-            var lc = lottery.SpinRoleta();
+                if (lc == null)
+                    throw new exception("[AttendanceRewardSystem::drawReward][Error] nao conseguiu rodar a roleta. falhou ao sortear o item. Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.ATTENDANCE_REWARD_SYSTEM, 5, 0));
 
-            if (lc == null)
-               throw new exception("[AttendanceRewardSystem::drawReward][Error] nao conseguiu rodar a roleta. falhou ao sortear o item. Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.ATTENDANCE_REWARD_SYSTEM, 5, 0));
+                aric = (AttendanceRewardItemCtx)lc.Value;
 
-            aric = (AttendanceRewardItemCtx)lc.Value;
-              
-            return aric;
+                return aric;
+            }
+            catch (Exception e)
+            {
+
+                throw e;
+            }
         }
 
         // Verifica se passou um dia após o Player ter logado no Pangya
-        protected bool passedOneDay(Player _session)
+        public bool passedOneDay(Player _session)
         {
-            // Define o início do dia atual (0h, 0min, 0seg, 0ms)
-            DateTime st = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day);
+            try
+            {
+                // Define o início do dia atual (0h, 0min, 0seg, 0ms)
+                var st = DateTime.Now;
 
-            // Converte o horário do último login do player (supondo que ConvertTime retorne um DateTime)
-            DateTime lastLogin = _session.m_pi.ari.last_login.ConvertTime();
+                // Converte o horário do último login do player (supondo que ConvertTime retorne um DateTime)
+                DateTime lastLogin = _session.m_pi.ari.last_login.ConvertTime(); 
 
-            // Calcula a diferença de tempo utilizando o método utilitário (assume que diff seja compatível com STDA_10_MICRO_PER_DAY)
-            var diff = UtilTime.GetTimeDiff(st, lastLogin);
+                // Calcula a diferença de tempo utilizando o método utilitário (assume que diff seja compatível com STDA_10_MICRO_PER_DAY)
+                var diff = UtilTime.GetTimeDiff(st, lastLogin);
 
-            // Retorna verdadeiro se a diferença, em unidades definidas por STDA_10_MICRO_PER_DAY, for de pelo menos 1
-            return (diff / STDA_10_MICRO_PER_DAY) >= 1;
+                var res = (diff / STDA_10_MICRO_PER_DAY) >= 1;
+                // Retorna verdadeiro se a diferença, em unidades definidas por STDA_10_MICRO_PER_DAY, for de pelo menos 1
+                return res;
+            }
+            catch (Exception e)
+            {
+
+                throw e;
+            }
         }
 
         // Método estático para resposta de banco de dados
@@ -325,8 +351,8 @@ namespace GameServer.Game.System
 
         }
     }
- 
-     // Implementação do padrão Singleton
+
+    // Implementação do padrão Singleton
     public class sAttendanceRewardSystem : Singleton<AttendanceRewardSystem>
     {
     }

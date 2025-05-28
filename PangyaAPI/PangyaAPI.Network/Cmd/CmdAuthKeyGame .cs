@@ -1,16 +1,9 @@
-﻿using PangyaAPI.Network.Pangya_St;
+﻿using System;
 using PangyaAPI.SQL;
-
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PangyaAPI.Network.Cmd
 {
-    public class CmdAuthKeyLogin: Pangya_DB
+    public class CmdAuthKeyLogin : Pangya_DB
     {
         string m_auth_key_login;
         int m_uid;

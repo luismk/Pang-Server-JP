@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using PangyaAPI.Network.PangyaPacket;
+using PangyaAPI.Network.PangyaSession;
 
 namespace PangyaAPI.Network.Cryptor
 {
@@ -53,17 +52,28 @@ namespace PangyaAPI.Network.Cryptor
             }
         }
 
+        public List<packet> getPackets(byte[] packet, byte key)
+        {
+            List<packet> packets = new List<packet>();
+            var decryptedPackets = PutPacket(packet, key);
+
+            foreach (var _packet in decryptedPackets)
+            {
+                packets.Add(new packet(_packet));
+            }
+            return packets;
+        }
         private byte[] InternalProcessPacket()
         {
             int currentLength = _endIndex < _initialIndex ? _buffer.Length - _initialIndex + _endIndex : _endIndex - _initialIndex;
-             if (currentLength < FrameLength)
+            if (currentLength < FrameLength)
             {
                 return null;
             }
 
             int payloadLength = ((_buffer[_initialIndex + 2] << 8) | _buffer[_initialIndex + 1]) - 1;
             int realPacketLength = payloadLength + FrameLength;
-             
+
 
             if (currentLength < realPacketLength)
             {

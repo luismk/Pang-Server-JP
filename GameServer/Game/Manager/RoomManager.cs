@@ -1,693 +1,713 @@
-﻿//using GameServer.GameType;
-//using PangyaAPI.Utilities;
-//using System.Collections.Generic;
-//using static GameServer.GameType._Define;
-//using System;
-//using _smp = PangyaAPI.Utilities.Log;
-//using GameServer.Session;
-//using PangyaAPI.Utilities.Log;
-//namespace GameServer.Game.Manager
-//{
-//    public class RoomManager
-//    {
-//        public RoomManager(byte _channel_id)
-//        {
-//            this.m_channel_id = _channel_id;
-//        }
+﻿using System;
+using System.Collections.Generic;
+using System.Threading;
+using Pangya_GameServer.GameType;
+using Pangya_GameServer.Session;
+using PangyaAPI.Utilities;
+using PangyaAPI.Utilities.Log;
+using _smp = PangyaAPI.Utilities.Log;
+using static Pangya_GameServer.GameType._Define;
+using System.Runtime.InteropServices.WindowsRuntime;
+namespace Pangya_GameServer.Game.Manager
+{
+    public class RoomManager
+    {
+        public RoomManager(byte _channel_id)
+        {
+            this.m_channel_id = _channel_id;
+            if (m_map_index.Count ==0)
+            {
+                for (ushort i = 0; i < ushort.MaxValue; i++)
+                {
+                    m_map_index.Add(i, false);
+                }
+            }
+        }
+
+        public void destroy()
+        {
+
+
+            foreach (var el in v_rooms)
+            {
+
+                if (el != null)
+                {
+
+                    // Sala está destruindo
+                      el.setDestroying();
+
+                    // Libera a sala se ela estiver bloqueada
+                      el.unlock();
+
+
+                }
+            }
+
+            v_rooms.Clear();
+            m_channel_id = 255;
+        }
+
+        public room makeRoom(byte _channel_owner,
+            RoomInfoEx _ri,
+            Player _session,
+            int _option = 0)
+        {
+            room r = null;
+
+            try
+            {
+
+
+
+                if (_session != null && _session.m_pi.mi.sala_numero != ushort.MaxValue)
+                {
+                    throw new exception("[RoomManager::makeRoom][Error] Player[UID=" + Convert.ToString(_session.m_pi.uid) + "] sala[NUMERO=" + Convert.ToString(_session.m_pi.mi.sala_numero) + "], ja esta em outra sala, nao pode criar outra. Hacker ou Bug.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.ROOM_MANAGER,
+                        120, 0));
+                }
 
-//        public void destroy()
-//        {
+                _ri.numero = getNewIndex();
 
+                if (_option == 0 && _session != null)
+                {
+                    _ri.master = (int)_session.m_pi.uid;
+                }
+                else if (_option == 1) // Room Sem Master Grand Prix ou Grand Zodiac Event Time
+                {
+                    _ri.master = -2;
+                }
+                else // Room sem master
+                {
+                    _ri.master = -1;
+                }
 
-//            foreach (var el in v_rooms)
-//            {
+                r = new room(_channel_owner, _ri);
 
-//                if (el != null)
-//                {
+                if (r == null)
+                {
+                    throw new exception("[RoomManager::makeRoom][Error] Player[UID=" + Convert.ToString(_session.m_pi.uid) + "] tentou criar a sala[TIPO=" + Convert.ToString((ushort)_ri.tipo) + "], mas nao conseguiu criar o objeto da classe room. Bug.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.ROOM_MANAGER,
+                        130, 0));
+                }
 
-//                    // Sala está destruindo
-//                 //   el.setDestroying();
+                // Verifica se é um room válida e bloquea ela 
+                r.trylock();
 
-//                    // Libera a sala se ela estiver bloqueada
-//                 //   el.unlock();
+                // Adiciona a sala no Vector
+                v_rooms.Add(r);
 
-                     
-//                }
-//            }
+                if (_session != null)
+                {
+                    r.enter(_session);
+                }
 
-//            v_rooms.Clear();
-//            m_channel_id = 255;
-//        }
+                // Log
+                _smp.message_pool.push(new message("[RoomManager::makeRoom][Log] Channel[ID=" + Convert.ToString((ushort)m_channel_id) + "] Maked Room[TIPO=" + Convert.ToString((ushort)r.getInfo().tipo) + ", NUMERO=" + Convert.ToString(r.getNumero()) + ", MASTER=" + Convert.ToString((int)r.getMaster()) + "]", type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-//        public room makeRoom(byte _channel_owner,
-//            RoomInfoEx _ri,
-//            Player _session,
-//            int _option = 0)
-//        {
-//            room r = null;
+                //_smp::message_pool::getInstance().push(new message("Key Room Dump.\n\r" + hex_util::BufferToHexString((unsigned char*)r->getInfo()->key, 16), type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-//            try
-//            {
+            }
+            catch (exception e)
+            {
 
+                // Libera Crictical Session do Room Manager
 
 
-//                if (_session != null && _session.m_pi.mi.sala_numero != ushort.MaxValue)
-//                {
-//                    throw new exception("[RoomManager::makeRoom][Error] Player[UID=" + Convert.ToString(_session.m_pi.uid) + "] sala[NUMERO=" + Convert.ToString(_session.m_pi.mi.sala_numero) + "], ja esta em outra sala, nao pode criar outra. Hacker ou Bug.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.ROOM_MANAGER,
-//                        120, 0));
-//                }
+                if (r != null)
+                {
 
-//                _ri.numero = getNewIndex();
+                    // Destruindo a sala, não conseguiu
+                    r.setDestroying();
 
-//                if (_option == 0 && _session != null)
-//                {
-//                    _ri.master = (int)_session.m_pi.uid;
-//                }
-//                else if (_option == 1) // Room Sem Master Grand Prix ou Grand Zodiac Event Time
-//                {
-//                    _ri.master = -2;
-//                }
-//                else // Room sem master
-//                {
-//                    _ri.master = -1;
-//                }
+                    // Desbloqueia para
+                    if (!ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
+                        STDA_ERROR_TYPE.ROOM, 150))
+                    {
+                        r.unlock();
+                    }
 
-//                r = new room(_channel_owner, _ri);
+                    // Deletando o Objeto
+                    r = null;
 
-//                if (r == null)
-//                {
-//                    throw new exception("[RoomManager::makeRoom][Error] Player[UID=" + Convert.ToString(_session.m_pi.uid) + "] tentou criar a sala[TIPO=" + Convert.ToString((ushort)_ri.tipo) + "], mas nao conseguiu criar o objeto da classe room. Bug.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.ROOM_MANAGER,
-//                        130, 0));
-//                }
+                    // Limpa o ponteiro
+                    r = null;
+                }
 
-//                // Verifica se é um room válida e bloquea ela
-//                // C++ TO C# CONVERTER TASK: The #define macro '//WAIT_ROOM_UNLOCK' was defined in multiple preprocessor conditionals and cannot be replaced in-line:
-//                //WAIT_ROOM_UNLOCK("makeRoom");
+                _smp.message_pool.push(new message("[RoomManager::makeRoom][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+            }
 
-//                // Adiciona a sala no Vector
-//                v_rooms.Add(r);
+            return r;
+        }
 
-//                if (_session != null)
-//                {
-//                    r.enter(_session);
-//                }
+        public void destroyRoom(room _room)
+        {
 
-//                // Log
-//                _smp.message_pool.push(new message("[RoomManager::makeRoom][Log] Channel[ID=" + Convert.ToString((ushort)m_channel_id) + "] Maked Room[TIPO=" + Convert.ToString((ushort)r.getInfo().tipo) + ", NUMERO=" + Convert.ToString(r.getNumero()) + ", MASTER=" + Convert.ToString((int)r.getMaster()) + "]", type_msg.CL_FILE_LOG_AND_CONSOLE));
+            if (_room == null)
+            {
+                throw new exception("[RoomManager::destroyRoom][Error] _room is nullptr.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.ROOM_MANAGER,
+                    4, 0));
+            }
 
-//                //_smp::message_pool::getInstance().push(new message("Key Room Dump.\n\r" + hex_util::BufferToHexString((unsigned char*)r->getInfo()->key, 16), type_msg.CL_FILE_LOG_AND_CONSOLE));
+            int index = findIndexRoom(_room);
 
+            if (index == (int)~0)
+            {
+                throw new exception("[RoomManager::destroyRoom][Error] room nao existe no vector de salas.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.ROOM_MANAGER,
+                    5, 0));
+            }
 
+            string log = "";
 
-//            }
-//            catch (exception e)
-//            {
+            try
+            {
 
-//                // Libera Crictical Session do Room Manager
 
 
-//                if (r != null)
-//                {
+                clearIndex((ushort)_room.getNumero());
 
-//                    // Destruindo a sala, não conseguiu
-//                    r.setDestroying();
+                v_rooms.RemoveAt(index);
 
-//                    // Desbloqueia para
-//                    if (!ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
-//                        STDA_ERROR_TYPE.ROOM, 150))
-//                    {
-//                        r.unlock();
-//                    }
+                // Make Log
+                log = "[RoomManager::destroyRoom][Log] Channel[ID=" + Convert.ToString((ushort)m_channel_id) + "] Room[TIPO=" + Convert.ToString((ushort)_room.getInfo().tipo) + ", NUMERO=" + Convert.ToString(_room.getNumero()) + ", MASTER=" + Convert.ToString((int)_room.getMaster()) + "] destroyed.";
 
-//                    // Deletando o Objeto
-//                    r = null;
+                // Sala vai ser deletada
+                _room.setDestroying();
 
-//                    // Limpa o ponteiro
-//                    r = null;
-//                }
+                // Vai destruir(excluir) a sala, libera a sala
+                _room.unlock(); 
 
-//                _smp.message_pool.push(new message("[RoomManager::makeRoom][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
-//            }
+                // Show Log, se destruiu a sala com sucesso
+                _smp.message_pool.push(new message(log, type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-//            return r;
-//        }
 
-//        public void destroyRoom(room _room)
-//        {
 
-//            if (_room == null)
-//            {
-//                throw new exception("[RoomManager::destroyRoom][Error] _room is nullptr.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.ROOM_MANAGER,
-//                    4, 0));
-//            }
+            }
+            catch (exception e)
+            {
 
-//            int index = findIndexRoom(_room);
+                // Libera Crictical Session do Room Manager
 
-//            if (index == (int)~0)
-//            {
-//                throw new exception("[RoomManager::destroyRoom][Error] room nao existe no vector de salas.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.ROOM_MANAGER,
-//                    5, 0));
-//            }
 
-//            string log = "";
+                if (_room != null)
+                {
 
-//            try
-//            {
+                    _room.setDestroying();
 
+                    _room.unlock();
 
+                    _room = null;
 
-//                clearIndex(_room.getNumero());
+                    _room = null;
+                }
 
-//                v_rooms.RemoveAt(index);
+                _smp.message_pool.push(new message("[RoomManager::destroy][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+            }
+        }
 
-//                // Make Log
-//                log = "[RoomManager::destroyRoom][Log] Channel[ID=" + Convert.ToString((ushort)m_channel_id) + "] Room[TIPO=" + Convert.ToString((ushort)_room.getInfo().tipo) + ", NUMERO=" + Convert.ToString(_room.getNumero()) + ", MASTER=" + Convert.ToString((int)_room.getMaster()) + "] destroyed.";
+        //// Make room Grand Prix
+        //public RoomGrandPrix makeRoomGrandPrix(byte _channel_owner,
+        //    RoomInfoEx _ri,
+        //    Player _session,
+        //    PangyaAPI.IFF.JP.Models.Data.GrandPrixData _gp,
+        //    int _option = 0)
+        //{
 
-//                // Sala vai ser deletada
-//                _room.setDestroying();
+        //    RoomGrandPrix r = null;
 
-//                // Vai destruir(excluir) a sala, libera a sala
-//                _room.unlock();
+        //    try
+        //    {
 
-//                _room = null; // Libera memória alocada para a sala
 
-//                // Deletou a sala;
-//                _room = null;
 
-//                // Show Log, se destruiu a sala com sucesso
-//                _smp.message_pool.push(new message(log, type_msg.CL_FILE_LOG_AND_CONSOLE));
+        //        if (_session != null && _session.m_pi.mi.sala_numero != ushort.MaxValue)
+        //        {
+        //            throw new exception("[RoomManager::makeRoomGrandPrix][Error] Player[UID=" + Convert.ToString(_session.m_pi.uid) + "] sala[NUMERO=" + Convert.ToString(_session.m_pi.mi.sala_numero) + "], ja esta em outra sala, nao pode criar outra. Hacker ou Bug.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.ROOM_MANAGER,
+        //                120, 0));
+        //        }
 
+        //        _ri.numero = getNewIndex();
 
+        //        if (_option == 0 && _session != null)
+        //        {
+        //            _ri.master = (int)_session.m_pi.uid;
+        //        }
+        //        else if (_option == 1) // Room Sem Master Grand Prix ou Grand Zodiac Event Time
+        //        {
+        //            _ri.master = -2;
+        //        }
+        //        else // Room sem master
+        //        {
+        //            _ri.master = -1;
+        //        }
 
-//            }
-//            catch (exception e)
-//            {
+        //        r = new RoomGrandPrix(_channel_owner,
+        //            _ri, _gp);
 
-//                // Libera Crictical Session do Room Manager
+        //        if (r == null)
+        //        {
+        //            throw new exception("[RoomManager::makeRoomGrandPrix][Error] Player[UID=" + Convert.ToString(_session.m_pi.uid) + "] tentou criar a sala[TIPO=" + Convert.ToString((ushort)_ri.tipo) + "], mas nao conseguiu criar o objeto da classe RoomGrandPrix. Bug.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.ROOM_MANAGER,
+        //                130, 0));
+        //        }
 
+        //        // Verifica se é um room grand prix válida e bloquea ela
+        //        // C++ TO C# CONVERTER TASK: The #define macro '//WAIT_ROOM_GP_UNLOCK' was defined in multiple preprocessor conditionals and cannot be replaced in-line:
+        //        //WAIT_ROOM_GP_UNLOCK("makeRoomGrandPrix");
 
-//                if (_room != null)
-//                {
+        //        // Adiciona a sala ao vector
+        //        v_rooms.Add(r);
 
-//                    _room.setDestroying();
+        //        if (_session != null)
+        //        {
+        //            r.enter(_session);
+        //        }
 
-//                    _room.unlock();
+        //        // Log
+        //        _smp.message_pool.push(new message("[RoomManager::makeRoomGrandPrix][Log] Channel[ID=" + Convert.ToString((ushort)m_channel_id) + "] Maked Room[TIPO=" + Convert.ToString((ushort)r.getInfo().tipo) + ", NUMERO=" + Convert.ToString(r.getNumero()) + ", MASTER=" + Convert.ToString((int)r.getMaster()) + ", PLAYER_REQUEST_CREATE=" + (_session != null ? Convert.ToString(_session.m_pi.uid) : "NENHUMA-SYSTEM") + "]", type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-//                    _room = null;
+        //        //_smp::message_pool::getInstance().push(new message("Key Room Dump.\n\r" + hex_util::BufferToHexString((unsigned char*)r->getInfo()->key, 16), type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-//                    _room = null;
-//                }
 
-//                _smp.message_pool.push(new message("[RoomManager::destroy][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
-//            }
-//        }
 
-//        // Make room Grand Prix
-//        public RoomGrandPrix makeRoomGrandPrix(byte _channel_owner,
-//            RoomInfoEx _ri,
-//            Player _session,
-//            PangyaAPI.IFF.JP.Models.Data.GrandPrixData _gp,
-//            int _option = 0)
-//        {
+        //    }
+        //    catch (exception e)
+        //    {
 
-//            RoomGrandPrix r = null;
+        //        // Libera Crictical Session do Room Manager
 
-//            try
-//            {
 
+        //        if (r != null)
+        //        {
 
+        //            // Destruindo a sala, não conseguiu
+        //            r.setDestroying();
 
-//                if (_session != null && _session.m_pi.mi.sala_numero != ushort.MaxValue)
-//                {
-//                    throw new exception("[RoomManager::makeRoomGrandPrix][Error] Player[UID=" + Convert.ToString(_session.m_pi.uid) + "] sala[NUMERO=" + Convert.ToString(_session.m_pi.mi.sala_numero) + "], ja esta em outra sala, nao pode criar outra. Hacker ou Bug.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.ROOM_MANAGER,
-//                        120, 0));
-//                }
+        //            // Desbloqueia para
+        //            if (!ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
+        //                STDA_ERROR_TYPE.ROOM, 150))
+        //            {
+        //                r.unlock();
+        //            }
 
-//                _ri.numero = getNewIndex();
+        //            // Deletando o Objeto
+        //            r = null;
 
-//                if (_option == 0 && _session != null)
-//                {
-//                    _ri.master = (int)_session.m_pi.uid;
-//                }
-//                else if (_option == 1) // Room Sem Master Grand Prix ou Grand Zodiac Event Time
-//                {
-//                    _ri.master = -2;
-//                }
-//                else // Room sem master
-//                {
-//                    _ri.master = -1;
-//                }
+        //            // Limpa o ponteiro
+        //            r = null;
+        //        }
 
-//                r = new RoomGrandPrix(_channel_owner,
-//                    _ri, _gp);
+        //        _smp.message_pool.push(new message("[RoomManager::makeRoomGrandPrix][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+        //    }
 
-//                if (r == null)
-//                {
-//                    throw new exception("[RoomManager::makeRoomGrandPrix][Error] Player[UID=" + Convert.ToString(_session.m_pi.uid) + "] tentou criar a sala[TIPO=" + Convert.ToString((ushort)_ri.tipo) + "], mas nao conseguiu criar o objeto da classe RoomGrandPrix. Bug.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.ROOM_MANAGER,
-//                        130, 0));
-//                }
+        //    return r;
+        //}
 
-//                // Verifica se é um room grand prix válida e bloquea ela
-//                // C++ TO C# CONVERTER TASK: The #define macro '//WAIT_ROOM_GP_UNLOCK' was defined in multiple preprocessor conditionals and cannot be replaced in-line:
-//                //WAIT_ROOM_GP_UNLOCK("makeRoomGrandPrix");
+        //// Make room Grand Zodiac Event
+        //public RoomGrandZodiacEvent makeRoomGrandZodiacEvent(byte _channel_owner, RoomInfoEx _ri)
+        //{
 
-//                // Adiciona a sala ao vector
-//                v_rooms.Add(r);
+        //    RoomGrandZodiacEvent r = null;
 
-//                if (_session != null)
-//                {
-//                    r.enter(_session);
-//                }
+        //    try
+        //    {
 
-//                // Log
-//                _smp.message_pool.push(new message("[RoomManager::makeRoomGrandPrix][Log] Channel[ID=" + Convert.ToString((ushort)m_channel_id) + "] Maked Room[TIPO=" + Convert.ToString((ushort)r.getInfo().tipo) + ", NUMERO=" + Convert.ToString(r.getNumero()) + ", MASTER=" + Convert.ToString((int)r.getMaster()) + ", PLAYER_REQUEST_CREATE=" + (_session != null ? Convert.ToString(_session.m_pi.uid) : "NENHUMA-SYSTEM") + "]", type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-//                //_smp::message_pool::getInstance().push(new message("Key Room Dump.\n\r" + hex_util::BufferToHexString((unsigned char*)r->getInfo()->key, 16), type_msg.CL_FILE_LOG_AND_CONSOLE));
 
+        //        _ri.numero = getNewIndex();
 
+        //        // Room Sem Master Grand Prix ou Grand Zodiac Event Time
+        //        _ri.master = -2;
 
-//            }
-//            catch (exception e)
-//            {
+        //        r = new RoomGrandZodiacEvent(_channel_owner, _ri);
 
-//                // Libera Crictical Session do Room Manager
+        //        if (r == null)
+        //        {
+        //            throw new exception("[RoomManager::makeRoomGrandZodiacEvent][Error] tentou criar a sala[TIPO=" + Convert.ToString((ushort)_ri.tipo) + "] Grand Zodiac Event, mas nao conseguiu criar o objeto da classe room. Bug.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.ROOM_MANAGER,
+        //                130, 0));
+        //        }
 
+        //        // Verifica se é um room válida e bloquea ela
+        //        // C++ TO C# CONVERTER TASK: The #define macro '////WAIT_ROOM_GZE_UNLOCK' was defined in multiple preprocessor conditionals and cannot be replaced in-line:
+        //        ////WAIT_ROOM_GZE_UNLOCK("makeRoomGrandZodiacEvent");
 
-//                if (r != null)
-//                {
+        //        // Adiciona a sala no Vector
+        //        v_rooms.Add(r);
 
-//                    // Destruindo a sala, não conseguiu
-//                    r.setDestroying();
+        //        // Log
+        //        _smp.message_pool.push(new message("[RoomManager::makeRoomGrandZodiacEvent][Log] Channel[ID=" + Convert.ToString((ushort)m_channel_id) + "] Maked Room[TIPO=" + Convert.ToString((ushort)r.getInfo().tipo) + ", NUMERO=" + Convert.ToString(r.getNumero()) + ", MASTER=" + Convert.ToString((int)r.getMaster()) + "] Grand Zodiac Event.", type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-//                    // Desbloqueia para
-//                    if (!ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
-//                        STDA_ERROR_TYPE.ROOM, 150))
-//                    {
-//                        r.unlock();
-//                    }
+        //        //_smp::message_pool::getInstance().push(new message("Key Room Dump.\n\r" + hex_util::BufferToHexString((unsigned char*)r->getInfo()->key, 16), type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-//                    // Deletando o Objeto
-//                    r = null;
 
-//                    // Limpa o ponteiro
-//                    r = null;
-//                }
 
-//                _smp.message_pool.push(new message("[RoomManager::makeRoomGrandPrix][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
-//            }
+        //    }
+        //    catch (exception e)
+        //    {
 
-//            return r;
-//        }
+        //        // Libera Crictical Session do Room Manager
 
-//        // Make room Grand Zodiac Event
-//        public RoomGrandZodiacEvent makeRoomGrandZodiacEvent(byte _channel_owner, RoomInfoEx _ri)
-//        {
 
-//            RoomGrandZodiacEvent r = null;
+        //        if (r != null)
+        //        {
 
-//            try
-//            {
+        //            // Destruindo a sala, não conseguiu
+        //            r.setDestroying();
 
+        //            // Desbloqueia para
+        //            if (!ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
+        //                STDA_ERROR_TYPE.ROOM, 150))
+        //            {
+        //                r.unlock();
+        //            }
 
+        //            // Deletando o Objeto
+        //            r = null;
 
-//                _ri.numero = getNewIndex();
+        //            // Limpa o ponteiro
+        //            r = null;
+        //        }
 
-//                // Room Sem Master Grand Prix ou Grand Zodiac Event Time
-//                _ri.master = -2;
+        //        _smp.message_pool.push(new message("[RoomManager::makeRoomGrandZodiacEvent][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+        //    }
 
-//                r = new RoomGrandZodiacEvent(_channel_owner, _ri);
+        //    return r;
+        //}
 
-//                if (r == null)
-//                {
-//                    throw new exception("[RoomManager::makeRoomGrandZodiacEvent][Error] tentou criar a sala[TIPO=" + Convert.ToString((ushort)_ri.tipo) + "] Grand Zodiac Event, mas nao conseguiu criar o objeto da classe room. Bug.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.ROOM_MANAGER,
-//                        130, 0));
-//                }
+        //// Make room Bot GM Event
+        public RoomBotGMEvent makeRoomBotGMEvent(byte _channel_owner,
+            RoomInfoEx _ri,
+            List<stReward> _rewards)
+        {
 
-//                // Verifica se é um room válida e bloquea ela
-//                // C++ TO C# CONVERTER TASK: The #define macro '////WAIT_ROOM_GZE_UNLOCK' was defined in multiple preprocessor conditionals and cannot be replaced in-line:
-//                ////WAIT_ROOM_GZE_UNLOCK("makeRoomGrandZodiacEvent");
+            RoomBotGMEvent r = null;
 
-//                // Adiciona a sala no Vector
-//                v_rooms.Add(r);
+            try
+            {
 
-//                // Log
-//                _smp.message_pool.push(new message("[RoomManager::makeRoomGrandZodiacEvent][Log] Channel[ID=" + Convert.ToString((ushort)m_channel_id) + "] Maked Room[TIPO=" + Convert.ToString((ushort)r.getInfo().tipo) + ", NUMERO=" + Convert.ToString(r.getNumero()) + ", MASTER=" + Convert.ToString((int)r.getMaster()) + "] Grand Zodiac Event.", type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-//                //_smp::message_pool::getInstance().push(new message("Key Room Dump.\n\r" + hex_util::BufferToHexString((unsigned char*)r->getInfo()->key, 16), type_msg.CL_FILE_LOG_AND_CONSOLE));
 
+                _ri.numero = getNewIndex();
 
+                // Room Sem Master Grand Prix ou Grand Zodiac Event Time ou Bot GM Event
+                _ri.master = -2;
 
-//            }
-//            catch (exception e)
-//            {
+                r = new RoomBotGMEvent(_channel_owner,
+                    _ri, _rewards);
 
-//                // Libera Crictical Session do Room Manager
+                if (r == null)
+                {
+                    throw new exception("[RoomManager::makeRoomBotGMEvent][Error] tentou criar a sala[TIPO=" + Convert.ToString((ushort)_ri.tipo) + "] Bot GM Event, mas nao conseguiu criar o objeto da classe room. Bug.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.ROOM_MANAGER,
+                        130, 0));
+                }
 
+                // Adiciona a sala no Vector
+                v_rooms.Add(r);
 
-//                if (r != null)
-//                {
+                // Log
+                _smp.message_pool.push(new message("[RoomManager::makeRoomBotGMEvent][Log] Channel[ID=" + Convert.ToString((ushort)m_channel_id) + "] Maked Room[TIPO=" + Convert.ToString((ushort)r.getInfo().tipo) + ", NUMERO=" + Convert.ToString(r.getNumero()) + ", MASTER=" + Convert.ToString((int)r.getMaster()) + "] Bot GM Event.", type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-//                    // Destruindo a sala, não conseguiu
-//                    r.setDestroying();
+            }
+            catch (exception e)
+            {
 
-//                    // Desbloqueia para
-//                    if (!ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
-//                        STDA_ERROR_TYPE.ROOM, 150))
-//                    {
-//                        r.unlock();
-//                    }
+                // Libera Crictical Session do Room Manager
 
-//                    // Deletando o Objeto
-//                    r = null;
 
-//                    // Limpa o ponteiro
-//                    r = null;
-//                }
+                if (r != null)
+                {
 
-//                _smp.message_pool.push(new message("[RoomManager::makeRoomGrandZodiacEvent][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
-//            }
+                    // Destruindo a sala, não conseguiu
+                    r.setDestroying();
 
-//            return r;
-//        }
+                    // Desbloqueia para
+                    if (!ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
+                        STDA_ERROR_TYPE.ROOM, 150))
+                    {
+                        r.unlock();
+                    }
 
-//        // Make room Bot GM Event
-//        public RoomBotGMEvent makeRoomBotGMEvent(byte _channel_owner,
-//            RoomInfoEx _ri,
-//            List<stReward> _rewards)
-//        {
+                    // Deletando o Objeto
+                    r = null;
 
-//            RoomBotGMEvent r = null;
+                    // Limpa o ponteiro
+                    r = null;
+                }
 
-//            try
-//            {
+                _smp.message_pool.push(new message("[RoomManager::makeRoomBotGMEvent][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+            }
 
+            return r;
+        }
 
+        public int getCount()
+        { 
+             
+            try
+            {
+               return v_rooms.Count;
+            }
+            catch (exception e)
+            { 
+                _smp.message_pool.push(new message("[RoomManager::findRoom][ErrorSystem] " + e.getFullMessageError()));
+            }
+            return 0; 
+        }
 
-//                _ri.numero = getNewIndex();
+        public room findRoom(short _numero)
+        {
 
-//                // Room Sem Master Grand Prix ou Grand Zodiac Event Time ou Bot GM Event
-//                _ri.master = -2;
+            if (_numero == -1)
+            {
+                return null;
+            }
 
-//                r = new RoomBotGMEvent(_channel_owner,
-//                    _ri, _rewards);
+            room r = null;
 
-//                if (r == null)
-//                {
-//                    throw new exception("[RoomManager::makeRoomBotGMEvent][Error] tentou criar a sala[TIPO=" + Convert.ToString((ushort)_ri.tipo) + "] Bot GM Event, mas nao conseguiu criar o objeto da classe room. Bug.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.ROOM_MANAGER,
-//                        130, 0));
-//                }
+            try
+            {
 
-//                // Adiciona a sala no Vector
-//                v_rooms.Add(r);
 
-//                // Log
-//                _smp.message_pool.push(new message("[RoomManager::makeRoomBotGMEvent][Log] Channel[ID=" + Convert.ToString((ushort)m_channel_id) + "] Maked Room[TIPO=" + Convert.ToString((ushort)r.getInfo().tipo) + ", NUMERO=" + Convert.ToString(r.getNumero()) + ", MASTER=" + Convert.ToString((int)r.getMaster()) + "] Bot GM Event.", type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-//            }
-//            catch (exception e)
-//            {
+                for (var i = 0; i < v_rooms.Count; ++i)
+                {
+                    if (v_rooms[i].getNumero() == _numero)
+                    {
+                        r = v_rooms[i];
+                        break;
+                    }
+                }
+            }
+            catch (exception e)
+            {
 
-//                // Libera Crictical Session do Room Manager
+                // Libera Crictical Session do Room Manager
 
 
-//                if (r != null)
-//                {
+                if (r != null)
+                {
 
-//                    // Destruindo a sala, não conseguiu
-//                    r.setDestroying();
+                    if (!ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
+                        STDA_ERROR_TYPE.ROOM, 150))
+                    {
+                        r.unlock();
+                    }
 
-//                    // Desbloqueia para
-//                    if (!ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
-//                        STDA_ERROR_TYPE.ROOM, 150))
-//                    {
-//                        r.unlock();
-//                    }
+                    r = null;
+                }
 
-//                    // Deletando o Objeto
-//                    r = null;
+                _smp.message_pool.push(new message("[RoomManager::findRoom][ErrorSystem] " + e.getFullMessageError()));
+            }
 
-//                    // Limpa o ponteiro
-//                    r = null;
-//                }
+            return r;
+        }
 
-//                _smp.message_pool.push(new message("[RoomManager::makeRoomBotGMEvent][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
-//            }
+        //public RoomGrandPrix findRoomGrandPrix(uint _typeid)
+        //{
 
-//            return r;
-//        }
+        //    if (_typeid == 0)
+        //    {
+        //        return null;
+        //    }
 
-//        public room findRoom(short _numero)
-//        {
+        //    RoomGrandPrix r = null;
 
-//            if (_numero == -1)
-//            {
-//                return null;
-//            }
+        //    try
+        //    {
 
-//            room r = null;
 
-//            try
-//            {
 
+        //        foreach (var el in v_rooms)
+        //        {
 
+        //            if (el.getInfo().grand_prix.active
+        //                && el.getInfo().grand_prix.dados_typeid != 0U
+        //                && el.getInfo().grand_prix.dados_typeid == _typeid)
+        //            {
 
-//                for (var i = 0; i < v_rooms.Count; ++i)
-//                {
-//                    if (v_rooms[i].getNumero() == _numero)
-//                    {
-//                        r = v_rooms[i];
-//                        break;
-//                    }
-//                }
-//            }
-//            catch (exception e)
-//            {
+        //                r = (RoomGrandPrix)el;
 
-//                // Libera Crictical Session do Room Manager
+        //                break;
+        //            }
+        //        }
 
+        //    }
+        //    catch (exception e)
+        //    {
 
-//                if (r != null)
-//                {
+        //        // Libera Crictical Session do Room Manager
 
-//                    if (!ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
-//                        STDA_ERROR_TYPE.ROOM, 150))
-//                    {
-//                        r.unlock();
-//                    }
 
-//                    r = null;
-//                }
+        //        if (r != null)
+        //        {
 
-//                _smp.message_pool.push(new message("[RoomManager::findRoom][ErrorSystem] " + e.getFullMessageError()));
-//            }
+        //            if (!ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
+        //                STDA_ERROR_TYPE.ROOM, 150))
+        //            {
+        //                r.unlock();
+        //            }
 
-//            return r;
-//        }
+        //            r = null;
+        //        }
 
-//        public RoomGrandPrix findRoomGrandPrix(uint _typeid)
-//        {
+        //        _smp.message_pool.push(new message("[RoomManager::findRoomGrandPrix][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+        //    }
 
-//            if (_typeid == 0)
-//            {
-//                return null;
-//            }
+        //    return r;
+        //}
 
-//            RoomGrandPrix r = null;
+        // Opt sem sala practice, se não todas as salas
+        public List<RoomInfo> getRoomsInfo(bool _without_practice_room = true)
+        {
 
-//            try
-//            {
+            List<RoomInfo> v_ri = new List<RoomInfo>();
 
+            for (var i = 0; i < v_rooms.Count; ++i)
+            {
+                if (v_rooms[i] != null && (!_without_practice_room || (v_rooms[i].getInfo().getTipo() != RoomInfo.TIPO.PRACTICE && v_rooms[i].getInfo().getTipo() != RoomInfo.TIPO.GRAND_ZODIAC_PRACTICE)))
+                {
+                    v_ri.Add((RoomInfo)v_rooms[i].getInfo());
+                }
+            }
+            return v_ri;
+        }
 
+        //public List<RoomGrandZodiacEvent> getAllRoomsGrandZodiacEvent()
+        //{
 
-//                foreach (var el in v_rooms)
-//                {
+        //    List<RoomGrandZodiacEvent> v_r = new List<RoomGrandZodiacEvent>();
 
-//                    if (el.getInfo().grand_prix.active
-//                        && el.getInfo().grand_prix.dados_typeid != 0U
-//                        && el.getInfo().grand_prix.dados_typeid == _typeid)
-//                    {
+        //    foreach (var el in v_rooms)
+        //    {
+        //        if (el != null
+        //            && (int)el.getMaster() == -2
+        //            && (el.getInfo().tipo == RoomInfo.TIPO.GRAND_ZODIAC_ADV || el.getInfo().tipo == RoomInfo.TIPO.GRAND_ZODIAC_INT))
+        //        {
+        //            //v_r.Add(reinterpret_cast<RoomGrandZodiacEvent>(el));
+        //        }
+        //    }
+        //    return v_r;
+        //}
 
-//                        r = (RoomGrandPrix)el;
+        public List<RoomBotGMEvent> getAllRoomsBotGMEvent()
+        {
 
-//                        break;
-//                    }
-//                }
+            List<RoomBotGMEvent> v_r = new List<RoomBotGMEvent>();
 
-//            }
-//            catch (exception e)
-//            {
+            foreach (var el in v_rooms)
+            {
+                if (el != null
+                    && (int)el.getMaster() == -2
+                    && (RoomInfo.TIPO)el.getInfo().tipo == RoomInfo.TIPO.TOURNEY
+                    && el.getInfo().flag_gm == 1
+                    && el.getInfo().trofel == TROFEL_GM_EVENT_TYPEID)
+                {
+                    v_r.Add((RoomBotGMEvent)(el));
+                }
+            }
+            return v_r;
+        }
 
-//                // Libera Crictical Session do Room Manager
+        // Unlock Room
+        public void unlockRoom(room _r)
+        {
 
+            // _r is invalid
+            if (_r == null)
+            {
+                return;
+            }
 
-//                if (r != null)
-//                {
+            try
+            {
 
-//                    if (!ExceptionError.STDA_ERROR_CHECK_SOURCE_AND_ERROR_TYPE(e.getCodeError(),
-//                        STDA_ERROR_TYPE.ROOM, 150))
-//                    {
-//                        r.unlock();
-//                    }
 
-//                    r = null;
-//                }
 
-//                _smp.message_pool.push(new message("[RoomManager::findRoomGrandPrix][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
-//            }
+                foreach (var el in v_rooms)
+                {
 
-//            return r;
-//        }
+                    if (el != null && el == _r)
+                    {
 
-//        // Opt sem sala practice, se não todas as salas
-//        public List<RoomInfo> getRoomsInfo(bool _without_practice_room = true)
-//        {
+                        // Libera a sala
+                        el.unlock();
 
-//            List<RoomInfo> v_ri = new List<RoomInfo>();
+                        // Acorda as outras threads que estão esperando                 
+                        break;
+                    }
+                }
 
-//            for (var i = 0; i < v_rooms.Count; ++i)
-//            {
-//                if (v_rooms[i] != null && (!_without_practice_room || (v_rooms[i].getInfo().tipo != RoomInfo.TIPO.PRACTICE && v_rooms[i].getInfo().tipo != RoomInfo.TIPO.GRAND_ZODIAC_PRACTICE)))
-//                {
-//                    v_ri.Add((RoomInfo)v_rooms[i].getInfo());
-//                }
-//            }
-//            return v_ri;
-//        }
 
-//        public List<RoomGrandZodiacEvent> getAllRoomsGrandZodiacEvent()
-//        {
 
-//            List<RoomGrandZodiacEvent> v_r = new List<RoomGrandZodiacEvent>(); 
+            }
+            catch (exception e)
+            {
 
-//            foreach (var el in v_rooms)
-//            {
-//                if (el != null
-//                    && (int)el.getMaster() == -2
-//                    && (el.getInfo().tipo == RoomInfo.TIPO.GRAND_ZODIAC_ADV || el.getInfo().tipo == RoomInfo.TIPO.GRAND_ZODIAC_INT))
-//                {
-//                    //v_r.Add(reinterpret_cast<RoomGrandZodiacEvent>(el));
-//                }
-//            }
-//            return v_r;
-//        }
 
-//        public List<RoomBotGMEvent> getAllRoomsBotGMEvent()
-//        {
 
-//            List<RoomBotGMEvent> v_r = new List<RoomBotGMEvent>();
+                _smp.message_pool.push(new message("[RoomManager::unlockRoom][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+            }
+        }
 
-//            foreach (var el in v_rooms)
-//            {
-//                if (el != null
-//                    && (int)el.getMaster() == -2
-//                    && (RoomInfo.TIPO)el.getInfo().tipo == RoomInfo.TIPO.TOURNEY
-//                    && el.getInfo().flag_gm == 1
-//                    && el.getInfo().trofel == TROFEL_GM_EVENT_TYPEID)
-//                {
-//                    // C++ TO C# CONVERTER TASK: There is no equivalent to 'reinterpret_cast' in C#:
-//                    //	v_r.Add(reinterpret_cast<RoomBotGMEvent>(el));
-//                }
-//            }
-//            return v_r;
-//        }
+        protected int findIndexRoom(room _room)
+        {
 
-//        // Unlock Room
-//        public void unlockRoom(room _r)
-//        {
+            if (_room == null)
+            {
+                throw new exception("[RoomManager::findIndexRoom][Error] _room is nullptr.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.ROOM_MANAGER,
+                    4, 0));
+            }
 
-//            // _r is invalid
-//            if (_r == null)
-//            {
-//                return;
-//            }
+            int index = ~0;
 
-//            try
-//            {
+            for (var i = 0; i < v_rooms.Count; ++i)
+            {
+                if (v_rooms[i] == _room)
+                {
+                    index = i;
+                    break;
+                }
+            }
+            return index;
+        }
 
+        private ushort getNewIndex()
+        {
 
+            ushort index = 0;
+            for (ushort i = 0; i < ushort.MaxValue; ++i)
+            {
+                var candidate_index =  new Random().Next(m_next_index, ushort.MaxValue);
 
-//                foreach (var el in v_rooms)
-//                {
+                if (m_map_index[(ushort)candidate_index])
+                {
+                    m_map_index[index] = true; // Marca como ocupado
+                    m_next_index = (ushort)((index + 1) % ushort.MaxValue); // Atualiza o próximo índice disponível
+                    break; 
+                }
+            }
+            if (m_next_index >= ushort.MaxValue)
+            {
+                m_next_index = 0;
+            }
+            return (ushort)index;
+        }
 
-//                    if (el != null && el == _r)
-//                    {
+        private void clearIndex(ushort _index)
+        {
 
-//                        // Libera a sala
-//                        el.unlock();
+            if (_index >= short.MaxValue)
+            {
+                throw new exception("[RoomManager::clearIndex][Error] _index maior que o limite do mapa de indexes.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.ROOM_MANAGER,
+                    3, 0));
+            }
 
-//                            // Acorda as outras threads que estão esperando                 
-//							break;
-//						}
-//					}
+            m_map_index[_index] = false; // Livre 
+        }
 
+        // Member 
+        private Dictionary<ushort, bool> m_map_index = new Dictionary<ushort, bool>(ushort.MaxValue);
+        private ushort m_next_index = 0;
+        // Dodo do Objeto RoomManager Channel ID
+        private byte m_channel_id;
 
-
-//				} catch(exception e)
-//				{
-
-
-
-//					_smp.message_pool.push(new message("[RoomManager::unlockRoom][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
-//				}
-//			}
-
-//			protected int findIndexRoom(room _room)
-//			{
-
-//				if(_room == null)
-//				{
-//					throw new exception("[RoomManager::findIndexRoom][Error] _room is nullptr.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.ROOM_MANAGER,
-//						4, 0));
-//				}
-
-//				int index = ~ 0;
- 
-//				for(var i = 0; i < v_rooms.Count; ++ i)
-//				{
-//					if(v_rooms[i] == _room)
-//					{
-//						index = i;
-//						break;
-//					}
-//				} 
-//				return index;
-//			}
-
-//			private ushort getNewIndex()
-//			{
-
-//				ushort index = 0; 
-//				for(ushort i = 0; i < ushort.MaxValue; ++ i)
-//				{
-//					if(m_map_index[i] == 0)
-//					{
-//						index = i;
-//						m_map_index[i] = 1; // Ocupado
-//						break;
-//					}
-//				} 
-
-//				return index;
-//			}
-
-//			private void clearIndex(short _index)
-//			{
-
-//				if(_index >= short.MaxValue)
-//				{
-//					throw new exception("[RoomManager::clearIndex][Error] _index maior que o limite do mapa de indexes.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.ROOM_MANAGER,
-//						3, 0));
-//				}
- 
-//				m_map_index[_index] = 0; // Livre 
-//			}
-
-//			// Member
-//			private ushort[] m_map_index = new ushort[ushort.MaxValue];
-
-//			// Dodo do Objeto RoomManager Channel ID
-//			private byte m_channel_id;
-
-//			protected List< room > v_rooms = new List< Room >(); 
-//	}
-//}
+        protected List<room> v_rooms = new List<room>();
+    }
+}

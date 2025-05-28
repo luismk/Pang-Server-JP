@@ -1,14 +1,10 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics.Contracts;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Runtime.InteropServices.ComTypes;
 using System.Text;
-using System.Xml.Linq;                           
 namespace PangyaAPI.Utilities.BinaryModels
 {
     public class PangyaBinaryWriter : BinaryWriter
@@ -17,7 +13,7 @@ namespace PangyaAPI.Utilities.BinaryModels
         public PangyaBinaryWriter(Stream output) { }
         public PangyaBinaryWriter(Stream output, Encoding encoding) : base(output, encoding)
         {
-             
+
         }
 
         public PangyaBinaryWriter(Stream output, Encoding encoding, bool leaveOpen) : base(output, encoding, leaveOpen)
@@ -52,7 +48,7 @@ namespace PangyaAPI.Utilities.BinaryModels
                 this.Flush();
                 this.Close();
                 this.OutStream = new MemoryStream();
-            }                                        
+            }
         }
 
         public void init_plain(ushort value)
@@ -60,7 +56,7 @@ namespace PangyaAPI.Utilities.BinaryModels
             if (GetSize > 0)
                 this.OutStream = new MemoryStream();
 
-            WriteUInt16(value);                                                             
+            WriteUInt16(value);
         }
 
 
@@ -206,8 +202,8 @@ namespace PangyaAPI.Utilities.BinaryModels
         public bool WriteBytes(byte[] message)
         {
             try
-            {                          
-              return  WriteBytes(message, message.Length);
+            {
+                return WriteBytes(message, message.Length);
             }
             catch
             {
@@ -313,33 +309,27 @@ namespace PangyaAPI.Utilities.BinaryModels
             }
             return true;
         }
-
-        public bool WriteByte(byte value)
-        {
-            try
-            {
-                Write(value);
-            }
-            catch
-            {
-                return false;
-            }
-            return true;
-        }
-
+         
         public bool WriteByte(int value)
         {
-            try
+            if (value < byte.MinValue || value > byte.MaxValue)
             {
-                Write(Convert.ToByte(value));
-            }
-            catch
-            {
+                Console.WriteLine($"[WriteByte] Valor fora do intervalo de byte: {value} | StackTrace:");
+                Console.WriteLine(Environment.StackTrace); // Mostra de onde o valor veio
                 return false;
             }
-            return true;
-        }
 
+            try
+            {
+                Write((byte)value);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[WriteByte] Exceção ao escrever byte: {ex.Message}");
+            }
+            return false;
+        }
         public bool WriteSingle(float value)
         {
             try
@@ -365,6 +355,20 @@ namespace PangyaAPI.Utilities.BinaryModels
             }
             return true;
         }
+
+        public bool WriteUInt32(Enum value)
+        {
+            try
+            {
+                Write(Convert.ToUInt32(value));  // converte enum para uint
+            }
+            catch
+            {
+                return false;
+            }
+            return true;
+        }
+
 
         public bool WriteInt16(short[] values)
         {
@@ -397,8 +401,8 @@ namespace PangyaAPI.Utilities.BinaryModels
         {
             try
             {
-                for (uint i = 0; i < values.Count(); i++)      
-                Write(values[i]);
+                for (uint i = 0; i < values.Count(); i++)
+                    Write(values[i]);
             }
             catch
             {
@@ -517,7 +521,7 @@ namespace PangyaAPI.Utilities.BinaryModels
                 {
                     byte[] arr = new byte[size];
 
-                     Marshal.StructureToPtr(value, ptr, true);
+                    Marshal.StructureToPtr(value, ptr, true);
                     Marshal.Copy(ptr, arr, 0, size);
                     Marshal.FreeHGlobal(ptr);
                     WriteBytes(arr);
@@ -531,11 +535,6 @@ namespace PangyaAPI.Utilities.BinaryModels
                     Console.WriteLine($"Método: {ex.TargetSite}");
                     Console.WriteLine($"Pilha de chamada: {ex.StackTrace}");
                     return false;
-                }
-                finally
-                {
-                    // Libera a memória alocada
-                    Marshal.FreeHGlobal(ptr);
                 }
             }
             catch (Exception ex) // Corrigido para Exception com "E" maiúsculo
@@ -556,19 +555,46 @@ namespace PangyaAPI.Utilities.BinaryModels
         {
             try
             {
-                 byte[] arr = new byte[size];
+                if (value == null)
+                {
+                    Debug.WriteLine($"WriteBuffer is null {value.GetType().Name}");
+                    WriteBytes(new byte[size]); 
+                    return true;
+                }
 
+                byte[] arr = new byte[size];
                 IntPtr ptr = Marshal.AllocHGlobal(size);
                 Marshal.StructureToPtr(value, ptr, true);
                 Marshal.Copy(ptr, arr, 0, size);
-                Marshal.FreeHGlobal(ptr);               
+                Marshal.FreeHGlobal(ptr);
                 Write(arr);
+                return true;
             }
-            catch (exception e)
+            catch (Exception e)
             {
+                Debug.WriteLine(Environment.StackTrace);
                 throw e;
             }
-            return true;
+        }
+
+        public bool WriteBuffer(object value)
+        {
+            try
+            {
+                var size = Marshal.SizeOf(value);   
+                byte[] arr = new byte[size];
+                IntPtr ptr = Marshal.AllocHGlobal(size);
+                Marshal.StructureToPtr(value, ptr, true);
+                Marshal.Copy(ptr, arr, 0, size);
+                Marshal.FreeHGlobal(ptr);
+                Write(arr);
+                return true;
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(Environment.StackTrace);
+                throw e;
+            }
         }
         public bool WriteHexArray(string _value)
         {
@@ -656,6 +682,16 @@ namespace PangyaAPI.Utilities.BinaryModels
         public void SaveWrite(string name)
         {
             File.WriteAllBytes(name, GetBytes);
+        }
+
+        public void WriteZeroByte(int v)
+        {
+            WriteZero(v);
+        }
+
+        public void WriteFloat(float v)
+        {
+            this.Write(v);
         }
     }
 }

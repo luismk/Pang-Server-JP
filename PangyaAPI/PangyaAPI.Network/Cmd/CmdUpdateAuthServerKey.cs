@@ -1,17 +1,11 @@
 ﻿
+using System;
 using PangyaAPI.Network.Pangya_St;
 using PangyaAPI.SQL;
 
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace PangyaAPI.Network.Cmd
 {
-    public class CmdUpdateAuthServerKey: Pangya_DB
+    public class CmdUpdateAuthServerKey : Pangya_DB
     {
         AuthServerKey m_ask;
 
@@ -28,7 +22,7 @@ namespace PangyaAPI.Network.Cmd
 
         protected override void lineResult(ctx_res _result, uint _index_result)
         {
-          
+
         }
 
         protected override Response prepareConsulta()

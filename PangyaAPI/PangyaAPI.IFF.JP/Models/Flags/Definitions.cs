@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace PangyaAPI.IFF.JP.Models.Flags
+﻿namespace PangyaAPI.IFF.JP.Models.Flags
 {
     public enum ShopFlagDay : byte
     {
@@ -117,8 +113,8 @@ namespace PangyaAPI.IFF.JP.Models.Flags
         ACCESSORY_OR_BASE,
         SUB_LEG,
         UCC_CREATE,
-        UCC_DRAW_ONLY = 8,
-        UCC_COPY_ONLY,
+        UCC_DRAW_ONLY = 8, //UCC_BLANK
+        UCC_COPY_ONLY,//UCC_COPY
     }
 
     public enum CARD_SUB_TYPE : byte
@@ -418,7 +414,7 @@ namespace PangyaAPI.IFF.JP.Models.Flags
         INFINITY_LEGEND_C = 0x44,
         INFINITY_LEGEND_B = 0x45,
         INFINITY_LEGEND_A = 0x46,
-        INFINITY_LEGEND_F = 0x8F 
+        INFINITY_LEGEND_F = 0x8F
     }
     public enum GP_ABA : byte
     {

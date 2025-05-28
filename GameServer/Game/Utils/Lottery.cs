@@ -4,7 +4,7 @@
 //using System.Collections.Generic;
 //using System.Linq;
 
-//namespace GameServer.Game.Utils
+//namespace Pangya_GameServer.Game.Utils
 //{
 //    public class Lottery
 //    {
@@ -92,7 +92,7 @@
 //                Active = true,
 //                Prob = prob,
 //                Value = value, _typeid = typeid
-                
+
 //            });
 //        }      
 //        public ulong GetLimitProbilidade()
@@ -105,7 +105,7 @@
 //        {
 //            return m_ctx.Count;
 //        }
-                                      
+
 //        public void RemoveDrawItem(LotteryCtx lc)
 //        {
 //            if (lc != null)

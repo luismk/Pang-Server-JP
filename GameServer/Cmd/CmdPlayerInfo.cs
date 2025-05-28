@@ -1,17 +1,17 @@
-﻿using GameServer.GameType;       
-using PangyaAPI.SQL;            
-using System;                  
-namespace GameServer.Cmd
+﻿using System;
+using Pangya_GameServer.GameType;
+using PangyaAPI.SQL;
+namespace Pangya_GameServer.Cmd
 {
     public class CmdPlayerInfo : Pangya_DB
     {
         uint m_uid = 0;
-        player_info m_pi;                     
+        player_info m_pi;
         public CmdPlayerInfo(uint _uid)
         {
             m_uid = _uid;
             m_pi = new player_info();
-        }                
+        }
 
         protected override void lineResult(ctx_res _result, uint _index_result)
         {

@@ -1,8 +1,8 @@
-﻿using GameServer.GameType;
+﻿using System;
+using Pangya_GameServer.GameType;
 using PangyaAPI.SQL;
-using System;
 
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     public class CmdPremiumTicketInfo : Pangya_DB
     {
@@ -17,9 +17,9 @@ namespace GameServer.Cmd
             this.m_uid = _uid;
             this.m_pt = new PremiumTicket();
         }
-              
+
         public PremiumTicket getInfo()
-        {                                   
+        {
             return m_pt;
         }
 
@@ -35,7 +35,7 @@ namespace GameServer.Cmd
 
         public void setUID(uint _uid)
         {
-             m_uid = _uid;
+            m_uid = _uid;
         }
 
         protected override void lineResult(ctx_res _result, uint _index_result)
@@ -51,14 +51,14 @@ namespace GameServer.Cmd
 
         protected override Response prepareConsulta()
         {
-                            
+
             var r = procedure(m_szConsulta,
                 Convert.ToString(m_uid));
 
             checkResponse(r, "nao conseguiu pegar premium ticket info do player: " + Convert.ToString(m_uid));
 
             return r;
-        }         
+        }
 
         private uint m_uid = 0;
         private PremiumTicket m_pt = new PremiumTicket();

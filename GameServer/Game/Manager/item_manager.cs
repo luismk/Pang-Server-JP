@@ -1,22 +1,29 @@
-﻿using GameServer.GameType;
-using GameServer.Session;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.InteropServices;
+using Pangya_GameServer.Cmd;
+using Pangya_GameServer.GameType;
+using Pangya_GameServer.PacketFunc;
+using Pangya_GameServer.Session;
+using PangyaAPI.IFF.JP.Extensions;
 using PangyaAPI.IFF.JP.Models.Flags;
 using PangyaAPI.IFF.JP.Models.General;
 using PangyaAPI.Network.Pangya_St;
+using PangyaAPI.Network.PangyaPacket;
 using PangyaAPI.SQL;
+using PangyaAPI.SQL.Manager;
 using PangyaAPI.Utilities;
+using PangyaAPI.Utilities.BinaryModels;
 using PangyaAPI.Utilities.Log;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace GameServer.Game.Manager
+using static Pangya_GameServer.GameType._Define;
+namespace Pangya_GameServer.Game.Manager
 {
     /// <summary>
     /// Manipulation Add, Check, Remove Items
     /// </summary>
     public class item_manager
-    {              
+    {
         public class RetAddItem
         {
             public enum TYPE : int
@@ -33,7 +40,7 @@ namespace GameServer.Game.Manager
             public RetAddItem()
             {
                 clear();
-            }   
+            }
             public void clear()
             {
 
@@ -830,7 +837,7 @@ namespace GameServer.Game.Manager
 
         //// Check is have setitem in email
         public static void checkSetItemOnEmail(Player _session, EmailInfo _ei)
-        {                                    
+        {
             if (!_ei.itens.Any())
                 throw new exception("[item_manager::checkSetItemOnEmail][Error] email not have item for check", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE._ITEM_MANAGER, 20, 0));
 
@@ -841,7 +848,7 @@ namespace GameServer.Game.Manager
                     var v_item = getItemOfSetItem(_session, _ei.itens[i]._typeid, false, 1/*Não verifica o Level*/);
 
                     if (!v_item.Any())
-                    {                         
+                    {
                         foreach (var el in v_item)
                             _ei.itens.Add(new EmailInfo.item(uint.MaxValue, el._typeid, el.flag_time, el.qntd, el.STDA_C_ITEM_TIME, 0, 0, 0/*flag GM*/, 0, "", 0));
 
@@ -852,69 +859,813 @@ namespace GameServer.Game.Manager
 
         }
 
-        //public static RetAddItem.TYPE addItem(stItem _item, uint _uid, byte _gift_flag, byte _purchase, bool _dup = false)
-        //{ 
-        //}
-        //public static RetAddItem addItem(List<stItem> _v_item, uint _uid, byte _gift_flag, byte _purchase, bool _dup = false);
-        //public static RetAddItem addItem(List<stItemEx> _v_item, uint _uid, byte _gift_flag, byte _purchase, bool _dup = false);
-        //public static RetAddItem.TYPE addItem(stItem _item, Player _session, byte _gift_flag, byte _purchase, bool _dup = false); /*_dub pode duplicar*/
-        //public static RetAddItem addItem(List<stItem> _v_item, Player _session, byte _gift_flag, byte _purchase, bool _dup = false);
-        //public static RetAddItem addItem(List<stItemEx> _v_item, Player _session, byte _gift_flag, byte _purchase, bool _dup = false);
-        //public static RetAddItem addItem(Dictionary<uint, stItem> _v_item, Player _session, byte _gift_flag, byte _purchase, bool _dup = false);
-        //public static RetAddItem addItem(Dictionary<uint, stItemEx> _v_item, Player _session, byte _gift_flag, byte _purchase, bool _dup = false);
+        public static RetAddItem.TYPE addItem(stItem _item, uint _uid, byte _gift_flag, byte _purchase, bool _dup = false)
+        {
+            return RetAddItem.TYPE.T_SUCCESS;
+        }
+        public static RetAddItem addItem(List<stItem> _v_item, uint _uid, byte _gift_flag, byte _purchase, bool _dup = false)
+        {
+            return new RetAddItem();
+        }
+        public static RetAddItem addItem(List<stItemEx> _v_item, uint _uid, byte _gift_flag, byte _purchase, bool _dup = false)
+        {
+            return new RetAddItem();
+        }
+        public static RetAddItem.TYPE addItem(stItem _item, Player _session, byte _gift_flag, byte _purchase, bool _dup = false)
+        {
+            return RetAddItem.TYPE.T_SUCCESS;
+        } /*_dub pode duplicar*/
+        public static RetAddItem addItem(List<stItem> _v_item, Player _session, byte _gift_flag, byte _purchase, bool _dup = false)
+        {
+            return new RetAddItem();
+        }
+        public static RetAddItem addItem(List<stItemEx> _v_item, Player _session, byte _gift_flag, byte _purchase, bool _dup = false)
+        {
+            return new RetAddItem();
+        }
+        public static RetAddItem addItem(Dictionary<uint, stItem> _v_item, Player _session, byte _gift_flag, byte _purchase, bool _dup = false)
+        {
+            return new RetAddItem();
+        }
+        public static RetAddItem addItem(Dictionary<uint, stItemEx> _v_item, Player _session, byte _gift_flag, byte _purchase, bool _dup = false)
+        {
+            return new RetAddItem();
+        }
 
         //// Give Itens
-        //public static int giveItem(stItem _item, Player _session, byte _gift_flag);
-        //public static int giveItem(List<stItem> _v_item, Player _session, byte _gift_flag);
-        //public static int giveItem(List<stItemEx> _v_item, Player _session, byte _gift_flag);
+        public static int giveItem(stItem _item, Player _session, byte _gift_flag) { return 1; }
+        public static int giveItem(List<stItem> _v_item, Player _session, byte _gift_flag) { return 1; }
+        public static int giveItem(List<stItemEx> _v_item, Player _session, byte _gift_flag) { return 1; }
 
         //// Remove Item
-        //public static int removeItem(stItem _item, Player _session);
-        //public static int removeItem(List<stItem> _v_item, Player _session);
-        //public static int removeItem(List<stItemEx> _v_item, Player _session);
+        public static int removeItem(stItem _item, Player _session)
+        {
+            if (!_session.getState())
+            {
+                throw new exception("[item_manager::removeItem][Error] session nao esta conectada.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE._ITEM_MANAGER,
+                    0, 8));
+            }
+
+            int ret_id = -1;
+
+            switch ((IFF_GROUP)sIff.getInstance().getItemGroupIdentify(_item._typeid))
+            {
+                case IFF_GROUP.AUX_PART: // Warehouse
+                    {
+                        var pWi = _session.m_pi.findWarehouseItemById((uint)_item.id);
+
+                        if (pWi == null)
+                        {
+                            message_pool.push(new message("[item_manager::removeItem][Error] player[UID=" + Convert.ToString(_session.m_pi.uid) + "] tentou remover um AuxPart[TYPEID=" + Convert.ToString(_item._typeid) + ", ID=" + Convert.ToString(_item.id) + "] que ele nao tem. Hacker ou Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
+
+                            return -1;
+                        }
+
+                        if (pWi.STDA_C_ITEM_QNTD <= (short)_item.qntd)
+                        { // Exclui o Item[AxuPart]
+
+                            _item.stat.qntd_ant = (uint)pWi.STDA_C_ITEM_QNTD;
+
+                            _item.STDA_C_ITEM_QNTD = (ushort)(pWi.STDA_C_ITEM_QNTD * -1);
+
+                            pWi.STDA_C_ITEM_QNTD = 0;
+
+                            _item.stat.qntd_dep = (uint)pWi.STDA_C_ITEM_QNTD;
+
+                            //NormalManagerDB.add(0,
+                            //    new CmdDeleteItem(_session.m_pi.uid, pWi.id),
+                            //    item_manager.SQLDBResponse,
+                            //    null);
+
+                            var it = _session.m_pi.findWarehouseItemById(pWi.id);
+
+                            if (it != null) // null)
+                            {
+                                _session.m_pi.mp_wi.Remove(it.id);
+                            }
+
+                            ret_id = _item.id;
+
+                            // Se deletou a AuxPart que estava equipada 
+                            // Desequipa o AuxPart
+                            var v_ci = _session.isAuxPartEquiped(_item._typeid);
+
+                            if (!v_ci.empty())
+                            {
+
+                                foreach (var el in v_ci)
+                                {
+
+                                    if (el != null)
+                                    {
+
+                                        // Desequipa o AuxPart
+                                        el.unequipAuxPart(_item._typeid);
+
+                                        // Update ON DB
+                                        NormalManagerDB.add(0,
+                                            new CmdUpdateCharacterAllPartEquiped(_session.m_pi.uid, el),
+                                            item_manager.SQLDBResponse,
+                                            null);
+
+#if _DEBUG
+							message_pool.push(new message("[item_manager::removeItem][Log] player[UID=" + Convert.ToString(_session.m_pi.uid) + "] desequipou o AuxPart[TYPEID=" + Convert.ToString(_item._typeid) + "] do Character[TYPEID=" + Convert.ToString(el._typeid) + ", ID=" + Convert.ToString(el.id) + "] por que ele foi deletado.", type_msg.CL_FILE_LOG_AND_CONSOLE));
+#endif // _DEBUG
+
+                                        // Update ON GAME
+                                        var p = new PangyaBinaryWriter((ushort)0x6B);
+
+                                        p.WriteByte(4); // 4 Sucesso
+                                        p.WriteByte(0); // Character All Parts
+
+                                        p.WriteBytes(el.ToArray());
+
+                                        packet_func.session_send(p,
+                                            _session, 1);
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        { // Att quantidade do Item
+
+                            _item.stat.qntd_ant = (uint)pWi.STDA_C_ITEM_QNTD;
+
+                            pWi.STDA_C_ITEM_QNTD -= (short)_item.qntd;
+
+                            _item.stat.qntd_dep = (uint)pWi.STDA_C_ITEM_QNTD;
+
+                            //NormalManagerDB.add(0,
+                            //    new CmdUpdateItemQntd(_session.m_pi.uid,
+                            //        pWi.id, pWi.STDA_C_ITEM_QNTD),
+                            //    item_manager.SQLDBResponse,
+                            //    null);
+
+                            ret_id = (int)pWi.id;
+                        }
+
+                        break;
+                    }
+                case IFF_GROUP.BALL: // Warehouse
+                    {
+                        var pWi = _session.m_pi.findWarehouseItemById((uint)_item.id);
+
+                        if (pWi == null)
+                        {
+                            message_pool.push(new message("[item_manager::removeItem][Error] player[UID=" + Convert.ToString(_session.m_pi.uid) + "] tentou remover um Ball[TYPEID=" + Convert.ToString(_item._typeid) + ", ID=" + Convert.ToString(_item.id) + "] que ele nao tem. Hacker ou Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
+
+                            return -1;
+                        }
+
+                        if (pWi.STDA_C_ITEM_QNTD <= (short)_item.qntd)
+                        { // Exclui o Item[Ball]
+
+                            _item.stat.qntd_ant = (uint)pWi.STDA_C_ITEM_QNTD;
+
+                            _item.STDA_C_ITEM_QNTD = (ushort)(pWi.STDA_C_ITEM_QNTD * -1);
+
+                            pWi.STDA_C_ITEM_QNTD = 0;
+
+                            _item.stat.qntd_dep =(uint) pWi.STDA_C_ITEM_QNTD;
+
+                            // Passa o typeid do Warehouse para o _item para garantir, se não tiver colocado o typeid, na estrutura
+                            _item._typeid = pWi._typeid;
+
+                            //NormalManagerDB.add(0,
+                            //    new CmdDeleteBall(_session.m_pi.uid, pWi.id),
+                            //    item_manager.SQLDBResponse,
+                            //    null);
+
+                            //auto it = VECTOR_FIND_ITEM(_session.m_pi.v_wi, id, == , pWi->id);
+                            var it = _session.m_pi.findWarehouseItemById(pWi.id);
+
+                            if (it != null) // _session.m_pi.mp_wi.end())
+                            {
+                                _session.m_pi.mp_wi.Remove(it.id);
+                            }
+
+                            ret_id = _item.id;
+
+                            // Se deletou a bola que estava equipada 
+                            // troca para a bola padrão
+                            if (_session.m_pi.ue.ball_typeid == _item._typeid)
+                            {
+
+                                WarehouseItemEx pBall = null;
+                                var p = new PangyaBinaryWriter();
+
+                                if ((pBall = _session.m_pi.findWarehouseItemByTypeid(0x14000000)) == null)
+                                {
+                                    message_pool.push(new message("[item_manager::removeItem][Error][WARNING] player[UID=" + Convert.ToString(_session.m_pi.uid) + "] nao tem a Comet padrao para substituir a bola[TYPEID=" + Convert.ToString(_item._typeid) + "] deletada. Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
+                                }
+                                else
+                                { // Substitui
+
+                                    // Update ON SERVER
+                                    _session.m_pi.ue.ball_typeid = DEFAULT_COMET_TYPEID; // Comet Padrão
+
+                                    _session.m_pi.ei.comet = pBall;
+
+                                    // Update ON DB
+                                    NormalManagerDB.add(0,
+                                        new CmdUpdateBallEquiped(_session.m_pi.uid, _session.m_pi.ue.ball_typeid),
+                                        item_manager.SQLDBResponse,
+                                        null);
+
+#if _DEBUG
+						message_pool.push(new message("[item_manager::removeItem][Log] player[UID=" + Convert.ToString(_session.m_pi.uid) + "] substitui a bola[TYPEID=" + Convert.ToString(_item._typeid) + "] deletada pela COMET PADRAO[TYPEID=" + Convert.ToString(DEFAULT_COMET_TYPEID) + "]", type_msg.CL_FILE_LOG_AND_CONSOLE));
+#endif // _DEBUG
+
+                                    // Update ON GAME
+                                   
+                                    packet_func.session_send(packet_func.pacote04B(
+                                        _session, 2),
+                                        _session, 1);
+                                }
+                            }
+
+                        }
+                        else
+                        { // Att quantidade do Item
+
+                            _item.stat.qntd_ant = (uint)pWi.STDA_C_ITEM_QNTD;
+
+                            pWi.STDA_C_ITEM_QNTD -= (short)_item.qntd;
+
+                            _item.stat.qntd_dep =(uint) pWi.STDA_C_ITEM_QNTD;
+
+                            NormalManagerDB.add(0,
+                                new CmdUpdateBallQntd(_session.m_pi.uid,
+                                    (int)pWi.id, (uint)pWi.STDA_C_ITEM_QNTD),
+                                item_manager.SQLDBResponse,
+                                null);
+
+                            ret_id = (int)pWi.id;
+
+                        }
+
+                        break;
+                    }
+                case IFF_GROUP.CADDIE:
+                    {
+                        var pCi = _session.m_pi.findCaddieById((uint)_item.id);
+
+                        if (pCi == null)
+                        {
+                            message_pool.push(new message("[item_manager::removeItem][Error] player[UID=" + Convert.ToString(_session.m_pi.uid) + "] tentou remover um Caddie[TYPEID=" + Convert.ToString(_item._typeid) + ", ID=" + Convert.ToString(_item.id) + "] que ele nao tem. Hacker ou Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
+
+                            return -1;
+                        }
+
+                        _item.stat.qntd_ant = 1;
+
+                        _item.STDA_C_ITEM_QNTD = ushort.MaxValue;
+
+                        _item.stat.qntd_dep = 0;
+
+                        //NormalManagerDB.add(0,
+                        //    new CmdDeleteCaddie(_session.m_pi.uid, pCi.id),
+                        //    item_manager.SQLDBResponse,
+                        //    null);
+
+                        //auto it = VECTOR_FIND_ITEM(_session.m_pi.v_ci, second.id, == , pCi->id);
+                        var it = _session.m_pi.findCaddieById(pCi.id);
+
+                        if (it != null) // _session.m_pi.mp_ci.end())
+                        {
+                            _session.m_pi.mp_ci.Remove(it.id);
+                        }
+
+                        ret_id = _item.id;
+                        break;
+                    }
+                case IFF_GROUP.CAD_ITEM:
+                    // por hora nao exclui esse por que ainda nao vi nenhum que exclui caddie item
+                    message_pool.push(new message("[item_manager::removeItem][Error] player[UID=" + Convert.ToString(_session.m_pi.uid) + "] tentou remover um caddie item[TYPEID=" + Convert.ToString(_item._typeid) + ", ID=" + Convert.ToString(_item.id) + "] mas nao e permitido. Hacker ou Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
+                    break;
+                case IFF_GROUP.CARD:
+                    {
+                        var pCi = _session.m_pi.findCardById((uint)_item.id);
+
+                        if (pCi == null)
+                        {
+                            message_pool.push(new message("[item_manager::removeItem][Error] player[UID=" + Convert.ToString(_session.m_pi.uid) + "] tentou remover um Card[TYPEID=" + Convert.ToString(_item._typeid) + ", ID=" + Convert.ToString(_item.id) + "] que ele nao tem. Hacker ou Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
+
+                            return -1;
+                        }
+
+                        if (pCi.qntd <= (int)_item.qntd)
+                        { // Exclui Item[Card]
+
+
+                            _item.stat.qntd_ant = pCi.qntd;
+
+                            _item.stat.qntd_dep = 0;
+
+                            _item.STDA_C_ITEM_QNTD = (ushort)((short)pCi.qntd * -1);
+
+                            pCi.qntd = 0;
+
+                            //NormalManagerDB.add(0,
+                            //    new CmdDeleteCard(_session.m_pi.uid, pCi.id),
+                            //    item_manager.SQLDBResponse,
+                            //    null);
+
+                            //auto it = VECTOR_FIND_ITEM(_session.m_pi.v_card_info, id, == , pCi->id);
+                            var it = _session.m_pi.findCardById(pCi.id);
+
+                            if (it != null) // _session.m_pi.v_card_info.end())
+                            {
+                                _session.m_pi.v_card_info.Remove(it.id);
+                            }
+
+                            ret_id = _item.id;
+
+                        }
+                        else
+                        { // Att quantidade do Item
+
+                            _item.stat.qntd_ant = pCi.qntd;
+
+                            pCi.qntd -= _item.qntd;
+
+                            _item.stat.qntd_dep = pCi.qntd;
+
+                            NormalManagerDB.add(0,
+                                new CmdUpdateCardQntd(_session.m_pi.uid,
+                                    (int)pCi.id, pCi.qntd),
+                                item_manager.SQLDBResponse,
+                                null);
+
+                            ret_id = (int)pCi.id;
+                        }
+
+                        break;
+                    }
+                case IFF_GROUP.CHARACTER:
+                    message_pool.push(new message("[item_manager::removeItem][Error] player[UID=" + Convert.ToString(_session.m_pi.uid) + "] tentou remover um character[TYPEID=" + Convert.ToString(_item._typeid) + ", ID=" + Convert.ToString(_item.id) + "] mas nao e permitido. Hacker ou Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
+                    break;
+                case IFF_GROUP.CLUBSET: // Warehouse
+                    {
+                        var pWi = _session.m_pi.findWarehouseItemById((uint)_item.id);
+
+                        if (pWi == null)
+                        {
+                            message_pool.push(new message("[item_manager::removeItem][Error] player[UID=" + Convert.ToString(_session.m_pi.uid) + "] tentou remover um ClubSet[TYPEID=" + Convert.ToString(_item._typeid) + ", ID=" + Convert.ToString(_item.id) + "] que ele nao tem. Hacker ou Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
+
+                            return -1;
+                        }
+
+                        _item.stat.qntd_ant = 1;
+
+                        _item.STDA_C_ITEM_QNTD = ushort.MaxValue;
+
+                        _item.stat.qntd_dep = 0;
+
+                        //NormalManagerDB.add(0,
+                        //    new CmdDeleteItem(_session.m_pi.uid, pWi.id),
+                        //    item_manager.SQLDBResponse,
+                        //    null);
+
+                        //auto it = VECTOR_FIND_ITEM(_session.m_pi.v_wi, id, == , pWi->id);
+                        var it = _session.m_pi.findWarehouseItemById(pWi.id);
+
+                        if (it != null) // _session.m_pi.mp_wi.end())
+                        {
+                            _session.m_pi.mp_wi.Remove(it.id);
+                        }
+
+                        ret_id = _item.id;
+
+                        break;
+                    }
+                case IFF_GROUP.FURNITURE:
+                    {
+                        var pFi = _session.m_pi.findMyRoomItemById((uint)_item.id);
+
+                        if (pFi == null)
+                        {
+                            message_pool.push(new message("[item_manager::removeItem][Error] player[UID=" + Convert.ToString(_session.m_pi.uid) + "] tentou remover um Furniture[TYPEID=" + Convert.ToString(_item._typeid) + ", ID=" + Convert.ToString(_item.id) + "] que ele nao tem. Hacker ou Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
+
+                            return -1;
+                        }
+
+                        _item.stat.qntd_ant = 1;
+
+                        _item.STDA_C_ITEM_QNTD = ushort.MaxValue;
+
+                        _item.stat.qntd_dep = 0;
+
+                        //NormalManagerDB.add(0,
+                        //    new CmdDeleteFurniture(_session.m_pi.uid, pFi.id),
+                        //    item_manager.SQLDBResponse,
+                        //    null);
+
+                        //auto it = VECTOR_FIND_ITEM(_session.m_pi.v_mri, id, == , pFi->id);
+                        var it = _session.m_pi.findMyRoomItemById(pFi.id);
+
+                        if (it != null) // _session.m_pi.v_mri.end())
+                        {
+                            _session.m_pi.v_mri.Remove(it);
+                        }
+
+                        ret_id = _item.id;
+                        break;
+                    }
+                case IFF_GROUP.HAIR_STYLE:
+                    message_pool.push(new message("[item_manager::removeItem][Error] player[UID=" + Convert.ToString(_session.m_pi.uid) + "] tentou remover um hairstyle[TYPEID=" + Convert.ToString(_item._typeid) + ", ID=" + Convert.ToString(_item.id) + "] mas nao e permitido. Hacker ou Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
+                    break;
+                case IFF_GROUP.ITEM: // Warehouse
+                    {
+                        var pWi = _session.m_pi.findWarehouseItemById((uint)_item.id);
+
+                        if (pWi == null)
+                        {
+                            message_pool.push(new message("[item_manager::removeItem][Error] player[UID=" + Convert.ToString(_session.m_pi.uid) + "] tentou remover um Item[TYPEID=" + Convert.ToString(_item._typeid) + ", ID=" + Convert.ToString(_item.id) + "] que ele nao tem. Hacker ou Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
+
+                            return -1;
+                        }
+
+                        if (pWi.STDA_C_ITEM_QNTD <= (short)_item.qntd)
+                        { // Exclui o Item[Item]
+
+                            _item.stat.qntd_ant = (uint)pWi.STDA_C_ITEM_QNTD;
+
+                            _item.STDA_C_ITEM_QNTD = (ushort)(pWi.STDA_C_ITEM_QNTD * -1);
+
+                            pWi.STDA_C_ITEM_QNTD = 0;
+
+                            _item.stat.qntd_dep =(uint) pWi.STDA_C_ITEM_QNTD;
+
+                            //NormalManagerDB.add(0,
+                            //    new CmdDeleteItem(_session.m_pi.uid, pWi.id),
+                            //    item_manager.SQLDBResponse,
+                            //    null);
+
+                            //auto it = VECTOR_FIND_ITEM(_session.m_pi.v_wi, id, == , pWi->id);
+                            var it = _session.m_pi.findWarehouseItemById(pWi.id);
+
+                            if (it != null) // _session.m_pi.mp_wi.end())
+                            {
+                                _session.m_pi.mp_wi.Remove(it.id);
+                            }
+
+                            ret_id = _item.id;
+
+                        }
+                        else
+                        { // Att quantidade do Item
+
+                            _item.stat.qntd_ant = (uint)pWi.STDA_C_ITEM_QNTD;
+
+                            pWi.STDA_C_ITEM_QNTD -= (short)_item.qntd;
+
+                            _item.stat.qntd_dep =(uint) pWi.STDA_C_ITEM_QNTD;
+
+                            //NormalManagerDB.add(0,
+                            //    new CmdUpdateItemQntd(_session.m_pi.uid,
+                            //        pWi.id, pWi.STDA_C_ITEM_QNTD),
+                            //    item_manager.SQLDBResponse,
+                            //    null);
+
+                            ret_id = (int)pWi.id;
+                        }
+
+                        break;
+                    }
+                case IFF_GROUP.MASCOT:
+                    {
+                        var pMi = _session.m_pi.findMascotById((uint)_item.id);
+
+                        if (pMi == null)
+                        {
+                            message_pool.push(new message("[item_manager::removeItem][Error] player[UID=" + Convert.ToString(_session.m_pi.uid) + "] tentou remover um Mascot[TYPEID=" + Convert.ToString(_item._typeid) + ", ID=" + Convert.ToString(_item.id) + "] que ele nao tem. Hacker ou Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
+
+                            return -1;
+                        }
+
+                        _item.stat.qntd_ant = 1;
+
+                        _item.STDA_C_ITEM_QNTD = ushort.MaxValue;
+
+                        _item.stat.qntd_dep = 0;
+
+                        //NormalManagerDB.add(0,
+                        //    new CmdDeleteMascot(_session.m_pi.uid, pMi.id),
+                        //    item_manager.SQLDBResponse,
+                        //    null);
+
+                        //auto it = VECTOR_FIND_ITEM(_session.m_pi.v_mi, id, == , pMi->id);
+                        var it = _session.m_pi.findMascotByTypeid(pMi.id);
+
+                        if (it != null) // _session.m_pi.mp_mi.end())
+                        {
+                            _session.m_pi.mp_mi.Remove(it.id);
+                        }
+
+                        ret_id = _item.id;
+
+                        break;
+                    }
+                case IFF_GROUP.PART: // Warehouse
+                    {
+                        var pWi = _session.m_pi.findWarehouseItemById((uint)_item.id);
+
+                        if (pWi == null)
+                        {
+                            message_pool.push(new message("[item_manager::removeItem][Error] player[UID=" + Convert.ToString(_session.m_pi.uid) + "] tentou remover um Part[TYPEID=" + Convert.ToString(_item._typeid) + ", ID=" + Convert.ToString(_item.id) + "] que ele nao tem. Hacker ou Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
+
+                            return -1;
+                        }
+
+                        _item.stat.qntd_ant = 1;
+
+                        _item.STDA_C_ITEM_QNTD = ushort.MaxValue;
+
+                        _item.stat.qntd_dep = 0;
+
+                        //NormalManagerDB.add(0,
+                        //    new CmdDeleteItem(_session.m_pi.uid, pWi.id),
+                        //    item_manager.SQLDBResponse,
+                        //    null);
+
+                        //auto it = VECTOR_FIND_ITEM(_session.m_pi.v_wi, id, == , pWi->id);
+                        var it = _session.m_pi.findWarehouseItemById(pWi.id);
+
+                        if (it != null) // _session.m_pi.mp_wi.end())
+                        {
+                            _session.m_pi.mp_wi.Remove(it.id);
+                        }
+
+                        ret_id = _item.id;
+
+                        // Se deletou a Part que estava equipada 
+                        // Desequipa o Part
+                        var ci = _session.isPartEquiped(_item._typeid);
+
+                        if (ci != null)
+                        {
+
+                            // Desequipa o Part
+                            ci.unequipPart(_item._typeid);
+
+                            // Update ON DB
+                            NormalManagerDB.add(0,
+                                new CmdUpdateCharacterAllPartEquiped(_session.m_pi.uid, ci),
+                                item_manager.SQLDBResponse,
+                                null);
+
+#if _DEBUG
+				message_pool.push(new message("[item_manager::removeItem][Log] player[UID=" + Convert.ToString(_session.m_pi.uid) + "] desequipou o Part[TYPEID=" + Convert.ToString(_item._typeid) + "] por que ele foi deletado.", type_msg.CL_FILE_LOG_AND_CONSOLE));
+#endif // _DEBUG
+
+                            // Update ON GAME
+                            var p = new PangyaBinaryWriter((ushort)0x6B);
+
+                            p.WriteByte(4); // 4 Sucesso
+                            p.WriteByte(0); // Character All Parts
+
+                            p.WriteBytes(ci.ToArray());
+
+                            packet_func.session_send(p,
+                                _session, 1);
+                        }
+
+                        break;
+                    }
+                case IFF_GROUP.SET_ITEM:
+                    message_pool.push(new message("[item_manager::removeItem][Error] player[UID=" + Convert.ToString(_session.m_pi.uid) + "] tentou remover um SetItem[TYPEID=" + Convert.ToString(_item._typeid) + ", ID=" + Convert.ToString(_item.id) + "] mas nao e permitido. Hacker ou Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
+                    break;
+                case IFF_GROUP.SKIN: // Warehouse
+                    {
+                        var pWi = _session.m_pi.findWarehouseItemById((uint)_item.id);
+
+                        if (pWi == null)
+                        {
+                            message_pool.push(new message("[item_manager::removeItem][Error] player[UID=" + Convert.ToString(_session.m_pi.uid) + "] tentou remover um Skin[TYPEID=" + Convert.ToString(_item._typeid) + ", ID=" + Convert.ToString(_item.id) + "] que ele nao tem. Hacker ou Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
+
+                            return -1;
+                        }
+
+                        _item.stat.qntd_ant = 1;
+
+                        _item.STDA_C_ITEM_QNTD = ushort.MaxValue;
+
+                        _item.stat.qntd_dep = 0;
+
+                        //NormalManagerDB.add(0,
+                        //    new CmdDeleteItem(_session.m_pi.uid, pWi.id),
+                        //    item_manager.SQLDBResponse,
+                        //    null);
+
+                        //auto it = VECTOR_FIND_ITEM(_session.m_pi.v_wi, id, == , pWi->id);
+                        var it = _session.m_pi.findWarehouseItemById(pWi.id);
+
+                        if (it != null) // _session.m_pi.mp_wi.end())
+                        {
+                            _session.m_pi.mp_wi.Remove(it.id);
+                        }
+
+                        ret_id = _item.id;
+
+                        break;
+                    }
+                default:
+                    break;
+            }
+
+            return ret_id;
+        }
+
+
+        public static int removeItem(List<stItem> _v_item, Player _session)
+    {
+
+        int i;
+
+        for (i = 0; i < _v_item.Count(); ++i)
+        {
+            if (removeItem(_v_item[i], _session) <= 0)
+            {
+                _v_item.RemoveAt(i--);
+			}
+		}
+            return 1;
+                    }
+    public static int removeItem(List<stItemEx> _v_item, Player _session) { return 1; }
 
         //// Transfer Item [Personal Shop]
         ////public static WarehouseItemEx* transferItem(Player _s_snd, Player _s_rcv, PersonalShopItem _psi, PersonalShopItem _psi_r);
-        //public static WarehouseItemEx transferItem(Player _s_snd, Player _s_rcv, PersonalShopItem _psi, PersonalShopItem _psi_r);
+        public static WarehouseItemEx transferItem(Player _s_snd, Player _s_rcv, PersonalShopItem _psi, PersonalShopItem _psi_r)
+        { return new WarehouseItemEx(); }
 
         //// CadieMagicBox Exchange Check
-        //public static int exchangeCadieMagicBox(Player _session, uint _typeid, int _id, uint _qntd);
+        public static int exchangeCadieMagicBox(Player _session, uint _typeid, int _id, uint _qntd)
+        { return 1; }
 
         //// Tiki Shop Excgange Item Check
-        //public static List<stItem> exchangeTikiShop(Player _session, uint _typeid, int _id, uint _qntd);
+        public static List<stItem> exchangeTikiShop(Player _session, uint _typeid, int _id, uint _qntd)
+        { return new List<stItem>(); }
 
         //// Open Ticket Report Scroll
-        //public static void openTicketReportScroll(Player _session, int _ticket_scroll_item_id, int _ticket_scroll_id, bool _upt_on_game = false);
+        public static void openTicketReportScroll(Player _session, int _ticket_scroll_item_id, int _ticket_scroll_id, bool _upt_on_game = false) { }
 
         //// Verifies
         public static bool isSetItem(uint _typeid)
         {
             return sIff.getInstance()._getItemGroupIdentify(_typeid) == IFF_GROUP.SET_ITEM;
         }
-        //public static bool isTimeItem(stItem.stDate _date);
-        //public static bool isTimeItem(stItem.stDate.stDateSys _date);
+        // Métodos de verificação de tempo, sobrecarga com diferentes tipos de entrada
+        public static bool isTimeItem(stItem.stDate _date)
+        {
+            // Implementação aqui
+            return true; // Exemplo
+        }
 
-        //// Owner All Item(ns) "ownerItem"
-        //public static bool ownerItem(uint _uid, uint _typeid);
-        //public static bool ownerSetItem(uint _uid, uint _typeid);
-        //public static bool ownerCaddieItem(uint _uid, uint _typeid);
-        //public static bool ownerHairStyle(uint _uid, uint _typeid);
-        //public static bool ownerMailBoxItem(uint _uid, uint _typeid);
+        public static bool isTimeItem(stItem.stDate.stDateSys _date)
+        {
+            // Implementação aqui
+            return true; // Exemplo
+        }
+        // Métodos que verificam se o usuário possui o item
+        public static bool ownerItem(uint _uid, uint _typeid)
+        {
+            // Implementação aqui
+            return true; // Exemplo
+        }
 
-        //// Suporte Owner Find
-        //public static CaddieInfoEx _ownerCaddieItem(uint _uid, uint _typeid);
-        //public static CharacterInfo _ownerHairStyle(uint _uid, uint _typeid);
-        //public static MascotInfoEx _ownerMascot(uint _uid, uint _typeid);
-        //public static WarehouseItemEx _ownerBall(uint _uid, uint _typeid);
-        //public static CardInfo _ownerCard(uint _uid, uint _typeid);
-        //public static WarehouseItemEx _ownerAuxPart(uint _uid, uint _typeid);
-        //public static WarehouseItemEx _ownerItem(uint _uid, uint _typeid);
-        //public static TrofelEspecialInfo _ownerTrofelEspecial(uint _uid, uint _typeid);
+        public static bool ownerSetItem(uint _uid, uint _typeid)
+        {
+            // Implementação aqui
+            return true; // Exemplo
+        }
 
-        //public static bool betweenTimeSystem(stItem.stDate _date);
-        //public static bool betweenTimeSystem(IFF.DateDados _date);
-        //public static bool betweenTimeSystem(stItem.stDate.stDateSys _date);                   
-        protected static void SQLDBResponse(uint _msg_id,
+        public static bool ownerCaddieItem(uint _uid, uint _typeid)
+        {
+            // Implementação aqui
+            return true; // Exemplo
+        }
+
+        public static bool ownerHairStyle(uint _uid, uint _typeid)
+        {
+
+
+            var hair = sIff.getInstance().findHairStyle(_typeid);
+
+            if (hair != null)
+            {
+                var character = _ownerHairStyle(_uid, _typeid);
+
+                if (!(character.id > 0)) // Não tem o Character
+                {
+                    return true;
+                }
+
+                if (character.default_hair == hair.Color)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public static bool ownerMailBoxItem(uint _uid, uint _typeid)
+        {
+            // Implementação aqui
+            return true; // Exemplo
+        }
+        // Métodos que retornam informações sobre o item proprietário
+        public static CaddieInfoEx _ownerCaddieItem(uint _uid, uint _typeid)
+        {
+            // Implementação aqui
+            return new CaddieInfoEx(); // Exemplo
+        }
+
+        public static CharacterInfo _ownerHairStyle(uint _uid, uint _typeid)
+        {
+            // Implementação aqui
+            return new CharacterInfo(); // Exemplo
+        }
+
+        public static MascotInfoEx _ownerMascot(uint _uid, uint _typeid)
+        {
+            // Implementação aqui
+            return new MascotInfoEx(); // Exemplo
+        }
+
+        public static WarehouseItemEx _ownerBall(uint _uid, uint _typeid)
+        {
+            // Implementação aqui
+            return new WarehouseItemEx(); // Exemplo
+        }
+
+        public static CardInfo _ownerCard(uint _uid, uint _typeid)
+        {
+            // Implementação aqui
+            return new CardInfo(); // Exemplo
+        }
+
+        public static WarehouseItemEx _ownerAuxPart(uint _uid, uint _typeid)
+        {
+            // Implementação aqui
+            return new WarehouseItemEx(); // Exemplo
+        }
+
+        public static WarehouseItemEx _ownerItem(uint _uid, uint _typeid)
+        {
+            // Implementação aqui
+            return new WarehouseItemEx(); // Exemplo
+        }
+
+        public static TrofelEspecialInfo _ownerTrofelEspecial(uint _uid, uint _typeid)
+        { 
+            var type_trofel = sIff.getInstance().getItemSubGroupIdentify24(_typeid);
+
+            var type = Cmd.CmdFindTrofelEspecial.eTYPE.ESPECIAL;
+
+            if (type_trofel == 1 || type_trofel == 2)
+            {
+                type = CmdFindTrofelEspecial.eTYPE.ESPECIAL;
+            }
+            else if (type_trofel == 3)
+            {
+                type = CmdFindTrofelEspecial.eTYPE.GRAND_PRIX;
+            }
+
+            CmdFindTrofelEspecial cmd_fts = new CmdFindTrofelEspecial(_uid, // Waiter
+                _typeid, type);
+
+            NormalManagerDB.add(0,
+                cmd_fts, null, null);
+
+            if (cmd_fts.getException().getCodeError() != 0)
+            {
+                throw cmd_fts.getException();
+            }
+
+            return cmd_fts.getInfo();
+        }
+        // Métodos de verificação de tempo
+        public static bool betweenTimeSystem(stItem.stDate _date)
+        {
+            // Implementação aqui
+            return true; // Exemplo
+        }
+
+        public static bool betweenTimeSystem(PangyaTime _date)
+        {
+            // Implementação aqui
+            return true; // Exemplo
+        }
+
+        public static bool betweenTimeSystem(stItem.stDate.stDateSys _date)
+        {
+            // Implementação aqui
+            return true; // Exemplo
+        }
+
+        protected static void SQLDBResponse(int _msg_id,
             Pangya_DB _pangya_db,
             object _arg)
         {

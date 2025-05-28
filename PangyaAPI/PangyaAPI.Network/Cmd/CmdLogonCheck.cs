@@ -1,5 +1,5 @@
-﻿using PangyaAPI.SQL;
-using System;
+﻿using System;
+using PangyaAPI.SQL;
 namespace PangyaAPI.Network.Cmd
 {
     public class CmdLogonCheck : Pangya_DB

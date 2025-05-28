@@ -1,15 +1,14 @@
-﻿using PangyaAPI.IFF.JP.Extensions;
-using PangyaAPI.Utilities.BinaryModels;
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
 using System.Text;
+using PangyaAPI.Utilities.BinaryModels;
 
 namespace PangyaAPI.IFF.JP.Models.Data
 {
 
     #region Struct Desc.iff
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
-    public class Desc  : ICloneable
+    public class Desc : ICloneable
     {
         public uint ID { get; set; }
         [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 512)]
@@ -20,7 +19,7 @@ namespace PangyaAPI.IFF.JP.Models.Data
             {
                 // Converta o array de bytes para uma string usando a codificação Shift_JIS
                 string result = Encoding.GetEncoding("Shift_JIS").GetString(DescriptionInBytes);
-                                                                                                   
+
 
                 // Se necessário, substitua caracteres de quebra de linha específicos por um padrão desejado
                 // Por exemplo, no Shift_JIS pode ser necessário garantir que as quebras de linha estejam no formato correto
@@ -44,7 +43,7 @@ namespace PangyaAPI.IFF.JP.Models.Data
             DescriptionInBytes = reader.ReadBytes(512);
         }
         public Desc()
-        {                                              
+        {
         }
 
         public object Clone()

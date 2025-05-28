@@ -1,12 +1,12 @@
-﻿using PangyaAPI.SQL;
+﻿using System;
+using PangyaAPI.SQL;
 using PangyaAPI.Utilities;
-using System;
 
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     internal class CmdLegacyTikiShopInfo : Pangya_DB
     {
- 
+
         public CmdLegacyTikiShopInfo(uint uid)
         {
             this.m_uid = uid;

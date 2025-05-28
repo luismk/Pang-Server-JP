@@ -1,18 +1,14 @@
-﻿using PangyaAPI.IFF.JP.Extensions;
-using PangyaAPI.IFF.JP.Models.Flags;
-using PangyaAPI.Utilities.BinaryModels;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
+using PangyaAPI.IFF.JP.Models.Flags;
+using PangyaAPI.Utilities.BinaryModels;
 
 namespace PangyaAPI.IFF.JP.Models.Data
 {
     #region Struct MemorialRareItem.iff
-    [StructLayout(LayoutKind.Sequential, Pack = 4)]  
-    public class MemorialShopRareItem  : ICloneable
+    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    public class MemorialShopRareItem : ICloneable
     {
         public uint Active { get; set; }
         [StructLayout(LayoutKind.Sequential, Pack = 1, Size = 8)]
@@ -26,7 +22,7 @@ namespace PangyaAPI.IFF.JP.Models.Data
         public uint ID { get; set; }
         public uint Probabilities { get; set; }
         public MemorialRareType RareType { get; set; }// Tipo Raro, EX: -1 - 0 normal, 1 - 2 raro, 3 - 4 Super raro
-       
+
         [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 10)]
         public int[] filter { get; set; }
         [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 28)]
@@ -43,7 +39,7 @@ namespace PangyaAPI.IFF.JP.Models.Data
             filter = reader.ReadInt32Array(10).ToArray();
             // Lendo os bytes nulos
             Null_Bytes = reader.ReadBytes(24);
-        }          
+        }
         public object Clone()
         {
             return MemberwiseClone();

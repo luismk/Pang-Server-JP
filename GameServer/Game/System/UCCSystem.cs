@@ -1,22 +1,103 @@
-﻿using GameServer.Cmd;
-using GameServer.GameType;
-using PangyaAPI.Network.PangyaPacket;
-using PangyaAPI.SQL.Manager;
-using PangyaAPI.Utilities.Log;
-using PangyaAPI.Utilities;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using GameServer.Session;
+using System.Runtime.InteropServices;
+using Pangya_GameServer.Cmd;
+using Pangya_GameServer.GameType;
+using Pangya_GameServer.PacketFunc;
+using Pangya_GameServer.Session;
+using PangyaAPI.IFF.JP.Extensions;
+using PangyaAPI.IFF.JP.Models.Flags;
+using PangyaAPI.Network.Cryptor;
+using PangyaAPI.Network.PangyaPacket;
+using PangyaAPI.SQL.Manager;
+using PangyaAPI.Utilities;
 using PangyaAPI.Utilities.BinaryModels;
+using PangyaAPI.Utilities.Log;
 using _smp = PangyaAPI.Utilities.Log;
-namespace GameServer.Game.System
+namespace Pangya_GameServer.Game.System
 {
     public static class UCCSystem
     {
-        public static void HandleUCC(this Player _session, Packet _packet)
+        public static void HandleUCCLoad(Player _session)
+        {
+            var p = new PangyaBinaryWriter();
+
+            try
+            {
+                List<WarehouseItemEx> all_ucc = new List<WarehouseItemEx>();
+
+                foreach (var part in _session.m_pi.mp_wi)
+                {
+                    if (sIff.getInstance().getItemGroupIdentify(part.Value._typeid) == sIff.getInstance().PART &&
+                        !string.IsNullOrEmpty(part.Value.ucc.idx))
+                    {
+
+                        var ucc_part = sIff.getInstance().findPart(part.Value._typeid);
+
+                        if (ucc_part != null &&
+                            (ucc_part.type_item == PART_TYPE.UCC_DRAW_ONLY || ucc_part.type_item == PART_TYPE.UCC_COPY_ONLY))
+                        {
+                            all_ucc.Add(part.Value);
+                        }
+                    }
+                }
+                if (all_ucc.Count > 0)
+                {
+                    UCC_Load_Ctx[] ucc_ctxs = new UCC_Load_Ctx[all_ucc.Count];
+
+                    for (int i = 0; i < all_ucc.Count; i++)
+                    {
+                        var item = all_ucc[i];
+                        ucc_ctxs[i]._typeid = item._typeid;
+                        ucc_ctxs[i].id = (int)item.id;
+                        ucc_ctxs[i].ucc_idx = item.ucc.idx?.PadRight(8, '\0').Substring(0, 8) ?? "\0";
+                    }
+
+                    byte[] rawData = Tools.StructArrayToByteArray(ucc_ctxs);
+
+                    conversionByte cb = new conversionByte((uint)(all_ucc.Count * Marshal.SizeOf<UCC_Load_Ctx>()), 10);
+
+                    byte[] tmp = new byte[cb.getNumberIS() + 10];
+                    uint compress_out = (uint)rawData.Length;
+                    try
+                    {
+
+                        MiniLzo.compress_data(rawData, compress_out, tmp, (uint)tmp.Length);
+
+                        cb.putNumberBuffer(tmp);
+
+                        p.init_plain(0x1B1);
+                        p.WriteUInt32((uint)UtilTime.GetSystemTimeAsUnix());
+                        p.WriteUInt32(compress_out + 4u);
+                        //p.WriteBuffer(rawData, (int)(compress_out + 4));
+
+                        packet_func.session_send(p, _session, 1);
+                    }
+                    catch (Exception ex)
+                    {
+                        // log do erro, se desejar
+                    }
+                }
+                else
+                {
+                    p.init_plain(0x1B1);
+                    p.WriteUInt64(0x190132DC55);
+                    p.WriteUInt64(0x2211000000);
+                    p.WriteZeroByte(13);
+                    p.WriteUInt32(0x1100);
+
+                    packet_func.session_send(p, _session, 1);
+                }
+
+            }
+            catch (Exception ex)
+            {
+
+                throw;
+            }
+        }
+        public static void HandleUCC(this Player _session, packet _packet)
         {
             var p = new PangyaBinaryWriter();
             try
@@ -106,14 +187,14 @@ namespace GameServer.Game.System
                             p.WriteUInt32(it.Value._typeid);
                             p.WritePStr(it.Value.ucc.idx);
                             p.WritePStr(it.Value.ucc.name);
-                            _session.Send(p);
+                            packet_func.session_send(p, _session);
                             break;
                         }
                     case 1: // Info
                         {
                             var ucc_id = _packet.ReadUInt32();
                             var owner = _packet.ReadUInt8();  // acho que 1 � do pr�prio player, 0 de outro player
-                                                             
+
                             if (ucc_id <= 0)
                                 throw new exception("[GameServer.requestUCCSystem][Error] player[UID=" + (_session.m_pi.uid) + "] tentou ver info da UCC[ID="
                                         + (ucc_id) + "], mas o id da ucc eh invalido. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.GAME_SERVER, 2, 0x5200102));
@@ -136,7 +217,7 @@ namespace GameServer.Game.System
                                     throw new exception("[GameServer.requestUCCSystem][Error] player[UID=" + (_session.m_pi.uid) + "] tentou ver info da UCC[ID="
                                             + (ucc_id) + "], mas nao encontrou essa UCC. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.GAME_SERVER, 3, 0x5200103));
 
-                                pWi = cmd_fu.getInfo();            
+                                pWi = cmd_fu.getInfo();
                             }
 
                             // Log      
@@ -152,8 +233,8 @@ namespace GameServer.Game.System
                             p.WritePStr(pWi.ucc.idx);
                             p.WriteByte(owner);
 
-                            p.WriteBytes(pWi.Build());
-                            _session.Send(p);
+                            p.WriteBytes(pWi.ToArray());
+                            packet_func.session_send(p, _session);
 
                             break;
                         }
@@ -273,7 +354,7 @@ namespace GameServer.Game.System
                             p.WriteUInt16(pWi.ucc.seq);
 
                             p.WriteByte(1);    // no outro fala que � op��o de erro, mas n�o sei n�o
-                            _session.Send(p);
+                            packet_func.session_send(p, _session);
                             break;
                         }
                     case 3: // Salve tempor�rio
@@ -340,7 +421,7 @@ namespace GameServer.Game.System
                             p.WritePStr(it.Value.ucc.idx);
                             p.WriteByte(1);    // no outro fala que � op��o de erro, mas n�o sei n�o
 
-                            _session.Send(p);
+                            packet_func.session_send(p, _session);
 
                             break;
                         }
@@ -355,9 +436,9 @@ namespace GameServer.Game.System
 
                 p.init_plain(0x12E);
 
-                p.WriteByte(-1);    // Error
+                p.WriteSByte(-1);    // Error
 
-                _session.Send(p);
+                packet_func.session_send(p, _session);
             }
         }
     }

@@ -1,28 +1,30 @@
-﻿using GameServer.Game.Manager;
-using GameServer.GameType;
-using GameServer.PangyaEnums;
-using GameServer.Session;
+﻿using System;
+using Pangya_GameServer.Game.Manager;
+using Pangya_GameServer.GameType;
+using Pangya_GameServer.PacketFunc;
+using Pangya_GameServer.PangyaEnums;
+using Pangya_GameServer.Session;
+using PangyaAPI.IFF.JP.Extensions;
 using PangyaAPI.Network.PangyaPacket;
 using PangyaAPI.Utilities;
 using PangyaAPI.Utilities.BinaryModels;
 using PangyaAPI.Utilities.Log;
-using System;
 
-namespace GameServer.Game.System
+namespace Pangya_GameServer.Game.System
 {
     public static class GameMasterSystem
     {
-        public static void requestCommonCmdGM(this Player _session, Packet _packet)
+        public static void requestCommonCmdGM(this Player _session, packet _packet)
         {
             try
             {
-                //_session.m_pi.ReloadMemberInfo();
+               // _session.m_pi.ReloadMemberInfo();
 
-                var cmd = (COMMON_CMD_GM)_packet.ReadInt16();       
+                var cmd = (COMMON_CMD_GM)_packet.ReadInt16();
 
                 // Verifica se o valor de cmd é válido no enum PacketIDClient
                 if (Enum.IsDefined(typeof(COMMON_CMD_GM), cmd))
-                {                                      
+                {
                     WriteConsole.WriteLine($"[GameMasterSystem.requestCommonCmdGM][Log]: PLAYER[UID: {_session.m_pi.uid}, COMMAND: {Enum.GetName(typeof(COMMON_CMD_GM), cmd).Replace("CCG_", "")}]", ConsoleColor.Cyan);
                 }
 
@@ -270,7 +272,7 @@ namespace GameServer.Game.System
             {
                 message_pool.push(new message("[GameMasterSystem.requestCommonCmdGM][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
                 using (var p = new PangyaBinaryWriter(0x40))   // Msg to Chat of player
-                {           
+                {
                     p.WriteByte(7);  // Notice
 
                     p.WritePStr(_session.m_pi.nickname);
@@ -280,8 +282,8 @@ namespace GameServer.Game.System
                     else
                         p.WritePStr("Nao conseguiu executar o comando.");
 
-                    _session.Send(p);
-                }                                      
+                    packet_func.session_send(p, _session);
+                }
             }
         }
     }

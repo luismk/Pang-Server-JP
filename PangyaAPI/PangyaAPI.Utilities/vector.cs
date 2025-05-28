@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace PangyaAPI.Utilities
 {
@@ -12,6 +8,6 @@ namespace PangyaAPI.Utilities
         {
         }
 
-        public vector(T t) { Add(t); } 
+        public vector(T t) { Add(t); }
     }
 }

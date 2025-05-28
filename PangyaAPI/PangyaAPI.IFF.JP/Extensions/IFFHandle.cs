@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO.Compression;
-using System.IO;
-using PangyaAPI.IFF.JP.Models.Data;
-using PangyaAPI.IFF.JP.Models.General;
-using PangyaAPI.IFF.JP.Models.Flags;
 using System.Diagnostics;
-using PangyaAPI.IFF.JP.Models;
+using System.IO;
+using System.IO.Compression;
+using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Linq;                        
-using _smp = PangyaAPI.Utilities.Log;    
+using PangyaAPI.IFF.JP.Models;
+using PangyaAPI.IFF.JP.Models.Data;
+using PangyaAPI.IFF.JP.Models.Flags;
+using PangyaAPI.IFF.JP.Models.General;
 using PangyaAPI.Utilities;
+using _smp = PangyaAPI.Utilities.Log;
 namespace PangyaAPI.IFF.JP.Extensions
 {
     public class IFFHandle
@@ -71,6 +71,7 @@ namespace PangyaAPI.IFF.JP.Extensions
         public IFFFile<CaddieVoiceTable> m_caddie_voice_table { get; set; }
         public IFFFile<FurnitureAbility> m_furniture_ability { get; set; }
         public IFFFile<TwinsItemTable> m_twins_item_table { get; set; }
+
         string PATH_PANGYA_IFF = "data/pangya_jp.iff";
         bool m_loaded;
         ZipFileEx Zip { get; set; }
@@ -109,7 +110,7 @@ namespace PangyaAPI.IFF.JP.Extensions
         {
             m_loaded = false;
         }
-                                                                           
+
         private IFFFile<T> MakeUnzipLoad<T>(string iffName) where T : new()
         {
             var mapIFF = new IFFFile<T>();
@@ -163,6 +164,7 @@ namespace PangyaAPI.IFF.JP.Extensions
                 m_club = load_club();
                 m_club_set = load_club_set();
                 m_course = load_course();
+                m_cutin_infomation = load_cutin_infomation();
                 m_enchant = load_enchant();
                 m_furniture = load_furniture();
                 m_hair_style = load_hair_style();
@@ -186,9 +188,10 @@ namespace PangyaAPI.IFF.JP.Extensions
                 Quest_item = load_quest_item();
                 Quest_stuff = load_quest_stuff();
                 Set_item = load_set_item();
+                m_time_limit_item = load_time_limit_item();
                 Part = load_part();
                 m_loaded = true;
-                _smp.message_pool.push("[IFFHandle::Load][Log]: Sucess");
+                _smp.message_pool.push("[IFFHandle::Load][Log] IFF_STRUCT Carregado com Sucesso!");
             }
             catch (exception ex)
             {
@@ -199,6 +202,7 @@ namespace PangyaAPI.IFF.JP.Extensions
 
         private void reset()
         {
+            m_time_limit_item.Clear();
             m_addon_part.Clear();//_addon_part();
             m_error_code_info.Clear();//_error_code_info();
             m_club_set_work_shop_level_up_limit.Clear();//_club_set_work_shop_level_up_limit();
@@ -562,6 +566,10 @@ namespace PangyaAPI.IFF.JP.Extensions
         }
 
 
+        public PointShop findPointShop(uint _typeid)
+        {
+            return MAKE_FIND_MAP_IFF(m_point_shop, _typeid);
+        }
         public AuxPart findAuxPart(uint _typeid)
         {
             return MAKE_FIND_MAP_IFF(Aux_part, _typeid);
@@ -650,6 +658,11 @@ namespace PangyaAPI.IFF.JP.Extensions
             return MAKE_FIND_MAP_IFF(m_course, _typeid);
         }
 
+        public CutinInformation findCutinInfomation(uint _typeid)
+        {
+           return MAKE_FIND_MAP_IFF(m_cutin_infomation, _typeid);
+        }
+
         public Enchant findEnchant(uint _typeid)
         {
             return MAKE_FIND_MAP_IFF(m_enchant, _typeid);
@@ -690,6 +703,11 @@ namespace PangyaAPI.IFF.JP.Extensions
         {
             return MAKE_FIND_MAP_IFF(m_grand_prix_data, _typeid);
         }
+        public List<GrandPrixSpecialHole> findGrandPrixSpecialHole(uint _typeid)
+        {
+            return m_grand_prix_special_hole.Where(c => c.TypeID == _typeid).ToList();
+        }
+
 
         public MemorialShopCoinItem findMemorialShopCoinItem(uint _typeid)
         {
@@ -716,9 +734,16 @@ namespace PangyaAPI.IFF.JP.Extensions
             return MAKE_FIND_MAP_IFF(m_tiki_recipe, _id);
         }
 
-        public CadieMagicBoxRandom findCadieMagicBoxRandom(uint _id)
+        public Dictionary<uint, CadieMagicBoxRandom> findCadieMagicBoxRandom(uint _id)
         {
-            return MAKE_FIND_MAP_IFF(m_cadie_magic_box_random, _id);
+            var cadie = MAKE_FIND_MAP_IFF(m_cadie_magic_box_random, _id);
+            var dic = new Dictionary<uint, CadieMagicBoxRandom>();
+            if (cadie != null)
+            {
+                dic.Add(_id, cadie);
+                return dic;
+            }
+            return dic;
         }
 
         public MemorialShopRareItem findMemorialShopRareItem(uint _gacha_num)
@@ -733,7 +758,7 @@ namespace PangyaAPI.IFF.JP.Extensions
 
         public bool ItemEquipavel(uint _typeid)
         {
-            return Convert.ToBoolean(((_typeid & 0xFE000000) >> 25) & 3);
+            return ((_typeid & 0xFE000000) >> 25 & 3) == 0;
         }
 
         public bool IsBuyItem(uint _typeid)
@@ -1733,6 +1758,17 @@ namespace PangyaAPI.IFF.JP.Extensions
         {
             return (uint)price.Sum(el => (uint)el);
         }
+
+        public SortedDictionary<uint, TimeLimitItem> getTimeLimitItem()
+        {
+            var list = new SortedDictionary<uint, TimeLimitItem>();
+            foreach (var item in m_time_limit_item)
+            {
+                list.Add(item._typeid, item);
+            }
+            return list;
+        }
+
     }
     public class sIff : Singleton<IFFHandle>
     {

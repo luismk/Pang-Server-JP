@@ -1,17 +1,15 @@
-﻿using PangyaAPI.IFF.JP.Extensions;
+﻿using System.Runtime.InteropServices;
 using PangyaAPI.IFF.JP.Models.General;
 using PangyaAPI.Utilities.BinaryModels;
-using System;
-using System.Runtime.InteropServices;
 namespace PangyaAPI.IFF.JP.Models.Data
-{                           
+{
     #region Struct Item.iff
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public class Item : IFFCommon
     {
         public uint ItemType { get; set; }
         [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 40)]
-        public string Model { get; set; }         
+        public string Model { get; set; }
         [field: MarshalAs(UnmanagedType.Struct, SizeConst = 10)]
         public IFFStats Stats { get; set; }
         public ushort Point { get; set; }
@@ -20,7 +18,7 @@ namespace PangyaAPI.IFF.JP.Models.Data
         public ushort Price15Day { get => Stats.Impact; set => Stats.Impact = value; }
         public ushort Price30Day { get => Stats.Spin; set => Stats.Spin = value; }
         public ushort Price365Day { get => Stats.Curve; set => Stats.Curve = value; }
-         public Item(ref PangyaBinaryReader reader, uint strlen)
+        public Item(ref PangyaBinaryReader reader, uint strlen)
         {
             Load(ref reader, strlen);
             ItemType = reader.ReadUInt32();

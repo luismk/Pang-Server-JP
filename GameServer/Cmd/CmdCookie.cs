@@ -1,9 +1,7 @@
-﻿using GameServer.GameType;
+﻿using System;
 using PangyaAPI.SQL;
-using System;
-using System.Data;
 
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     public class CmdCookie : Pangya_DB
     {
@@ -23,7 +21,7 @@ namespace GameServer.Cmd
                 var uid_req = _result.GetUInt32(0);
                 m_cookie = _result.GetUInt64(1);
                 if (uid_req != m_uid)
-                    throw new Exception("[CmdCookie::lineResult][Error] retornou outro m_uid do que foi requisitado. uid_req: " + (uid_req) + " != " +(m_uid));
+                    throw new Exception("[CmdCookie::lineResult][Error] retornou outro m_uid do que foi requisitado. uid_req: " + (uid_req) + " != " + (m_uid));
             }
             catch (Exception ex)
             {
@@ -34,7 +32,7 @@ namespace GameServer.Cmd
 
         protected override Response prepareConsulta()
         {
-            var r = consulta( "SELECT uid, cookie FROM pangya.user_info WHERE uid = " + m_uid);
+            var r = consulta("SELECT uid, cookie FROM pangya.user_info WHERE uid = " + m_uid);
             checkResponse(r, "nao conseguiu pegar o cookie info do player: " + (m_uid));
             return r;
         }

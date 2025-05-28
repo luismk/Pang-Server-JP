@@ -386,7 +386,7 @@ namespace PangyaAPI.Network.Cryptor
         EofFound:
             Array.Resize(ref @out, (int)op);
             lzo_bytep = @out;
-             return @out;
+            return @out;
         }
 
 
@@ -669,18 +669,18 @@ namespace PangyaAPI.Network.Cryptor
             Lzo1X1Compress(input, (uint)input.Length, @out, out var outLen, new ushort[32768]);
             Array.Resize(ref @out, (int)outLen);
             return @out;
-        }       
+        }
         public static void compress_data(byte[] @_uncompress,
                 uint _size_uncompress,
                 byte[] @_compress,
                 uint @_size_compress)
         {
-             Lzo1X1Compress(@_uncompress,
-                        _size_uncompress, @_compress,
-                       out @_size_compress,
-                        new ushort[32768]);
+            Lzo1X1Compress(@_uncompress,
+                       _size_uncompress, @_compress,
+                      out @_size_compress,
+                       new ushort[32768]);
             Array.Resize(ref @_uncompress, (int)@_size_compress);
-        }                                 
+        }
         public static void decompress_data(in byte[] @_compress,
                 in uint @_size_compress,
              out byte[] @_uncompress,

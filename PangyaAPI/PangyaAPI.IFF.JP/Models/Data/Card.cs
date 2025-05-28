@@ -1,8 +1,6 @@
-﻿using PangyaAPI.IFF.JP.Models.General;
-using PangyaAPI.IFF.JP.Models.Flags;
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
-using PangyaAPI.IFF.JP.Extensions;
+using PangyaAPI.IFF.JP.Models.General;
 using PangyaAPI.Utilities.BinaryModels;
 
 namespace PangyaAPI.IFF.JP.Models.Data
@@ -40,7 +38,7 @@ namespace PangyaAPI.IFF.JP.Models.Data
             Load(ref reader, 40);
             Rarity = reader.ReadByte();
             MPet = reader.ReadPStr(40);
-           // Stats = reader.Read<IFFStats>();
+            // Stats = reader.Read<IFFStats>();
             Effect = reader.ReadUInt16();
             EffectValue = reader.ReadUInt16();
             AdditionalTexture1 = reader.ReadPStr(40);
@@ -54,7 +52,7 @@ namespace PangyaAPI.IFF.JP.Models.Data
         }
 
         public string GetTypeEffect()
-        {       
+        {
             System.Diagnostics.Debug.WriteLine($"MPet = {MPet}, Name = {Name}, Effect = {Effect}, Rare = {Rarity}");
             switch (Effect)
             {
@@ -81,7 +79,7 @@ namespace PangyaAPI.IFF.JP.Models.Data
                     }
                     if (Rarity == 2 && flag1 == 3 && flag2 == 1)
                     {
-                        return "Inst. EXP ("+EffectValue+ ")";
+                        return "Inst. EXP (" + EffectValue + ")";
                     }
                     if (Rarity == 3 && flag1 == 3 && flag2 == 0)
                     {
@@ -93,7 +91,7 @@ namespace PangyaAPI.IFF.JP.Models.Data
                     }
                     if (Rarity == 2 && flag1 == 10 && flag2 == 1)
                     {
-                        return "-"+ EffectValue + " Yard";
+                        return "-" + EffectValue + " Yard";
                     }
 
                     if (Rarity == 3 && flag1 == 14 && flag2 == 1)
@@ -117,7 +115,7 @@ namespace PangyaAPI.IFF.JP.Models.Data
                 case 2:
                     if (Rarity == 2 && flag1 == 3 && flag2 == 0)
                     {
-                        return "Temp. "+ EffectValue + "% Pangs";
+                        return "Temp. " + EffectValue + "% Pangs";
                     }
                     if (Rarity == 1 && flag1 == 3 && flag2 == 0)
                     {
@@ -272,7 +270,7 @@ namespace PangyaAPI.IFF.JP.Models.Data
                         }
                         if (Rarity == 2 && flag1 == 12 && flag2 == 0)
                         {
-                            return "Control +" +EffectValue;
+                            return "Control +" + EffectValue;
                         }
                         if (Rarity == 72 && flag1 == 15 && flag2 == 0)
                         {
@@ -348,7 +346,7 @@ namespace PangyaAPI.IFF.JP.Models.Data
                     {
                         if (Rarity == 0 && flag1 == 1 && flag2 == 1)
                         {
-                            return "Inst. Pangs (" +EffectValue+ ")";
+                            return "Inst. Pangs (" + EffectValue + ")";
                         }
                         if (Rarity == 1 && flag1 == 7 && flag2 == 1)
                         {
@@ -371,7 +369,7 @@ namespace PangyaAPI.IFF.JP.Models.Data
                 case 34:
                     if (Rarity == 1 && flag1 == 5 && flag2 == 1)
                     {
-                        return EffectValue+"% Club Mastery";
+                        return EffectValue + "% Club Mastery";
                     }
                     if (Rarity == 1 && flag1 == 7 && flag2 == 1)
                     {
@@ -439,19 +437,19 @@ namespace PangyaAPI.IFF.JP.Models.Data
                     }
                     if (Rarity == 0 && flag1 == 3 && flag2 == 1)
                     {
-                        return EffectValue +"% Pang Bonus";
+                        return EffectValue + "% Pang Bonus";
                     }
                     if (Rarity == 0 && flag1 == 3 && flag2 == 0)
                     {
-                        return EffectValue +"% Pang Bonus";
+                        return EffectValue + "% Pang Bonus";
                     }
                     if (Rarity == 3 && flag1 == 11 && flag2 == 1)
                     {
-                        return EffectValue +"% Pang Bonus";
+                        return EffectValue + "% Pang Bonus";
                     }
                     if (Rarity == 2 && flag1 == 11 && flag2 == 1)
                     {
-                        return EffectValue +"% Pang Bonus";
+                        return EffectValue + "% Pang Bonus";
                     }
                     if (Rarity == 1 && flag1 == 3 && flag2 == 1)
                     {
@@ -499,7 +497,7 @@ namespace PangyaAPI.IFF.JP.Models.Data
                     {
                         if (Rarity == 1 && flag1 == 3 && flag2 == 1)
                         {
-                            return "Temp. "+ EffectValue+"% Obtian Rain";
+                            return "Temp. " + EffectValue + "% Obtian Rain";
                         }
                         return "Zone Impact Medium " + EffectValue + " Pixel";
                     }
@@ -507,7 +505,7 @@ namespace PangyaAPI.IFF.JP.Models.Data
                     {
                         if (Rarity == 1 && flag1 == 5 && flag2 == 1)
                         {
-                            return EffectValue+ "% Obtian Rain";
+                            return EffectValue + "% Obtian Rain";
                         }
                         return "Zone Impact Medium " + EffectValue + " Pixel";
                     }
@@ -545,6 +543,6 @@ namespace PangyaAPI.IFF.JP.Models.Data
 
             return "Unknown Effect Name";
         }
-    }       
+    }
     #endregion
 }

@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PangyaAPI.Network.Cryptor
 {
@@ -62,7 +58,7 @@ namespace PangyaAPI.Network.Cryptor
 
             if (source.Length < 8)
             {
-                return source; 
+                return source;
             }
             byte oracleByte = CryptoOracle.CryptTable2[(serverCryptKey << 8) + source[0]];
             byte[] buffer = (byte[])source.Clone();
@@ -78,7 +74,7 @@ namespace PangyaAPI.Network.Cryptor
                 return MiniLzo.Decompress(compressedData);
             }
             catch (Exception)
-            { 
+            {
                 return source;
             }
         }
@@ -93,7 +89,7 @@ namespace PangyaAPI.Network.Cryptor
                 pval[index] ^= CryptoOracle.CryptTableDeserialize[i];
                 index = (index == 3) ? 0 : ++index;
             }
-           return BitConverter.ToUInt32(pval, 0);
+            return BitConverter.ToUInt32(pval, 0);
         }
 
         public static byte[] ServerEncrypt(this byte[] source, byte key, byte salt)

@@ -1,13 +1,12 @@
-﻿using PangyaAPI.Network.Pangya_St;
+﻿using System;
+using PangyaAPI.Network.Pangya_St;
 using PangyaAPI.SQL;
-
-using System;           
 
 namespace PangyaAPI.Network.Cmd
 {
     public class CmdAddCharacter : CmdAddItemBase
     {
-        CharacterInfo m_ci;                                                 
+        CharacterInfo m_ci;
         public CmdAddCharacter(uint _uid, CharacterInfo _ci, byte _purchase, byte _gift_flag) : base(_uid, _purchase, _gift_flag)
         {
             m_uid = _uid;
@@ -19,7 +18,7 @@ namespace PangyaAPI.Network.Cmd
             checkColumnNumber(1);
             try
             {
-                m_ci.id =(uint)(_result.data[0]);
+                m_ci.id = (uint)(_result.data[0]);
             }
             catch (Exception ex)
             {

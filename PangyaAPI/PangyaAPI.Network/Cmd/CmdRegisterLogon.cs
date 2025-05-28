@@ -1,10 +1,8 @@
 ﻿using PangyaAPI.SQL;
 
-using System.Data;
-
 namespace PangyaAPI.Network.Cmd
 {
-    public class CmdRegisterLogon: Pangya_DB
+    public class CmdRegisterLogon : Pangya_DB
     {
         uint m_uid = 0;
         int m_option = 0;
@@ -26,9 +24,9 @@ namespace PangyaAPI.Network.Cmd
 
         protected override Response prepareConsulta()
         {
-         
 
-            var r = procedure("pangya.ProcRegisterLogon",  m_uid.ToString() + ", " + m_option.ToString());
+
+            var r = procedure("pangya.ProcRegisterLogon", m_uid.ToString() + ", " + m_option.ToString());
 
             checkResponse(r, "nao conseguiu registrar o logon do player: " + (m_uid) + ", na option: " + (m_option));
             return r;

@@ -1,7 +1,6 @@
-﻿using PangyaAPI.IFF.JP.Models.Flags;
-using System;
-using System.Diagnostics;
-using System.Runtime.InteropServices;    
+﻿using System;
+using System.Runtime.InteropServices;
+using PangyaAPI.IFF.JP.Models.Flags;
 namespace PangyaAPI.IFF.JP.Models.General
 {
     [StructLayout(LayoutKind.Sequential, Pack = 4, Size = 16)]
@@ -32,7 +31,7 @@ namespace PangyaAPI.IFF.JP.Models.General
         public bool IsCash
         {
             get
-            {                              
+            {
                 if (ShopFlag == (ShopFlag)6 && MoneyFlag == 0)
                 {
                     return false;
@@ -61,7 +60,7 @@ namespace PangyaAPI.IFF.JP.Models.General
                 if (ShopFlag == ShopFlag.Combine)// cookies
                 {
                     return true;
-                }                                          
+                }
                 if (result == 0) //  cookie = 0, 1 free
                 {
                     if (!IsShop)
@@ -81,7 +80,7 @@ namespace PangyaAPI.IFF.JP.Models.General
         public bool IsPang
         {
             get
-            {     
+            {
                 if (ShopFlag == ShopFlag.BannerNew && MoneyFlag == MoneyFlag.Active)
                 {
                     return false;
@@ -93,7 +92,7 @@ namespace PangyaAPI.IFF.JP.Models.General
                 if (MoneyFlag == 0 && ShopFlag == 0)
                 {
                     return false;
-                } 
+                }
                 if (MoneyFlag == 0 && ShopFlag == ShopFlag.BannerNew)
                 {
                     return true; // é pangs, pq uso isso
@@ -114,7 +113,7 @@ namespace PangyaAPI.IFF.JP.Models.General
                 if (result == 2)
                 {
                     return true;
-                }                                           
+                }
                 return false;
             }
         }
@@ -175,7 +174,7 @@ namespace PangyaAPI.IFF.JP.Models.General
                         return true;
                     }
                     return true;
-                }                                                
+                }
                 return false;
             }
             set { ShopFlag = (ShopFlag)SetBit((byte)ShopFlag, 5, value); }
@@ -193,7 +192,7 @@ namespace PangyaAPI.IFF.JP.Models.General
                 if ((ShopFlag == (ShopFlag)32 || ShopFlag == ShopFlag.Cookies_0) && MoneyFlag == 0)// é gift, não sei se essa regra acabe no pang
                 {
                     return true;
-                }                                                                                  
+                }
 
                 if ((/*ShopFlag == (ShopFlag)32 ||*/ ShopFlag == ShopFlag.Cookies_0) && MoneyFlag == MoneyFlag.Active)// é gift, não sei se essa regra acabe no pang
                 {
@@ -206,7 +205,7 @@ namespace PangyaAPI.IFF.JP.Models.General
                 if (ShopFlag == (ShopFlag)32 && MoneyFlag == MoneyFlag.BannerNew)// é gift, não sei se essa regra acabe no pang
                 {
                     return false;
-                }    
+                }
                 return false; //return GetBit((byte)ShopFlag, 6); 
             }
             set { ShopFlag = (ShopFlag)SetBit((byte)ShopFlag, 6, value); }
@@ -214,7 +213,7 @@ namespace PangyaAPI.IFF.JP.Models.General
 
         public bool IsDisplay
         {
-           get=> ShopFlag == ShopFlag.Only_Display && MoneyFlag == MoneyFlag.None;   
+            get => ShopFlag == ShopFlag.Only_Display && MoneyFlag == MoneyFlag.None;
         }
 
 
@@ -311,7 +310,7 @@ namespace PangyaAPI.IFF.JP.Models.General
                 }
                 return false;
             }
-        }                         
+        }
         public bool IsTradeable
         {
             get
@@ -372,7 +371,7 @@ namespace PangyaAPI.IFF.JP.Models.General
         private bool GetBit(byte b, int bitNumber)
         {
             return (b & (1 << bitNumber)) != 0;
-        }               
+        }
     }
     [StructLayout(LayoutKind.Sequential, Pack = 4, Size = 2)]
     public class TimeShop
@@ -380,7 +379,7 @@ namespace PangyaAPI.IFF.JP.Models.General
         [field: MarshalAs(UnmanagedType.U1, SizeConst = 1)]
         public bool active { get; set; }//130 start position(Item por tempo)
         public ShopFlagDay dia { get; set; }//131 start position(Tempo por dias=1, 7, 15, 30 e 365 && 0xFF fica 0x6D, por que é 0x16D = 365)
-               
+
         public void SetDay(decimal dec)
         {
             var value = (int)dec;

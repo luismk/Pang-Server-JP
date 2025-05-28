@@ -1,13 +1,11 @@
-﻿using PangyaAPI.IFF.JP.Extensions;
-using PangyaAPI.IFF.JP.Models.Flags;
-using PangyaAPI.Utilities.BinaryModels;
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
+using PangyaAPI.Utilities.BinaryModels;
 namespace PangyaAPI.IFF.JP.Models.Data
 {
     #region Struct SetEffectTable.iff
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
-    public class SetEffectTable : ICloneable 
+    public class SetEffectTable : ICloneable
     {
         public SetEffectTable()
         {
@@ -55,7 +53,7 @@ namespace PangyaAPI.IFF.JP.Models.Data
             Effect_Add_Power = reader.ReadInt16();
         }
 
-        public uint Index { get; set; }     
+        public uint Index { get; set; }
         [field: MarshalAs(UnmanagedType.Struct)]
         public Effect effect { get; set; }
         [field: MarshalAs(UnmanagedType.Struct)]
@@ -86,7 +84,7 @@ namespace PangyaAPI.IFF.JP.Models.Data
             public uint[] ID { get; set; }
             [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 5)]
             public byte[] Active { get; set; }
-           
+
         }
 
 

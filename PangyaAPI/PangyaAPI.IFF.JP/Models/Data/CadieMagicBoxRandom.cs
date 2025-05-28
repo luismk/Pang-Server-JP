@@ -1,7 +1,5 @@
-﻿using PangyaAPI.IFF.JP.Models.General;
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
-using static PangyaAPI.IFF.JP.Models.Data.CadieMagicBoxRandom;
 
 namespace PangyaAPI.IFF.JP.Models.Data
 {
@@ -9,7 +7,7 @@ namespace PangyaAPI.IFF.JP.Models.Data
     /// Is Struct file CadieMagicBoxRandom.iff
     /// </summary>
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
-    public class CadieMagicBoxRandom  : ICloneable
+    public class CadieMagicBoxRandom : ICloneable
     {
         public CadieMagicBoxRandom()
         {

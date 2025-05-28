@@ -1,14 +1,14 @@
-﻿using GameServer.GameType;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Pangya_GameServer.GameType;
 using PangyaAPI.SQL;
 using PangyaAPI.Utilities;
-using System.Collections.Generic;
-using System;
-using System.Linq;
 
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     public class CmdDeleteCounterItem : Pangya_DB
-    {  
+    {
 
         public CmdDeleteCounterItem(uint _uid,
             int _id)
@@ -30,7 +30,7 @@ namespace GameServer.Cmd
             {
                 v_id.Add((int)el.Key);
             }
-        }         
+        }
 
         public uint getUID()
         {

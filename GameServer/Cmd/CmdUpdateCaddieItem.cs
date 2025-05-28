@@ -1,92 +1,89 @@
-﻿ 
-using GameServer.GameType;
+﻿
+using System;
+using Pangya_GameServer.GameType;
 using PangyaAPI.SQL;
 using PangyaAPI.Utilities;
-using System;
-				    
-namespace GameServer.Cmd
+
+namespace Pangya_GameServer.Cmd
 {
-	public class CmdUpdateCaddieItem : Pangya_DB
-	{	   
+    public class CmdUpdateCaddieItem : Pangya_DB
+    {
 
-			public CmdUpdateCaddieItem(uint _uid,
-				string _time, CaddieInfoEx _ci)
-				{
-// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
- this.m_uid = _uid;
-				//this.
-				this.m_time = _time;
-				this.m_ci = _ci;
-				}
+        public CmdUpdateCaddieItem(uint _uid,
+            string _time, CaddieInfoEx _ci)
+        {
+            this.m_time = _time;
+            this.m_ci = _ci;
+        }
 
-			public virtual void Dispose()
-			{
-			}
+        public virtual void Dispose()
+        {
+        }
 
-			public uint getUID()
-			{
-				return (m_uid);
-			}
+        public uint getUID()
+        {
+            return (m_uid);
+        }
 
-			public void setUID(uint _uid)
-			{
-// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
- m_uid = _uid;
-				
-			}
+        public void setUID(uint _uid)
+        {
+            // C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+            m_uid = _uid;
 
-			public string getTime()
-			{
-				return m_time;
-			}
+        }
 
-			public void setTime(string _time)
-			{
-				m_time = _time;
-			}
+        public string getTime()
+        {
+            return m_time;
+        }
 
-			public CaddieInfoEx getInfo()
-			{
- return m_ci;									 
-			}
+        public void setTime(string _time)
+        {
+            m_time = _time;
+        }
 
-			public void setInfo(CaddieInfoEx _ci)
-			{
- m_ci = _ci;
- 			}
+        public CaddieInfoEx getInfo()
+        {
+            return m_ci;
+        }
 
-			protected override void lineResult(ctx_res _result, uint _index_result)
-			{
+        public void setInfo(CaddieInfoEx _ci)
+        {
+            m_ci = _ci;
+        }
 
-				// N�o usa por que � um UPDATE
-				return;
-			}
+        protected override void lineResult(ctx_res _result, uint _index_result)
+        {
 
-			protected override Response prepareConsulta()
-			{
+            // N�o usa por que � um UPDATE
+            return;
+        }
 
-				if(m_ci.id <= 0
-					|| m_ci._typeid == 0
-					|| m_ci.parts_typeid == 0
-					|| m_time.Length == 0)
-				{
-					throw new exception("[CmdUpdateCaddieItem::prepareConsulta][Error] invalid Caddie[TYPEID=" + Convert.ToString(m_ci._typeid) + ", ID=" + Convert.ToString(m_ci.id) + "] or Caddie Item[TYPEID=" + Convert.ToString(m_ci.parts_typeid) + ", TIME=" + m_time + "]", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PANGYA_DB,
-						4, 0));
-				}
+        protected override Response prepareConsulta()
+        {
 
-				var r = procedure(
-					m_szConsulta,
-					Convert.ToString(m_uid) + ", " + Convert.ToString(m_ci.id) + ", " + Convert.ToString(m_ci.parts_typeid) + ", " + _db.makeText(m_time));
+            if (m_ci.id <= 0
+                || m_ci._typeid == 0
+                || m_ci.parts_typeid == 0
+                || m_time.Length == 0)
+            {
+                throw new exception("[CmdUpdateCaddieItem::prepareConsulta][Error] invalid Caddie[TYPEID=" + Convert.ToString(m_ci._typeid) + ", ID=" + Convert.ToString(m_ci.id) + "] or Caddie Item[TYPEID=" + Convert.ToString(m_ci.parts_typeid) + ", TIME=" + m_time + "]", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PANGYA_DB,
+                    4, 0));
+            }
 
-				checkResponse(r, "nao conseguiu atualizar o caddie item[TYPEID=" + Convert.ToString(m_ci.parts_typeid) + "] do caddie[ID=" + Convert.ToString(m_ci.id) + "] do player: " + Convert.ToString(m_uid));
+            var r = procedure(
+                m_szConsulta,
+                Convert.ToString(m_uid) + ", " + Convert.ToString(m_ci.id) + ", " + Convert.ToString(m_ci.parts_typeid) + ", " + _db.makeText(m_time));
 
-				return r;
-			}  
+            checkResponse(r, "nao conseguiu atualizar o caddie item[TYPEID=" + Convert.ToString(m_ci.parts_typeid) + "] do caddie[ID=" + Convert.ToString(m_ci.id) + "] do player: " + Convert.ToString(m_uid));
 
-			private uint m_uid = new uint();
-			private string m_time = "";
-			private CaddieInfoEx m_ci = new CaddieInfoEx();
+            return r;
+        }
 
-			private const string m_szConsulta = "pangya.ProcUpdateCaddieItem";
-	}
+        private uint m_uid = new uint();
+        private string m_time = "";
+        private CaddieInfoEx m_ci = new CaddieInfoEx();
+
+        private const string m_szConsulta = "pangya.ProcUpdateCaddieItem";
+    }
 }

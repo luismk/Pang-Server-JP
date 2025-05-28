@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using _smp = PangyaAPI.Utilities.Log;
 namespace PangyaAPI.Utilities
@@ -28,13 +29,13 @@ namespace PangyaAPI.Utilities
                 else
                 {
                     //caso o arquivo existir, é adicionado um local + nome do arquivo
-                   var FilePath = AppDomain.CurrentDomain.BaseDirectory + _filename;
+                    var FilePath = AppDomain.CurrentDomain.BaseDirectory + _filename;
                     using (StreamReader stream = new StreamReader(FilePath))
                     {
                         fn = FilePath;
                         lines = stream.ReadToEnd().Split(new[] { "\n", "\r\n" }, StringSplitOptions.None);
                     }
-                   
+
                 }
 
             }
@@ -55,7 +56,7 @@ namespace PangyaAPI.Utilities
                 return new[] { 0, 0 };// No Group.
             }
 
-            if (lines== null)
+            if (lines == null)
             {
                 return new[] { 0, 0 };// No Group.
             }
@@ -83,16 +84,16 @@ namespace PangyaAPI.Utilities
                     }
                 }
             }
-           _smp.message_pool.push("[IniLib::GroupPos][Log]: Unable to find Group '" + group + "' in configuration file '" + fn + "'.", _smp.type_msg.CL_FILE_LOG_AND_CONSOLE);
+            _smp.message_pool.push("[IniLib::GroupPos][Log]: Unable to find Group '" + group + "' in configuration file '" + fn + "'.", _smp.type_msg.CL_FILE_LOG_AND_CONSOLE);
             return ret; // Group not found.
         }
 
         public string ReadString(string group, string key, string _default = "", int min = int.MinValue, int max = int.MaxValue)
         {
             var group_index = GroupPos(group);
-            if (group_index[0] < 0 || group_index[1] > (lines == null? 0 : lines.Length))
+            if (group_index[0] < 0 || group_index[1] > (lines == null ? 0 : lines.Length))
             {
-                throw new exception("[IniLib::ReadString][ErrorSystem] in " +group + ", no exist key: " + key);
+                throw new exception("[IniLib::ReadString][ErrorSystem] in " + group + ", no exist key: " + key);
             }
 
             string[] tarr = null;
@@ -123,7 +124,7 @@ namespace PangyaAPI.Utilities
                     }
                     chk = false;
                 }
-                if( value.Contains(" ") && chk)
+                if (value.Contains(" ") && chk)
                 {
                     ret = tarr[1].Replace(" ", "");
                 }
@@ -167,7 +168,7 @@ namespace PangyaAPI.Utilities
         public UInt32 ReadUInt32(string section, string key, uint def = 0)
         {
             var _key = ReadString(section, key, def.ToString());
-            return Convert.ToUInt32(_key);    
+            return Convert.ToUInt32(_key);
         }
         /// <summary>
         /// Ler o arquivo .ini e retorna Int64
@@ -247,8 +248,45 @@ namespace PangyaAPI.Utilities
         /// <returns>string</returns>
         public bool ReadBool(string section, string key, bool def = false)
         {
-            var result = ReadUInt32(section, key, (uint)(def ? 1: 0));
-            return Convert.ToBoolean(result);  
+            var result = ReadUInt32(section, key, (uint)(def ? 1 : 0));
+            return Convert.ToBoolean(result);
         }
+
+        public List<string> ReadAllValues(string section, string key)
+        {
+            var values = new List<string>();
+            string currentSection = null;
+
+            foreach (var rawLine in File.ReadLines(fn))
+            {
+                var line = rawLine.Trim();
+
+                if (string.IsNullOrEmpty(line) || line.StartsWith("//") || line.StartsWith(";"))
+                    continue;
+
+                // Verifica nova seção
+                if (line.StartsWith("[") && line.EndsWith("]"))
+                {
+                    currentSection = line.Substring(1, line.Length - 2).Trim();
+                    continue;
+                }
+
+                if (!string.Equals(currentSection, section, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                var parts = line.Split(new[] { ':' }, 2);
+                if (parts.Length != 2)
+                    continue;
+
+                var k = parts[0].Trim();
+                var v = parts[1].Trim();
+
+                if (string.Equals(k, key, StringComparison.OrdinalIgnoreCase))
+                    values.Add(v);
+            }
+
+            return values;
+        }
+
     }
 }

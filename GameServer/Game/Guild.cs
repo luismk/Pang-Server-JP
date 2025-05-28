@@ -1,12 +1,10 @@
-﻿using GameServer.Session;
-using PangyaAPI.Utilities.Log;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Pangya_GameServer.Session;
+using PangyaAPI.Utilities.Log;
 
-namespace GameServer
+namespace Pangya_GameServer
 {
     public class Guild
     {
@@ -16,9 +14,9 @@ namespace GameServer
             BLUE
         }
 
-        public Guild(uint _ul = 0u)
+        public Guild(int _ul = 0)
         {
-            this.v_players = new List< Player > ();
+            this.v_players = new List<Player>();
             this.m_team = eTEAM.RED;
             this.m_uid = 0u;
             this.m_point = 0;
@@ -26,11 +24,11 @@ namespace GameServer
             this.m_pang_win = 0;
         }
 
-        public Guild(uint _uid, eTEAM _team)
+        public Guild(int _uid, eTEAM _team)
         {
-            this.v_players = new List< Player > ();
+            this.v_players = new List<Player>();
             this.m_team = _team;
-            this.m_uid = _uid;
+            this.m_uid = (uint)_uid;
             this.m_point = 0;
             this.m_pang = 0Ul;
             this.m_pang_win = 0;
@@ -66,7 +64,7 @@ namespace GameServer
             return m_uid;
         }
 
-        public ushort getPoint()
+        public short getPoint()
         {
             return m_point;
         }
@@ -91,7 +89,7 @@ namespace GameServer
             m_uid = _uid;
         }
 
-        public void setPoint(ushort _point)
+        public void setPoint(short _point)
         {
             m_point = _point;
         }
@@ -132,7 +130,7 @@ namespace GameServer
 
                 return;
             }
-                        
+
             var it = v_players.FirstOrDefault(_el =>
             {
                 return _el.m_pi.uid == _session.m_pi.uid;
@@ -208,7 +206,7 @@ namespace GameServer
 
         private eTEAM m_team = new eTEAM(); // Time que a guild está na sala
         private uint m_uid = new uint(); // UID da guild
-        private ushort m_point; // Pontos da guild
+        private short m_point; // Pontos da guild
         private uint m_pang_win = new uint(); // Pangs ganho no jogo
         private ulong m_pang = new ulong(); // Pangs da guild
 

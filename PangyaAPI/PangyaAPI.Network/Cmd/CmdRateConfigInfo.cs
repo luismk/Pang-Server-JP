@@ -1,13 +1,10 @@
-﻿using PangyaAPI.Network.Pangya_St;
+﻿using System;
+using PangyaAPI.Network.Pangya_St;
 using PangyaAPI.SQL;
-
-using System;
-using System.Collections.Generic;
-using System.Data;
 
 namespace PangyaAPI.Network.Cmd
 {
-    public class CmdRateConfigInfo: Pangya_DB
+    public class CmdRateConfigInfo : Pangya_DB
     {
 
 
@@ -15,7 +12,7 @@ namespace PangyaAPI.Network.Cmd
         bool m_error = false;
         RateConfigInfo m_rate_info;
         protected override string _getName { get; } = "CmdRateConfigInfo";
-       
+
 
         public CmdRateConfigInfo(int _uid)
         {
@@ -64,7 +61,7 @@ namespace PangyaAPI.Network.Cmd
 
         protected override Response prepareConsulta()
         {
-             var r = procedure("pangya.ProcGetRateConfigInfo",  m_server_uid.ToString());
+            var r = procedure("pangya.ProcGetRateConfigInfo", m_server_uid.ToString());
 
             checkResponse(r, "nao conseguiu pegar o Rate Config Info do Server[UID=" + (m_server_uid) + "].");
             return r;

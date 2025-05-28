@@ -71,7 +71,7 @@ namespace PangyaAPI.Utilities.Cryptography
 
         public static int Compress(byte[] Data, uint DataSize, ref byte[] DataDst)
         {
-            
+
             int CountByte = 0;
             int Size = 0;
             for (int j = 0; j < DataSize;)

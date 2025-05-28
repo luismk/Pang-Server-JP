@@ -1,8 +1,7 @@
-﻿using PangyaAPI.IFF.JP.Models.Flags;
-using PangyaAPI.IFF.JP.Models.General;
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
 using System.Text;
+using PangyaAPI.IFF.JP.Models.General;
 
 namespace PangyaAPI.IFF.JP.Models.Data
 {
@@ -290,7 +289,7 @@ namespace PangyaAPI.IFF.JP.Models.Data
             [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 5)]
             public uint[] time { get; set; }
             public int GetQuantity()
-            {           
+            {
                 int count = 0;
 
                 for (int i = 0; i < qntd.Length; i++)

@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PangyaAPI.Utilities
 {
@@ -94,7 +90,7 @@ namespace PangyaAPI.Utilities
                     break;
                 default:
                     prefix = title;
-                      return false;
+                    return false;
             }
 
             Console.ForegroundColor = (ConsoleColor)Color.CL_GREY;
@@ -204,9 +200,9 @@ namespace PangyaAPI.Utilities
         {
             _vShowMessage(Message_Type.MSG_ERROR, string.Format(DateTime.Now.ToString("[yyyy/MM/dd HH:mm:ss] ") + message, args));
         }
-        public static void Default(string title,string message, params object[] args)
+        public static void Default(string title, string message, params object[] args)
         {
-            _vShowMessage(Message_Type.MSG_DEBUG,string.Format(DateTime.Now.ToString("[yyyy/MM/dd HH:mm:ss] ") + message, args), title);
+            _vShowMessage(Message_Type.MSG_DEBUG, string.Format(DateTime.Now.ToString("[yyyy/MM/dd HH:mm:ss] ") + message, args), title);
         }
         public static void FatalError(string message, params object[] args)
         {

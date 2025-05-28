@@ -1,0 +1,318 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{9CD7A0B3-C309-4568-B28D-153FE91FA17C}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Pangya_GameServer</RootNamespace>
+    <AssemblyName>Game</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>GameServer\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>GameServer\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>5</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>Pangya_GameServer.GameServer</StartupObject>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Cmd\CmdAchievementInfo.cs" />
+    <Compile Include="Cmd\CmdAddBall.cs" />
+    <Compile Include="Cmd\CmdAddCaddie.cs" />
+    <Compile Include="Cmd\CmdAddDolfiniLockerItem.cs" />
+    <Compile Include="Cmd\CmdAddLoginRewardPlayer.cs" />
+    <Compile Include="Cmd\CmdAddMsgMail.cs" />
+    <Compile Include="Cmd\CmdAttendanceRewardInfo.cs" />
+    <Compile Include="Cmd\CmdAttendanceRewardItemInfo.cs" />
+    <Compile Include="Cmd\CmdBotGMEventInfo.cs" />
+    <Compile Include="Cmd\CmdCaddieInfo.cs" />
+    <Compile Include="Cmd\CmdCardEquipInfo.cs" />
+    <Compile Include="Cmd\CmdCardInfo.cs" />
+    <Compile Include="Cmd\CmdCardPack.cs" />
+    <Compile Include="Cmd\CmdCharacterInfo.cs" />
+    <Compile Include="Cmd\CmdCheckAchievement.cs" />
+    <Compile Include="Cmd\CmdCoinCubeInfo.cs" />
+    <Compile Include="Cmd\CmdCoinCubeLocationInfo.cs" />
+    <Compile Include="Cmd\CmdCometRefillInfo.cs" />
+    <Compile Include="Cmd\CmdCookie.cs" />
+    <Compile Include="Cmd\CmdCouponGacha.cs" />
+    <Compile Include="Cmd\CmdCreateAchievement.cs" />
+    <Compile Include="Cmd\CmdCreateQuest.cs" />
+    <Compile Include="Cmd\CmdDailyQuestInfo.cs" />
+    <Compile Include="Cmd\CmdDailyQuestInfoUser.cs" />
+    <Compile Include="Cmd\CmdDeleteAchievement.cs" />
+    <Compile Include="Cmd\CmdDeleteCounterItem.cs" />
+    <Compile Include="Cmd\CmdDeleteEmail.cs" />
+    <Compile Include="Cmd\CmdDeleteQuest.cs" />
+    <Compile Include="Cmd\CmdDolfiniLockerInfo.cs" />
+    <Compile Include="Cmd\CmdDropCourseConfig.cs" />
+    <Compile Include="Cmd\CmdDropCourseInfo.cs" />
+    <Compile Include="Cmd\CmdEmailInfo2.cs" />
+    <Compile Include="Cmd\CmdExtendRental.cs" />
+    <Compile Include="Cmd\CmdFindTrofelEspecial.cs" />
+    <Compile Include="Cmd\CmdFindUCC.cs" />
+    <Compile Include="Cmd\CmdFriendInfo.cs" />
+    <Compile Include="Cmd\CmdGeraWebKey.cs" />
+    <Compile Include="Cmd\CmdGrandPrixClear.cs" />
+    <Compile Include="Cmd\CmdGrandZodiacPontos.cs" />
+    <Compile Include="Cmd\CmdGuildInfo.cs" />
+    <Compile Include="Cmd\CmdInsertCommand.cs" />
+    <Compile Include="Cmd\CmdInsertMemorialRareWinLog.cs" />
+    <Compile Include="Cmd\CmdInsertPapelShopRareWinLog.cs" />
+    <Compile Include="Cmd\CmdItemBuffInfo.cs" />
+    <Compile Include="Cmd\CmdItemLeftFromEmail.cs" />
+    <Compile Include="Cmd\CmdLastPlayerGameInfo.cs" />
+    <Compile Include="Cmd\CmdLegacyTikiShopInfo.cs" />
+    <Compile Include="Cmd\CmdLoginRewardInfo.cs" />
+    <Compile Include="Cmd\CmdLoginRewardPlayerInfo.cs" />
+    <Compile Include="Cmd\CmdMailBoxInfo.cs" />
+    <Compile Include="Cmd\CmdMailBoxInfo2.cs" />
+    <Compile Include="Cmd\CmdMapStatistics.cs" />
+    <Compile Include="Cmd\CmdMascotInfo.cs" />
+    <Compile Include="Cmd\CmdMemberInfo.cs" />
+    <Compile Include="Cmd\CmdMemorialLevelInfo.cs" />
+    <Compile Include="Cmd\CmdMemorialNormalItemInfo.cs" />
+    <Compile Include="Cmd\CmdMsgOffInfo.cs" />
+    <Compile Include="Cmd\CmdMyRoomConfig.cs" />
+    <Compile Include="Cmd\CmdMyRoomItem.cs" />
+    <Compile Include="Cmd\CmdPang.cs" />
+    <Compile Include="Cmd\CmdPapelShopConfig.cs" />
+    <Compile Include="Cmd\CmdPapelShopCoupon.cs" />
+    <Compile Include="Cmd\CmdPapelShopItem.cs" />
+    <Compile Include="Cmd\CmdPlayerInfo.cs" />
+    <Compile Include="Cmd\CmdPremiumTicketInfo.cs" />
+    <Compile Include="Cmd\CmdPutItemMailBox.cs" />
+    <Compile Include="Cmd\CmdRegisterLogonServer.cs" />
+    <Compile Include="Cmd\CmdSetNoticeCaddieHolyDay.cs" />
+    <Compile Include="Cmd\CmdTreasureHunterInfo.cs" />
+    <Compile Include="Cmd\CmdTreasureHunterItem.cs" />
+    <Compile Include="Cmd\CmdTrofelInfo.cs" />
+    <Compile Include="Cmd\CmdTrophySpecial.cs" />
+    <Compile Include="Cmd\CmdTutorialInfo.cs" />
+    <Compile Include="Cmd\CmdUpdateAchievementUser.cs" />
+    <Compile Include="Cmd\CmdUpdateAttendanceReward.cs" />
+    <Compile Include="Cmd\CmdUpdateBallEquiped.cs" />
+    <Compile Include="Cmd\CmdUpdateBallQntd.cs" />
+    <Compile Include="Cmd\CmdUpdateCaddieEquiped.cs" />
+    <Compile Include="Cmd\CmdUpdateCaddieInfo.cs" />
+    <Compile Include="Cmd\CmdUpdateCaddieItem.cs" />
+    <Compile Include="Cmd\CmdUpdateCardQntd.cs" />
+    <Compile Include="Cmd\CmdUpdateCardSpecialTime.cs" />
+    <Compile Include="Cmd\CmdUpdateCharacterAllPartEquiped.cs" />
+    <Compile Include="Cmd\CmdUpdateCharacterCutinEquiped.cs" />
+    <Compile Include="Cmd\CmdUpdateCharacterEquiped.cs" />
+    <Compile Include="Cmd\CmdUpdateCharacterMastey.cs" />
+    <Compile Include="Cmd\CmdUpdateCharacterPcl.cs" />
+    <Compile Include="Cmd\CmdUpdateChatMacroUser.cs" />
+    <Compile Include="Cmd\CmdUpdateClubsetEquiped.cs" />
+    <Compile Include="Cmd\CmdUpdateClubsetStats.cs" />
+    <Compile Include="Cmd\CmdUpdateClubsetTime.cs" />
+    <Compile Include="Cmd\CmdUpdateClubsetWorkshop.cs" />
+    <Compile Include="Cmd\CmdUpdateCoinCubeLocation.cs" />
+    <Compile Include="Cmd\CmdUpdateCookie.cs" />
+    <Compile Include="Cmd\CmdUpdateCounterItem.cs" />
+    <Compile Include="Cmd\CmdUpdateDailyQuest.cs" />
+    <Compile Include="Cmd\CmdUpdateDailyQuestUser.cs" />
+    <Compile Include="Cmd\CmdUpdateDolfiniLockerMode.cs" />
+    <Compile Include="Cmd\CmdUpdateDolfiniLockerPang.cs" />
+    <Compile Include="Cmd\CmdUpdateDolfiniLockerPass.cs" />
+    <Compile Include="Cmd\CmdUpdateEmail.cs" />
+    <Compile Include="Cmd\CmdUpdateGoldenTime.cs" />
+    <Compile Include="Cmd\CmdUpdateGrandPrixClear.cs" />
+    <Compile Include="Cmd\CmdUpdateGuildMemberPoints.cs" />
+    <Compile Include="Cmd\CmdUpdateGuildPoints.cs" />
+    <Compile Include="Cmd\CmdUpdateGuildUpdateActivity.cs" />
+    <Compile Include="Cmd\CmdUpdateItemBuff.cs" />
+    <Compile Include="Cmd\CmdUpdateItemQntd.cs" />
+    <Compile Include="Cmd\CmdUpdateItemSlot.cs" />
+    <Compile Include="Cmd\CmdUpdateLastPlayerGame.cs" />
+    <Compile Include="Cmd\CmdUpdateLegacyTikiShopPoint.cs" />
+    <Compile Include="Cmd\CmdUpdateLevelAndExp.cs" />
+    <Compile Include="Cmd\CmdUpdateLoginReward.cs" />
+    <Compile Include="Cmd\CmdUpdateLoginRewardPlayer.cs" />
+    <Compile Include="Cmd\CmdUpdateMapStatistics.cs" />
+    <Compile Include="Cmd\CmdUpdateMascotEquiped.cs" />
+    <Compile Include="Cmd\CmdUpdateMascotInfo.cs" />
+    <Compile Include="Cmd\CmdUpdateMascotTime.cs" />
+    <Compile Include="Cmd\CmdUpdateNormalTrofel.cs" />
+    <Compile Include="Cmd\CmdUpdatePang.cs" />
+    <Compile Include="Cmd\CmdUpdatePapelShopConfig.cs" />
+    <Compile Include="Cmd\CmdUpdatePapelShopInfo.cs" />
+    <Compile Include="Cmd\CmdUpdatePlayerLocation.cs" />
+    <Compile Include="Cmd\CmdUpdatePosterEquiped.cs" />
+    <Compile Include="Cmd\CmdUpdatePremiumTicketTime.cs" />
+    <Compile Include="Cmd\CmdUpdateQuestUser.cs" />
+    <Compile Include="Cmd\CmdUpdateSkinEquiped.cs" />
+    <Compile Include="Cmd\CmdUpdateTreasureHunterCoursePoint.cs" />
+    <Compile Include="Cmd\CmdUpdateTrofelEspecialQntd.cs" />
+    <Compile Include="Cmd\CmdUpdateTutorial.cs" />
+    <Compile Include="Cmd\CmdUpdateUCC.cs" />
+    <Compile Include="Cmd\CmdUpdateUserInfo.cs" />
+    <Compile Include="Cmd\CmdUseItemBuff.cs" />
+    <Compile Include="Cmd\CmdUserEquip.cs" />
+    <Compile Include="Cmd\CmdUserInfo.cs" />
+    <Compile Include="Cmd\CmdWarehouseItem.cs" />
+    <Compile Include="GameType\approach_type.cs" />
+    <Compile Include="GameType\bot_gm_event_type.cs" />
+    <Compile Include="GameType\card_type.cs" />
+    <Compile Include="GameType\comet_refill_type.cs" />
+    <Compile Include="GameType\guild_type.cs" />
+    <Compile Include="GameType\game_type.cs" />
+    <Compile Include="GameType\hole_type.cs" />
+    <Compile Include="GameType\login_reward_type.cs" />
+    <Compile Include="GameType\memorial_type.cs" />
+    <Compile Include="GameType\papel_shop_type.cs" />
+    <Compile Include="Cmd\CmdDeleteRental.cs" />
+    <Compile Include="Cmd\CmdPayCaddieHolyDay.cs" />
+    <Compile Include="GameType\tourney_base_type.cs" />
+    <Compile Include="Game\Base\TourneyBase.cs" />
+    <Compile Include="Game\Base\VersusBase.cs" />
+    <Compile Include="Game\Course.cs" />
+    <Compile Include="Game\Dupla.cs" />
+    <Compile Include="Game\Hole.cs" />
+    <Compile Include="Game\Manager\CardEquipManager.cs" />
+    <Compile Include="Game\Manager\CardManager.cs" />
+    <Compile Include="Game\Manager\CometRefillSystem.cs" />
+    <Compile Include="Game\Manager\DuplaManager.cs" />
+    <Compile Include="Game\Manager\item_manager.cs" />
+    <Compile Include="Game\Manager\MailBoxManager.cs" />
+    <Compile Include="Game\Manager\PersonalShopManager.cs" />
+    <Compile Include="Game\Manager\RoomBotGMEvent.cs" />
+    <Compile Include="Game\Manager\RoomManager.cs" />
+    <Compile Include="Game\personal_shop.cs" />
+    <Compile Include="Game\Practice.cs" />
+    <Compile Include="Game\System\BotGMEventSystem.cs" />
+    <Compile Include="Game\System\CardSystem.cs" />
+    <Compile Include="Game\System\CubeCoinSystem.cs" />
+    <Compile Include="Game\System\DropSystem.cs" />
+    <Compile Include="Game\System\GameMasterSystem.cs" />
+    <Compile Include="Game\System\LoginRewardSystem.cs" />
+    <Compile Include="Game\System\LoginSystem.cs" />
+    <Compile Include="Game\Channel.cs" />
+    <Compile Include="Game\System\AttendanceRewardSystem.cs" />
+    <Compile Include="Game\Manager\CaddieManager.cs" />
+    <Compile Include="Game\Manager\CharacterManager.cs" />
+    <Compile Include="Game\Manager\GuildRoomManager.cs" />
+    <Compile Include="Game\Manager\MascotManager.cs" />
+    <Compile Include="Game\Manager\PlayerMailBox.cs" />
+    <Compile Include="Game\Manager\WarehouseManager.cs" />
+    <Compile Include="Game\Game.cs" />
+    <Compile Include="Game\Room.cs" />
+    <Compile Include="Game\System\MapSystem.cs" />
+    <Compile Include="Game\System\MemorialSystem.cs" />
+    <Compile Include="Game\System\PapelSystem.cs" />
+    <Compile Include="Game\System\PremiumSystem.cs" />
+    <Compile Include="Game\System\TreasureHunterSystem.cs" />
+    <Compile Include="Game\System\UCCSystem.cs" />
+    <Compile Include="Game\Team.cs" />
+    <Compile Include="Game\Tourney.cs" />
+    <Compile Include="Game\Utils\BroadCastList.cs" />
+    <Compile Include="Game\Utils\Lottery.cs" />
+    <Compile Include="Game\Utils\Lottery_1.cs" />
+    <Compile Include="Game\Utils\MgrAchievement.cs" />
+    <Compile Include="Game\Utils\MultMap.cs" />
+    <Compile Include="Game\Utils\RandomGen.cs" />
+    <Compile Include="Game\Guild.cs" />
+    <Compile Include="Game\Versus.cs" />
+    <Compile Include="PacketFunc\packet_func_gs.cs" />
+    <Compile Include="PangyaEnums\COMMAND_CMD_GM.cs" />
+    <Compile Include="PangyaEnums\CapabilityFlags.cs" />
+    <Compile Include="PangyaEnums\PacketGame.cs" />
+    <Compile Include="GameType\GMInfo.cs" />
+    <Compile Include="GameType\pangya_game_st.cs" />
+    <Compile Include="GameType\PlayerInfo.cs" />
+    <Compile Include="PangyaEnums\PlaceFlags.cs" />
+    <Compile Include="PangyaEnums\PlayerLevelEnum.cs" />
+    <Compile Include="PangyaEnums\PlayerRoomAction.cs" />
+    <Compile Include="PangyaEnums\TGAME_CREATE_RESULT.cs" />
+    <Compile Include="PangyaEnums\TPLAYER_ACTION.cs" />
+    <Compile Include="Session\Player.cs" />
+    <Compile Include="Game Server.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="GameServerTcp\GameServer.cs" />
+    <Compile Include="Session\player_manager.cs" />
+    <Compile Include="UTIL\PangyaTimer.cs" />
+    <Compile Include="UTIL\timer_manager.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PangyaAPI\PangyaAPI.IFF.JP\PangyaAPI.IFF.JP.csproj">
+      <Project>{03210c5a-2661-4bb2-b3b5-c49603e422f3}</Project>
+      <Name>PangyaAPI.IFF.JP</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\PangyaAPI\PangyaAPI.Network\PangyaAPI.Network.csproj">
+      <Project>{fe218d80-0679-47e0-bed2-284bba6fe8aa}</Project>
+      <Name>PangyaAPI.Network</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\PangyaAPI\PangyaAPI.SQL\PangyaAPI.SQL.csproj">
+      <Project>{a3fe3da6-5099-4a65-8734-d43513e23ffb}</Project>
+      <Name>PangyaAPI.SQL</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\PangyaAPI\PangyaAPI.Utilities\PangyaAPI.Utilities.csproj">
+      <Project>{1e2be994-1794-47ce-b66b-65f02d42570c}</Project>
+      <Name>PangyaAPI.Utilities</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.8">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4.8 %28x86 e x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

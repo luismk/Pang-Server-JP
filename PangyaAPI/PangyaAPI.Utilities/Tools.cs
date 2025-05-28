@@ -1,20 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Sockets;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
-using System.Runtime.InteropServices;
-using System.Data;
-using System.Web.UI.WebControls.WebParts;
-using System.Net.Sockets;
-using System.Globalization;
-using PangyaAPI.Utilities.BinaryModels;
-using System.Diagnostics.Contracts;
-using System.Diagnostics;
 
 namespace PangyaAPI.Utilities
 {
@@ -38,38 +33,21 @@ namespace PangyaAPI.Utilities
         private static extern int getsockopt(IntPtr s, int level, int optname, ref int optval, ref int optlen);
         public static (bool check, byte[] _buffer, int len) Read(this TcpClient client)
         {
-            return client.GetStream().Read();
-        }
-        public static bool Send(this TcpClient client, byte[] buffer, int offset, int len)
-        {
-            return client.GetStream().Send(buffer, offset, len);
+            if (client.Client.Connected)
+                return client.GetStream().Read();
+            else
+                return (false, new byte[0], 0);
         }
         public static bool Send(this TcpClient client, byte[] buffer, int len = 0)
         {
-            Debug.WriteLine("Send=>" + buffer.HexDump());
-            return client.GetStream().Send(buffer, 0, len);
-        }
-        public static bool Send(this TcpClient client, byte[] buffer)
-        {
-            return client.GetStream().Send(buffer);
-        }
-        public static bool Send(this NetworkStream stream, byte[] buffer)
-        {
             try
             {
-                stream.Write(buffer, 0, buffer.Length);
-
-                return (true);
+                // Debug.WriteLine("Send=>" + buffer.HexDump());
+                return client.GetStream().Send(buffer, 0, len);
             }
-            catch (IOException ioEx)
+            catch (Exception e)
             {
-                Debug.WriteLine($"[Send] Erro de leitura: {ioEx.Message}");
-                return (false);
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[Send] Erro inesperado: {ex.Message}");
-                return (false);
+                throw e;
             }
         }
 
@@ -77,7 +55,8 @@ namespace PangyaAPI.Utilities
         {
             try
             {
-                stream.Write(buffer, offset, len);
+                if (stream.CanWrite)
+                    stream.Write(buffer, offset, len);
 
                 return (true);
             }
@@ -92,8 +71,11 @@ namespace PangyaAPI.Utilities
                 return (false);
             }
         }
-        public static (bool check, byte[] _buffer, int len) Read(this NetworkStream stream)
+        public static (bool Success, byte[] Buffer, int Length) Read(this NetworkStream stream)
         {
+            if (!stream.CanRead)
+                Debug.WriteLine($"[Read] Erro de leitura de stream");
+
             try
             {
                 byte[] buffer = new byte[500000];
@@ -101,24 +83,31 @@ namespace PangyaAPI.Utilities
 
                 if (bytesRead == 0)
                 {
-                    Debug.WriteLine("O cliente desconectou durante a leitura.");
-                    return (false, new byte[0], 0);
+                    Debug.WriteLine("[Read] Cliente desconectou durante a leitura.");
+                    return (false, Array.Empty<byte>(), 0);
                 }
-                buffer = buffer.Take(bytesRead).ToArray();
-                return (true, buffer.Take(bytesRead).ToArray(), bytesRead);
+
+                byte[] result = new byte[bytesRead];
+                Array.Copy(buffer, result, bytesRead);
+
+                return (true, result, bytesRead);
+            }
+            catch (IOException ioEx) when (ioEx.InnerException is SocketException sockEx)
+            {
+                Debug.WriteLine($"[Read] Socket encerrado pelo cliente: {sockEx.SocketErrorCode} - {sockEx.Message}");
+                return (false, Array.Empty<byte>(), 0);
             }
             catch (IOException ioEx)
             {
-                Debug.WriteLine($"[Read] Erro de leitura: {ioEx.Message}");
-                return (false, new byte[0], 0);
+                Debug.WriteLine($"[Read] Erro de leitura de stream: {ioEx.Message}");
+                return (false, Array.Empty<byte>(), 0);
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"[Read] Erro inesperado: {ex.Message}");
-                return (false, new byte[0], 0);
+                return (false, Array.Empty<byte>(), 0);
             }
         }
-
         // Função para obter o tempo de conexão
         public static int GetConnectTime(this TcpClient socket)
         {
@@ -254,6 +243,17 @@ namespace PangyaAPI.Utilities
     }
     public class UtilTime
     {
+        /// <summary>
+        /// Retorna o timestamp Unix (em segundos) da hora local atual.
+        /// </summary>
+        /// <returns>Timestamp Unix como uint.</returns>
+        public static uint GetLocalTimeAsUnix()
+        {
+            DateTime localNow = DateTime.Now;
+            DateTimeOffset localOffset = new DateTimeOffset(localNow);
+            return (uint)localOffset.ToUnixTimeSeconds();
+        }
+
         public static int TranslateDate(string dateSrc, ref DateTime dateDst)
         {
             if (dateSrc == null)
@@ -300,7 +300,7 @@ namespace PangyaAPI.Utilities
         public static long GetTimeDiff(DateTime st1, DateTime st2)
         {
             TimeSpan diff = st1 - st2;
-            return diff.Ticks / TimeSpan.TicksPerMillisecond;
+            return diff.Ticks / 10;
         }
 
 
@@ -312,13 +312,21 @@ namespace PangyaAPI.Utilities
             return (long)timeSpan.TotalSeconds;
         }
 
-
-        public static DateTime UnixTimeConvert(long unixtime)
+        public static long UnixTimeConvert(long unixtime)
         {
-            DateTime dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-            dtDateTime = dtDateTime.AddMilliseconds(unixtime).ToLocalTime();
-            return dtDateTime;
+            // Converte Unix timestamp (segundos) para DateTime em UTC
+            return DateTimeOffset.FromUnixTimeSeconds(unixtime).ToUnixTimeMilliseconds();
         }
+         public static long UnixTimeConvert(DateTime dateTime)
+        {
+            // Garante que o DateTime seja tratado como UTC
+            DateTimeOffset offset = dateTime.Kind == DateTimeKind.Unspecified
+                ? new DateTimeOffset(DateTime.SpecifyKind(dateTime, DateTimeKind.Local))
+                : new DateTimeOffset(dateTime);
+
+            return offset.ToUnixTimeMilliseconds();
+        }
+
 
         public static long DateTimeToUnixTimestamp(DateTime dateTime)
         {
@@ -476,6 +484,28 @@ namespace PangyaAPI.Utilities
         {
             return SystemTimeToUnix(DateTime.UtcNow);
         }
+
+        public static void GetLocalTime(out DateTime time)
+        {
+            time = DateTime.Now;
+        }
+
+        public static DateTime UnixToSystemTime(long unixTime)
+        {
+            return DateTimeOffset.FromUnixTimeSeconds(unixTime).DateTime;
+        }
+
+        public static long GetLocalTimeDiffDESC(DateTime time)
+        {
+            return (long)(DateTime.Now - time).TotalMilliseconds;
+        }
+
+        public static long GetLocalTimeDiff(DateTime dateTime)
+        {
+            // Cada Tick = 100 nanosegundos = 0.1 microssegundo
+            return DateTime.Now.Ticks - dateTime.Ticks;
+        }
+
     }
     public static class Tools
     {
@@ -500,6 +530,16 @@ namespace PangyaAPI.Utilities
             return new KeyValuePair<TKey, TValue>(key, value);
         }
 
+        public static bool TryAdd<TKey, TValue>(this Dictionary<TKey, TValue> pairs, TKey key, TValue value)
+        {
+            if (pairs.ContainsKey(key))
+                pairs[key] = value; // Atualiza o valor se a chave já existir
+            else
+                pairs.Add(key, value); // Adiciona a chave se não existir
+
+            return pairs.ContainsKey(key);
+        }
+
 
         public static KeyValuePair<TKey, TValue> insert<TKey, TValue>(this Dictionary<TKey, TValue> pairs, Tuple<TKey, TValue> tuple)
         {
@@ -521,7 +561,18 @@ namespace PangyaAPI.Utilities
         }
         public static KeyValuePair<TKey, TValue> end<TKey, TValue>(this Dictionary<TKey, TValue> pairs)
         {
-            return pairs.Last(); // Retorna true se o dicionário estiver vazio
+            try
+            {
+                if (pairs.Count > 0)
+                    return pairs.Last(); // Retorna true se o dicionário estiver vazio
+                else
+                    return new KeyValuePair<TKey, TValue>();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(Environment.StackTrace);
+                throw ex;
+            }
         }
 
         public static KeyValuePair<TKey, TValue> find<TKey, TValue>(this Dictionary<TKey, TValue> pairs, object value)
@@ -600,6 +651,33 @@ namespace PangyaAPI.Utilities
             return Marshal.SizeOf(t);
         }
 
+        public static T reinterpret_cast<T>(object obj) where T : class
+        {
+            return obj as T;
+        }
+
+        public static byte[] StructArrayToByteArray<T>(T[] array) where T : struct
+        {
+            int size = Marshal.SizeOf<T>() * array.Length;
+            byte[] buffer = new byte[size];
+            IntPtr ptr = Marshal.AllocHGlobal(size);
+
+            try
+            {
+                for (int i = 0; i < array.Length; i++)
+                {
+                    Marshal.StructureToPtr(array[i], ptr + i * Marshal.SizeOf<T>(), false);
+                }
+                Marshal.Copy(ptr, buffer, 0, size);
+            }
+            finally
+            {
+                Marshal.FreeHGlobal(ptr);
+            }
+
+            return buffer;
+        }
+
         public static T memcpy<T>(byte[] buffer, int offset = 0) where T : class
         {
             int size = Marshal.SizeOf<T>();
@@ -621,6 +699,30 @@ namespace PangyaAPI.Utilities
             }
         }
 
+        public static ushort[] CopyShortToUShort(short[] source)
+        {
+            // Converte o short[] para ushort[]
+            ushort[] dest = new ushort[source.Length];
+            for (int i = 0; i < source.Length; i++)
+            {
+                dest[i] = (ushort)source[i];
+            }
+            return dest;
+        }
+
+        public static void Shuffle<T>(List<T> list)
+        {
+            Random rng = new Random((int)DateTime.Now.Ticks);
+            int n = list.Count;
+            while (n > 1)
+            {
+                n--;
+                int k = rng.Next(n + 1);
+                T value = list[k];
+                list[k] = list[n];
+                list[n] = value;
+            }
+        }
         public static byte[] Slice(this byte[] source, uint startIndex)
         {
             byte[] result = new byte[source.Length - startIndex];
@@ -631,7 +733,7 @@ namespace PangyaAPI.Utilities
         public static byte[] memcpy(this byte[] source, int len)
         {
             byte[] result = new byte[len];
-            
+
             Buffer.BlockCopy(source, 0, result, 0, len);
             return result;
         }

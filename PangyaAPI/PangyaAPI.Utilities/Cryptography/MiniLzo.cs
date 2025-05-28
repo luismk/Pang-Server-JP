@@ -30,7 +30,6 @@
 namespace PangyaAPI.Utilities.Cryptography
 {
     using System;
-    using System.IO;
     public static class Lzo
     {
         #region Decompression

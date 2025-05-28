@@ -1,20 +1,11 @@
-﻿
-using PangyaAPI.Network.Pangya_St;
-using PangyaAPI.SQL;
-
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using PangyaAPI.SQL;
 
 namespace PangyaAPI.Network.Cmd
 {
-    public class CmdUpdateCharacterEquiped: Pangya_DB
+    public class CmdUpdateCharacterEquiped : Pangya_DB
     {
         uint m_uid;
-        int m_character_id; 
+        int m_character_id;
         public CmdUpdateCharacterEquiped(uint _uid, int character_id)
         {
             m_uid = _uid;
@@ -30,9 +21,9 @@ namespace PangyaAPI.Network.Cmd
         protected override Response prepareConsulta()
         {
 
-            var r = procedure("pangya.USP_FLUSH_CHARACTER", 
+            var r = procedure("pangya.USP_FLUSH_CHARACTER",
                 m_uid.ToString() + ", " +
-                m_character_id.ToString() );
+                m_character_id.ToString());
             checkResponse(r, "nao conseguiu atualizar o character[ID=" + (m_character_id) + "] equipado do player: " + (m_uid));
             return r;
         }

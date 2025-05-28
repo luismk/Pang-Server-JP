@@ -89,11 +89,11 @@
     <Compile Include="PangyaSt\Pangya_St.cs" />
     <Compile Include="PangyaSt\sIff.cs" />
     <Compile Include="PangyaPacket\pangya_packet_handle_base.cs" />
-    <Compile Include="PangyaPacket\pangya_packet_packet_handle_server.cs" />
     <Compile Include="PangyaUnit\unit.cs" />
     <Compile Include="PangyaUnit\unit_auth_interface.cs" />
     <Compile Include="PangyaUnit\unit_auth_server_connect.cs" />
     <Compile Include="PangyaUnit\unit_connect.cs" />
+    <Compile Include="PangyaUtil\ConfigDDos.cs" />
     <Compile Include="PangyaUtil\PangyaBuffer.cs" />
     <Compile Include="PangyaUtil\WinPort.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

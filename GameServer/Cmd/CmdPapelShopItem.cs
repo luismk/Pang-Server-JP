@@ -1,7 +1,7 @@
-﻿using GameServer.GameType;
+﻿using System.Collections.Generic;
+using Pangya_GameServer.GameType;
 using PangyaAPI.SQL;
-using System.Collections.Generic;
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     public class CmdPapelShopItem : Pangya_DB
     {
@@ -9,11 +9,7 @@ namespace GameServer.Cmd
         {
             this.m_ctx_psi = new List<ctx_papel_shop_item>();
         }
-
-        public virtual void Dispose()
-        {
-        }
-
+         
         public List<ctx_papel_shop_item> getInfo()
         {
             return m_ctx_psi;

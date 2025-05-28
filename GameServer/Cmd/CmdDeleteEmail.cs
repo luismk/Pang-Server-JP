@@ -1,8 +1,8 @@
-﻿using PangyaAPI.SQL;
+﻿using System;
+using PangyaAPI.SQL;
 using PangyaAPI.Utilities;
-using System;
 
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     public class CmdDeleteEmail : Pangya_DB
     {
@@ -92,7 +92,7 @@ namespace GameServer.Cmd
             }
 
             m_count = _count;
-            m_email_id = _email_id; 
+            m_email_id = _email_id;
         }
 
         public uint getCount()
@@ -142,7 +142,7 @@ namespace GameServer.Cmd
 
         private uint m_uid = 0;
         private uint[] m_email_id;
-        private uint m_count =0;
+        private uint m_count = 0;
 
         private string[] m_szConsulta = { "UPDATE pangya.pangya_gift_table SET valid = 0 WHERE uid = ", " AND Msg_ID IN(", ")" };
     }

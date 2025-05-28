@@ -1,20 +1,14 @@
-﻿using PangyaAPI.Network.Pangya_St;
+﻿using System;
+using PangyaAPI.Network.Pangya_St;
 using PangyaAPI.SQL;
-
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PangyaAPI.Network.Cmd
 {
-    public class CmdChatMacroUser: Pangya_DB
+    public class CmdChatMacroUser : Pangya_DB
     {
         uint m_uid = 0;
-        chat_macro_user m_macro_user;                
-        public CmdChatMacroUser(uint _uid) 
+        chat_macro_user m_macro_user;
+        public CmdChatMacroUser(uint _uid)
         {
             m_macro_user = new chat_macro_user();
             m_uid = _uid;

@@ -1,11 +1,12 @@
-﻿using GameServer.GameType;
-using GameServer.Session;
+﻿using System;
+using System.Linq;
+using Pangya_GameServer.GameType;
+using Pangya_GameServer.PacketFunc;
+using Pangya_GameServer.Session;
 using PangyaAPI.Utilities;
 using PangyaAPI.Utilities.BinaryModels;
-using System;
-using System.Linq;
-using static GameServer.GameType._Define;
-namespace GameServer.Game.System
+using static Pangya_GameServer.GameType._Define;
+namespace Pangya_GameServer.Game.System
 {
     public class PremiumSystem
     {
@@ -167,7 +168,7 @@ namespace GameServer.Game.System
                 // // Atualiza Capability do player
                 // packet p = new packet((ushort)0x9A);
 
-                // p.addUint32(_session.m_pi.m_cap.ulCapability);
+                // p.WriteUint32(_session.m_pi.m_cap.ulCapability);
 
                 // packet_func.session_send(p,
                 //     _session, 1);
@@ -177,19 +178,19 @@ namespace GameServer.Game.System
 
                 //     p.init_plain((ushort)0x216);
 
-                //     p.addUint32((uint)GetSystemTimeAsUnix());
-                //     p.addUint32((uint)add_itens.Count); // Count
+                //     p.WriteUint32((uint)GetSystemTimeAsUnix());
+                //     p.WriteUint32((uint)add_itens.Count); // Count
 
                 //     foreach (var el in add_itens)
                 //     {
 
-                //         p.addUint8(el.type);
-                //         p.addUint32(el._typeid);
-                //         p.addUint32(el.id);
-                //         p.addUint32(el.flag_time);
-                //         p.addBuffer(el.stat, sizeof(stItem.item_stat));
-                //         p.addUint32((el.flag_time == 0) ? el.c[0] : el.c[3]);
-                //         p.addZeroByte(25);
+                //         p.WriteByte(el.type);
+                //         p.WriteUint32(el._typeid);
+                //         p.WriteUint32(el.id);
+                //         p.WriteUint32(el.flag_time);
+                //         p.WriteBuffer(el.stat, sizeof(stItem.item_stat));
+                //         p.WriteUint32((el.flag_time == 0) ? el.c[0] : el.c[3]);
+                //         p.WriteZeroByte(25);
                 //     }
 
                 //     packet_func.session_send(p,
@@ -450,16 +451,16 @@ namespace GameServer.Game.System
 
             //        packet p = new packet((ushort)0x216);
 
-            //        p.addUint32((uint)GetSystemTimeAsUnix());
-            //        p.addUint32(1); // Count
+            //        p.WriteUint32((uint)GetSystemTimeAsUnix());
+            //        p.WriteUint32(1); // Count
 
-            //        p.addUint8(item.type);
-            //        p.addUint32(item._typeid);
-            //        p.addInt32(item.id);
-            //        p.addUint32(item.flag_time);
-            //        p.addBuffer(item.stat, sizeof(stdA.stItem.item_stat));
-            //        p.addUint32((item.c[3] > 0) ? item.c[3] : item.c[0]);
-            //        p.addZeroByte(25);
+            //        p.WriteByte(item.type);
+            //        p.WriteUint32(item._typeid);
+            //        p.WriteInt32(item.id);
+            //        p.WriteUint32(item.flag_time);
+            //        p.WriteBuffer(item.stat, sizeof(stdA.stItem.item_stat));
+            //        p.WriteUint32((item.c[3] > 0) ? item.c[3] : item.c[0]);
+            //        p.WriteZeroByte(25);
 
             //        packet_func.session_send(p,
             //            _session, 1);
@@ -482,7 +483,7 @@ namespace GameServer.Game.System
             //    List<stItem> add_itens = new List<stItem>();
 
             // Flag Premium User
-            _session.m_pi.mi.capability.premium_user = true;     
+            _session.m_pi.mi.capability.premium_user = true;
 
             //    // Add Ball
             //    var new_ball = addPremiumBall(_session);
@@ -500,26 +501,26 @@ namespace GameServer.Game.System
 
             p.WriteInt32(_session.m_pi.m_cap.ulCapability);
 
-            _session.Send(p);
+            packet_func.session_send(p, _session);
 
             //    if (add_itens.Count > 0)
             //    {
 
             //        p.init_plain((ushort)0x216);
 
-            //        p.addUint32((uint)GetSystemTimeAsUnix());
-            //        p.addUint32((uint)add_itens.Count); // Count
+            //        p.WriteUint32((uint)GetSystemTimeAsUnix());
+            //        p.WriteUint32((uint)add_itens.Count); // Count
 
             //        foreach (var el in add_itens)
             //        {
 
-            //            p.addUint8(el.type);
-            //            p.addUint32(el._typeid);
-            //            p.addUint32(el.id);
-            //            p.addUint32(el.flag_time);
-            //            p.addBuffer(el.stat, sizeof(stItem.item_stat));
-            //            p.addUint32((el.flag_time == 0) ? el.c[0] : el.c[3]);
-            //            p.addZeroByte(25);
+            //            p.WriteByte(el.type);
+            //            p.WriteUint32(el._typeid);
+            //            p.WriteUint32(el.id);
+            //            p.WriteUint32(el.flag_time);
+            //            p.WriteBuffer(el.stat, sizeof(stItem.item_stat));
+            //            p.WriteUint32((el.flag_time == 0) ? el.c[0] : el.c[3]);
+            //            p.WriteZeroByte(25);
             //        }
 
             //        packet_func.session_send(p,
@@ -598,14 +599,20 @@ namespace GameServer.Game.System
             return _typeid == PREMIUM_BALL_TYPEID || _typeid == PREMIUM_2_BALL_TYPEID;
         }
 
-        public bool isPremium1(uint _typeid)
+        bool isPremium1(uint _typeid)
         {
             return _typeid == PREMIUM_TICKET_TYPEID;
         }
 
-        public bool isPremium2(uint _typeid)
+        bool isPremium2(uint _typeid)
         {
             return _typeid == PREMIUM_2_TICKET_TYPEID;
+        }
+
+        public bool isPremium(uint typeid)
+        {
+            var res = isPremium1(typeid) || isPremium2(typeid);
+            return res;
         }
     }
     public class sPremiumSystem : Singleton<PremiumSystem>

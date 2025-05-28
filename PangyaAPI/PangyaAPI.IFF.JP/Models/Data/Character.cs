@@ -1,5 +1,5 @@
-﻿using PangyaAPI.IFF.JP.Models.General;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
+using PangyaAPI.IFF.JP.Models.General;
 namespace PangyaAPI.IFF.JP.Models.Data
 {
 
@@ -23,7 +23,7 @@ namespace PangyaAPI.IFF.JP.Models.Data
         public byte NumberParts { get; set; }
         public byte NumberAcessory { get; set; }
         public int ClubType { get; set; }
-        public float ClubScale { get; set; }       
+        public float ClubScale { get; set; }
         public byte PowerSlot { get; set; }
         public byte ControlSlot { get; set; }
         public byte ImpactSlot { get; set; }

@@ -1,15 +1,20 @@
-﻿using GameServer.GameType;
-using PangyaAPI.Utilities;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System;
-using _smp = PangyaAPI.Utilities.Log;
-using GameServer.Session;
+using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading;
+using Pangya_GameServer.GameType;
+using Pangya_GameServer.PacketFunc;
+using Pangya_GameServer.Session;
+using PangyaAPI.Network.PangyaPacket;
+using PangyaAPI.Network.PangyaSession;
+using PangyaAPI.Utilities;
 using PangyaAPI.Utilities.BinaryModels;
 using PangyaAPI.Utilities.Log;
-using GameServer.PacketFunc;
-using PangyaAPI.Network.PangyaPacket;
-namespace GameServer.Game.Manager
+using static System.Collections.Specialized.BitVector32;
+using _smp = PangyaAPI.Utilities.Log;
+namespace Pangya_GameServer.Game.Manager
 {
     public partial class PersonalShopManager
     {
@@ -31,12 +36,6 @@ namespace GameServer.Game.Manager
                 this.m_type = _type;
 
                 m_manager.spinUp(m_owner_uid, m_type);
-            }
-
-            public void Dispose()
-            {
-
-                m_manager.spinDown(m_owner_uid, m_type);
             }
 
             protected PersonalShopManager m_manager;
@@ -66,16 +65,10 @@ namespace GameServer.Game.Manager
             this.m_ri = _ri;
             this.mapShop = new Dictionary<Player, PersonalShopCtx>();
         }
-
-        public void Dispose()
-        {
-
-            destroy();
-        }
+         
 
         public void destroy()
-        {
-
+        { 
             clear_shops();
         }
 
@@ -294,33 +287,26 @@ namespace GameServer.Game.Manager
 
             PlayerRoomInfo.PersonShop person = new PlayerRoomInfo.PersonShop() { active = 0u };
 
-            do
+            if ((RoomInfo.TIPO)m_ri.tipo != RoomInfo.TIPO.LOUNGE)
             {
+                return person;
+            }
 
-                if ((RoomInfo.TIPO)m_ri.tipo != RoomInfo.TIPO.LOUNGE)
-                {
-                    break;
-                }
+            var ps = findShop(_session);
 
-                var ps = findShop(_session);
+            if (ps == null)
+            {
+                return person;
+            }
 
-                if (ps == null)
-                {
-                    break;
-                }
-
-                if (ps.getState() == PersonalShop.STATE.OPEN_EDIT)
-                {
-                    break;
-                }
-
-                person.active = 1u;
-                person.name =  ps.getName();
-
-            } while (false);
-
-            // C++ TO C# CONVERTER TASK: The following line was determined to contain a copy constructor call - this should be verified and a copy constructor should be created:
-            // ORIGINAL LINE: return person;
+            if (ps != null && ps.getState() == PersonalShop.STATE.OPEN_EDIT)
+            {
+                return person;
+            }
+            else { 
+            person.active = 1u;
+            person.name = ps.getName();
+            }
             return person;
         }
 
@@ -375,7 +361,7 @@ namespace GameServer.Game.Manager
                         3, 0));
                 }
 
-                if (mapShop.Count >= (uint)(m_ri.max_Player * 0.8f))
+                if (mapShop.Count >= (uint)(m_ri.max_player * 0.8f))
                 {
                     throw new exception("[PersonalShopManager::openShopToEdit][Log] player[UID=" + Convert.ToString(_session.m_pi.uid) + "] chegou no limite de shop(s) permitidos na sala[NUMERO=" + Convert.ToString(m_ri.numero) + "]", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PERSONAL_SHOP_MANAGER,
                         101, 5200102));
@@ -400,7 +386,7 @@ namespace GameServer.Game.Manager
                     var r = new PersonalShopCtx(new PersonalShop(_session), eTYPE_LOCK.TL_SELECT, 1);
                     // Cria um Personal Shop para o player, por que ele não tem 1
                     mapShop.Add(_session, r);
-                     if (r != null)
+                    if (r != null)
                     {
 
                         // unlock
@@ -440,7 +426,7 @@ namespace GameServer.Game.Manager
 
                 p.init_plain((ushort)0xE5);
 
-                p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) == (uint)STDA_ERROR_TYPE.PERSONAL_SHOP_MANAGER) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE_TYPE(e.getCodeError()) : 5200100);
+                p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) == STDA_ERROR_TYPE.PERSONAL_SHOP_MANAGER) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE_TYPE(e.getCodeError()) : 5200100);
 
                 packet_func.session_send(p,
                     _session, 1);
@@ -449,7 +435,7 @@ namespace GameServer.Game.Manager
             return false;
         }
 
-        public bool cancelEditShop(Player _session,ref PangyaBinaryWriter _out_packet)
+        public bool cancelEditShop(Player _session, ref PangyaBinaryWriter _out_packet)
         {
 
             Locker _locker = new Locker(this,
@@ -488,7 +474,7 @@ namespace GameServer.Game.Manager
 
                 p.init_plain((ushort)0xE3);
 
-                p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) == (uint)STDA_ERROR_TYPE.PERSONAL_SHOP_MANAGER) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE_TYPE(e.getCodeError()) : 5200400);
+                p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) == STDA_ERROR_TYPE.PERSONAL_SHOP_MANAGER) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE_TYPE(e.getCodeError()) : 5200400);
 
                 packet_func.session_send(p,
                     _session, 1);
@@ -497,7 +483,7 @@ namespace GameServer.Game.Manager
             return false;
         }
 
-        public bool closeShop(Player _session,ref PangyaBinaryWriter _out_packet)
+        public bool closeShop(Player _session, ref PangyaBinaryWriter _out_packet)
         {
 
             Locker _locker = new Locker(this,
@@ -542,7 +528,7 @@ namespace GameServer.Game.Manager
 
                 p.init_plain((ushort)0xE5);
 
-                p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) == (uint)STDA_ERROR_TYPE.PERSONAL_SHOP_MANAGER) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE_TYPE(e.getCodeError()) : 5200150);
+                p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) == STDA_ERROR_TYPE.PERSONAL_SHOP_MANAGER) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE_TYPE(e.getCodeError()) : 5200150);
 
                 packet_func.session_send(p,
                     _session, 1);
@@ -611,7 +597,7 @@ namespace GameServer.Game.Manager
 
                 p.init_plain((ushort)0xE8);
 
-                p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) == (uint)STDA_ERROR_TYPE.PERSONAL_SHOP_MANAGER) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE_TYPE(e.getCodeError()) : 5200200);
+                p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) == STDA_ERROR_TYPE.PERSONAL_SHOP_MANAGER) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE_TYPE(e.getCodeError()) : 5200200);
 
                 packet_func.session_send(p,
                     _session, 1);
@@ -620,14 +606,14 @@ namespace GameServer.Game.Manager
             return false;
         }
 
-        public void openShop(Player _session, Packet _packet)
+        public void openShop(Player _session, packet _packet)
         {
 
             Locker _locker = new Locker(this,
                 _session.m_pi.uid,
                 eTYPE_LOCK.TL_SELECT);
 
-            PangyaBinaryWriter p = new PangyaBinaryWriter();
+            var p = new PangyaBinaryWriter();
             PersonalShopItem psi = new PersonalShopItem();
 
             try
@@ -671,7 +657,7 @@ namespace GameServer.Game.Manager
 
                 p.WriteUInt32(1); // Ok
 
-                p.WritePStr(_session.m_pi.nickname);
+                p.WriteStr(_session.m_pi.nickname, 22);
 
                 p.WriteUInt32(_session.m_pi.uid);
 
@@ -704,14 +690,14 @@ namespace GameServer.Game.Manager
 
                 p.init_plain((ushort)0xEB);
 
-                p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) == (uint)STDA_ERROR_TYPE.PERSONAL_SHOP_MANAGER) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE_TYPE(e.getCodeError()) : 5200250);
+                p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) == STDA_ERROR_TYPE.PERSONAL_SHOP_MANAGER) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE_TYPE(e.getCodeError()) : 5200250);
 
                 packet_func.session_send(p,
                     _session, 1);
             }
         }
 
-        public void buyInShop(Player _session, Packet _packet)
+        public void buyInShop(Player _session, packet _packet)
         {
 
             Locker _locker = new Locker(this,
@@ -725,7 +711,7 @@ namespace GameServer.Game.Manager
 
                 uint owner_uid = _packet.ReadUInt32();
 
-                PersonalShopItem psi =  _packet.Read<PersonalShopItem>();
+                PersonalShopItem psi = _packet.Read<PersonalShopItem>();
 
                 PersonalShop ps = null;
 
@@ -745,7 +731,7 @@ namespace GameServer.Game.Manager
 
                 p.init_plain((ushort)0xEC);
 
-                p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) == (uint)STDA_ERROR_TYPE.PERSONAL_SHOP_MANAGER) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE_TYPE(e.getCodeError()) : 5200550);
+                p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) == STDA_ERROR_TYPE.PERSONAL_SHOP_MANAGER) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE_TYPE(e.getCodeError()) : 5200550);
 
                 packet_func.session_send(p,
                     _session, 1);
@@ -789,7 +775,7 @@ namespace GameServer.Game.Manager
 
                 p.init_plain((ushort)0xE9);
 
-                p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) == (uint)STDA_ERROR_TYPE.PERSONAL_SHOP_MANAGER) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE_TYPE(e.getCodeError()) : 5200300);
+                p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) == STDA_ERROR_TYPE.PERSONAL_SHOP_MANAGER) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE_TYPE(e.getCodeError()) : 5200300);
 
                 packet_func.session_send(p,
                     _session, 1);
@@ -833,7 +819,7 @@ namespace GameServer.Game.Manager
 
                 p.init_plain((ushort)0xEA);
 
-                p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) == (uint)STDA_ERROR_TYPE.PERSONAL_SHOP_MANAGER) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE_TYPE(e.getCodeError()) : 5200350);
+                p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) == STDA_ERROR_TYPE.PERSONAL_SHOP_MANAGER) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE_TYPE(e.getCodeError()) : 5200350);
 
                 packet_func.session_send(p,
                     _session, 1);
@@ -847,7 +833,7 @@ namespace GameServer.Game.Manager
                 _session.m_pi.uid,
                 eTYPE_LOCK.TL_SELECT);
 
-            PangyaBinaryWriter p = new PangyaBinaryWriter();
+            var p = new PangyaBinaryWriter();
 
             try
             {
@@ -907,7 +893,7 @@ namespace GameServer.Game.Manager
 
                 p.init_plain((ushort)0xE6);
 
-                p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) == (uint)STDA_ERROR_TYPE.PERSONAL_SHOP_MANAGER) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE_TYPE(e.getCodeError()) : 5200450);
+                p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) == STDA_ERROR_TYPE.PERSONAL_SHOP_MANAGER) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE_TYPE(e.getCodeError()) : 5200450);
 
                 packet_func.session_send(p,
                     _session, 1);
@@ -953,7 +939,7 @@ namespace GameServer.Game.Manager
 
                 p.init_plain((ushort)0xE7);
 
-                p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) == (uint)STDA_ERROR_TYPE.PERSONAL_SHOP_MANAGER) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE_TYPE(e.getCodeError()) : 5200500);
+                p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) == STDA_ERROR_TYPE.PERSONAL_SHOP_MANAGER) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE_TYPE(e.getCodeError()) : 5200500);
 
                 packet_func.session_send(p,
                     _session, 1);
@@ -962,20 +948,12 @@ namespace GameServer.Game.Manager
 
         protected void @lock()
         {
-#if _WIN32
-				EnterCriticalSection(m_cs);
-#elif __linux__
-				pthread_mutex_lock(m_cs);
-#endif
+            Monitor.Enter(m_cs);
         }
 
         protected void unlock()
         {
-#if _WIN32
-				LeaveCriticalSection(m_cs);
-#elif __linux__
-				pthread_mutex_unlock(m_cs);
-#endif
+            Monitor.Exit(m_cs);
         }
 
         protected void clear_shops()
@@ -986,25 +964,14 @@ namespace GameServer.Game.Manager
 
                 // lock
                 @lock();
+                var keysToRemove = mapShop.Keys.ToList();
 
-                while (mapShop.Any())
+                foreach (var key in keysToRemove)
                 {
-
-                    var it = mapShop.First();
-
-                    if (it.Value.m_type != eTYPE_LOCK.TL_NONE && waitSpinDown())
-                    {
-                        continue;
-                    }
-
-                    if (it.Value.m_shop != null)
-                    {
-                        it.Value.m_shop = null;
-                    }
-
-                    it.Value.m_shop = null;
-
-                    mapShop.Remove(it.Key);
+                    var ctx = mapShop[key];
+                    if (ctx.m_type != eTYPE_LOCK.TL_NONE) continue;
+                    ctx.m_shop = null;
+                    mapShop.Remove(key);
                 }
 
                 // unlock
@@ -1037,7 +1004,7 @@ namespace GameServer.Game.Manager
 
             var it = _findShopIt(_session);
 
-            return (!mapShop.Any()) ? null : it.First().Value.m_shop;
+            return it.Count > 0 ? it.FirstOrDefault().Value.m_shop : new PersonalShop(_session);
         }
 
         protected PersonalShop _findShop(uint _owner_uid)
@@ -1045,196 +1012,126 @@ namespace GameServer.Game.Manager
 
             var it = _findShopIt(_owner_uid);
 
-            return (!mapShop.Any()) ? null : it.First().Value.m_shop;
+            return it.Count > 0 ? it.First().Value.m_shop : null;
         }
 
-        protected Dictionary<Player, PersonalShopCtx> _findShopIt(Player _session)
+        protected Dictionary<Player, PersonalShopCtx> _findShopIt(Player session)
         {
-            return mapShop
-                .Where(shopCtx => shopCtx.Key == _session) // Filtra os elementos
-                .ToDictionary(shopCtx => shopCtx.Key, shopCtx => shopCtx.Value); // Cria um novo dicionário
+            try
+            {
+                @lock();
+                if (!mapShop.ContainsKey(session))
+                {
+                    mapShop[session] = new PersonalShopCtx(new PersonalShop(session), eTYPE_LOCK.TL_NONE, 0);
+                }
+                return new Dictionary<Player, PersonalShopCtx> { { session, mapShop[session] } };
+            }
+            finally { unlock(); }
         }
 
         protected Dictionary<Player, PersonalShopCtx> _findShopIt(uint _owner_uid)
         {
-            return mapShop
-                .Where(shopCtx => shopCtx.Value.m_shop != null && shopCtx.Value.m_shop.getOwner().m_pi.uid == _owner_uid)
-                .ToDictionary(shopCtx => shopCtx.Key, shopCtx => shopCtx.Value);
+            var shopIt = mapShop
+     .FirstOrDefault(shopCtx =>
+     {
+         var shop = shopCtx.Value?.m_shop;
+         if (shop == null) 
+             return false;
+
+         var owner = shop.getOwner();
+         return owner.m_pi.uid == _owner_uid;
+     });
+
+            var dic = new Dictionary<Player, PersonalShopCtx>();
+            if (!shopIt.Equals(default(KeyValuePair<Player, PersonalShopCtx>)))
+            {
+               dic.Add(shopIt.Key, shopIt.Value);
+                return dic;
+            }
+             
+            return dic;
         }
+
 
 
 
         // unsafe thread
         protected void _delete_shop(Player _session)
         {
-            if(mapShop.Any(c => c.Key == _session))
-            _delete_shop(_session);
+            if (mapShop.ContainsKey(_session))
+            {
+                mapShop[_session].m_shop = null;
+                mapShop.Remove(_session);
+            }
         }
-
-        // C++ TO C# CONVERTER TASK: The implementation of the following method could not be found:
-        //			void _delete_shop(System.Collections.Generic.SortedDictionaryIterator< player, PersonalShopCtx > _it_shop);
 
         protected bool waitSpinDown()
         {
+            int attempt = 0;
+            const int max_attempts = 5;
 
-#if _WIN32
-				if(SleepConditionVariableCS(m_cv,
-					m_cs, INFINITE) == 0)
-				{
+            while (attempt < max_attempts)
+            {
+                Thread.Sleep(10);  // Aguarda pequeno tempo
+                attempt++;
+            }
 
-					uint error = GetLastError();
-
-					LeaveCriticalSection((m_cs));
-
-					if(error == ERROR_TIMEOUT)
-					{
-						_smp.message_pool.push(new message("[PersonalShopManager::waitSpinDown][Error] time out, but _milliseconds is INFINITE. wrong and unknown error. Error Code: " + Convert.ToString(error), type_msg.CL_FILE_LOG_AND_CONSOLE));
-					} else
-					{
-						_smp.message_pool.push(new message("[PersonalShopManager::waitSpinDown][Error] ao receber o sinal da condition variable. Error Code: " + Convert.ToString(error), type_msg.CL_FILE_LOG_AND_CONSOLE));
-					}
-
-					return false;
-				}
-#elif __linux__
-				int error = 0;
-				if((error = pthread_cond_wait(m_cv, m_cs)) != 0)
-				{
-
-					pthread_mutex_unlock(m_cs);
-
-					_smp.message_pool.push(new message("[PersonalShopManager::waitSpinDown][Error] ao receber sinal the condition variable. Error Code: " + Convert.ToString(error), type_msg.CL_FILE_LOG_AND_CONSOLE));
-
-					return false;
-				}
-#endif
-
-            return true;
+            return false;  // Depois das tentativas, sai
         }
 
-        protected void wakeAllLocked()
-        {
-#if _WIN32
-				WakeAllConditionVariable(m_cv);
-#elif __linux__
-				pthread_cond_broadcast(m_cv);
-#endif
-        }
 
-        protected void spinUp(uint _owner_uid, eTYPE_LOCK _type)
+        protected void spinUp(uint owner_uid, eTYPE_LOCK type)
         {
-
             try
             {
-
-                 bool bContinue = false;
-                var it = new KeyValuePair<Player, PersonalShopCtx>();
-
-                // lock
                 @lock();
-
-                do
+                var it = _findShopIt(owner_uid);//erro aquii!!!!@@@
+                if (!it.Any()) 
+                    return;
+                var ps = it.First().Value;
+                if (ps.m_type == eTYPE_LOCK.TL_NONE)
                 {
-
-                    it = _findShopIt(_owner_uid).First();
-
-                    if (it.Value == null)
-                    {
-                        break;
-                    } 
-
-                    if (it.Value.m_type == eTYPE_LOCK.TL_NONE)
-                    {
-
-                        it.Value.m_type = _type;
-                        it.Value.m_count = 1;
-
-                    }
-                    else if (it.Value.m_type == eTYPE_LOCK.TL_SELECT && _type == eTYPE_LOCK.TL_SELECT)
-                    {
-                        it.Value.m_count++;
-                    }
-                    else
-                    {
-                        bContinue = waitSpinDown();
-                    }
-
-                } while (bContinue);
-
-                // unlock
-                unlock();
-
+                    ps.m_type = type;
+                    ps.m_count = 1; 
+                }
+                else if (ps.m_type == eTYPE_LOCK.TL_SELECT && type == eTYPE_LOCK.TL_SELECT)
+                {
+                    ps.m_count++; 
+                } 
             }
-            catch (exception e)
-            {
-
-                // unlock
-                unlock();
-
-                _smp.message_pool.push(new message("[PersonalShopManager::spinUp][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
-            }
+            finally { unlock(); }
         }
 
-        protected void spinDown(uint _owner_uid, eTYPE_LOCK _type)
+        protected void spinDown(uint owner_uid, eTYPE_LOCK type)
         {
-
             try
             {
-
-                // C++ TO C# CONVERTER TASK: The typedef 'mapShop' was defined in multiple preprocessor conditionals and cannot be replaced in-line:
-                var it = new KeyValuePair<Player, PersonalShopCtx>();
-
-                // lock
                 @lock();
+                var it = _findShopIt(owner_uid).FirstOrDefault();
+                if (it.Value == null) return;
 
-                do
+                if (it.Value.m_type != type)
                 {
+                    Console.WriteLine($"[spinDown] Type lock mismatch: {it.Value.m_type} != {type}");
+                }
 
-                    it = _findShopIt(_owner_uid).First();
-
-                    if (it.Value == null)
-                    {
-                        break;
-                    }
-
-                    if (it.Value.m_type != _type)
-                    {
-                        _smp.message_pool.push(new message("[PersonalShopManager::spinDown][Error] type lock not match, CTX_TYPE: " + Convert.ToString((uint)it.Value.m_type) + " != " + Convert.ToString((uint)_type), type_msg.CL_FILE_LOG_AND_CONSOLE));
-                    }
-
-                    if (it.Value.m_count <= 1)
-                    {
-
-                        it.Value.m_count = 0;
-                        it.Value.m_type = eTYPE_LOCK.TL_NONE;
-
-                        wakeAllLocked();
-
-                    }
-                    else
-                    {
-                        it.Value.m_count--;
-                    }
-
-                } while (false);
-
-                // unlock
-                unlock();
-
+                if (it.Value.m_count <= 1)
+                {
+                    it.Value.m_count = 0;
+                    it.Value.m_type = eTYPE_LOCK.TL_NONE;
+                }
+                else
+                {
+                    it.Value.m_count--;
+                }
             }
-            catch (exception e)
-            {
-
-                // unlock
-                unlock();
-
-                _smp.message_pool.push(new message("[PersonalShopManager::spinDown][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
-            }
+            finally { unlock(); }
         }
 
         protected Dictionary<Player, PersonalShopCtx> mapShop = new Dictionary<Player, PersonalShopCtx>();
 
         // Owner room info
         protected RoomInfoEx m_ri;
+        private object m_cs = new object();
     }
 }

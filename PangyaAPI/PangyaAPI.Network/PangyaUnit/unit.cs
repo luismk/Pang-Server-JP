@@ -161,11 +161,11 @@
 //            onAcceptCompleted(Session);
 
 
-//            while (Session.getConnected())
+//            while (Session.isConnected())
 //            {
 //                try
 //                {
-//                    if (!Session.getConnected())
+//                    if (!Session.isConnected())
 //                    {
 //                        DisconnectSession(Session);
 //                        break;
@@ -341,7 +341,7 @@
 
 //        protected void DispatchPacketSVThread(SessionBase session, Packet packet)
 //        {
-//            if (session == null || session.getConnected() == false || packet == null)
+//            if (session == null || session.isConnected() == false || packet == null)
 //            {
 //                return;//nao esta mais conectado!
 //            }
@@ -400,7 +400,7 @@
 
 //        protected void DispatchPacketSameThread(SessionBase session, Packet packet)
 //        {
-//            if (session == null || session.getConnected() == false || packet == null)
+//            if (session == null || session.isConnected() == false || packet == null)
 //            {
 //                return;//nao esta mais conectado!
 //            }
@@ -459,7 +459,7 @@
 
 //        protected void DispatchPacket_AS_Thread(SessionBase session, Packet packet)
 //        {
-//            if (session == null || session.getConnected() == false || packet == null)
+//            if (session == null || session.isConnected() == false || packet == null)
 //            {
 //                return;//nao esta mais conectado!
 //            }
@@ -585,7 +585,7 @@
 //            var s = m_session_manager.FindAllSessionByUid(_session.getUID());
 //            foreach (var el in s)
 //            {
-//                if (el.m_oid != _session.m_oid && el.getConnected())
+//                if (el.m_oid != _session.m_oid && el.isConnected())
 //                    return el;
 //            }
 
@@ -722,7 +722,7 @@
 //                // Remove a sessão do gerenciador        
 //                result = m_session_manager.DeleteSession(_session);
 //                if (m_session_manager.m_sessions.Count(c => c.isConnected() == true) != m_session_manager.m_count)
-//                    m_session_manager.m_count = (uint)m_session_manager.m_sessions.Count(c => c.getConnected() == true);
+//                    m_session_manager.m_count = (uint)m_session_manager.m_sessions.Count(c => c.isConnected() == true);
 //            }
 //            catch (Exception ex)
 //            {

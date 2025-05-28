@@ -1,13 +1,13 @@
-﻿using PangyaAPI.SQL;   
-using System;
+﻿using System;
+using PangyaAPI.SQL;
 
 namespace PangyaAPI.Network.Cmd
 {
-    public class CmdAuthKeyGame: Pangya_DB
+    public class CmdAuthKeyGame : Pangya_DB
     {
         string m_auth_key_game;
         uint m_uid;
-        uint m_server_uid;                                               
+        uint m_server_uid;
         public CmdAuthKeyGame(uint _uid, uint _server_uid)
         {
             m_auth_key_game = "";

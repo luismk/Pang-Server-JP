@@ -1,7 +1,7 @@
-﻿using GameServer.GameType;
+﻿using Pangya_GameServer.GameType;
 using PangyaAPI.SQL;
 
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     public class CmdDailyQuestInfo : Pangya_DB
     {

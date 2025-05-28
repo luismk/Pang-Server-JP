@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net.Sockets;
 
 namespace PangyaAPI.Utilities.Log
 {
@@ -102,15 +101,15 @@ namespace PangyaAPI.Utilities.Log
         }
 
 
-       public static void console_log()
+        public static void console_log()
         {
             message m = getMessage();
 
             if (m != null)
             {
-                Console.WriteLine(m.get(), ConsoleColor.Cyan);       
+                Console.WriteLine(m.get(), ConsoleColor.Cyan);
             }
-             
+
         }
         public static void push(string s, type_msg _tipo = type_msg.CL_FILE_LOG_AND_CONSOLE)
         {
@@ -172,7 +171,7 @@ namespace PangyaAPI.Utilities.Log
         }
         static message getMessage() { return getFirstMessage(); }
 
-        static message getFirstMessage() { return m_message.Count> 0? m_message[0]: null; }
+        static message getFirstMessage() { return m_message.Count > 0 ? m_message[0] : null; }
 
         public static bool checkUpdateDayLog()
         {
@@ -189,7 +188,7 @@ namespace PangyaAPI.Utilities.Log
                 {
                     ret = true; date = DateTime.Now;
                 }
-            }    
+            }
             return ret;
         }
     }

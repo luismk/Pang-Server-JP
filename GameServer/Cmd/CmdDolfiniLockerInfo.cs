@@ -1,15 +1,9 @@
-﻿using GameServer.GameType;
-
+﻿using System;
+using Pangya_GameServer.GameType;
 using PangyaAPI.SQL;
 using PangyaAPI.Utilities;
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     public class CmdDolfiniLockerInfo : Pangya_DB
     {
@@ -103,7 +97,7 @@ namespace GameServer.Cmd
 
             checkResponse(r2, "nao conseguiu pegar o dolfini locker item(ns) do player: " + (m_uid));
 
-           
+
             return r;
         }
 

@@ -47,9 +47,9 @@ namespace PangyaAPI.Utilities
             else
             {
                 container = new HashSet<TValue>();
-                this.Add(key, container);                
+                this.Add(key, container);
             }
-            if (container!=null)//checa se esta null antes que eu possa add
+            if (container != null)//checa se esta null antes que eu possa add
                 container.Add(value);
         }
 

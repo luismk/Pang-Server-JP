@@ -1,25 +1,13 @@
-﻿using GameServer.GameType;
-using PangyaAPI.Utilities;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using static GameServer.GameType._Define;
-using System;
-using _smp = PangyaAPI.Utilities.Log;
-using GameServer.Session;
+using Pangya_GameServer.GameType;
+using Pangya_GameServer.Session;
+using PangyaAPI.SQL;
 using PangyaAPI.Utilities.BinaryModels;
 using PangyaAPI.Utilities.Log;
-using GameServer.Game.System;
-using GameServer.Game.Manager;
-using GameServer.PangyaEnums;
-using GameServer.PacketFunc;
-using PangyaAPI.Network.PangyaPacket;
-using PangyaAPI.Network.Pangya_St;
-using PangyaAPI.SQL.Manager;
-using GameServer.Cmd;
-using System.Runtime.InteropServices;
-using PangyaAPI.SQL;
 
-namespace GameServer.Game.Manager
+namespace Pangya_GameServer.Game.Manager
 {
     // Guild Room Manager
     public class GuildRoomManager
@@ -34,7 +22,7 @@ namespace GameServer.Game.Manager
         public GuildRoomManager()
         {
             this.m_dupla_manager = new DuplaManager();
-            this.v_guilds =new List<Guild>();
+            this.v_guilds = new List<Guild>();
             this.m_guild_win = eGUILD_WIN.DRAW;
         }
         public void Dispose()
@@ -42,10 +30,10 @@ namespace GameServer.Game.Manager
 
             if (v_guilds.Any())
             {
-                v_guilds.Clear();            
+                v_guilds.Clear();
             }
         }
-        public Guild addGuild(Guild.eTEAM _team, uint _uid)
+        public Guild addGuild(Guild.eTEAM _team, int _uid)
         {
 
             Guild guild = null;
@@ -53,14 +41,14 @@ namespace GameServer.Game.Manager
 
             v_guilds.Add(new Guild(_uid, _team));
 
-            guild = (v_guilds.FirstOrDefault(c=> c.getUID() == _uid));
+            guild = (v_guilds.FirstOrDefault(c => c.getUID() == _uid));
             return guild;
         }
 
         public Guild addGuild(Guild _guild)
-        {             
+        {
             v_guilds.Add(_guild);
-                     
+
             return _guild;
         }
 
@@ -77,7 +65,7 @@ namespace GameServer.Game.Manager
 
 
 
-            var it =v_guilds.FirstOrDefault(_el =>
+            var it = v_guilds.FirstOrDefault(_el =>
             {
                 return _el.getUID() == _guild.getUID() && (_el) == _guild;
             });
@@ -103,7 +91,7 @@ namespace GameServer.Game.Manager
 
 
 
-            var it =v_guilds.FirstOrDefault(_el =>
+            var it = v_guilds.FirstOrDefault(_el =>
             {
                 return _el.getTeam() == _team;
             });
@@ -118,7 +106,7 @@ namespace GameServer.Game.Manager
 
 
 
-            var it =v_guilds.FirstOrDefault(_el =>
+            var it = v_guilds.FirstOrDefault(_el =>
             {
                 return _el.getUID() == _uid;
             });
@@ -133,7 +121,7 @@ namespace GameServer.Game.Manager
 
 
 
-            var it =v_guilds.FirstOrDefault(_el =>
+            var it = v_guilds.FirstOrDefault(_el =>
             {
                 return _el.findPlayerByUID(_session.m_pi.uid) != null;
             });
@@ -184,7 +172,7 @@ namespace GameServer.Game.Manager
             {
 
                 // Não tem o mesmo número de jogadores na sala as guilds
-                if (last_players != -1  && last_players != el.numPlayers())
+                if (last_players != -1 && last_players != el.numPlayers())
                 {
 
                     ret = -1;
@@ -239,7 +227,7 @@ namespace GameServer.Game.Manager
 
                 if (v_guilds.Last().numPlayers() == 0u
                     || m_dupla_manager.getNumPlayersQuitGuild(v_guilds.Last().getUID()) == v_guilds.Last().numPlayers()
-                    || (v_guilds.First().getPoint() > v_guilds.Last().getPoint() || (v_guilds.First().getPoint() == v_guilds.Last().getPoint()  && v_guilds.First().getPang() > v_guilds.Last().getPang())))
+                    || (v_guilds.First().getPoint() > v_guilds.Last().getPoint() || (v_guilds.First().getPoint() == v_guilds.Last().getPoint() && v_guilds.First().getPang() > v_guilds.Last().getPang())))
                 {
                     m_guild_win = (eGUILD_WIN)v_guilds.First().getTeam();
                 }
@@ -279,7 +267,7 @@ namespace GameServer.Game.Manager
                 gp.clear();
 
                 gp.uid = el.getUID();
-                gp.point = el.getPoint();
+                gp.point = (uint)el.getPoint();
                 gp.pang = el.getPangWin();
                 gp.win = (m_guild_win == GuildRoomManager.eGUILD_WIN.DRAW ? GuildPoints.eGUILD_WIN.DRAW : ((byte)el.getTeam() == (byte)m_guild_win ? GuildPoints.eGUILD_WIN.WIN : GuildPoints.eGUILD_WIN.LOSE));
 
@@ -301,12 +289,12 @@ namespace GameServer.Game.Manager
                 // Guild 1
                 match.uid[0] = v_guilds.First().getUID();
                 match.pang[0] = (uint)v_guilds.First().getPang();
-                match.point[0] = v_guilds.First().getPoint();
+                match.point[0] = (uint)v_guilds.First().getPoint();
 
                 // Guild 2
                 match.uid[1] = v_guilds.Last().getUID();
                 match.pang[1] = (uint)v_guilds.Last().getPang();
-                match.point[1] = v_guilds.Last().getPoint();
+                match.point[1] = (uint)v_guilds.Last().getPoint();
 
                 //NormalManagerDB.add(1,
                 //    new CmdRegisterGuildMatch(match),
@@ -318,7 +306,7 @@ namespace GameServer.Game.Manager
         public void initPacketDuplas(ref PangyaBinaryWriter _p)
         {
 
-            m_dupla_manager.initPacketDuplas(ref _p);
+            m_dupla_manager.initPacketDuplas(_p);
         }
 
         public bool finishHoleDupla(PlayerGameInfo _pgi, ushort _seq_hole)

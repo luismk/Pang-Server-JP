@@ -1,21 +1,17 @@
-﻿// C++ TO C# CONVERTER WARNING: The following #include directive was ignored:
-//#include "../../Projeto IOCP/UTIL/util_time.h"
-
-using GameServer.GameType;
+﻿
+using System;
+using Pangya_GameServer.GameType;
 using PangyaAPI.SQL;
 using PangyaAPI.Utilities;
-using System;
 
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     public class CmdUpdateCaddieInfo : Pangya_DB
     {
         public CmdUpdateCaddieInfo(uint _uid,
             CaddieInfoEx _ci)
         {
-            // C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
             this.m_uid = _uid;
-            //this.
             this.m_ci = (_ci);
         }
 

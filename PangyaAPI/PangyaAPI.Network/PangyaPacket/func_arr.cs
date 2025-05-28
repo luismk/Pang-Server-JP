@@ -1,14 +1,8 @@
-﻿using PangyaAPI.Network.PangyaSession;
-using PangyaAPI.Network.PangyaUnit;
-using PangyaAPI.Utilities;
-using PangyaAPI.Utilities.Log;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
+using PangyaAPI.Network.PangyaSession;
+using PangyaAPI.Utilities;
 
 namespace PangyaAPI.Network.PangyaPacket
 {
@@ -28,7 +22,7 @@ namespace PangyaAPI.Network.PangyaPacket
         }
 
         public Session _session { get; set; }
-        public packet _packet { get; set; }                   
+        public packet _packet { get; set; }
     }
     public delegate int call_func(object param, ParamDispatch pd);
 
@@ -41,8 +35,8 @@ namespace PangyaAPI.Network.PangyaPacket
             m_func = new Dictionary<ushort, func_arr_ex>(MAX_CALL_FUNC_ARR);
 
             for (ushort i = 0; i < MAX_CALL_FUNC_ARR; i++)
-            { 
-                m_func[i] =new func_arr_ex();
+            {
+                m_func[i] = new func_arr_ex();
             }
         }
         public class func_arr_ex
@@ -76,7 +70,7 @@ namespace PangyaAPI.Network.PangyaPacket
                     stopwatch.Stop();
 
                     // Exibe o nome da função e o tempo que demorou para ser executada
-                    Console.WriteLine($"Function: {methodName}, Execution Time: {stopwatch.ElapsedMilliseconds} ms");
+                    Debug.WriteLine($"Function: {methodName}, Execution Time: {stopwatch.ElapsedMilliseconds} ms");
 
                     return result; // Retorna o resultado do callback
                 }

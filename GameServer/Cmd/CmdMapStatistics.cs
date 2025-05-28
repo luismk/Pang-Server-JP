@@ -1,10 +1,9 @@
-﻿using GameServer.GameType;
-using PangyaAPI.SQL;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Data;
+using Pangya_GameServer.GameType;
+using PangyaAPI.SQL;
 
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     public class CmdMapStatistics : Pangya_DB
     {
@@ -36,8 +35,8 @@ namespace GameServer.Cmd
             CURRENT,        // Atual
         }
         protected override string _getName { get; } = "CmdMapStatistics";
-        public CmdMapStatistics(uint _uid, TYPE_SEASON _season, TYPE _type, TYPE_MODO _modo) 
-        { 
+        public CmdMapStatistics(uint _uid, TYPE_SEASON _season, TYPE _type, TYPE_MODO _modo)
+        {
             v_map_statistics = new List<MapStatisticsEx>();
             m_uid = _uid;
             m_type = _type;
@@ -70,7 +69,7 @@ namespace GameServer.Cmd
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);    
+                Console.WriteLine(ex.Message);
             }
         }
 
@@ -80,8 +79,8 @@ namespace GameServer.Cmd
             uint season = (m_season == TYPE_SEASON.ALL) ? 9 + ((uint)m_modo) : (m_modo == TYPE_MODO.M_NORMAL ? ((uint)m_season) : Convert.ToUInt32(m_season) * 10 + ((uint)m_modo));
 
             var m_szConsulta = new string[] { "pangya.ProcGetMapStatistics ", "pangya.ProcGetMapStatisticsAssist " };
-             
-            var r = procedure(m_type == TYPE.NORMAL ? m_szConsulta[0] + m_uid.ToString() + ", " + ((byte)m_season).ToString() : m_szConsulta[1] + m_uid.ToString() +", " + ((byte)m_season).ToString());
+
+            var r = procedure(m_type == TYPE.NORMAL ? m_szConsulta[0] + m_uid.ToString() + ", " + ((byte)m_season).ToString() : m_szConsulta[1] + m_uid.ToString() + ", " + ((byte)m_season).ToString());
             checkResponse(r, "nao conseguiu pegar o member info do player: " + (m_uid));
             return r;
         }
@@ -91,7 +90,7 @@ namespace GameServer.Cmd
         {
             return v_map_statistics;
         }
-                     
+
         public uint getUID()
         {
             return m_uid;

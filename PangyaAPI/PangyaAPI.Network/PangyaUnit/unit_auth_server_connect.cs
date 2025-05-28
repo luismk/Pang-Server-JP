@@ -341,8 +341,8 @@
 //                message_pool.push(new message("[unit_auth_server_connect::unit_auth_server_connect][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
 //            }
 //        }
-                                                                                                                                
-//        public virtual void requestFirstPacketKey(UnitPlayer _session, Packet _packet)
+
+//        public virtual void requestFirstPacketKey(UnitPlayer _session, packet _packet)
 //        {
 //            if (!_session.getState())
 //            {
@@ -373,7 +373,7 @@
 //                }
 
 //                // Resposta para o Auth Server
-//                var p = new PangyaBinaryWriter((ushort)0x1);
+//                var p = new packet((ushort)0x1);
 
 //                p.WriteUInt32((uint)_session.m_si.tipo);
 //                p.WriteUInt32((uint)_session.m_si.uid);
@@ -391,7 +391,7 @@
 //            }
 //        }
 
-//        public virtual void requestAskLogin(UnitPlayer _session, Packet _packet)
+//        public virtual void requestAskLogin(UnitPlayer _session, packet _packet)
 //        {
 //            if (!_session.getState())
 //            {
@@ -430,7 +430,7 @@
 //            }
 //        }
 
-//        public virtual void requestShutdownServer(UnitPlayer _session, Packet _packet)
+//        public virtual void requestShutdownServer(UnitPlayer _session, packet _packet)
 //        {
 //            if (!_session.getState())
 //            {
@@ -459,7 +459,7 @@
 //            }
 //        }
 
-//        public virtual void requestBroadcastNotice(UnitPlayer _session, Packet _packet)
+//        public virtual void requestBroadcastNotice(UnitPlayer _session, packet _packet)
 //        {
 //            if (!_session.getState())
 //            {
@@ -487,7 +487,7 @@
 //            }
 //        }
 
-//        public virtual void requestBroadcastTicker(UnitPlayer _session, Packet _packet)
+//        public virtual void requestBroadcastTicker(UnitPlayer _session, packet _packet)
 //        {
 //            if (!_session.getState())
 //            {
@@ -516,7 +516,7 @@
 //            }
 //        }
 
-//        public virtual void requestBroadcastCubeWinRare(UnitPlayer _session, Packet _packet)
+//        public virtual void requestBroadcastCubeWinRare(UnitPlayer _session, packet _packet)
 //        {
 //            if (!_session.getState())
 //            {
@@ -545,7 +545,7 @@
 //            }
 //        }
 
-//        public virtual void requestDisconnectPlayer(UnitPlayer _session, Packet _packet)
+//        public virtual void requestDisconnectPlayer(UnitPlayer _session, packet _packet)
 //        {
 //            if (!_session.getState())
 //            {
@@ -577,7 +577,7 @@
 //            }
 //        }
 
-//        public virtual void requestConfirmDisconnectPlayer(UnitPlayer _session, Packet _packet)
+//        public virtual void requestConfirmDisconnectPlayer(UnitPlayer _session, packet _packet)
 //        {
 //            if (!_session.getState())
 //            {
@@ -605,7 +605,7 @@
 //            }
 //        }
 
-//        public virtual void requestNewMailArrivedMailBox(UnitPlayer _session, Packet _packet)
+//        public virtual void requestNewMailArrivedMailBox(UnitPlayer _session, packet _packet)
 //        {
 //            if (!_session.getState())
 //            {
@@ -634,7 +634,7 @@
 //            }
 //        }
 
-//        public virtual void requestNewRate(UnitPlayer _session, Packet _packet)
+//        public virtual void requestNewRate(UnitPlayer _session, packet _packet)
 //        {
 //            if (!_session.getState())
 //            {
@@ -663,7 +663,7 @@
 //            }
 //        }
 
-//        public virtual void requestReloadSystem(UnitPlayer _session, Packet _packet)
+//        public virtual void requestReloadSystem(UnitPlayer _session, packet _packet)
 //        {
 //            if (!_session.getState())
 //            {
@@ -691,7 +691,7 @@
 //            }
 //        }
 
-//        public virtual void requestInfoPlayerOnline(UnitPlayer _session, Packet _packet)
+//        public virtual void requestInfoPlayerOnline(UnitPlayer _session, packet _packet)
 //        {
 //            if (!_session.getState())
 //            {
@@ -720,7 +720,7 @@
 //            }
 //        }
 
-//        public virtual void requestConfirmSendInfoPlayerOnline(UnitPlayer _session, Packet _packet)
+//        public virtual void requestConfirmSendInfoPlayerOnline(UnitPlayer _session, packet _packet)
 //        {
 //            if (!_session.getState())
 //            {
@@ -761,7 +761,7 @@
 //            }
 //        }
 
-//        public virtual void requestSendCommandToOtherServer(UnitPlayer _session, Packet _packet)
+//        public virtual void requestSendCommandToOtherServer(UnitPlayer _session, packet _packet)
 //        {
 //            if (!_session.getState())
 //            {
@@ -787,7 +787,7 @@
 //            }
 //        }
 
-//        public virtual void requestSendReplyToOtherServer(UnitPlayer _session, Packet _packet)
+//        public virtual void requestSendReplyToOtherServer(UnitPlayer _session, packet _packet)
 //        {
 //            if (!_session.getState())
 //            {
@@ -829,7 +829,7 @@
 //                // Log
 //                message_pool.push(new message("[unit_auth_server_connect::sendConfirmDisconnectPlayer][Log] Send Confirm Disconnect Player[UID=" + Convert.ToString(_player_uid) + "] para o Auth Server enviar a resposta para o Server[UID=" + Convert.ToString(_server_uid) + "]", type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-//                var p = new PangyaBinaryWriter((ushort)0x3);
+//                var p = new packet((ushort)0x3);
 
 //                p.WriteUInt32(_player_uid);
 //                p.WriteUInt32(_server_uid);
@@ -860,7 +860,7 @@
 //                // Log
 //                message_pool.push(new message("[unit_auth_server_connect::sendDisconnectPlayer][Log] Send Disconnect Player[UID=" + Convert.ToString(_player_uid) + "] para o Auth Server enviar para o Server[UID=" + Convert.ToString(_server_uid) + "]", type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-//                var p = new PangyaBinaryWriter((ushort)0x2);
+//                var p = new packet((ushort)0x2);
 
 //                p.WriteUInt32(_player_uid);
 //                p.WriteUInt32(_server_uid);
@@ -898,7 +898,7 @@
 //                    message_pool.push(new message("[unit_auth_server_connect::sendInfoPlayerOnline][Log] Error nao encontrou o Player[UID=" + Convert.ToString(_aspi.uid) + "] online para enviar o info dele para o Auth Server enviar para o Server[UID=" + Convert.ToString(_server_uid) + "]", type_msg.CL_FILE_LOG_AND_CONSOLE));
 //                }
 
-//                var p = new PangyaBinaryWriter((ushort)0x5);
+//                var p = new packet((ushort)0x5);
 
 //                p.WriteUInt32(_server_uid);
 //                p.WriteInt32(_aspi.option);
@@ -937,7 +937,7 @@
 //                // Log
 //                message_pool.push(new message("[unit_auth_server_connect::getInfoPlayerOnline][Log] Pede o Info do Player[UID=" + Convert.ToString(_player_uid) + "] Online para o Auth Server pedir para o Server[UID=" + Convert.ToString(_server_uid) + "]", type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-//                var p = new PangyaBinaryWriter((ushort)0x4);
+//                var p = new packet((ushort)0x4);
 
 //                p.WriteUInt32(_server_uid);
 //                p.WriteUInt32(_player_uid);
@@ -953,7 +953,7 @@
 //            }
 //        }
 
-//        public virtual void sendCommandToOtherServer(uint _server_uid, Packet _packet)
+//        public virtual void sendCommandToOtherServer(uint _server_uid, packet _packet)
 //        {
 
 //            if (!isLive())
@@ -996,7 +996,7 @@
 //                message_pool.push(new message("[unit_auth_server_connect::sendCommandToOtherServer][Log] Envia comando[ID=" + Convert.ToString(_packet.getTipo()) + "] para outro server[UID=" + Convert.ToString(_server_uid) + "] com o Auth Server.", type_msg.CL_FILE_LOG_AND_CONSOLE));
 
 //                // Envia o comando para o Auth Server enviar para o outro server
-//                var p = new PangyaBinaryWriter((ushort)0x06);
+//                var p = new packet((ushort)0x06);
 
 //                p.WriteBuffer(cosh, Marshal.SizeOf(new CommandOtherServerHeader()));
 
@@ -1016,7 +1016,7 @@
 //            }
 //        }
 
-//        public virtual void sendReplyToOtherServer(uint _server_uid, Packet _packet)
+//        public virtual void sendReplyToOtherServer(uint _server_uid, packet _packet)
 //        {
 
 //            if (!isLive())
@@ -1060,7 +1060,7 @@
 //                message_pool.push(new message("[unit_auth_server_connect::sendReplyToOtherServer][Log] Envia resposta[ID=" + Convert.ToString(_packet.getTipo()) + "] para o outro server[UID=" + Convert.ToString(_server_uid) + "] com o Auth Server.", type_msg.CL_FILE_LOG_AND_CONSOLE));
 
 //                // Envia a resposta para o Auth Server enviar para o outro server
-//                var p = new PangyaBinaryWriter((ushort)0x07);
+//                var p = new packet((ushort)0x07);
 
 //                p.WriteBuffer(cosh, Marshal.SizeOf(new CommandOtherServerHeader()));
 
@@ -1092,7 +1092,7 @@
 //                    return;
 //                } 
 
-//                if (!m_session.getConnected())
+//                if (!m_session.isConnected())
 //                {
 //                    ConnectAndAssoc();
 //                 }

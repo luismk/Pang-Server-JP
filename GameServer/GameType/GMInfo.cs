@@ -1,8 +1,8 @@
-﻿using PangyaAPI.Utilities;      
-using System.Collections.Generic;
-using System.Linq;             
+﻿using System.Collections.Generic;
+using System.Linq;
+using PangyaAPI.Utilities;
 using _smp = PangyaAPI.Utilities.Log;
-namespace GameServer.GameType
+namespace Pangya_GameServer.GameType
 {
     public class GMInfo
     {
@@ -30,7 +30,7 @@ namespace GameServer.GameType
         {
             if (_uid == 0)
                 throw new exception("[GMInfo::openPlayerWhisper][Error] GM[UID=" + m_uid + "] tentou adicionar player[UID="
-                        +_uid + "] a lista de whisper, mas o _uid eh invalido. Hacker ou Bug.");
+                        + _uid + "] a lista de whisper, mas o _uid eh invalido. Hacker ou Bug.");
 
 
             var it = map_open.Where(c => c.Key == _uid);
@@ -83,9 +83,9 @@ namespace GameServer.GameType
             m_uid = _uid;
         }
 
-        public bool visible; // 0 ou 1, Visible
-        public bool whisper; // 0 ou 1, Whisper Geral
-        public bool channel; // 0 ou 1, Whisper do Canal
+        public bool visible = true; // 0 ou 1, Visible
+        public bool whisper = true; // 0 ou 1, Whisper Geral
+        public bool channel = false; // 0 ou 1, Whisper do Canal
 
         public uint m_uid;
 

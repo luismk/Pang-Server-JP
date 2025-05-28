@@ -1,9 +1,5 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PangyaAPI.SQL
 {
@@ -24,7 +20,7 @@ namespace PangyaAPI.SQL
             return Convert.ToUInt32(value);
         }
 
-        public static  BitArray PadToFullByte(BitArray bits)
+        public static BitArray PadToFullByte(BitArray bits)
         {
             BitArray array = new BitArray(4096, false);
             if (bits.Count > 0)
@@ -48,7 +44,7 @@ namespace PangyaAPI.SQL
         {
             return $"'{s}'";
         }
-        
+
         public static string ToStrings(this byte s)
         {
             return $"'{s}'";

@@ -1,29 +1,35 @@
 ﻿using System;
-using _smp = PangyaAPI.Utilities.Log;
-using PangyaAPI.Utilities;
-using PangyaAPI.Network.PangyaPacket;
-using GameServer.Session;
 using System.Collections.Generic;
-using GameServer.GameType;
-using GameServer.Game.System;
-using GameServer.Game;
-using GameServer.PacketFunc;
-using PangyaAPI.Utilities.BinaryModels;
-using static GameServer.GameType._Define;
-using PangyaAPI.Utilities.Log;
+using System.Diagnostics;
 using System.Linq;
-using GameServer.Cmd;
+using System.Net.NetworkInformation;
+using System.Runtime.InteropServices;
+using System.Threading;
+using System.Timers;
+using Pangya_GameServer.Cmd;
+using Pangya_GameServer.Game;
+using Pangya_GameServer.Game.Manager;
+using Pangya_GameServer.Game.System;
+using Pangya_GameServer.Game.Utils;
+using Pangya_GameServer.GameType;
+using Pangya_GameServer.PacketFunc;
+using Pangya_GameServer.PangyaEnums;
+using Pangya_GameServer.Session;
+using Pangya_GameServer.UTIL;
+using PangyaAPI.IFF.JP.Extensions;
+using PangyaAPI.Network.Cmd;
 using PangyaAPI.Network.Pangya_St;
-using PangyaAPI.SQL.Manager;
-using PangyaAPI.Network.PangyaSession;
+using PangyaAPI.Network.PangyaPacket;
 using PangyaAPI.Network.PangyaServer;
 using PangyaAPI.SQL;
-using PangyaAPI.Network.Cmd;
-using GameServer.PangyaEnums;
-using GameServer.Game.Utils;
-using GameServer.GameServerTcp;
+using PangyaAPI.SQL.Manager;
+using PangyaAPI.Utilities;
+using PangyaAPI.Utilities.BinaryModels;
+using PangyaAPI.Utilities.Log;
+using static Pangya_GameServer.GameType._Define;
+using _smp = PangyaAPI.Utilities.Log;
 
-namespace GameServer.GameServerTcp
+namespace Pangya_GameServer.GameServerTcp
 {
     public partial class GameServer : Server
     {
@@ -34,20 +40,32 @@ namespace GameServer.GameServerTcp
         protected List<Channel> v_channel;
         public BroadcastList m_ticker;
         public BroadcastList m_notice;
-        public GameServer() : base(new player_manager(2000))
+        static player_manager m_player_manager = new player_manager();
+        public GameServer() : base(m_player_manager)
         {
-            v_channel = new List<Channel>();
-            m_player_manager = new player_manager(2000);
-            ConfigInit();
+            // Inicilializa Thread que cuida de verificar todos os itens do players, estão com o tempo normal
+            var m_threads = new Thread(check_player);
+
+            m_threads.Start();
+             
+            // Inicializa config do Game Server
+            config_init();
+            // init Request Client packets
             init_Packets();
+            //init create/load channels
             init_load_channels();
+            // Inicializa os sistemas Globais
             init_systems();
+
+            // Initialized complete
+            m_state = ServerState.Initialized;
+
         }
 
 
-        public override void ConfigInit()
+        public override void config_init()
         {
-            base.ConfigInit();
+            base.config_init();
 
             // Server Tipo
             m_si.tipo = 1;
@@ -121,12 +139,13 @@ namespace GameServer.GameServerTcp
         {
             return m_same_id_login_flag == 1;
         }
+        // Set Event Server
         private void setAngelEvent(short _angel_event)
-        {// Evento para reduzir o quit rate, diminui 1 quit a cada jogo concluído
+        {
+            // Evento para reduzir o quit rate, diminui 1 quit a cada jogo concluído
             m_si.event_flag.angel_wing = _angel_event > 0;
-
-            // Update Event Angel
-            m_si.rate.angel_event = _angel_event;
+            // Update rate Pang
+            m_si.rate.angel_event = _angel_event; //precisa fazer isso, pois pode querer desativar
         }
         private void setratePang(short _pang)
         {
@@ -177,13 +196,17 @@ namespace GameServer.GameServerTcp
                 if (!sIff.getInstance().isLoad())
                     sIff.getInstance().load();
 
+                //// Map Dados Estáticos
+                if (!sMap.getInstance().isLoad())
+                    sMap.getInstance().load();
+
                 // Carrega Card System
-                //if (!sCardSystem.getInstance().isLoad())
-                //    sCardSystem.getInstance().load();
+                if (!sCardSystem.getInstance().isLoad())
+                    sCardSystem.getInstance().load();
 
                 //// Carrega Comet Refill System
-                //if (!sCometRefillSystem.getInstance().isLoad())
-                //    sCometRefillSystem.getInstance().load();
+                if (!sCometRefillSystem.getInstance().isLoad())
+                    sCometRefillSystem.getInstance().load();
 
                 // Carrega Papel Shop System
                 if (!sPapelShopSystem.getInstance().isLoad())
@@ -197,25 +220,21 @@ namespace GameServer.GameServerTcp
                 if (!sMemorialSystem.getInstance().isLoad())
                     sMemorialSystem.getInstance().load();
 
-                //// Carrega Cube Coin System
-                //if (!sCubeCoinSystem.getInstance().isLoad())
-                //    sCubeCoinSystem.getInstance().load();
+                //// Carrega Cube Coin System(SobreCarga)
+                if (!sCubeCoinSystem.getInstance().isLoad())
+                    sCubeCoinSystem.getInstance().load();
 
                 //// Treasure Hunter System
-                //if (!sTreasureHunterSystem.getInstance().isLoad())
-                //    sTreasureHunterSystem.getInstance().load();
+                if (!sTreasureHunterSystem.getInstance().isLoad())
+                    sTreasureHunterSystem.getInstance().load();
 
                 //// Drop System
-                //if (!sDropSystem.getInstance().isLoad())
-                //    sDropSystem.getInstance().load();
+                if (!sDropSystem.getInstance().isLoad())
+                    sDropSystem.getInstance().load();
 
                 // Attendance Reward System
                 if (!sAttendanceRewardSystem.getInstance().isLoad())
                     sAttendanceRewardSystem.getInstance().load();
-
-                //// Map Dados Estáticos
-                //if (!sMap.getInstance().isLoad())
-                //    sMap.getInstance().load();
 
                 //// Approach Mission
                 //if (!sApproachMissionSystem.getInstance().isLoad())
@@ -234,8 +253,8 @@ namespace GameServer.GameServerTcp
                 //    sGoldenTimeSystem.getInstance().load();
 
                 //// Login Reward System
-                //if (!sLoginRewardSystem.getInstance().isLoad())
-                //    sLoginRewardSystem.getInstance().load();
+                if (!sLoginRewardSystem.getInstance().isLoad())
+                    sLoginRewardSystem.getInstance().load();
 
                 //// Carrega Smart Calculator Lib, Só inicializa se ele estiver ativado
                 //if (m_si.rate.smart_calculator && !sSmartCalculator.getInstance().hasStopped() && !sSmartCalculator.getInstance().isLoad())
@@ -248,16 +267,16 @@ namespace GameServer.GameServerTcp
                 //    makeGrandZodiacEventRoom();
 
                 //// check Bot GM Event Time
-                //if (m_si.rate.bot_gm_event && sBotGMEvent.getInstance().checkTimeToMakeRoom())
-                //    makeBotGMEventRoom();
+                if (m_si.rate.bot_gm_event == 1 && sBotGMEvent.getInstance().checkTimeToMakeRoom())
+                    makeBotGMEventRoom();
 
                 //// check Golden Time Round Update
                 //if (m_si.rate.golden_time_event && sGoldenTimeSystem.getInstance().checkRound())
                 //    makeListOfPlayersToGoldenTime();
 
                 //// update Login Reward
-                //if (m_si.rate.login_reward_event)
-                //    sLoginRewardSystem.getInstance().updateLoginReward();
+                if (m_si.rate.login_reward_event == 1)
+                    sLoginRewardSystem.getInstance().updateLoginReward();
 
                 //// Check Daily Quest
                 //if (MgrDailyQuest.checkCurrentQuest(m_dqi))
@@ -293,7 +312,7 @@ namespace GameServer.GameServerTcp
 
                 //        p.init_plain((unsigned short)0x42);
 
-                //        p.addString(rt.nc.notice);
+                //        p.WriteString(rt.nc.notice);
 
                 //    }
                 //    else if (rt.nc.type == BroadcastList.TYPE.CUBE_WIN_RARE)
@@ -301,11 +320,11 @@ namespace GameServer.GameServerTcp
 
                 //        p.init_plain((unsigned short)0x1D3);
 
-                //        p.addUint32(1);             // Count
+                //        p.WriteUint32(1);             // Count
 
                 //        //for (auto i = 0u; i < 2u; ++i) {
-                //        p.addUint32(rt.nc.option);
-                //        p.addString(rt.nc.notice);
+                //        p.WriteUint32(rt.nc.option);
+                //        p.WriteString(rt.nc.notice);
                 //        //}
 
                 //    }
@@ -323,8 +342,8 @@ namespace GameServer.GameServerTcp
 
                 //    packet p((unsigned short)0xC9);
 
-                //    p.addString(rt.nc.nickname);
-                //    p.addString(rt.nc.notice);
+                //    p.WriteString(rt.nc.nickname);
+                //    p.WriteString(rt.nc.notice);
 
                 //    // Broadcast to All Channels
                 //    foreach (var el in v_channel)
@@ -364,7 +383,7 @@ namespace GameServer.GameServerTcp
                     {
                         break;
                     }
-            }      
+            }
         }
 
 
@@ -375,7 +394,7 @@ namespace GameServer.GameServerTcp
 
         public virtual void sendServerListAndChannelListToSession(Player _session)
         {
-            _session.Send(packet_func.pacote09F(m_server_list, v_channel));
+            packet_func.session_send(packet_func.pacote09F(m_server_list, v_channel), _session);
         }
 
         public virtual void sendDateTimeToSession(Player _session)
@@ -383,7 +402,7 @@ namespace GameServer.GameServerTcp
             using (var p = new PangyaBinaryWriter((ushort)0xBA))
             {
                 p.WriteTime();
-                _session.Send(p);
+                packet_func.session_send(p, _session);
             }
         }
 
@@ -414,7 +433,7 @@ namespace GameServer.GameServerTcp
                 {
                     p.WritePStr(sl[0].ip);
                     p.WriteInt32(sl[0].port);
-                    _session.Send(p);
+                    packet_func.session_send(p, _session);
                 }
 
 
@@ -427,9 +446,9 @@ namespace GameServer.GameServerTcp
                 using (var p = new PangyaBinaryWriter(0xA2))
                 {
                     // Erro manda tudo 0
-                    p.WriteUInt16(0u);  // String IP
-                    p.WriteUInt32(0u);  // Port
-                    _session.Send(p);
+                    p.WriteUInt16(0);  // String IP
+                    p.WriteUInt32(0);  // Port
+                    packet_func.session_send(p, _session);
                 }
             }
         }
@@ -449,34 +468,53 @@ namespace GameServer.GameServerTcp
         public virtual Player findPlayer(uint _uid, bool _oid = false)
         {
             return (Player)(_oid ? FindSessionByOid(_uid) : FindSessionByUid(_uid));
-        }           
+        }
 
         public virtual void blockOID(uint _oid) { m_player_manager.blockOID(_oid); }
         public virtual void unblockOID(uint _oid) { m_player_manager.unblockOID(_oid); }
 
         DailyQuestInfo getDailyQuestInfo() { return m_dqi; }
 
-        // Set Event Server
-        public virtual void setAngelEvent(uint _angel_event) { }
-
+ 
         // Update Daily Quest Info
         public virtual void updateDailyQuest(DailyQuestInfo _dqi) { }
 
         // send Update Room Info, find room nos canais e atualiza o info
-        //	public virtual void sendUpdateRoomInfo(room _r, int _option) { }
+        public virtual void sendUpdateRoomInfo(room _r, int _option)
+        {
+            try
+            {
 
+                if (_r != null)
+                {
 
-        public player_manager m_player_manager;
+                    var c = findChannel(_r.getChannelOwenerId());
 
-        public virtual bool checkCommand(string[] _command) { return true; }
+                    if (c != null)
+                        c.sendUpdateRoomInfo((RoomInfoEx)(_r.getInfo()), _option);
+                }
+
+            }
+            catch (exception e)
+            {
+
+                _smp::message_pool.push(new message("[game_server::sendUpdateRoomInfo][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+            }
+        }
+
+        public virtual bool checkCommand(string[] _command) 
+        
+        {
+            return true;
+        }
         public virtual void reload_files() { }
-        public virtual void init_systems() 
+        public virtual void init_systems()
         {
             // SINCRONAR por que se não alguem pode pegar lixo de memória se ele ainda nao estiver inicializado
             var cmd_dqi = new Cmd.CmdDailyQuestInfo();
 
             NormalManagerDB.add(1, cmd_dqi, SQLDBResponse, this);
-                                           
+
             if (cmd_dqi.getException().getCodeError() != 0)
                 throw new exception("[game_server::game_server][Error] nao conseguiu pegar o Daily Quest Info[Exption: "
                     + cmd_dqi.getException().getFullMessageError() + "]", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.GAME_SERVER, 277, 0));
@@ -492,13 +530,18 @@ namespace GameServer.GameServerTcp
             if (!sIff.getInstance().isLoad())
                 sIff.getInstance().load();
 
+
+            //// Carrega Map Dados Estáticos
+            if (!sMap.getInstance().isLoad())
+                sMap.getInstance().load();
+
             //// Carrega Card System
-            //if (!sCardSystem.getInstance().isLoad())
-            //    sCardSystem.getInstance().load();
+            if (!sCardSystem.getInstance().isLoad())
+                sCardSystem.getInstance().load();
 
             //// Carrega Comet Refill System
-            //if (!sCometRefillSystem.getInstance().isLoad())
-            //    sCometRefillSystem.getInstance().load();
+            if (!sCometRefillSystem.getInstance().isLoad())
+                sCometRefillSystem.getInstance().load();
 
             // Carrega Papel Shop System
             if (!sPapelShopSystem.getInstance().isLoad())
@@ -513,24 +556,20 @@ namespace GameServer.GameServerTcp
                 sMemorialSystem.getInstance().load();
 
             //// Carrega Cube Coin System
-            //if (!sCubeCoinSystem.getInstance().isLoad())
-            //    sCubeCoinSystem.getInstance().load();
+            if (!sCubeCoinSystem.getInstance().isLoad())
+                sCubeCoinSystem.getInstance().load();
 
             //// Carrega Treasure Hunter System
-            //if (!sTreasureHunterSystem.getInstance().isLoad())
-            //    sTreasureHunterSystem.getInstance().load();
+            if (!sTreasureHunterSystem.getInstance().isLoad())
+                sTreasureHunterSystem.getInstance().load();
 
             //// Carrega Drop System
-            //if (!sDropSystem.getInstance().isLoad())
-            //    sDropSystem.getInstance().load();
+            if (!sDropSystem.getInstance().isLoad())
+                sDropSystem.getInstance().load();
 
             // Carrega Attendance Reward System
             if (!sAttendanceRewardSystem.getInstance().isLoad())
                 sAttendanceRewardSystem.getInstance().load();
-
-            //// Carrega Map Dados Estáticos
-            //if (!sMap.getInstance().isLoad())
-            //    sMap.getInstance().load();
 
             //// Carrega Approach Mission System
             //if (!sApproachMissionSystem.getInstance().isLoad())
@@ -553,8 +592,8 @@ namespace GameServer.GameServerTcp
             //    sLoginRewardSystem.getInstance().load();
 
             //// Carrega Bot GM Event
-            //if (!sBotGMEvent.getInstance().isLoad())
-            //    sBotGMEvent.getInstance().load();
+            if (!sBotGMEvent.getInstance().isLoad())
+                sBotGMEvent.getInstance().load();
 
             //// Coloca aqui para ele não dá erro na hora de destruir o Room Grand Prix static instance
             //RoomGrandPrix::initFirstInstance();
@@ -563,9 +602,7 @@ namespace GameServer.GameServerTcp
             //RoomGrandZodiacEvent::initFirstInstance();
 
             //// Coloca aqui para ele não dá erro na hora de destruir o Room Bot GM Event static instance
-            //RoomBotGMEvent::initFirstInstance();
-
-
+            RoomBotGMEvent.initFirstInstance();
         }
         public virtual void init_Packets()
         {
@@ -1052,6 +1089,7 @@ namespace GameServer.GameServerTcp
         }
         public virtual void init_load_channels()
         {
+            v_channel = new List<Channel>();
             try
             {
                 int num_channel = m_reader_ini.readInt("CHANNELINFO", "NUM_CHANNEL");
@@ -1073,7 +1111,7 @@ namespace GameServer.GameServerTcp
                         _smp.message_pool.push("[GameServer.init_load_channels][ErrorSystem] " + e.Message);
                     }
 
-                    v_channel.Add(new Channel(ci, m_si.propriedade.ulProperty));
+                    v_channel.Add(new Channel(ci, m_si.propriedade));
                 }
             }
             catch (Exception e)
@@ -1093,7 +1131,25 @@ namespace GameServer.GameServerTcp
 
         // Check Player Itens
 
-        public virtual void check_player() { }
+        public virtual void check_player()
+        {
+            _smp::message_pool.push(new message("[game_server::check_player][Log] check_player iniciado com sucesso!"));
+
+            while (true)
+            {
+                if (m_state != ServerState.Initialized)
+                    continue;
+
+                // Verifica Game Guard Auth do player
+                //if (m_GameGuardAuth)
+                //    m_player_manager.checkPlayersGameGuard();
+
+                // Verifica se os itens dos players está tudo normal
+                m_player_manager.checkPlayersItens();
+                //vai dormir por 10000 milessimos
+                Thread.Sleep(10000);
+            }
+        }
 
         // Make Grand Zodiac Event Room
         public virtual void makeGrandZodiacEventRoom() { }
@@ -1102,49 +1158,181 @@ namespace GameServer.GameServerTcp
         public virtual void makeListOfPlayersToGoldenTime() { }
 
         // Make Bot GM Event Room
-        public virtual void makeBotGMEventRoom() { }
+        public void makeBotGMEventRoom()
+        {
+            // Lambda getItemName
+            Func<uint, string> getItemName = (_typeid) =>
+            {
+                string ret = "";
 
-        protected override void onAcceptCompleted(SessionBase _session)
+                var @base = sIff.getInstance().findCommomItem(_typeid);
+
+                if (@base != null)
+                {
+                    ret = (@base.Name);
+                }
+
+                return ret;
+            };
+
+            try
+            {
+                var rt = sBotGMEvent.getInstance().getInterval();
+                List<stReward> reward = new List<stReward>();
+
+                if (rt != null && !rt.m_sended_message)
+                {
+
+                    sBotGMEvent.getInstance().setSendedMessage();
+                    rt.m_sended_message = true;
+
+                    int duration_event_interval = 2;
+
+                    reward = sBotGMEvent.getInstance().calculeReward();
+
+                    string reward_str = "{";
+                    for (int i = 0; i < reward.Count; i++)
+                    {
+                        if (i > 0) reward_str += ", [";
+                        else reward_str += "[";
+
+                        reward_str += reward[i].toString() + "]";
+                    }
+                    reward_str += "}";
+
+                    message_pool.push(new message(
+                        "[game_server::makeBotGMEventRoom][Log] Bot GM Event comecou, criando a sala no canal[ID=" +
+                        rt.m_channel_id + "], o jogo comeca em " + duration_event_interval +
+                        " minutos.",
+                        type_msg.CL_FILE_LOG_AND_CONSOLE));
+
+                    // Mensagem que será broadcastada
+                    string channelName = "Canal (Livre 1)";
+                    var c = findChannel(rt.m_channel_id);
+                    if (c != null)
+                    {
+                        channelName = c.getInfo().name;
+                    }
+
+                    string premios = "";
+                    for (int i = 0; i < reward.Count; i++)
+                    {
+                        if (i > 0) premios += ", ";
+
+                        var r = reward[i];
+                        string quantidade = (r.qntd_time > 0)
+                            ? r.qntd_time + "day"
+                            : r.qntd.ToString();
+
+                        premios += getItemName(r._typeid) + "(" + quantidade + ")";
+                    }
+
+                    string msg = MESSAGE_BOT_GM_EVENT_START_PART1 +
+                                 channelName +
+                                 MESSAGE_BOT_GM_EVENT_START_PART2 +
+                                 duration_event_interval +
+                                 MESSAGE_BOT_GM_EVENT_START_PART3 +
+                                 premios;
+
+                    var p = new PangyaBinaryWriter(0x1D3);
+                    p.WriteUInt32(2u);
+
+                    for (uint i = 0; i < 2; ++i)
+                    {
+                        p.WriteUInt32(eBROADCAST_TYPES.BT_MESSAGE_PLAIN);
+                        p.WriteString(msg);
+                    }
+
+                    foreach (var ch in v_channel)
+                    {
+                        packet_func.channel_broadcast(ch, p, 1);
+                    }
+                }
+
+                if (rt != null)
+                {
+                    var c = findChannel(rt.m_channel_id);
+                    if (c != null)
+                    {
+                        c.makeBotGMEventRoom(rt, reward);
+                    }
+                }
+                else
+                {
+                    message_pool.push(new message(
+                        "[game_server::makeBotGMEventRoom][WARNING] Entrou no makeBotGMEventRoom, mas nao tem nenhum stRangeTime(interval) que o Bot GM Event esta ativado.",
+                        type_msg.CL_FILE_LOG_AND_CONSOLE));
+                }
+            }
+            catch (exception e)
+            {
+                message_pool.push(new message(
+                    "[game_server::makeBotGMEventRoom][ErrorSystem] " + e.getFullMessageError(),
+                    type_msg.CL_FILE_LOG_AND_CONSOLE));
+            }
+        }
+
+
+        protected override void onAcceptCompleted(PangyaAPI.Network.PangyaSession.Session _session)
         {
             try
             {
-                var Response = new PangyaBinaryWriter();
-                //Gera Packet com chave de criptografia (posisão 8)
-                Response.Write(new byte[] { 0x00, 0x06, 0x00, 0x00, 0x3f, 0x00 });
-                Response.WriteByte(1);  // OPTION 1
-                Response.WriteByte(1);	// OPTION 2
-                Response.WriteByte(_session.m_key);//key
-                _session.Send(Response.GetBytes, 0);
+
+                packet _packet = new packet(0x3F);
+                _packet.AddByte(1); // OPTION 1
+                _packet.AddByte(1); // OPTION 2
+                _packet.AddByte(_session.m_key);	// Key
+                _packet.makeRaw();
+
+                var mb = _packet.getBuffer();
+                _session.requestSendBuffer(mb, true);
             }
-            catch (Exception ex)
+            catch (exception ex)
             {
-                _smp.message_pool.push(new message(
-              $"[GameServer.onAcceptCompleted][ErrorSt] {ex.Message}\nStack Trace: {ex.StackTrace}",
+                message_pool.push(new message(
+              $"[GameServer.onAcceptCompleted][ErrorSt]: {ex.getFullMessageError()}",
               type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
         }
 
-        public override bool CheckPacket(SessionBase _session, Packet packet)
+        public override bool CheckPacket(PangyaAPI.Network.PangyaSession.Session _session, packet packet, int opt = 0)
         {
             var player = (Player)_session;
-            var packetId = (PacketIDClient)packet.Id;
+            var packetId = packet.Id;
 
-            // Verifica se o valor de packetId é válido no enum PacketIDClient
-            if (Enum.IsDefined(typeof(PacketIDClient), packetId))
+
+            switch (opt)
             {
-                if (packetId != PacketIDClient.PLAYER_KEEPLIVE) 
-                WriteConsole.WriteLine($"[GameServer.CheckPacket][Log]: PLAYER[UID: {player.m_pi.uid}, CGPID: {packetId}]", ConsoleColor.Cyan);
-                return true;
-            }
-            else// nao tem no PacketIDClient
-            {
-                WriteConsole.WriteLine($"[GameServer.CheckPacket][Log]: PLAYER[UID: {player.m_pi.uid}, CGPID: 0x{packet.Id:X}]");
-                return true;
+                case 1:
+                    // Verifica se o valor de packetId é válido no enum PacketIDClient
+                    if (Enum.IsDefined(typeof(PacketIDClient), (PacketIDClient)packetId))
+                    {
+                        if ((PacketIDClient)packetId != PacketIDClient.CLIENT_HEARTBEAT_0xF4)
+                            Debug.WriteLine($"[GameServer.CheckPacket][Log]: PLAYER[UID: {player.m_pi.uid}, CGPID: {(PacketIDClient)packetId}]", ConsoleColor.Cyan);
+                        return true;
+                    }
+                    else// nao tem no PacketIDClient
+                    {
+                        Debug.WriteLine($"[GameServer.CheckPacket][Log]: PLAYER[UID: {player.m_pi.uid}, CGPID: 0x{packet.Id:X}]");
+                        return true;
+                    }
+                default:
+                    // Verifica se o valor de packetId é válido no enum PacketIDServer
+                    if (Enum.IsDefined(typeof(PacketIDServer), (PacketIDServer)packetId))
+                    {
+                        Debug.WriteLine($"[GameServer.CheckPacket][Log]: PLAYER[UID: {player.m_pi.uid}, SGPID: {(PacketIDServer)packetId}]", ConsoleColor.Cyan);
+                        return true;
+                    }
+                    else// nao tem no PacketIDServer
+                    {
+                        Debug.WriteLine($"[GameServer.CheckPacket][Log]: PLAYER[UID: {player.m_pi.uid}, SGPID: 0x{packet.Id:X}]");
+                        return true;
+                    }
             }
         }
 
 
-        public override void onDisconnected(SessionBase _session)
+        public override void onDisconnected(PangyaAPI.Network.PangyaSession.Session _session)
         {
             if (_session == null)
                 throw new exception("[GameServer.onDisconnected][Error] _session is null");
@@ -1187,7 +1375,7 @@ namespace GameServer.GameServerTcp
 
                 if (enter.getId() == _session.m_pi.channel)
                 {
-                    _session.Send(packet_func.pacote04E(1));
+                    packet_func.session_send(packet_func.pacote04E(1), _session);
                     return enter;   // Ele já está nesse canal
                 }
 
@@ -1195,7 +1383,7 @@ namespace GameServer.GameServerTcp
                 {
                     // Não conseguiu entrar no canal por que ele está cheio, deixa o enter como null
                     enter = null;
-                    _session.Send(packet_func.pacote04E(2));
+                    packet_func.session_send(packet_func.pacote04E(2), _session);
                 }
                 else
                 {
@@ -1213,13 +1401,13 @@ namespace GameServer.GameServerTcp
             catch (exception e)
             {
                 _smp::message_pool.push(new message("[GameServer.enterChannel][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
-                _session.Send(packet_func.pacote04E(-1));
+                packet_func.session_send(packet_func.pacote04E(-1), _session);
             }
 
             return enter;
         }
 
-        public void requestChangeChatMacroUser(Player _session, Packet _packet)
+        public void requestChangeChatMacroUser(Player _session, packet _packet)
         {
             try
             {
@@ -1250,7 +1438,7 @@ namespace GameServer.GameServerTcp
             }
         }
 
-        public void requestChangeServer(Player _session, Packet _packet)
+        public void requestChangeServer(Player _session, packet _packet)
         {
 
             try
@@ -1265,7 +1453,7 @@ namespace GameServer.GameServerTcp
                             + "] tentou trocar de server para o Server[UID=" + (server_uid)
                             + "], mas ele nao esta no server list mais.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.GAME_SERVER, 0x7500001, 1));
 
-                if (_session.m_pi.lobby != 0 && _session.m_pi.lobby == 176u/*Grand Prix*/
+                if (_session.m_pi.lobby != DEFAULT_CHANNEL && _session.m_pi.lobby == 176u/*Grand Prix*/
                     && !it.propriedade.grand_prix/*Não é Grand Prix o Server*/)
                     throw new exception("[GameServer.requestChangeServer][Error] Player[UID=" + (_session.m_pi.uid)
                             + "] tentou trocar de server para o Server[UID=" + (server_uid)
@@ -1287,7 +1475,7 @@ namespace GameServer.GameServerTcp
                 if (cmd_uakl.getException().getCodeError() != 0)
                     throw cmd_uakl.getException();
 
-                _session.Send(packet_func.pacote1D4(auth_key_game));
+                packet_func.session_send(packet_func.pacote1D4(auth_key_game), _session);
 
             }
             catch (exception e)
@@ -1300,7 +1488,7 @@ namespace GameServer.GameServerTcp
             }
         }
 
-        public void requestChangeWhisperState(Player _session, Packet _packet)
+        public void requestChangeWhisperState(Player _session, packet _packet)
         {
             try
             {
@@ -1328,7 +1516,7 @@ namespace GameServer.GameServerTcp
             }
         }
 
-        public void requestChat(Player _session, Packet _packet)
+        public void requestChat(Player _session, packet _packet)
         {
             try
             {
@@ -1366,7 +1554,7 @@ namespace GameServer.GameServerTcp
                                 && /* Check SAME Channel and Room*/(el.m_pi.channel != _session.m_pi.channel || el.m_pi.mi.sala_numero != _session.m_pi.mi.sala_numero))
                             {
                                 // Responde no chat do player     
-                                el.Send(packet_func.pacote040(from, msg_gm, 0));
+                                packet_func.session_send(packet_func.pacote040(from, msg_gm, 0), el);
                             }
                         }
                     }
@@ -1378,11 +1566,8 @@ namespace GameServer.GameServerTcp
                 else
                 {
                     //is low :/
-                    _session.SendLobby_broadcast(packet_func.pacote040(_session.m_pi.nickname, msg, (byte)(_session.m_pi.m_cap.game_master ? 128 : 0)));
+                    packet_func.channel_broadcast(c, packet_func.pacote040(_session.m_pi.nickname, msg, (byte)(_session.m_pi.m_cap.game_master ? 128 : 0)), 1);
 
-                    var p = new PangyaBinaryWriter(new byte[] { 0x4d, 0x02 });
-                    p.WriteUInt32(0); //sucess 0
-                    _session.Send(p, true);
                 }
 
             }
@@ -1392,11 +1577,11 @@ namespace GameServer.GameServerTcp
             }
         }
 
-        public void requestCheckGameGuardAuthAnswer(Player _session, Packet _packet)
+        public void requestCheckGameGuardAuthAnswer(Player _session, packet _packet)
         {
         }
 
-        public void requestCommandNoticeGM(Player _session, Packet _packet)
+        public void requestCommandNoticeGM(Player _session, packet _packet)
         {
             try
             {
@@ -1421,8 +1606,8 @@ namespace GameServer.GameServerTcp
 
                     p.WritePStr(_session.m_pi.nickname);
                     p.WritePStr(notice);
-
-                    _session.SendChannel_broadcast(p.GetBytes);
+                    foreach (var c in v_channel)
+                        packet_func.channel_broadcast(c, p.GetBytes);
                 }
             }
             catch (exception e)
@@ -1435,14 +1620,14 @@ namespace GameServer.GameServerTcp
 
                     p.WritePStr(_session.m_pi.nickname);
                     p.WritePStr("Nao conseguiu executar o comando.");
-                    _session.Send(p);
+                    packet_func.session_send(p, _session);
 
                 }
             }
 
         }
 
-        public void requestCommonCmdGM(Player _session, Packet _packet)
+        public void requestCommonCmdGM(Player _session, packet _packet)
         {
             try
             {
@@ -1454,13 +1639,137 @@ namespace GameServer.GameServerTcp
             }
         }
 
-        public void requestEnterChannel(Player _session, Packet _packet)
+        public void requestEnterChannel(Player _session, packet _packet)
         {
             try
             {
                 _packet.ReadByte(out byte channel);
                 // Enter Channel
                 enterChannel(_session, channel);
+
+                //if (!sAttendanceRewardSystem.getInstance().isLoad())
+                //    sAttendanceRewardSystem.getInstance().load();
+                //var m_ari = _session.m_pi.ari;
+                //var p = new PangyaBinaryWriter();
+                //if (m_ari.login == 2 || m_ari.login == 3) //sem o now
+                //{
+                //    if (_session.m_pi.ari.counter == 0)
+                //        _session.m_pi.ari.counter = 1;
+                //    else
+                //        _session.m_pi.ari.counter = _session.m_pi.ari.counter + 1;
+
+                //    var reward_item = sAttendanceRewardSystem.getInstance().drawReward(1);
+
+                //    if (reward_item == null)
+                //        throw new exception("[AttendanceRewardSystem::requestCheckAttendance][Error] nao conseguiu sortear um item para o player. Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.ATTENDANCE_REWARD_SYSTEM, 7, 0));
+
+                //    _session.m_pi.ari.now._typeid = reward_item._typeid;
+                //    _session.m_pi.ari.now.qntd = reward_item.qntd;
+                //    if (sIff.getInstance().IsExist(_session.m_pi.ari.now._typeid) == false)
+                //    {
+                //        //gera o proximo se não existir dados la na db
+                //        reward_item = sAttendanceRewardSystem.getInstance().drawReward((byte)(((_session.m_pi.ari.counter + 1) % 10 == 0) ? 2 : 1)/*Item Normal*/);
+
+                //        if (reward_item == null)
+                //            throw new exception("[AttendanceRewardSystem::requestCheckAttendance][Error] nao conseguiu sortear um item para o player. Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.ATTENDANCE_REWARD_SYSTEM, 7, 0));
+
+                //        _session.m_pi.ari.now._typeid = reward_item._typeid;
+                //        _session.m_pi.ari.now.qntd = reward_item.qntd;
+                //    }
+
+                //    else if (sIff.getInstance().IsExist(_session.m_pi.ari.after._typeid) == false)
+                //    {
+                //        //gera o proximo se não existir dados la na db
+                //        reward_item = sAttendanceRewardSystem.getInstance().drawReward((byte)(((_session.m_pi.ari.counter + 1) % 10 == 0) ? 2/*Tipo 2 Papel Box*/ : 1)/*Item Normal*/);
+
+                //        if (reward_item == null)
+                //            throw new exception("[AttendanceRewardSystem::requestCheckAttendance][Error] nao conseguiu sortear um item para o player. Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.ATTENDANCE_REWARD_SYSTEM, 7, 0));
+
+                //        _session.m_pi.ari.after._typeid = reward_item._typeid;
+                //        _session.m_pi.ari.after.qntd = reward_item.qntd;
+                //    }
+                //    _session.m_pi.ari.last_login.CreateTime();
+                //    // Zera as Horas deixa s� a date
+                //    _session.m_pi.ari.last_login.MilliSecond = _session.m_pi.ari.last_login.Second = _session.m_pi.ari.last_login.Minute = _session.m_pi.ari.last_login.Hour = 0;
+
+                //    stItem item = new stItem();
+                //    item.type = 2;
+                //    item.id = -1;
+                //    item._typeid = _session.m_pi.ari.now._typeid;
+                //    item.qntd = _session.m_pi.ari.now.qntd;
+                //    item.STDA_C_ITEM_QNTD = (ushort)(short)item.qntd;
+
+                //    string msg = "Your Attendance rewards have arrived!";
+
+                //    MailBoxManager.sendMessageWithItem(0, _session.m_pi.uid, msg, item);
+
+                //    _session.m_pi.ari.login = 0; 
+                //    packet_func.session_send(packet_func.pacote248(_session.m_pi.ari), _session, 0);
+                //    _session.m_pi.ari.counter = 0;//vai pro zero de novo	  
+
+                //    // D� 3 Grand Prix Ticket, por que � a primeira vez que o player loga no dia
+                //    //sAttendanceRewardSystem.getInstance().sendGrandPrixTicket(_session);
+                //    // D� 5 Key of fortune, por que � a primeira vez que o player loga no dia
+                //    //sAttendanceRewardSystem.getInstance().sendFortuneKey(_session);
+
+                //}
+                //else
+                //{
+                //    if (sAttendanceRewardSystem.getInstance().passedOneDay(_session))
+                //    {
+                //        // Reward
+                //        stItem item = new stItem();
+
+                //        // Passou 1 dia depois que o player logou no pangya	  	
+                //        _session.m_pi.ari.login = 0;
+                //        _session.m_pi.ari.now = _session.m_pi.ari.after;
+                //        // Troca o item after para now
+                //        if (sIff.getInstance().IsExist(_session.m_pi.ari.now._typeid) == false)
+                //        {
+                //            //gera o proximo se não existir dados la na db
+                //            var reward_item = sAttendanceRewardSystem.getInstance().drawReward((byte)(((_session.m_pi.ari.counter + 1) % 10 == 0) ? 2/*Tipo 2 Papel Box*/ : 1)/*Item Normal*/);
+
+                //            if (reward_item == null)
+                //                throw new exception("[AttendanceRewardSystem::requestCheckAttendance][Error] nao conseguiu sortear um item para o player. Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.ATTENDANCE_REWARD_SYSTEM, 7, 0));
+
+                //            _session.m_pi.ari.now._typeid = reward_item._typeid;
+                //            _session.m_pi.ari.now.qntd = reward_item.qntd;
+                //        }
+
+                //        else if (sIff.getInstance().IsExist(_session.m_pi.ari.after._typeid) == false)
+                //        {
+                //            //gera o proximo se não existir dados la na db
+                //            var reward_item = sAttendanceRewardSystem.getInstance().drawReward((byte)(((_session.m_pi.ari.counter + 1) % 10 == 0) ? 2/*Tipo 2 Papel Box*/ : 1)/*Item Normal*/);
+
+                //            if (reward_item == null)
+                //                throw new exception("[AttendanceRewardSystem::requestCheckAttendance][Error] nao conseguiu sortear um item para o player. Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.ATTENDANCE_REWARD_SYSTEM, 7, 0));
+
+                //            _session.m_pi.ari.after._typeid = reward_item._typeid;
+                //            _session.m_pi.ari.after.qntd = reward_item.qntd;
+                //        }
+                //        // Limpa o After
+                //        _session.m_pi.ari.after.clear();
+
+                //        item.type = 2;
+                //        item.id = -1;
+                //        item._typeid = _session.m_pi.ari.now._typeid;
+                //        item.qntd = _session.m_pi.ari.now.qntd;
+                //        item.STDA_C_ITEM_QNTD = (ushort)item.qntd;
+
+                //        var msg = "Your Attendance rewards have arrived!";
+
+                //        MailBoxManager.sendMessageWithItem(0, _session.m_pi.uid, msg, item);
+                //        _session.m_pi.ari.counter = _session.m_pi.ari.counter + 1;
+                //        _session.m_pi.ari.login = 0;
+
+                //        packet_func.session_send(packet_func.pacote248(_session.m_pi.ari), _session, 0);
+
+                //        // D� 3 Grand Prix Ticket, por que � a primeira vez que o player loga no dia
+                //        //sAttendanceRewardSystem.getInstance().sendGrandPrixTicket(_session);
+                //        // D� 5 Key of fortune, por que � a primeira vez que o player loga no dia
+                //        //sAttendanceRewardSystem.getInstance().sendFortuneKey(_session);
+                //    }
+                //}
             }
             catch (exception e)
             {
@@ -1468,7 +1777,7 @@ namespace GameServer.GameServerTcp
             }
         }
 
-        public void requestEnterOtherChannelAndLobby(Player _session, Packet _packet)
+        public void requestEnterOtherChannelAndLobby(Player _session, packet _packet)
         {
             try
             {
@@ -1490,23 +1799,27 @@ namespace GameServer.GameServerTcp
             }
         }
 
-        public void requestExceptionClientMessage(Player _session, Packet _packet)
+        public void requestExceptionClientMessage(Player _session, packet _packet)
         {
             byte tipo = _packet.ReadByte();
 
             var exception_msg = _packet.ReadPStr();
-
+            if (tipo == 1)
+            {
+                //cheat?
+            }
             _smp::message_pool.push(new message("[GameServer.requestExceptionClientMessage][Log] PLAYER[UID=" + (_session.m_pi.uid) + ", EXTIPO="
                     + ((ushort)tipo) + ", MSG=" + exception_msg + "]", type_msg.CL_ONLY_FILE_LOG));
-            _session.Disconnect();
+            //
+            onDisconnected(_session);//send desconection
         }
 
-        public void requestLogin(Player _session, Packet _packet)
+        public void requestLogin(Player _session, packet _packet)
         {
             new LoginSystem().requestLogin(_session, _packet);
         }
 
-        public void requestNotifyNotDisplayPrivateMessageNow(Player _session, Packet _packet)
+        public void requestNotifyNotDisplayPrivateMessageNow(Player _session, packet _packet)
         {
             try
             {
@@ -1518,13 +1831,13 @@ namespace GameServer.GameServerTcp
                             ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.GAME_SERVER, 0x750050, 0));
                 // Procura o player pelo nickname, para ver se ele está online
                 var s = (Player)FindSessionByNickname(nickname);
-                if (s != null && s.getConnected())
+                if (s != null && s.isConnected())
                 {
                     // Log
                     _smp::message_pool.push(new message("[GameServer.requestNotifyNotDisplayPrivateMessageNow][Log] Player[UID=" + (_session.m_pi.uid)
                             + "] recebeu mensagem do Player[UID=" + (s.m_pi.uid) + ", NICKNAME=" + nickname + "], mas ele nao pode ver a mensagem agora.", type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-                    s.Send(packet_func.pacote040(nickname, "", 4));
+                    packet_func.session_send(packet_func.pacote040(nickname, "", 4), s);
 
                 }
             }
@@ -1534,7 +1847,7 @@ namespace GameServer.GameServerTcp
             }
         }
 
-        public void requestPlayerInfo(Player _session, Packet _packet)
+        public void requestPlayerInfo(Player _session, packet _packet)
         {
             try
             {
@@ -1573,7 +1886,7 @@ namespace GameServer.GameServerTcp
                     if (uid != _session.m_pi.uid && !mi.capability.game_master/* & 4/*(GM)*/)
                     {
 
-                        _session.Send(packet_func.pacote089(uid, season, 3));
+                        packet_func.session_send(packet_func.pacote089(uid, season, 3), _session);
 
                     }
                     else
@@ -1700,31 +2013,31 @@ namespace GameServer.GameServerTcp
 
                         List<TrofelEspecialInfo> v_tegi = cmd_tei.getInfo();
 
-                        _session.Send(packet_func.pacote157(mi, season));
+                        packet_func.session_send(packet_func.pacote157(mi, season), _session);
 
-                        _session.Send(packet_func.pacote15E(uid, ci));
+                        packet_func.session_send(packet_func.pacote15E(uid, ci), _session);
 
-                        _session.Send(packet_func.pacote156(uid, ue, season));
+                        packet_func.session_send(packet_func.pacote156(uid, ue, season), _session);
 
-                        _session.Send(packet_func.pacote158(uid, ui, season));
+                        packet_func.session_send(packet_func.pacote158(uid, ui, season), _session);
 
-                        _session.Send(packet_func.pacote15D(uid, gi));
+                        packet_func.session_send(packet_func.pacote15D(uid, gi), _session);
 
-                        _session.Send(packet_func.pacote15C(uid, v_ms_na, v_msa_na, Convert.ToByte((season != 0) ? 0x33 : 0x0A)));
+                        packet_func.session_send(packet_func.pacote15C(uid, v_ms_na, v_msa_na, Convert.ToByte((season != 0) ? 0x33 : 0x0A)), _session);
 
-                        _session.Send(packet_func.pacote15C(uid, v_ms_g, v_msa_g, Convert.ToByte((season != 0) ? 0x34 : 0x0B)));
+                        packet_func.session_send(packet_func.pacote15C(uid, v_ms_g, v_msa_g, Convert.ToByte((season != 0) ? 0x34 : 0x0B)), _session);
 
-                        _session.Send(packet_func.pacote15B(uid, season));
+                        packet_func.session_send(packet_func.pacote15B(uid, season), _session);
 
-                        _session.Send(packet_func.pacote15A(uid, v_tei, season));
+                        packet_func.session_send(packet_func.pacote15A(uid, v_tei, season), _session);
 
-                        _session.Send(packet_func.pacote159(uid, ti, season));
+                        packet_func.session_send(packet_func.pacote159(uid, ti, season), _session);
 
-                        _session.Send(packet_func.pacote15C(uid, v_ms_n.ToList(), v_msa_n.ToList(), season));
+                        packet_func.session_send(packet_func.pacote15C(uid, v_ms_n.ToList(), v_msa_n.ToList(), season), _session);
 
-                        _session.Send(packet_func.pacote257(uid, v_tegi, season));
+                        packet_func.session_send(packet_func.pacote257(uid, v_tegi, season), _session);
 
-                        _session.Send(packet_func.pacote089(uid, season));
+                        packet_func.session_send(packet_func.pacote089(uid, season), _session);
                     }
 
                     return;
@@ -1734,7 +2047,7 @@ namespace GameServer.GameServerTcp
                 // Quem quer ver a info não é GM aí verifica se o player é GM
                 if (uid != _session.m_pi.uid && !pi.m_cap.game_master/* & 4/*(GM)*/)
                 {
-                    _session.Send(packet_func.pacote089(uid, season, 3));
+                    packet_func.session_send(packet_func.pacote089(uid, season, 3), _session);
 
                 }
                 else
@@ -1771,43 +2084,43 @@ namespace GameServer.GameServerTcp
                         if (pi.a_msa_grand_prix[i].best_score != 127)
                             v_msa_g.Add(pi.a_msa_grand_prix[i]);
 
-                    _session.Send(packet_func.pacote157(pi.mi, season));
+                    packet_func.session_send(packet_func.pacote157(pi.mi, season), _session);
 
-                    _session.Send(packet_func.pacote15E(pi.uid, ci));
+                    packet_func.session_send(packet_func.pacote15E(pi.uid, ci), _session);
 
-                    _session.Send(packet_func.pacote156(pi.uid, pi.ue, season));
+                    packet_func.session_send(packet_func.pacote156(pi.uid, pi.ue, season), _session);
 
-                    _session.Send(packet_func.pacote158(pi.uid, pi.ui, season));
+                    packet_func.session_send(packet_func.pacote158(pi.uid, pi.ui, season), _session);
 
-                    _session.Send(packet_func.pacote15D(pi.uid, pi.gi));
+                    packet_func.session_send(packet_func.pacote15D(pi.uid, pi.gi), _session);
 
-                    _session.Send(packet_func.pacote15C(pi.uid, v_ms_na, v_msa_na, (byte)((season != 0) ? 0x33 : 0x0A)));
+                    packet_func.session_send(packet_func.pacote15C(pi.uid, v_ms_na, v_msa_na, (byte)((season != 0) ? 0x33 : 0x0A)), _session);
 
-                    _session.Send(packet_func.pacote15C(pi.uid, v_ms_g, v_msa_g, (byte)((season != 0) ? 0x34 : 0x0B)));
+                    packet_func.session_send(packet_func.pacote15C(pi.uid, v_ms_g, v_msa_g, (byte)((season != 0) ? 0x34 : 0x0B)), _session);
 
-                    _session.Send(packet_func.pacote15B(uid, season));
+                    packet_func.session_send(packet_func.pacote15B(uid, season), _session);
 
-                    _session.Send(packet_func.pacote15A(pi.uid, (season != 0) ? pi.v_tsi_current_season : pi.v_tsi_rest_season, season));
+                    packet_func.session_send(packet_func.pacote15A(pi.uid, (season != 0) ? pi.v_tsi_current_season : pi.v_tsi_rest_season, season), _session);
 
-                    _session.Send(packet_func.pacote159(pi.uid, (season != 0) ? pi.ti_current_season : pi.ti_rest_season, season));
+                    packet_func.session_send(packet_func.pacote159(pi.uid, (season != 0) ? pi.ti_current_season : pi.ti_rest_season, season), _session);
 
-                    _session.Send(packet_func.pacote15C(pi.uid, v_ms_n, v_msa_n, season));
+                    packet_func.session_send(packet_func.pacote15C(pi.uid, v_ms_n, v_msa_n, season), _session);
 
-                    _session.Send(packet_func.pacote257(pi.uid, (season != 0) ? pi.v_tgp_current_season : pi.v_tgp_rest_season, season));
+                    packet_func.session_send(packet_func.pacote257(pi.uid, (season != 0) ? pi.v_tgp_current_season : pi.v_tgp_rest_season, season), _session);
 
 
-                    _session.Send(packet_func.pacote089(uid, season));
+                    packet_func.session_send(packet_func.pacote089(uid, season), _session);
 
                 }
             }
             catch (Exception e)
             {
                 message_pool.push(new message($"[GameServer::RequestPlayerInfo][ErrorSystem] {e.Message}", type_msg.CL_ONLY_CONSOLE));
-                _session.Send(packet_func.pacote089(0));
+                packet_func.session_send(packet_func.pacote089(0), _session);
             }
         }
 
-        public void requestPrivateMessage(Player _session, Packet _packet)
+        public void requestPrivateMessage(Player _session, packet _packet)
         {
             PangyaBinaryWriter p = new PangyaBinaryWriter();
             Player s = null;
@@ -1842,7 +2155,7 @@ namespace GameServer.GameServerTcp
 
                 s = (Player)FindSessionByNickname(nickname);
 
-                if (s == null || !s.getState() || !s.getConnected())
+                if (s == null || !s.getState() || !s.isConnected())
                     throw new exception("[GameServer.requestPrivateMessage][WARNING] player[UID=" + (_session.m_pi.uid) + "] tentou enviar message privada[msg=" + msg + "] para o player[NICKNAME="
                             + nickname + "], mas o player nao esta online nesse server.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.GAME_SERVER, 2, 5));
 
@@ -1878,7 +2191,7 @@ namespace GameServer.GameServerTcp
                             p.WritePStr("\\1[PM]"); // Nickname
 
                             p.WritePStr(msg_gm);    // Message
-                            el.Send(p);
+                            packet_func.session_send(p, el);
                         }
                     }
 
@@ -1894,7 +2207,7 @@ namespace GameServer.GameServerTcp
 
                 p.WritePStr(s.m_pi.nickname);   // Nickname TO
                 p.WritePStr(msg);
-                _session.Send(p);
+                packet_func.session_send(p, _session);
 
                 // Resposta para o player que vai receber a private message
                 p.init_plain(0x84);
@@ -1903,7 +2216,7 @@ namespace GameServer.GameServerTcp
 
                 p.WritePStr(_session.m_pi.nickname);    // Nickname FROM
                 p.WritePStr(msg);
-                s.Send(p);
+                packet_func.session_send(p, s);
 
                 // Envia a mensagem para o Chat History do discord se ele estiver ativo
 
@@ -1923,15 +2236,15 @@ namespace GameServer.GameServerTcp
                 p.init_plain(0x40);
 
                 p.WriteByte((ExceptionError.STDA_SOURCE_ERROR_DECODE(e.getCodeError()) == (uint)STDA_ERROR_TYPE.GAME_SERVER) ? (byte)ExceptionError.STDA_SYSTEM_ERROR_DECODE(e.getCodeError()) : 5);
-                if (s != null && s.getConnected())
+                if (s != null && s.isConnected())
                     p.WritePStr(s.m_pi.nickname);
                 else
                     p.WritePStr(nickname);  // Player não está online usa o nickname que ele forneceu
-                _session.Send(p);
+                packet_func.session_send(p, _session);
             }
         }
 
-        public void requestQueueTicker(Player _session, Packet _packet)
+        public void requestQueueTicker(Player _session, packet _packet)
         {
             ////REQUEST_BEGIN("QueueTicker");
 
@@ -1953,7 +2266,7 @@ namespace GameServer.GameServerTcp
 
                 p.WriteUInt16((ushort)count);
                 p.WriteUInt32(time_left_milisecond);
-                _session.Send(p);
+                packet_func.session_send(p, _session);
 
             }
             catch (exception e)
@@ -1966,7 +2279,7 @@ namespace GameServer.GameServerTcp
 
                 p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE(e.getCodeError()) == (uint)STDA_ERROR_TYPE.GAME_SERVER) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE(e.getCodeError()) : 1/*UNKNOWN ERROR*/);
 
-                _session.Send(p);
+                packet_func.session_send(p, _session);
             }
         }
 
@@ -1974,20 +2287,20 @@ namespace GameServer.GameServerTcp
         {
         }
 
-        public void requestSendTicker(Player _session, Packet _packet)
+        public void requestSendTicker(Player _session, packet _packet)
         {
         }
 
-        public void requestTranslateSubPacket(Player _session, Packet _packet)
+        public void requestTranslateSubPacket(Player _session, packet _packet)
         {
         }
 
-        public void requestUCCSystem(Player _session, Packet _packet)
+        public void requestUCCSystem(Player _session, packet _packet)
         {
             _session.HandleUCC(_packet);
         }
 
-        public void requestUCCWebKey(Player _session, Packet _packet)
+        public void requestUCCWebKey(Player _session, packet _packet)
         {
         }
 
@@ -1995,19 +2308,50 @@ namespace GameServer.GameServerTcp
         {
             try
             {
-                _session.Send(packet_func.pacote04D(v_channel));
+                var p = packet_func.pacote04D(v_channel);
+                packet_func.session_send(p, _session);
             }
             catch (exception e)
             {
                 _smp.message_pool.push("[GameServer.sendChannelListToSession][ErrorSystem] " + e.getFullMessageError());
             }
         }
+
+        public override bool CheckCommand(string commandLine)
+        {
+            throw new NotImplementedException();
+        }
+
+
+        public PangyaTimer makeTime(uint milliseconds, List<uint> intervalTable = null)
+        {
+            var _timer = new PangyaTimer(milliseconds);
+             
+            return _timer;
+        }
+
+
+        public PangyaTimer unMakeTime(PangyaTimer _timer)
+        {
+            if (_timer == null)
+                throw new exception("[game_server::unMakeTime][Error] tentou deletar o timer, mas o argumento eh nullptr", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.GAME_SERVER, 52, 0));
+
+            if (_timer.getState() == PangyaTimer.STATE_TIME.RUN)
+                _timer.stop();
+            //m_timer_manager.deleteTimer(_timer);
+            return _timer;
+        }
+
+        public string getClientVersionSideServer()
+        {
+            return m_si.version_client;
+        }
     }
 }
 
 namespace sgs
 {
-    public class gs : Singleton<GameServer.GameServerTcp.GameServer>
+    public class gs : Singleton<Pangya_GameServer.GameServerTcp.GameServer>
     {
     }
 }

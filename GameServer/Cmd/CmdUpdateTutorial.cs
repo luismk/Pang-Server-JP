@@ -1,120 +1,73 @@
-﻿//using GameServer.Cmd;
-//using System;
+﻿using System;
+using Pangya_GameServer.GameType;
+using PangyaAPI.SQL;
+using PangyaAPI.Utilities;
+namespace Pangya_GameServer.Cmd
+{
+    public class CmdUpdateTutorial : Pangya_DB
+    {
+        public CmdUpdateTutorial()
+        {
+            this.m_uid = 0u;
+            this.m_ti = new TutorialInfo();
+        }
 
-//// Arquivo cmd_update_tutorial.cpp
-//// Criado em 28/06/2018 as 22:34 por Acrisio
-//// Implementa��o da classe CmdUpdateTutorial
+        public CmdUpdateTutorial(uint _uid,
+            TutorialInfo _ti
+
+            )
+        {
+            this.m_uid = _uid;
+            this.m_ti = (_ti);
+        }
 
 
-//#if _WIN32
-//// C++ TO C# CONVERTER TASK: There is no equivalent to most C++ 'pragma' directives in C#:
-////#pragma pack(1)
-//#endif
+        public uint getUID()
+        {
+            return (m_uid);
+        }
 
-//// Arquivo cmd_update_tutorial.hpp
-//// Criado em 28/06/2018 as 22:27 por Acrisio
-//// Defini��o da classe CmdUpdateTutorial
+        public void setUID(uint _uid)
+        {
+            m_uid = _uid;
 
+        }
 
-//// C++ TO C# CONVERTER WARNING: The following #include directive was ignored:
-////#include "../../Projeto IOCP/PANGYA_DB/pangya_db.h"
-//// C++ TO C# CONVERTER NOTE: The following #define macro was replaced in-line:
-// #define m_title skin_typeid[5]
-//// C++ TO C# CONVERTER NOTE: The following #define macro was replaced in-line:
-// #define GameServer.Cmd_C_ITEM_QNTD c[0]
-//// C++ TO C# CONVERTER NOTE: The following #define macro was replaced in-line:
-// #define GameServer.Cmd_C_ITEM_TICKET_REPORT_ID_HIGH c[1]
-//// C++ TO C# CONVERTER NOTE: The following #define macro was replaced in-line:
-// #define GameServer.Cmd_C_ITEM_TICKET_REPORT_ID_LOW c[2]
-//// C++ TO C# CONVERTER NOTE: The following #define macro was replaced in-line:
-// #define GameServer.Cmd_C_ITEM_TIME c[3]
+        public TutorialInfo getInfo()
+        {
+            return m_ti;
+        }
 
-//namespace GameServer.Cmd
-//{
-//	public class CmdUpdateTutorial : Pangya_DB
-//	{
-//			public CmdUpdateTutorial()
-//			{
-//				this.m_uid = 0u;
-//				this.m_ti = new GameServer.Cmd.TutorialInfo(0);
-//			}
+        public void setInfo(TutorialInfo _ti)
+        {
+            m_ti = _ti;
+        }
 
-//			public CmdUpdateTutorial(uint _uid,
-//				TutorialInfo _ti,
-//				)
-//				{
-//// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
-// this.m_uid = _uid;
-//				//this.
-//				this.m_ti = new GameServer.Cmd.TutorialInfo(_ti);
-//				}
+        protected override void lineResult(ctx_res _result, uint _index_result)
+        {
 
-//			public virtual void Dispose()
-//			{
-//			}
+            // N�o usa por que � um UPDATE
+            return;
+        }
 
-//			public uint getUID()
-//			{
-//				return (m_uid);
-//			}
+        protected override Response prepareConsulta()
+        {
 
-//			public void setUID(uint _uid)
-//			{
-//// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
-// m_uid = _uid;
-//				
-//			}
+            if (m_uid == 0)
+            {
+                throw new exception("[CmdUpdateTutorial::prepareConsulta][Error] m_uid is invalid(zero)", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PANGYA_DB,
+                    4, 0));
+            }
 
-//			public TutorialInfo getInfo()
-//			{
-//// C++ TO C# CONVERTER TASK: The following line was determined to contain a copy constructor call - this should be verified and a copy constructor should be created:
-// return m_ti;
-//				return new GameServer.Cmd.TutorialInfo(m_ti);
-//			}
+            var r = _update(m_szConsulta[0] + Convert.ToString(m_ti.rookie) + m_szConsulta[1] + Convert.ToString(m_ti.beginner) + m_szConsulta[2] + Convert.ToString(m_ti.advancer) + m_szConsulta[3] + Convert.ToString(m_uid));
 
-//			public void setInfo(TutorialInfo _ti)
-//			{
-//// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
-// m_ti = _ti;
-//				m_ti.CopyFrom(_ti);
-//			}
+            checkResponse(r, "nao conseguiu Atualizar o Tutorial[Rookie=" + Convert.ToString(m_ti.rookie) + ", Beginner=" + Convert.ToString(m_ti.beginner) + ", Advancer=" + Convert.ToString(m_ti.advancer) + "] do player[UID=" + Convert.ToString(m_uid) + "]");
 
-//			protected override void lineResult(ctx_res _result, uint _index_result)
-//			{
+            return r;
+        }
+        private uint m_uid = new uint();
+        private TutorialInfo m_ti = new TutorialInfo();
 
-//				// N�o usa por que � um UPDATE
-//				return;
-//			}
-
-//			protected override Response prepareConsulta()
-//			{
-
-//				if(m_uid == 0)
-//				{
-//					throw new exception("[CmdUpdateTutorial::prepareConsulta][Error] m_uid is invalid(zero)", ExceptionError.GameServer.Cmd_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PANGYA_DB,
-//						4, 0));
-//				}
-
-//				var r = _update(m_szConsulta[0] + Convert.ToString(m_ti.rookie) + m_szConsulta[1] + Convert.ToString(m_ti.beginner) + m_szConsulta[2] + Convert.ToString(m_ti.advancer) + m_szConsulta[3] + Convert.ToString(m_uid));
-
-//				checkResponse(r, "nao conseguiu Atualizar o Tutorial[Rookie=" + Convert.ToString(m_ti.rookie) + ", Beginner=" + Convert.ToString(m_ti.beginner) + ", Advancer=" + Convert.ToString(m_ti.advancer) + "] do player[UID=" + Convert.ToString(m_uid) + "]");
-
-//				return r;
-//			}
-
-//			// get Class db_name
-//			protected override string _getName()
-//			{
-//				return "CmdUpdateTutorial";
-//			}
-//			protected override string _wgetName()
-//			{
-//				return "CmdUpdateTutorial";
-//			}
-
-//			private uint m_uid = new uint();
-//			private TutorialInfo m_ti = new TutorialInfo();
-
-//			private string[] m_szConsulta = { "UPDATE pangya.tutorial SET Rookie = ", ", Beginner = ", ", Advancer = ", " WHERE UID = " };
-//	}
-//}
+        private string[] m_szConsulta = { "UPDATE pangya.tutorial SET Rookie = ", ", Beginner = ", ", Advancer = ", " WHERE UID = " };
+    }
+}

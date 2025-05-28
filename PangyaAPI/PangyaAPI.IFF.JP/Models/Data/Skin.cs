@@ -1,7 +1,5 @@
-﻿using PangyaAPI.IFF.JP.Models.General;
-using PangyaAPI.IFF.JP.Models.Flags;
-using System;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
+using PangyaAPI.IFF.JP.Models.General;
 namespace PangyaAPI.IFF.JP.Models.Data
 {
     #region Struct Skin.iff
@@ -14,7 +12,7 @@ namespace PangyaAPI.IFF.JP.Models.Data
         public byte vertical_scroll { get; set; }      // By TH S4 - (VScroll) 256 efeito de rolagem vertical
         [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 5)]
         public ushort[] price { get; set; }
-             
+
     }
     #endregion        
 }

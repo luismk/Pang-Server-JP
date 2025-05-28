@@ -1,8 +1,8 @@
-﻿using PangyaAPI.Utilities;                     
-using response = PangyaAPI.SQL.Response;
+﻿using System;
+using System.Linq;
 using PangyaAPI.SQL.Manager;
-using System;
-using System.Runtime.CompilerServices;
+using PangyaAPI.Utilities;
+using response = PangyaAPI.SQL.Response;
 
 namespace PangyaAPI.SQL
 {
@@ -10,15 +10,15 @@ namespace PangyaAPI.SQL
     {
         protected ctx_db m_ctx_db = new ctx_db();
         protected mssql _db = new mssql();
-        public Pangya_DB()   
-        {                 
+        public Pangya_DB()
+        {
             _db = new mssql();
             _db.connect();
         }
-                                      
-       
+
+
         public virtual void exec()
-        { 
+        {
             uint num_result = 0;
             try
             {
@@ -34,12 +34,12 @@ namespace PangyaAPI.SQL
                 }
                 else
                 {
-                    Console.WriteLine("[Pangya_DB::" + _getName + "::exec][Error] return prepareConsulta is null.");    
+                    Console.WriteLine("[Pangya_DB::" + _getName + "::exec][Error] return prepareConsulta is null.");
                 }
             }
             catch (Exception e)
             {
-                m_exception = new exception(e.Message, ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PANGYA_DB, 0 ,0));
+                m_exception = new exception(e.Message, ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PANGYA_DB, 0, 0));
             }
         }
 
@@ -47,7 +47,7 @@ namespace PangyaAPI.SQL
         {
             return m_exception ?? new exception("");
         }
-                   
+
         public virtual response _insert(string _query)
         {
             return _db.ExecQuery(_query);
@@ -59,7 +59,7 @@ namespace PangyaAPI.SQL
         public virtual response consulta(string _query) { return _db.ExecQuery(_query); }
 
         public virtual response procedure(string _name, string values = null) { return _db.ExecProc(_name, values); }
-                           
+
         public virtual void clear_response(response _res) { }
 
         public virtual void checkColumnNumber(uint _number_cols1)
@@ -76,7 +76,7 @@ namespace PangyaAPI.SQL
         public virtual void checkResponse(response r, string _exception_msg)
         {
             if (r == null || (r.getNumResultSet() <= 0 && r.getRowsAffected() == -1))
-                throw new exception("[Pangya_DB::" + _getName + "::checkResponse][Error] " + _exception_msg, ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PANGYA_DB, 0 ,0));
+                throw new exception("[Pangya_DB::" + _getName + "::checkResponse][Error] " + _exception_msg, ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PANGYA_DB, 0, 0));
         }
 
         protected abstract void lineResult(ctx_res _result, uint _index_result);
@@ -125,7 +125,7 @@ namespace PangyaAPI.SQL
                 return Convert.ToUInt32(value);
             }
             catch
-            {                                     
+            {
                 throw new InvalidCastException($"[{_getName}::IFNULL][Error] The provided value cannot be converted to uint.");
             }
         }
@@ -138,7 +138,7 @@ namespace PangyaAPI.SQL
             }
 
             try
-            {                  
+            {
                 return (T)Convert.ChangeType(value, typeof(T)); // Conversão segura para o tipo T
             }
             catch (Exception ex)
@@ -146,18 +146,29 @@ namespace PangyaAPI.SQL
                 throw new InvalidCastException($"[{_getName}::IFNULL][Error] The provided value cannot be converted to {typeof(T).Name}.", ex);
             }
         }
-
-
         public static DateTime? _translateDate(object value)
         {
             if (value == null)
                 return null;
 
-            if (DateTime.TryParseExact(value.ToString(), "dd/MM/yyyy HH:mm:ss",
+            string[] formatos = new[] {
+        "M/d/yyyy h:mm:ss tt",    // ex: 5/6/2025 12:00:00 AM
+        "M/d/yyyy hh:mm:ss tt",
+        "dd/MM/yyyy HH:mm:ss",
+        "HH:mm:ss"                // apenas hora
+    };
+
+            if (DateTime.TryParseExact(value.ToString(), formatos,
                                        System.Globalization.CultureInfo.InvariantCulture,
                                        System.Globalization.DateTimeStyles.None,
                                        out DateTime result))
             {
+                // Se for apenas horário (sem data), assume o dia de hoje
+                if (value.ToString().Length == 8 && value.ToString().Count(c => c == ':') == 2)
+                {
+                    return DateTime.Today.Add(result.TimeOfDay);
+                }
+
                 return result;
             }
 

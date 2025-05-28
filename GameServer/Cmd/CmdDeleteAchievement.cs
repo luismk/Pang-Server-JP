@@ -1,12 +1,9 @@
-﻿using GameServer.GameType;
+﻿using System;
 using PangyaAPI.SQL;
 using PangyaAPI.Utilities;
-using System.Collections.Generic;
-using System;
-using System.Linq;
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
-    public class CmdDeleteAchievement    : Pangya_DB
+    public class CmdDeleteAchievement : Pangya_DB
     {
         public CmdDeleteAchievement()
         {
@@ -16,10 +13,10 @@ namespace GameServer.Cmd
 
         public CmdDeleteAchievement(uint _uid,
             int _id)
-        {                      
+        {
             this.m_uid = _uid;
             this.m_id = _id;
-         }
+        }
 
         public virtual void Dispose()
         {
@@ -31,7 +28,7 @@ namespace GameServer.Cmd
         }
 
         public void setUID(uint _uid)
-        {                    
+        {
             m_uid = _uid;
         }
 
@@ -41,7 +38,7 @@ namespace GameServer.Cmd
         }
 
         public void setId(int _id)
-        {                                 
+        {
             m_id = _id;
         }
 
@@ -72,7 +69,7 @@ namespace GameServer.Cmd
             checkResponse(r, "nao conseguiu deletar o Achievement[ID=" + Convert.ToString(m_id) + "] do player[UID=" + Convert.ToString(m_uid) + "]");
 
             return r;
-        }                      
+        }
 
         private uint m_uid = new uint();
         private int m_id = new int();

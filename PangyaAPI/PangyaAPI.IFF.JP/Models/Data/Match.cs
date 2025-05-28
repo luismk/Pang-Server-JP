@@ -1,5 +1,4 @@
-﻿using PangyaAPI.IFF.JP.Models.Flags;
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -9,7 +8,7 @@ namespace PangyaAPI.IFF.JP.Models.Data
     /// Is Struct file Match.iff
     /// </summary>
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
-    public class Match  : ICloneable
+    public class Match : ICloneable
     {
         public uint Active { get; set; }
         public uint ID { get; set; }

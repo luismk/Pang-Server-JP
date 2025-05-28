@@ -1,9 +1,8 @@
-﻿using GameServer.GameType;
+﻿using System;
+using Pangya_GameServer.GameType;
 using PangyaAPI.SQL;
-using System;
-using System.Data;
 
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     public class CmdTutorialInfo : Pangya_DB
     {
@@ -22,7 +21,7 @@ namespace GameServer.Cmd
             {
                 m_ti.rookie = Convert.ToUInt32(_result.data[0]);
                 m_ti.beginner = Convert.ToUInt32(_result.data[1]);
-                m_ti.advancer = Convert.ToUInt32(_result.data[2]);                
+                m_ti.advancer = Convert.ToUInt32(_result.data[2]);
             }
             catch (Exception ex)
             {
@@ -32,7 +31,7 @@ namespace GameServer.Cmd
         }
 
         protected override Response prepareConsulta()
-        {                                              
+        {
             var r = procedure("pangya.GetTutorial " + m_uid.ToString());
             checkResponse(r, "nao conseguiu pegar o member info do player: " + (m_uid));
             return r;

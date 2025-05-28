@@ -1,19 +1,18 @@
-﻿using GameServer.Cmd;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Pangya_GameServer.Cmd;
+using Pangya_GameServer.Game.Manager;
+using Pangya_GameServer.Game.Utils;
 using PangyaAPI.Network.Pangya_St;
+using PangyaAPI.SQL.Manager;
 using PangyaAPI.Utilities;
 using PangyaAPI.Utilities.Log;
-using System;
-using System.Linq;
+using static Pangya_GameServer.GameType._Define;
 using _smp = PangyaAPI.Utilities.Log;
 using snmdb = PangyaAPI.SQL.Manager;
-using GameServer.Game.Manager;
-using System.Collections.Generic;
-using static GameServer.GameType._Define;
-using PangyaAPI.SQL.Manager;
-using GameServer.Session;
-using GameServer.Game.Utils;
 
-namespace GameServer.GameType
+namespace Pangya_GameServer.GameType
 {
     public partial class PlayerInfo : player_info
     {
@@ -106,7 +105,13 @@ namespace GameServer.GameType
 
 
         private Dictionary<uint/*key*/, stTitleMapCallback> mp_title_callback { get; set; }
+        public stTitleMapCallback getTitleCallBack(uint _id)
+        {
 
+            var it = mp_title_callback.FirstOrDefault(c=> c.Key == _id);
+
+            return (it.Value != null ? it.Value : null);
+        }
         static int better_hit_pangya_bronze(object _arg)
         {
             var pi = ((PlayerInfo)_arg);//BEGIN_CALL_BACK_TITLE_CONDITION(better_hit_pangya_bronze);
@@ -358,32 +363,6 @@ namespace GameServer.GameType
         public PlayerInfo()
         {
             clear();
-
-            // Inicializa o map de Title call back condition
-            mp_title_callback.Add(0x15, new stTitleMapCallback(better_hit_pangya_bronze, this));
-            mp_title_callback.Add(0x16, new stTitleMapCallback(better_fairway_bronze, this));
-            mp_title_callback.Add(0x17, new stTitleMapCallback(better_putt_bronze, this));
-            mp_title_callback.Add(0x18, new stTitleMapCallback(master_course, this));
-            mp_title_callback.Add(0x19, new stTitleMapCallback(atirador_de_ouro, this));
-            mp_title_callback.Add(0x1a, new stTitleMapCallback(atirador_de_silver, this));
-            mp_title_callback.Add(0x1b, new stTitleMapCallback(atirador_de_bronze, this));
-            mp_title_callback.Add(0x1C, new stTitleMapCallback(better_quit_rate_bronze, this));
-            mp_title_callback.Add(0x32, new stTitleMapCallback(better_hit_pangya_silver, this));
-            mp_title_callback.Add(0x33, new stTitleMapCallback(better_fairway_silver, this));
-            mp_title_callback.Add(0x34, new stTitleMapCallback(better_putt_silver, this));
-            mp_title_callback.Add(0x35, new stTitleMapCallback(better_quit_rate_silver, this));
-            mp_title_callback.Add(0x45, new stTitleMapCallback(natural_record_420, this));
-            mp_title_callback.Add(0x46, new stTitleMapCallback(natural_record_390, this));
-            mp_title_callback.Add(0x47, new stTitleMapCallback(natural_record_350, this));
-            mp_title_callback.Add(0x48, new stTitleMapCallback(natural_record_300, this));
-            mp_title_callback.Add(0x49, new stTitleMapCallback(natural_record_200, this));
-            mp_title_callback.Add(0x4a, new stTitleMapCallback(natural_record_80, this));
-            mp_title_callback.Add(0x7B, new stTitleMapCallback(better_quit_rate_gold, this));
-            mp_title_callback.Add(0x7C, new stTitleMapCallback(better_putt_gold, this));
-            mp_title_callback.Add(0x7D, new stTitleMapCallback(better_fairway_gold, this));
-            mp_title_callback.Add(0x7E, new stTitleMapCallback(better_hit_pangya_gold, this));
-            mp_title_callback.Add(0x17C, new stTitleMapCallback(natural_record_470, this));
-            mp_title_callback.Add(0x17D, new stTitleMapCallback(natural_record_540, this));
         }
 
         public void clear()
@@ -404,32 +383,30 @@ namespace GameServer.GameType
             ti_rest_season = new TrofelInfo();
             TutoInfo = new TutorialInfo();
             ue = new UserEquip();
-            cmu = new chat_macro_user();
-            a_ms_normal = new List<MapStatisticsEx>();
-            a_msa_normal = new List<MapStatisticsEx>();
-            a_ms_natural = new List<MapStatisticsEx>();
-            a_msa_natural = new List<MapStatisticsEx>();
-            a_ms_grand_prix = new List<MapStatisticsEx>();
-            a_msa_grand_prix = new List<MapStatisticsEx>();
+            cmu = new chat_macro_user(); 
 
-            for (int i = 0; i < MS_NUM_MAPS; i++)
+            for (sbyte i = 0; i < MS_NUM_MAPS; i++)
             {
-                a_ms_normal.Add(new MapStatisticsEx());
-                a_msa_normal.Add(new MapStatisticsEx());
-                a_ms_natural.Add(new MapStatisticsEx());
-                a_msa_natural.Add(new MapStatisticsEx());
-                a_ms_grand_prix.Add(new MapStatisticsEx());
-                a_msa_grand_prix.Add(new MapStatisticsEx());
+                var map = new MapStatisticsEx();
+                map.clear(i);
+                a_ms_normal.Add(map);
+                a_msa_normal.Add(map);
+                a_ms_natural.Add(map);
+                a_msa_natural.Add(map);
+                a_ms_grand_prix.Add(map);
+                a_msa_grand_prix.Add(map);
             }
 
             aa_ms_normal_todas_season = new List<MapStatisticsEx>();
 
             // Inicializando cada sessão com 21 mapas (ou MS_NUM_MAPS mapas)
-            for (int j = 0; j < 9; j++)
+            for (int j = 0; j < 9; j++)//sao de cada season, 1 a 9, caso é 8, pois comeca do zero [0,9](ultimo é 8), tenho que ver isso melhor @@@@@TARDE
             {
-                for (int i = 0; i < MS_NUM_MAPS; i++)
+                for (sbyte i = 0; i < MS_NUM_MAPS; i++)
                 {
-                    aa_ms_normal_todas_season.Add(new MapStatisticsEx());  // Inicializa cada mapa
+                    var map = new MapStatisticsEx();
+                    map.clear(i);
+                    aa_ms_normal_todas_season.Add(map);  // Inicializa cada mapa
                 }
             }
 
@@ -462,15 +439,41 @@ namespace GameServer.GameType
             dqiu = new DailyQuestInfoUser();
             l5pg = new Last5PlayersGame();
             m_mail_box = new PlayerMailBox();
+             
+            // Inicializa o map de Title call back condition
+            mp_title_callback.Add(0x15, new stTitleMapCallback(better_hit_pangya_bronze, this));
+            mp_title_callback.Add(0x16, new stTitleMapCallback(better_fairway_bronze, this));
+            mp_title_callback.Add(0x17, new stTitleMapCallback(better_putt_bronze, this));
+            mp_title_callback.Add(0x18, new stTitleMapCallback(master_course, this));
+            mp_title_callback.Add(0x19, new stTitleMapCallback(atirador_de_ouro, this));
+            mp_title_callback.Add(0x1a, new stTitleMapCallback(atirador_de_silver, this));
+            mp_title_callback.Add(0x1b, new stTitleMapCallback(atirador_de_bronze, this));
+            mp_title_callback.Add(0x1C, new stTitleMapCallback(better_quit_rate_bronze, this));
+            mp_title_callback.Add(0x32, new stTitleMapCallback(better_hit_pangya_silver, this));
+            mp_title_callback.Add(0x33, new stTitleMapCallback(better_fairway_silver, this));
+            mp_title_callback.Add(0x34, new stTitleMapCallback(better_putt_silver, this));
+            mp_title_callback.Add(0x35, new stTitleMapCallback(better_quit_rate_silver, this));
+            mp_title_callback.Add(0x45, new stTitleMapCallback(natural_record_420, this));
+            mp_title_callback.Add(0x46, new stTitleMapCallback(natural_record_390, this));
+            mp_title_callback.Add(0x47, new stTitleMapCallback(natural_record_350, this));
+            mp_title_callback.Add(0x48, new stTitleMapCallback(natural_record_300, this));
+            mp_title_callback.Add(0x49, new stTitleMapCallback(natural_record_200, this));
+            mp_title_callback.Add(0x4a, new stTitleMapCallback(natural_record_80, this));
+            mp_title_callback.Add(0x7B, new stTitleMapCallback(better_quit_rate_gold, this));
+            mp_title_callback.Add(0x7C, new stTitleMapCallback(better_putt_gold, this));
+            mp_title_callback.Add(0x7D, new stTitleMapCallback(better_fairway_gold, this));
+            mp_title_callback.Add(0x7E, new stTitleMapCallback(better_hit_pangya_gold, this));
+            mp_title_callback.Add(0x17C, new stTitleMapCallback(natural_record_470, this));
+            mp_title_callback.Add(0x17D, new stTitleMapCallback(natural_record_540, this));
         }
 
-      
+
 
         public ulong cookie { get; set; }
         public CouponGacha cg { get; set; }
         public MemberInfoEx mi { get; set; }
         public UserInfoEx ui { get; set; }
-        public EquipedItem ei { get; set; }
+        public EquipedItem ei { get; set; }//with comet
         ClubSetWorkshopLasUpLevel cwlul { get; set; }
         ClubSetWorkshopTransformClubSet cwtc { get; set; }
         public PremiumTicket pt { get; set; }
@@ -479,12 +482,12 @@ namespace GameServer.GameType
         public TutorialInfo TutoInfo { get; set; }
         public UserEquip ue { get; set; }
         public chat_macro_user cmu { get; set; }
-        public List<MapStatisticsEx> a_ms_normal { get; set; }
-        public List<MapStatisticsEx> a_msa_normal { get; set; }
-        public List<MapStatisticsEx> a_ms_natural { get; set; }
-        public List<MapStatisticsEx> a_msa_natural { get; set; }
-        public List<MapStatisticsEx> a_ms_grand_prix { get; set; }
-        public List<MapStatisticsEx> a_msa_grand_prix { get; set; }
+        public List<MapStatisticsEx> a_ms_normal { get; set; } = new List<MapStatisticsEx>(22);
+        public List<MapStatisticsEx> a_msa_normal { get; set; } = new List<MapStatisticsEx>(22);
+        public List<MapStatisticsEx> a_ms_natural { get; set; } = new List<MapStatisticsEx>(22);
+        public List<MapStatisticsEx> a_msa_natural { get; set; } = new List<MapStatisticsEx>(22);
+        public List<MapStatisticsEx> a_ms_grand_prix { get; set; } = new List<MapStatisticsEx>(22);
+        public List<MapStatisticsEx> a_msa_grand_prix { get; set; } = new List<MapStatisticsEx>(22);
         public List<MapStatisticsEx> aa_ms_normal_todas_season { get; set; }   // Esse aqui é diferente, explico ele no pacote InitialLogin
         public Dictionary<uint, StateCharacterLounge> mp_scl { get; set; }
 
@@ -497,7 +500,7 @@ namespace GameServer.GameType
 
         public AttendanceRewardInfoEx ari { get; set; }
 
-       public MgrAchievement mgr_achievement;             // Manager Achievement
+        public MgrAchievement mgr_achievement;             // Manager Achievement
         public CardManager v_card_info { get; set; }
 
         public CardEquipManager v_cei { get; set; }
@@ -520,6 +523,17 @@ namespace GameServer.GameType
         public Last5PlayersGame l5pg { get; set; }
         public class stLocation
         {
+            public stLocation()
+            {
+
+            }
+            public stLocation(float x, float z, float r)
+            {
+                this.x = x;
+                this.z = z;
+                this.r = r;
+            }
+
             public float x { get; set; }
             public float y { get; set; }
             public float z { get; set; }
@@ -557,8 +571,7 @@ namespace GameServer.GameType
         public ulong grand_zodiac_pontos { get; set; }
         public ulong m_legacy_tiki_pts { get; set; } // Point Shop(Tiki Shop antigo)                                          
         //// Mail Box
-        public PlayerMailBox m_mail_box { get; set; }
-
+        public PlayerMailBox m_mail_box { get; set; } 
         public stPlayerLocationDB m_pl { get; set; }
         public stSyncUpdateDB m_update_pang_db;
         public stSyncUpdateDB m_update_cookie_db;
@@ -577,9 +590,9 @@ namespace GameServer.GameType
 
                 cookie += _cookie;
 
-                //m_update_cookie_db.requestUpdateOnDB();
+                m_update_cookie_db.requestUpdateOnDB();
 
-                //  snmdb::NormalManagerDB.add(2, new CmdUpdateCookie(m_uid, _cookie, CmdUpdateCookie::INCREASE), SQLDBResponse, this);
+                NormalManagerDB.add(2, new CmdUpdateCookie(uid, _cookie, CmdUpdateCookie.T_UPDATE_COOKIE.INCREASE), SQLDBResponse, this);
 
 
             }
@@ -596,6 +609,32 @@ namespace GameServer.GameType
 
         public void addCookie(uint _uid, ulong _cookie)
         {
+            if (_cookie <= 0)
+                throw new exception("[PlayerInfo::addCookie][Error] _cookie valor invalido: " + _cookie);
+
+            try
+            {
+                // Check alteration on cookie of DB 
+                if (checkAlterationCookieOnDB())
+                    throw new exception("[PlayerInfo::addCookie][Error] Player[UID=" + _uid + "] cookie on db is different of server.");
+
+                cookie += _cookie;
+
+                m_update_cookie_db.requestUpdateOnDB();
+
+                NormalManagerDB.add(2, new CmdUpdateCookie(_uid, _cookie, CmdUpdateCookie.T_UPDATE_COOKIE.INCREASE), SQLDBResponse, this);
+
+
+            }
+            catch (exception e)
+            {
+
+                _smp::message_pool.push(new message("[PlayerInfo::addCookie][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+
+                throw;
+            }
+
+            _smp::message_pool.push(new message("[PlayerInfo::addCookie][Log] Player: " + uid + ", ganhou " + _cookie + " e ficou com " + cookie + " Cookie(s).", type_msg.CL_FILE_LOG_AND_CONSOLE));
         }
 
         public int addExp(uint _exp)
@@ -722,9 +761,9 @@ namespace GameServer.GameType
                 // Add o pang para o player
                 ui.pang += _pang;
 
-                //m_update_pang_db.requestUpdateOnDB();
+                m_update_pang_db.requestUpdateOnDB();
 
-                //snmdb::NormalManagerDB.add(1, new CmdUpdatePang(m_uid, _pang, CmdUpdatePang::INCREASE), PlayerInfo::SQLDBResponse, this);
+                NormalManagerDB.add(1, new CmdUpdatePang(uid, _pang, CmdUpdatePang.T_UPDATE_PANG.INCREASE), SQLDBResponse, this);
 
 
             }
@@ -793,25 +832,24 @@ namespace GameServer.GameType
 
             PlayerRoomInfo.uItemBoost ib = new PlayerRoomInfo.uItemBoost();
 
-            // Pang
-            //for (auto & _el : mp_wi)
-            //{
+            //Pang
+            foreach (var _el in mp_wi)
+            { 
+                // Pang Boost X2
+                // Verifica a quantidade do item para gastar menos processo se ele não tiver a quantidade necessária para ativar a flag
+                if (_el.Value.STDA_C_ITEM_QNTD > 0 && passive_item_pang_x2.Any(c=> c == _el.Value._typeid))
+                    ib.ucPangMastery = 1;
 
-            //    // Pang Boost X2
-            //    // Verifica a quantidade do item para gastar menos processo se ele não tiver a quantidade necessária para ativar a flag
-            //    if (_el.second.STDA_C_ITEM_QNTD > 0 && std::find(passive_item_pang_x2, LAST_ELEMENT_IN_ARRAY(passive_item_pang_x2), _el.second._typeid) != LAST_ELEMENT_IN_ARRAY(passive_item_pang_x2))
-            //        ib.stItemBoost.ucPangMastery = 1u;
+                // Pang Boost X4
+                // Verifica a quantidade do item para gastar menos processo se ele não tiver a quantidade necessária para ativar a flag
+                if (_el.Value.STDA_C_ITEM_QNTD > 0 && passive_item_pang_x4.Any(c => c == _el.Value._typeid))
+                    ib.ucPangNitro = 1;
 
-            //    // Pang Boost X4
-            //    // Verifica a quantidade do item para gastar menos processo se ele não tiver a quantidade necessária para ativar a flag
-            //    if (_el.second.STDA_C_ITEM_QNTD > 0 && std::find(passive_item_pang_x4, LAST_ELEMENT_IN_ARRAY(passive_item_pang_x4), _el.second._typeid) != LAST_ELEMENT_IN_ARRAY(passive_item_pang_x4))
-            //        ib.stItemBoost.ucPangNitro = 1u;
-
-            //    // Tenta não consumir mais processo, quando já estiver as duas flag setada.
-            //    // Tentando verificar outros itens que possa ter ainda no map
-            //    if (ib.stItemBoost.ucPangMastery == 1u && ib.stItemBoost.ucPangNitro == 1u)
-            //        break;
-            //}
+                // Tenta não consumir mais processo, quando já estiver as duas flag setada.
+                // Tentando verificar outros itens que possa ter ainda no map
+                if (ib.ucPangMastery == 1 && ib.ucPangNitro == 1)
+                    break;
+            }
 
             return ib;
         }
@@ -1104,9 +1142,7 @@ namespace GameServer.GameType
                 m_pl.lobby = lobby;
                 m_pl.room = mi.sala_numero;
                 m_pl.place.ulPlace = (byte)place;
-             
-			 _smp.message_pool.push(new message("[PlayerInfo::updateLocationDB][Log]: " + m_pl.place.ToString(), type_msg.CL_FILE_LOG_AND_CONSOLE));
-
+                 
                 //// Sincroniza para não ter valores inseridos errados no banco de dados
                 m_pl.requestUpdateOnDB();
 
@@ -1132,20 +1168,10 @@ namespace GameServer.GameType
             // Update Info do player na database
             updateUserInfo();
         }
-
-        public void updateMedal(uint _uid, uMedalWin _medal_win)
+        public static void updateMedal(uint _uid, uMedalWin _medal_win)
         {
-
-            if (_medal_win.ucMedal == 0u)
-                throw new exception("[PlayerInfo::updateMedal][Error] Player[UID=" + uid
-                        + "] tentou atualizar medalhas, mas passou nenhuma medalha para atualizar. Hacker ou Bug.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PLAYER_INFO, 600, 0));
-
-            // Update medal info player
-            ui.medal.add(_medal_win);
-
-            // Update Info do player na database
-            updateUserInfo();
-        }
+             
+              }
 
         public void updateMoeda()
         {
@@ -1180,11 +1206,11 @@ namespace GameServer.GameType
             }
         }
 
-        public void updateTrofelInfo(int _trofel_typeid, bool _trofel_rank)
+        public void updateTrofelInfo(uint _trofel_typeid, byte _trofel_rank)
         {
         }
 
-        public void updateTrofelInfo(uint _uid, int _trofel_typeid, bool _trofel_rank)
+        public static void updateTrofelInfo(uint _uid, uint _trofel_typeid, byte _trofel_rank)
         {
         }
 

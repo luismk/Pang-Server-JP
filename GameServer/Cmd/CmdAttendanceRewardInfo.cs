@@ -1,10 +1,9 @@
-﻿using GameServer.GameType;
-using System;
+﻿using System;
+using Pangya_GameServer.GameType;
 using PangyaAPI.SQL;
 using PangyaAPI.Utilities;
-using System.Data.Common;
 
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     public class CmdAttendanceRewardInfo : Pangya_DB
     {
@@ -49,8 +48,21 @@ namespace GameServer.Cmd
                 m_ari.after._typeid = IFNULL(_result.data[3]);
                 m_ari.after.qntd = IFNULL(_result.data[4]);
 
-                if (_result.data[5] != null)
+                if (!(_result.data[5] is DBNull))
                     m_ari.last_login.CreateTime(_translateDate(_result.data[5]));
+
+                if (m_ari.counter == 0)
+                {
+                    if (m_ari.after._typeid == 0 && m_ari.after.qntd == 0)
+                    {
+                        m_ari.login = 3;
+                    }
+                    else if ((m_ari.now._typeid == 0 && m_ari.now.qntd == 0))
+                    {
+                        m_ari.login = 2;
+                    }
+                    else if ((m_ari.after._typeid == 0 && m_ari.after.qntd == 0) && (m_ari.now._typeid == 0 && m_ari.now.qntd == 0)) { m_ari.login = 2; }
+                }
             }
             catch (exception e)
             {

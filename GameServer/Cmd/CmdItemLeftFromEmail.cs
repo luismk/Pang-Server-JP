@@ -1,7 +1,7 @@
-﻿using PangyaAPI.SQL;
-using System;
+﻿using System;
+using PangyaAPI.SQL;
 
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     public class CmdItemLeftFromEmail : Pangya_DB
     {
@@ -14,15 +14,15 @@ namespace GameServer.Cmd
         {
             this.m_email_id = _email_id;
         }
-                 
+
         public uint getEmailID()
         {
             return m_email_id;
         }
 
         public void setEmailID(uint _email_id)
-        {       
-            m_email_id = _email_id;            
+        {
+            m_email_id = _email_id;
         }
         protected override void lineResult(ctx_res _result, uint _index_result)
         {
@@ -38,7 +38,7 @@ namespace GameServer.Cmd
 
             return r;
         }
-                    
+
         private uint m_email_id = 0;
 
         private const string m_szConsulta = "UPDATE pangya.pangya_item_mail SET valid = 0 WHERE Msg_ID = ";

@@ -1,8 +1,8 @@
-﻿using PangyaAPI.IFF.JP.Models.General;
-using PangyaAPI.IFF.JP.Models.Flags;
-using System.Runtime.InteropServices;                     
+﻿using System;
+using System.Runtime.InteropServices;
 using System.Text;
-using System;
+using PangyaAPI.IFF.JP.Models.Flags;
+using PangyaAPI.IFF.JP.Models.General;
 
 namespace PangyaAPI.IFF.JP.Models.Data
 {
@@ -24,7 +24,7 @@ namespace PangyaAPI.IFF.JP.Models.Data
         /// </summary>
         public uint ID { get; set; }
         public uint Total { get; set; }
-        [StructLayout(LayoutKind.Sequential, Pack = 1, Size =32)]
+        [StructLayout(LayoutKind.Sequential, Pack = 1, Size = 32)]
         public class Packege
         {
             [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
@@ -39,7 +39,7 @@ namespace PangyaAPI.IFF.JP.Models.Data
         }
         [field: MarshalAs(UnmanagedType.Struct)]
         public Packege box_packege { get; set; } = new Packege();
-        public uint Box_Random_ID { get; set; }                        
+        public uint Box_Random_ID { get; set; }
         [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 40)]
         byte[] NameInBytes { get; set; }
         [StructLayout(LayoutKind.Sequential, Pack = 1, Size = 32)]
@@ -62,7 +62,7 @@ namespace PangyaAPI.IFF.JP.Models.Data
         [field: MarshalAs(UnmanagedType.Struct)]
         public _Date date { get; set; } = new _Date();
         public string Name { get => Encoding.GetEncoding("Shift_JIS").GetString(NameInBytes).Replace("\0", ""); set => NameInBytes = Encoding.GetEncoding("Shift_JIS").GetBytes(value.PadRight(40, '\0')); }
-     
+
 
         public CadieMagicBox()
         {

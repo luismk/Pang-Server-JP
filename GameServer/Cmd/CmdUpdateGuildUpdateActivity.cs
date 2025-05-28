@@ -1,4 +1,4 @@
-﻿//using GameServer.GameType;
+﻿//using Pangya_GameServer.GameType;
 //using System;
 
 //// Arquivo cmd_update_guild_update_activity.cpp
@@ -18,7 +18,7 @@
 //// C++ TO C# CONVERTER WARNING: The following #include directive was ignored:
 ////#include "../../Projeto IOCP/PANGYA_DB/pangya_db.h"
 
-//namespace GameServer.Cmd
+//namespace Pangya_GameServer.Cmd
 //{
 //	public class CmdUpdateGuildUpdateActiviy : Pangya_DB
 //	{
@@ -27,7 +27,7 @@
 //				this.m_index = 0Ul;
 //			}
 
-//			public CmdUpdateGuildUpdateActiviy(uint64_t _index, bool _waiter = false) : base(_waiter)
+//			public CmdUpdateGuildUpdateActiviy(uint64_t _index)
 //			{
 //// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
 // this.m_index = _index;

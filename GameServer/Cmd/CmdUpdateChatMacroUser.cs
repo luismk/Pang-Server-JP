@@ -1,19 +1,19 @@
-﻿using PangyaAPI.Network.Pangya_St;
+﻿using System;
+using PangyaAPI.Network.Pangya_St;
 using PangyaAPI.SQL;
 using PangyaAPI.Utilities;
-using System;
 
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     public class CmdUpdateChatMacroUser : Pangya_DB
-    {                                      
+    {
         public CmdUpdateChatMacroUser(uint _uid,
                 chat_macro_user _cmu)
-        {                     
-            this.m_uid = _uid;            
-            this.m_cmu = _cmu;          
+        {
+            this.m_uid = _uid;
+            this.m_cmu = _cmu;
         }
-               
+
 
         public uint getUID()
         {
@@ -21,7 +21,8 @@ namespace GameServer.Cmd
         }
 
         public void setUID(uint _uid)
-        {                     m_uid = _uid;  
+        {
+            m_uid = _uid;
         }
 
         public chat_macro_user getInfo()
@@ -30,8 +31,8 @@ namespace GameServer.Cmd
         }
 
         public void setInfo(chat_macro_user _cmu)
-        {           
-            m_cmu = _cmu;         
+        {
+            m_cmu = _cmu;
         }
 
         protected override void lineResult(ctx_res _result, uint _index_result)

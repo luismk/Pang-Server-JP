@@ -1,17 +1,11 @@
-﻿using PangyaAPI.IFF.JP.Extensions;
-using PangyaAPI.IFF.JP.Models.Flags;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PangyaAPI.IFF.JP.Models.Data
 {
     #region Struct MemorialRareItem.iff
-    [StructLayout(LayoutKind.Sequential, Pack = 4)]  
-    public class MemorialShopRareItemSff  : ICloneable
+    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    public class MemorialShopRareItemSff : ICloneable
     {
         public int coin_tipo;
         public int coin_typeid;
@@ -24,7 +18,7 @@ namespace PangyaAPI.IFF.JP.Models.Data
         public int item_dup;
         public MemorialShopRareItemSff()
         { }
-         
+
         public object Clone()
         {
             return MemberwiseClone();

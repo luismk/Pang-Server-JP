@@ -1,20 +1,20 @@
 ﻿using PangyaAPI.Network.Pangya_St;
-using PangyaAPI.SQL;   
+using PangyaAPI.SQL;
 namespace PangyaAPI.Network.Cmd
 {
-    public class CmdRegisterServer: Pangya_DB
+    public class CmdRegisterServer : Pangya_DB
     {
         ServerInfoEx m_si;
         protected override string _getName { get; } = "CmdRegisterServer";
 
-        public CmdRegisterServer(ServerInfoEx _si) 
+        public CmdRegisterServer(ServerInfoEx _si)
         {
             m_si = _si;
         }
 
         protected override void lineResult(ctx_res _result, uint _index_result)
         {
-          
+
         }
 
         protected override Response prepareConsulta()

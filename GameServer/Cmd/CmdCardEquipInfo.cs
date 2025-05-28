@@ -1,10 +1,10 @@
-﻿using GameServer.Game.Manager;
-using GameServer.GameType;
+﻿using System;
+using System.Runtime.ConstrainedExecution;
+using Pangya_GameServer.Game.Manager;
+using Pangya_GameServer.GameType;
 using PangyaAPI.SQL;
-using System;
-using System.Collections.Generic;
 
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     public class CmdCardEquipInfo : Pangya_DB
     {
@@ -17,7 +17,7 @@ namespace GameServer.Cmd
         public CmdCardEquipInfo(uint _uid)
         {
             this.m_uid = _uid;
-        }                       
+        }
 
         public CardEquipManager getInfo()
         {
@@ -36,31 +36,29 @@ namespace GameServer.Cmd
 
         protected override void lineResult(ctx_res _result, uint _index_reuslt)
         {
+            checkColumnNumber(13/*tempo*/);
 
-            checkColumnNumber(13, (uint)_result.cols);
+            CardEquipInfoEx cei = new CardEquipInfoEx();
 
-            CardEquipInfoEx cei = new CardEquipInfoEx
-            {
-                index = IFNULL(_result.data[0]),
-                _typeid = IFNULL(_result.data[1]),
-                parts_typeid = IFNULL(_result.data[3]),
-                parts_id = IFNULL(_result.data[4]),
-                efeito = IFNULL(_result.data[5]),
-                efeito_qntd = IFNULL(_result.data[6]),
-                slot = IFNULL(_result.data[7])
-            };
-            if (_result.IsNotNull(8))
+            cei.index = IFNULL<int>(_result.data[0]);
+            cei._typeid = IFNULL(_result.data[1]);
+            cei.parts_typeid = IFNULL(_result.data[3]);
+            cei.parts_id = IFNULL(_result.data[4]);
+            cei.efeito = IFNULL(_result.data[5]);
+            cei.efeito_qntd = IFNULL(_result.data[6]);
+            cei.slot = IFNULL(_result.data[7]);
+            if (!_result.IsNotNull(8))
             {
                 cei.use_date.CreateTime(_translateDate(_result.data[8]));
             }
-            if (_result.IsNotNull(9))
+            if (!_result.IsNotNull(9))
             {
                 cei.end_date.CreateTime(_translateDate(_result.data[9]));
             }
             cei.tipo = IFNULL(_result.data[11]);
             cei.use_yn = (byte)IFNULL(_result.data[12]);
 
-            v_cei.Add(cei.id, cei);
+            v_cei.Add((uint)cei.index, cei);//tem que ser list@@@@@
         }
 
         protected override Response prepareConsulta()
@@ -68,9 +66,7 @@ namespace GameServer.Cmd
 
             v_cei.Clear();
 
-            var r = procedure(
-                m_szConsulta,
-                Convert.ToString(m_uid) + ", 0");
+            var r = procedure(m_szConsulta, Convert.ToString(m_uid) + ", 0");
 
             checkResponse(r, "nao conseguiu pegar o card equip info do player: " + Convert.ToString(m_uid));
 
@@ -83,5 +79,5 @@ namespace GameServer.Cmd
 
         private const string m_szConsulta = "pangya.ProcGetCardEquip";
     }
-    
+
 }

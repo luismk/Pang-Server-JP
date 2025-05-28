@@ -1,14 +1,14 @@
-﻿using GameServer.GameType;
+﻿using System;
+using Pangya_GameServer.GameType;
 using PangyaAPI.SQL;
-using PangyaAPI.Utilities.Log;
 using PangyaAPI.Utilities;
-using System;
+using PangyaAPI.Utilities.Log;
 using _smp = PangyaAPI.Utilities.Log;
 
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     internal class CmdEmailInfo2 : Pangya_DB
-    {                           
+    {
 
         public CmdEmailInfo2(uint _uid,
                 uint _email_id)
@@ -22,8 +22,8 @@ namespace GameServer.Cmd
         }
 
         public void setUID(uint _uid)
-        {   
-            m_uid = _uid;          
+        {
+            m_uid = _uid;
         }
 
         public uint getEmailId()
@@ -33,12 +33,12 @@ namespace GameServer.Cmd
 
         public void setEmailId(uint _email_id)
         {
-             m_email_id = _email_id;           
+            m_email_id = _email_id;
         }
 
         public EmailInfoEx getInfo()
         {
-             return m_ei;                      
+            return m_ei;
         }
 
         protected override void lineResult(ctx_res _result, uint _index_result)
@@ -56,8 +56,8 @@ namespace GameServer.Cmd
                     m_ei.from_id = _result.data[1].ToString();
                 }
                 if (is_valid_c_string(_result.data[2]))
-                {                                         
-                    m_ei.gift_date = _result.data[2].ToString();  
+                {
+                    m_ei.gift_date = _result.data[2].ToString();
                 }
 
                 if (is_valid_c_string(_result.data[3]))
@@ -67,7 +67,7 @@ namespace GameServer.Cmd
                     {
 
                         // Translate Msg From Encoded Char not printed
-                        m_ei.msg = _result.data[3].ToString();   
+                        m_ei.msg = _result.data[3].ToString();
 
                     }
                     catch (exception e)
@@ -102,7 +102,7 @@ namespace GameServer.Cmd
                 item.flag_gift = IFNULL(_result.data[14]);
                 if (is_valid_c_string(_result.data[15]))
                 {
-                    item.ucc_img_mark =_result.data[15].ToString();
+                    item.ucc_img_mark = _result.data[15].ToString();
                 }
                 item.type = (short)IFNULL(_result.data[16]);
 

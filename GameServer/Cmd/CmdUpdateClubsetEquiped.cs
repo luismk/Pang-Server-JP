@@ -1,6 +1,5 @@
-﻿using GameServer.GameType;
+﻿using System;
 using PangyaAPI.SQL;
-using System;
 
 // Arquivo cmd_update_clubset_equiped.cpp
 // Criado em 25/03/2018 as 11:14 por Acrisio
@@ -19,75 +18,75 @@ using System;
 // C++ TO C# CONVERTER WARNING: The following #include directive was ignored:
 //#include "../../Projeto IOCP/PANGYA_DB/pangya_db.h"
 
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
-	public class CmdUpdateClubsetEquiped : Pangya_DB
-	{
-			public CmdUpdateClubsetEquiped()
-			{
-				this.m_uid = 0;
-				this.m_clubset_id = 0;
-			}
+    public class CmdUpdateClubsetEquiped : Pangya_DB
+    {
+        public CmdUpdateClubsetEquiped()
+        {
+            this.m_uid = 0;
+            this.m_clubset_id = 0;
+        }
 
-			public CmdUpdateClubsetEquiped(uint _uid,
-				int _clubset_id)
-				{
-// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
- this.m_uid = _uid;
-				//this.
-// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
- this.m_clubset_id = _clubset_id;
- 				}
+        public CmdUpdateClubsetEquiped(uint _uid,
+            int _clubset_id)
+        {
+            // C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+            this.m_uid = _uid;
+            //this.
+            // C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+            this.m_clubset_id = _clubset_id;
+        }
 
-			public virtual void Dispose()
-			{
-			}
+        public virtual void Dispose()
+        {
+        }
 
-			public uint getUID()
-			{
-				return (m_uid);
-			}
+        public uint getUID()
+        {
+            return (m_uid);
+        }
 
-			public void setUID(uint _uid)
-			{
-// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
- m_uid = _uid;
-				
-			}
+        public void setUID(uint _uid)
+        {
+            // C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+            m_uid = _uid;
 
-			public int getClubsetID()
-			{
-				return (m_clubset_id);
-			}
+        }
 
-			public void setClubsetID(int _clubset_id)
-			{
-// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
- m_clubset_id = _clubset_id;
- 			}
+        public int getClubsetID()
+        {
+            return (m_clubset_id);
+        }
 
-			protected override void lineResult(ctx_res _result, uint _index_result)
-			{
+        public void setClubsetID(int _clubset_id)
+        {
+            // C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+            m_clubset_id = _clubset_id;
+        }
 
-				// N�o usa por que � um UPDATE
-				return;
-			}
+        protected override void lineResult(ctx_res _result, uint _index_result)
+        {
 
-			protected override Response prepareConsulta()
-			{
+            // N�o usa por que � um UPDATE
+            return;
+        }
 
-				var r = procedure(
-					m_szConsulta,
-					Convert.ToString(m_uid) + ", " + Convert.ToString(m_clubset_id));
+        protected override Response prepareConsulta()
+        {
 
-				checkResponse(r, "nao conseguiu atualizar o clubset[ID=" + Convert.ToString(m_clubset_id) + "] equipado do player: " + Convert.ToString(m_uid));
+            var r = procedure(
+                m_szConsulta,
+                Convert.ToString(m_uid) + ", " + Convert.ToString(m_clubset_id));
 
-				return r;
-			}
-					 
-			private uint m_uid = new uint();
-			private int m_clubset_id = new int();
+            checkResponse(r, "nao conseguiu atualizar o clubset[ID=" + Convert.ToString(m_clubset_id) + "] equipado do player: " + Convert.ToString(m_uid));
 
-			private const string m_szConsulta = "pangya.USP_FLUSH_CLUB";
-	}
+            return r;
+        }
+
+        private uint m_uid = new uint();
+        private int m_clubset_id = new int();
+
+        private const string m_szConsulta = "pangya.USP_FLUSH_CLUB";
+    }
 }

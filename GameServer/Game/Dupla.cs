@@ -1,24 +1,9 @@
-﻿using GameServer.GameType;
+﻿using System.Collections.Generic;
+using Pangya_GameServer.GameType;
+using Pangya_GameServer.Session;
 using PangyaAPI.Utilities;
-using System.Collections.Generic;
-using System.Linq;
-using static GameServer.GameType._Define;
-using System;
-using _smp = PangyaAPI.Utilities.Log;
-using GameServer.Session;
-using PangyaAPI.Utilities.BinaryModels;
-using PangyaAPI.Utilities.Log;
-using GameServer.Game.System;
-using GameServer.Game.Manager;
-using GameServer.PangyaEnums;
-using GameServer.PacketFunc;
-using PangyaAPI.Network.PangyaPacket;
-using PangyaAPI.Network.Pangya_St;
-using PangyaAPI.SQL.Manager;
-using GameServer.Cmd;
-using System.Runtime.InteropServices;
 
-namespace GameServer.Game
+namespace Pangya_GameServer.Game
 {
     public class Dupla
     {
@@ -41,14 +26,11 @@ namespace GameServer.Game
             dados = new Dados[][] { Tools.InitializeWithDefaultInstances<Dados>(18), Tools.InitializeWithDefaultInstances<Dados>(18) }; // Dados dos holes, 18 holes: [0] e [1] 
         }
 
-        public ushort sumScoreP1()
-        {
-
-            ushort sum = 0;
-
-            // C++ TO C# CONVERTER WARNING: This 'sizeof' ratio was replaced with a direct reference to the array length:
-            // ORIGINAL LINE: for (auto i = 0u; i < (sizeof(dados[0]) / sizeof(Dados)); ++i)
-            for (var i = 0u; i < (dados[0].Length); ++i)
+        public short sumScoreP1()
+        { 
+            short sum = 0;
+             
+            for (var i = 0u; i < 18; ++i)
             {
                 sum += dados[0][i].score;
             }
@@ -56,14 +38,12 @@ namespace GameServer.Game
             return sum;
         }
 
-        public ushort sumScoreP2()
+        public short sumScoreP2()
         {
 
-            ushort sum = 0;
-
-            // C++ TO C# CONVERTER WARNING: This 'sizeof' ratio was replaced with a direct reference to the array length:
-            // ORIGINAL LINE: for (auto i = 0u; i < (sizeof(dados[1]) / sizeof(Dados)); ++i)
-            for (var i = 0u; i < (dados[1].Length); ++i)
+            short sum = 0;
+             
+            for (var i = 0u; i < 18; ++i)
             {
                 sum += dados[1][i].score;
             }

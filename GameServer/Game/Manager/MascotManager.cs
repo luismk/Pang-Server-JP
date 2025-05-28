@@ -1,11 +1,11 @@
-﻿using GameServer.GameType;
-using PangyaAPI.Utilities.BinaryModels;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Xml.Linq;
+using System.Runtime.InteropServices;
+using Pangya_GameServer.GameType;
+using PangyaAPI.Utilities.BinaryModels;
 
-namespace GameServer.Game.Manager
+namespace Pangya_GameServer.Game.Manager
 {
     public class MascotManager : Dictionary<uint/*ID*/, MascotInfoEx>
     {
@@ -23,11 +23,11 @@ namespace GameServer.Game.Manager
         {
             var p = new PangyaBinaryWriter();
             try
-            {                                   
+            {
                 p.WriteByte((byte)(Count & 0xFF));
 
                 foreach (var item in Values)
-                    p.WriteBytes(item.Build());
+                p.WriteBytes(item.ToArray());
 
                 return p.GetBytes;
             }
@@ -36,7 +36,7 @@ namespace GameServer.Game.Manager
                 return new byte[0];
             }
         }
-                                                                      
+
         public MascotInfo findMascotById(uint _id)
         {
             return this.Values.FirstOrDefault(c => c.id == _id);

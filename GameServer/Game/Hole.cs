@@ -1,91 +1,343 @@
-﻿//using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Pangya_GameServer.Game.System;
+using Pangya_GameServer.Game.Utils;
+using Pangya_GameServer.GameType;
+using PangyaAPI.IFF.JP.Extensions;
+using PangyaAPI.Utilities;
+using PangyaAPI.Utilities.Log;
+using _smp = PangyaAPI.Utilities.Log;
+using uint32_t = System.UInt32;
 
-//namespace GameServer.Game
-//{
-//    public class Hole
-//    {
-//        public enum eMODO : byte
-//        {
-//            M_FRONT,
-//            M_BACK,
-//            M_RANDOM,
-//            M_SHUFFLE,
-//            M_REPEAT,
-//            M_SHUFFLE_COURSE
-//        }
+namespace Pangya_GameServer.Game
+{
+    public class Hole
+    {
+        public enum eMODO : byte
+        {
+            M_FRONT,
+            M_BACK,
+            M_RANDOM,
+            M_SHUFFLE,
+            M_REPEAT,
+            M_SHUFFLE_COURSE
+        }
 
-//        public Hole(byte _course, ushort _numero, byte _pin, eMODO _modo, byte _hole_repeat, byte _weather, byte _wind, ushort _degree, uCubeCoinFlag _cube_coin)
-//        {
-//            m_course = _course;
-//            m_numero = _numero;
-//            m_pin = _pin;
-//            m_modo = _modo;
-//            m_hole_repeat = _hole_repeat;
-//            m_weather = _weather;
-//            m_wind = new stHoleWind(_wind, _degree);
-//            m_cube_coin = _cube_coin;
-//            init_cube_coin();
-//            init_from_IFF_STRUCT();
-//        }
+        public Hole(byte _course,
+            ushort _numero, byte _pin,
+            eMODO _modo, byte _hole_repeat,
+            byte _weather, byte _wind,
+            ushort _degree,
+            uCubeCoinFlag _cube_coin)
+        {
+            this.m_course = (byte)(_course & 0x7F);
+            this.m_numero = _numero;
+            this.m_pin = _pin;
+            this.m_modo = (_modo);
+            this.m_hole_repeat = _hole_repeat;
+            this.m_weather = _weather;
+            this.m_wind = new stHoleWind(_wind, _degree);
+            this.m_cube_coin = _cube_coin;
+            this.m_par = new stHolePar();
+            this.m_cube = new List<CubeEx>();
+            this.m_good = false;
 
-//        public void init(stXZLocation _tee, stXZLocation _pin)
-//        {
-//            m_tee_location = new Location(_tee);
-//            m_pin_location = new Location(_pin);
-//        }
+            if (sIff.getInstance().findCourse((uint)((sIff.getInstance().COURSE << 26) | (m_course & 0x7F))) == null)
+            {
+                _smp.message_pool.push(new message("[Hole::Hole][Error] course[" + Convert.ToString((ushort)m_course) + "] desconhecido. Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-//        public void init(Location _tee, Location _pin)
-//        {
-//            m_tee_location = _tee;
-//            m_pin_location = _pin;
-//        }
+                return;
+            }
 
-//        public bool isGood() => m_good;
+            if (m_numero < 1 || m_numero > 18)
+            {
+                _smp.message_pool.push(new message("[Hole::init][Error] numero do hole[" + Convert.ToString(m_numero) + "] nao esta em um intervalo permitido. Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-//        // Getters
-//        public uint getId() => m_id;
-//        public ushort getNumero() => m_numero;
-//        public byte getTipo() => m_tipo;
-//        public ref stHoleWind getWind() => ref m_wind;
-//        public ref stHolePar getPar() => ref m_par;
-//        public byte getPin() => m_pin;
-//        public byte getWeather() => m_weather;
-//        public byte getCourse() => m_course;
-//        public ref uCubeCoinFlag getCubeCoin() => ref m_cube_coin;
-//        public eMODO getModo() => m_modo;
-//        public byte getHoleRepeat() => m_hole_repeat;
-//        public Location getPinLocation() => m_pin_location;
-//        public Location getTeeLocation() => m_tee_location;
-//        public List<CubeEx> getCubes() => m_cube;
+                return;
+            }
 
-//        // Setters
-//        public void setWeather(byte _weather) => m_weather = _weather;
-//        public void setWind(byte _wind, ushort _degree) => m_wind = new stHoleWind(_wind, _degree);
-//        public void setWind(stHoleWind _wind) => m_wind = _wind;
+            init_from_IFF_STRUCT();
 
-//        // Finders
-//        public CubeEx findCubeCoin(uint _id) => m_cube.Find(c => c.Id == _id);
+            // n�mero aleat�rio, para o id do hole(ACHO)
+            float rand_f = (float)((((int)sRandomGen.getInstance().rIbeMt19937_64_chrono()) * 2.0f) * sRandomGen.getInstance().rIbeMt19937_64_chrono());
 
-//        // Internal Methods
-//        protected void init_cube_coin() { /* Implementation */ }
-//        protected void init_from_IFF_STRUCT() { /* Implementation */ }
+            // Gerar n�meros grandes
+            m_id = (uint)rand_f;
+            // Se estiver ativado, inicializa o Coin Cube do Hole
+            if (m_cube_coin.enable == 1 && (m_cube_coin.enable_cube == 1 || m_cube_coin.enable_coin == 1))
+            {
+                init_cube_coin();
+            }
+            m_cube_coin = new uCubeCoinFlag();
+            m_good = true;
+        }
 
-//        // Fields
-//        protected Location m_pin_location;
-//        protected Location m_tee_location;
-//        protected List<CubeEx> m_cube = new();
+         ~Hole()
+        {
 
-//        protected uint m_id;
-//        protected ushort m_numero;
-//        protected byte m_tipo;
-//        protected stHoleWind m_wind;
-//        protected stHolePar m_par;
-//        protected byte m_pin;
-//        protected byte m_weather;
-//        protected byte m_course;
-//        protected uCubeCoinFlag m_cube_coin;
-//        protected eMODO m_modo;
-//        protected byte m_hole_repeat;
-//        protected bool m_good;
-//    }
-//}
+            if (m_cube.Count > 0)
+            {
+                m_cube.Clear();
+            }
+
+            m_good = false;
+        }
+
+        public void init(stXZLocation _tee, stXZLocation _pin)
+        {
+
+            Location tee = new Location(_tee.x,
+                0.0f, _tee.z, 0.0f);
+            Location pin = new Location(_pin.x,
+                0.0f, _pin.z, 0.0f);
+
+            init(tee, pin);
+        }
+
+        public void init(Location _tee, Location _pin)
+        {
+
+            if (!isGood())
+            {
+                throw new exception("[Hole::init][Error] hole nao esta incializado.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.HOLE,
+                    1, 0));
+            }
+
+            m_tee_location = _tee;
+            m_pin_location = _pin;
+        }
+
+        public bool isGood()
+        {
+            return m_good;
+        }
+
+        // Get
+        public uint32_t getId()
+        {
+            return (m_id);
+        }
+
+        public ushort getNumero()
+        {
+            return m_numero;
+        }
+
+        public byte getTipo()
+        {
+            return m_tipo;
+        }
+
+        public stHoleWind getWind()
+        {
+            return (m_wind);
+        }
+
+        public stHolePar getPar()
+        {
+            return (m_par);
+        }
+
+        public byte getPin()
+        {
+            return m_pin;
+        }
+
+        public byte getWeather()
+        {
+            return m_weather;
+        }
+
+        public uint getCourse()
+        {
+            return m_course;
+        }
+
+        public uCubeCoinFlag getCubeCoin()
+        {
+            return (m_cube_coin);
+        }
+
+        public Hole.eMODO getModo()
+        {
+            return m_modo;
+        }
+
+        public byte getHoleRepeat()
+        {
+            return m_hole_repeat;
+        }
+
+        public Location getPinLocation()
+        {
+            return (m_pin_location);
+        }
+
+        public Location getTeeLocation()
+        {
+            return (m_tee_location);
+        }
+
+        public List<CubeEx> getCubes()
+        {
+            return new List<CubeEx>(m_cube);
+        }
+
+        // Set
+        public void setWeather(byte _weather)
+        {
+            m_weather = _weather;
+        }
+
+        public void setWind(byte _wind, ushort _degree)
+        {
+
+            m_wind.wind = _wind;
+            m_wind.degree.setDegree(_degree);
+        }
+
+        public void setWind(stHoleWind _wind)
+        {
+            m_wind = _wind;
+        }
+
+        // Finders
+        public CubeEx findCubeCoin(uint32_t _id)
+        {
+
+            var it = m_cube.Where(el =>
+            {
+                return el.id == _id;
+            });
+
+            return (it.Any()) ? it.FirstOrDefault() : null;
+        }
+
+        protected void init_cube_coin()
+        {
+
+            // Cube ativo ou n�o
+            bool cube = false;
+
+            // Modo hole repeat, tem que pegar o n�mero certo do hole
+            byte numero = (byte)m_numero;
+
+            if (m_modo == eMODO.M_REPEAT)
+            {
+                numero = m_hole_repeat;
+            }
+
+            // Cube Coin Manager
+            if (!sCubeCoinSystem.getInstance().isLoad())
+            {
+                sCubeCoinSystem.getInstance().load();
+            }
+
+            var course = sCubeCoinSystem.getInstance().FindCourse((uint)((sIff.getInstance().COURSE << 26) | (m_course & 0x7F)));
+
+            if (course == null)
+            {
+                throw new exception("[Hole::init_cube_coin][Error] course\"" + Convert.ToString((ushort)(m_course & 0x7F)) + "\" nao existe no Cube Coin System. Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.HOLE,
+                    20, 0));
+            }
+
+            // Isso s� desativa os cube, se o course e hole tiver coin � para colocar elas s� n�o o cube se ele estiver desativado
+            if (course.IsActive())
+            {
+
+                if (m_course == (byte)RoomInfo.eCOURSE.WIZ_CITY) // Aqui s� tem cube nos holes 3 12 14 18
+                {
+                    cube = (numero == 3 || numero == 12 || numero == 14 || numero == 18) && (m_modo != eMODO.M_REPEAT || m_numero % 3 == 0); // Modo Hole Repeat s� de 3 em 3 holes que tem cube, mesmo em Wiz City
+                }
+                else
+                {
+                    cube = m_cube_coin.enable_cube == 1u;
+                }
+            }
+
+            var hole = course.FindHole(numero);
+
+            if (hole == null)
+            {
+                throw new exception("[Hole::init_cube_coin][Error] numero do hole[NUMERO=" + Convert.ToString(m_numero) + "] is valid. Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.HOLE,
+                    21, 0));
+            }
+
+         //   Wiz City usa a fun��o dela e o resto usa outra fun��o generica
+            var all_coin_cube = (m_course == (byte)RoomInfo.eCOURSE.WIZ_CITY) ? hole.getAllCoinCubeWizCity(cube) : hole.getAllCoinCube(cube);
+
+            m_cube.AddRange(
+            all_coin_cube);
+        }
+
+        protected void init_from_IFF_STRUCT()
+        {
+
+            var course = sIff.getInstance().findCourse((uint)((sIff.getInstance().COURSE << 26) | (m_course & 0x7F)));
+
+            if (course == null)
+            {
+                throw new exception("[Hole::init_from_IFF_STRUCT][Error] course[" + Convert.ToString((ushort)m_course & 0x7F) + "] desconhecido. Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.HOLE,
+                    2, 0));
+            }
+
+            var numero = m_numero;
+
+            if (m_modo == eMODO.M_REPEAT)
+            {
+                numero = m_hole_repeat;
+            }
+
+            if (numero < 1 || numero > 18)
+            {
+                throw new exception("[Hole::init_from_IFF_STRUCT][Error] numero do hole[" + Convert.ToString(m_numero) + "] nao esta em um intervalo permitido. Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.HOLE,
+                    3, 0));
+            }
+
+            // !!!!@@@@@@------------===
+            // Os Valores do Par dos Holes Mysthic Ruins est�o errados no IFF STRUCT,
+            // eles colocaram os valores do Abbot Mine, tenho que trocar depois isso
+            if ((course.ID & 0xFF) == (uint)RoomInfo.eCOURSE.CHRONICLE_1_CHAOS)
+            {
+                m_par.par = 4;
+
+                m_par.range_score[0] = -2;
+                m_par.range_score[1] = 5;
+
+                m_par.total_shot = (byte)(m_par.par + m_par.range_score[1]);
+            }
+            else
+            {
+                m_par.par = course.Par_Hole[numero - 1];
+
+                m_par.range_score[0] = course.Min_Score_Hole[numero - 1];
+                m_par.range_score[1] = course.Max_Score_Hole[numero - 1];
+
+                m_par.total_shot = (byte)(m_par.par + m_par.range_score[1]);
+            }
+        }
+
+        protected Location m_pin_location = new Location();
+        protected Location m_tee_location = new Location();
+
+        protected List<CubeEx> m_cube = new List<CubeEx>();
+
+        protected uint32_t m_id = new uint32_t();
+        protected ushort m_numero;
+        protected byte m_tipo;
+        protected stHoleWind m_wind = new stHoleWind();
+        protected stHolePar m_par = new stHolePar();
+        protected byte m_pin;
+        protected byte m_weather;
+        protected byte m_course;
+
+        protected uCubeCoinFlag m_cube_coin = new uCubeCoinFlag();
+
+        protected eMODO m_modo;
+        protected byte m_hole_repeat;
+
+        protected bool m_good;
+
+    }
+}

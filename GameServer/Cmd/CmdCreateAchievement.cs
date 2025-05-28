@@ -1,14 +1,10 @@
-﻿using GameServer.GameType;
+﻿using System;
 using PangyaAPI.SQL;
 using PangyaAPI.Utilities;
-using System.Collections.Generic;
-using System;
-using System.Linq;
-using PangyaAPI.IFF.JP.Models.Data;
 
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
-    public class CmdCreateAchievement  : Pangya_DB
+    public class CmdCreateAchievement : Pangya_DB
     {
         public CmdCreateAchievement()
         {
@@ -21,7 +17,7 @@ namespace GameServer.Cmd
         public CmdCreateAchievement(uint _uid)
         {
             this.m_uid = _uid;
-             this.m_typeid = 0;
+            this.m_typeid = 0;
             this.m_name = "";
             this.m_status = 0;
         }

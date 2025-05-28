@@ -1,4 +1,4 @@
-﻿//using GameServer.GameType;
+﻿//using Pangya_GameServer.GameType;
 //using System;
 
 //// Arquivo cmd_update_mascot_time.cpp
@@ -17,7 +17,7 @@
 
 //// C++ TO C# CONVERTER WARNING: The following #include directive was ignored:
 ////#include "../../Projeto IOCP/PANGYA_DB/pangya_db.h"
-//namespace GameServer.Cmd
+//namespace Pangya_GameServer.Cmd
 //{
 //	public class CmdUpdateMascotTime : Pangya_DB
 //	{
@@ -53,7 +53,7 @@
 //			{
 //// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
 // m_uid = _uid;
-				
+
 //			}
 
 //			public int getID()

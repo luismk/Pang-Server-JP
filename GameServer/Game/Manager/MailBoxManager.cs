@@ -1,14 +1,14 @@
-﻿using GameServer.GameType;
-using PangyaAPI.Utilities.Log;
-using PangyaAPI.Utilities;
+﻿using System;
 using System.Collections.Generic;
-using System;
-using PangyaAPI.SQL.Manager;
+using Pangya_GameServer.Cmd;
+using Pangya_GameServer.GameType;
+using Pangya_GameServer.Session;
 using PangyaAPI.SQL;
-using GameServer.Session;
-using GameServer.Cmd;
+using PangyaAPI.SQL.Manager;
+using PangyaAPI.Utilities;
+using PangyaAPI.Utilities.Log;
 
-namespace GameServer.Game.Manager
+namespace Pangya_GameServer.Game.Manager
 {
     public class MailBoxManager
     {
@@ -66,7 +66,7 @@ namespace GameServer.Game.Manager
                     3, 0));
             }
 
-            putItemInMail((_from_uid), (_to_uid),  msg_id, _item);
+            putItemInMail((_from_uid), (_to_uid), msg_id, _item);
             putCommandNewMail((_to_uid), msg_id);
             return (msg_id);
         }
@@ -214,7 +214,8 @@ namespace GameServer.Game.Manager
             }
 
             if (_item._typeid == 0)
-            {
+            { 
+               // Environment.StackTrace
                 throw new exception("[MailBoxManager::putItemInMail][Error] _item is invalid", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.MAIL_BOX_MANAGER,
                     6, 0));
             }

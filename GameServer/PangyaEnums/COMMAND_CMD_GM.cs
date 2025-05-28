@@ -1,6 +1,6 @@
-﻿    namespace GameServer.PangyaEnums
+﻿namespace Pangya_GameServer.PangyaEnums
 {
-   public enum COMMON_CMD_GM : short
+    public enum COMMON_CMD_GM : short
     {
         CCG_VISIBLE = 3,
         CCG_WHISPER,

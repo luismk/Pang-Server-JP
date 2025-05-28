@@ -1,5 +1,5 @@
-﻿using PangyaAPI.IFF.JP.Models.General;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
+using PangyaAPI.IFF.JP.Models.General;
 namespace PangyaAPI.IFF.JP.Models.Data
 {
     /// <summary>

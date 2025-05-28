@@ -23,7 +23,7 @@
 
 
 
-       public static string XOR_data(char[] Data, int DataSize, int Type)
+        public static string XOR_data(char[] Data, int DataSize, int Type)
         {
             if (Type == 1)
             {

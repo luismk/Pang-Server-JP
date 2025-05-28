@@ -1,17 +1,10 @@
-﻿
-using PangyaAPI.Network.Pangya_St;
-using PangyaAPI.SQL;
-
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using PangyaAPI.SQL;
 
 namespace PangyaAPI.Network.Cmd
 {
-    public class CmdListMacBan: Pangya_DB
+    public class CmdListMacBan : Pangya_DB
     {
         List<string> v_list_mac_ban;
         protected override string _getName { get; } = "CmdListMacBan";
@@ -28,7 +21,7 @@ namespace PangyaAPI.Network.Cmd
             {
                 if (!string.IsNullOrEmpty(_result.data[0].ToString()))
                     v_list_mac_ban.Add(_result.data[0].ToString());
-                
+
             }
             catch (Exception ex)
             {
@@ -41,7 +34,7 @@ namespace PangyaAPI.Network.Cmd
         {
             v_list_mac_ban.Clear();
 
-            var r = consulta( "SELECT mac FROM pangya.pangya_mac_table");
+            var r = consulta("SELECT mac FROM pangya.pangya_mac_table");
 
             checkResponse(r, "nao conseguiu recuperar a lista de MAC Address");
             return r;

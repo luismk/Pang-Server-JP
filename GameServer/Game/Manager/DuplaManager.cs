@@ -1,23 +1,23 @@
-﻿using GameServer.GameType;
-using PangyaAPI.Utilities;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System;
-using _smp = PangyaAPI.Utilities.Log;
-using GameServer.Session;
+using Pangya_GameServer.GameType;
+using Pangya_GameServer.Session;
+using PangyaAPI.SQL;
+using PangyaAPI.Utilities;
 using PangyaAPI.Utilities.BinaryModels;
 using PangyaAPI.Utilities.Log;
-using PangyaAPI.SQL;
+using _smp = PangyaAPI.Utilities.Log;
 
-namespace GameServer.Game.Manager
+namespace Pangya_GameServer.Game.Manager
 {
     public class DuplaManager
     {
         public DuplaManager()
         {
-            this.v_duplas = new List< Dupla > ();
+            this.v_duplas = new List<Dupla>();
         }
- 
+
         public void init_duplas(Guild _g1, Guild _g2)
         {
 
@@ -39,14 +39,14 @@ namespace GameServer.Game.Manager
                 a.Add(i);
                 b.Add(i);
             }
-                       
+
             for (i = 0; i < _g1.numPlayers(); ++i)
             {
                 addDupla(_g1.getPlayerByIndex(a[(int)i]), _g2.getPlayerByIndex(b[(int)i]));
             }
 
             a.Clear();
-            b.Clear();           
+            b.Clear();
         }
 
         public void addDupla(Player _p1, Player _p2)
@@ -90,7 +90,7 @@ namespace GameServer.Game.Manager
                 return _el.numero == _numero;
             });
 
-            if(it != null)
+            if (it != null)
             {
                 v_duplas.Remove(it);
             }
@@ -144,7 +144,7 @@ namespace GameServer.Game.Manager
         {
 
             uint count = 0u;
-                  
+
             foreach (var _el in v_duplas)
             {
                 if (_el.state[0] == Dupla.eSTATE.OUT_GAME)
@@ -191,7 +191,7 @@ namespace GameServer.Game.Manager
         public void updateGuildDados(Guild _g1, Guild _g2)
         {
 
-            ushort[] score = { 0, 0 };
+            short[] score = { 0, 0 };
             ulong[] pang = { 0Ul, new ulong() };
             uint[] pang_win = { 0u, new uint() };
 
@@ -299,7 +299,7 @@ namespace GameServer.Game.Manager
         {
 
             // Update Guild Members Point and Pang Win
-            GuildMemberPoints gmp = new GuildMemberPoints() { guild_uid = 0u };
+            GuildMemberPoints gmp = new GuildMemberPoints() { guild_uid = 0 };
 
 
 
@@ -322,7 +322,7 @@ namespace GameServer.Game.Manager
 
                         // Update ON SERVER
                         el.p[0].m_pi.mi.guild_pang = (long)(el.p[0].m_pi.gi.pang += gmp.pang);
-                        el.p[0].m_pi.mi.guild_point = (uint)(el.p[0].m_pi.gi.point += gmp.point);
+                        el.p[0].m_pi.mi.guild_point = (uint)(el.p[0].m_pi.gi.point += (uint)gmp.point);
 
                         // Update ON DB
                         //snmdb.NormalManagerDB.getInstance().add(1,
@@ -335,7 +335,7 @@ namespace GameServer.Game.Manager
                     if (el.p[1] != null)
                     {
 
-                        gmp= new GuildMemberPoints();
+                        gmp = new GuildMemberPoints();
 
                         gmp.guild_uid = el.p[1].m_pi.gi.uid;
                         gmp.member_uid = el.p[1].m_pi.uid;
@@ -344,7 +344,7 @@ namespace GameServer.Game.Manager
 
                         // Update ON SERVER
                         el.p[1].m_pi.mi.guild_pang = (long)(el.p[1].m_pi.gi.pang += gmp.pang);
-                        el.p[1].m_pi.mi.guild_point = el.p[1].m_pi.gi.point += gmp.point;
+                        el.p[1].m_pi.mi.guild_point = el.p[1].m_pi.gi.point += (uint)gmp.point;
 
                         //// Update ON DB
                         //snmdb.NormalManagerDB.getInstance().add(1,
@@ -362,7 +362,7 @@ namespace GameServer.Game.Manager
             }
         }
 
-        public void initPacketDuplas(ref PangyaBinaryWriter _p)
+        public void initPacketDuplas(PangyaBinaryWriter _p)
         {
 
             _p.init_plain((ushort)0xBF);
@@ -373,15 +373,15 @@ namespace GameServer.Game.Manager
             {
 
                 _p.WriteByte(el.numero);
-                _p.WriteUInt32(el.p[0].m_oid);
-                _p.WriteUInt32(el.p[1].m_oid);
+                _p.WriteInt32(el.p[0].m_oid);
+                _p.WriteInt32(el.p[1].m_oid);
             }
         }
 
         public bool finishHoleDupla(PlayerGameInfo _pgi, ushort _seq_hole)
         {
 
-            if (_seq_hole == ~0
+            if (_seq_hole == ushort.MaxValue
                 && _seq_hole > 18u
                 || _seq_hole == 0u)
             {
@@ -452,7 +452,7 @@ namespace GameServer.Game.Manager
                 _smp.message_pool.push(new message("[DuplaManager::SQLDBResponse][Error] " + _pangya_db.getException().getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
                 return;
             }
-                                            
+
             switch (_msg_id)
             {
                 case 1: // Update Guild Members Points

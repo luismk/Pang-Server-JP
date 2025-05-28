@@ -1,16 +1,16 @@
-﻿using GameServer.GameType;
+﻿using System;
+using Pangya_GameServer.GameType;
 using PangyaAPI.SQL;
-using System;
 using PangyaAPI.Utilities;
 
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     public class CmdUpdateAchievementUser : Pangya_DB
     {
         public CmdUpdateAchievementUser(uint _uid, AchievementInfoEx _ai)
         {
             this.m_uid = _uid;
-            this.m_ai = _ai; 
+            this.m_ai = _ai;
         }
 
         public virtual void Dispose()
@@ -39,7 +39,7 @@ namespace GameServer.Cmd
         }
 
         protected override void lineResult(ctx_res _result, uint _index_result)
-        {                                            
+        {
             // N�o usa por que � um UPDATE
             return;
         }

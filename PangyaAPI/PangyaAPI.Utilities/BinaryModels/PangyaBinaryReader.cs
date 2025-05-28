@@ -40,9 +40,9 @@ namespace PangyaAPI.Utilities.BinaryModels
         {
             BaseStream.Seek(offset, (SeekOrigin)origin);
         }
-        public uint Size =>  (uint)BaseStream.Length;
+        public uint Size => (uint)BaseStream.Length;
 
-       
+
         public byte[] GetRemainingData(int Count)
         {
             int previousOffset;
@@ -59,7 +59,7 @@ namespace PangyaAPI.Utilities.BinaryModels
             BaseStream.Position = previousOffset;
             return array;
         }
-            
+
 
         public bool ReadPStr(out string value, uint Count)
         {
@@ -370,6 +370,22 @@ namespace PangyaAPI.Utilities.BinaryModels
                 return false;
             }
             return true;
+        }
+
+        public bool ReadBuffer<T>(out T value, int Count)
+        {
+            int count = (typeof(T) == typeof(bool)) ? 1 : Marshal.SizeOf(typeof(T));
+            GCHandle handle = GCHandle.Alloc(this.ReadBytes(count), GCHandleType.Pinned);
+            try
+            {
+                value = (T)Marshal.PtrToStructure(handle.AddrOfPinnedObject(), typeof(T));
+                return true;
+            }
+            catch
+            {
+                value = default;
+                return false;
+            }
         }
 
         public T Read<T>() where T : new()
@@ -766,7 +782,7 @@ namespace PangyaAPI.Utilities.BinaryModels
             }
 
             return array;
-        }                         
+        }
 
         public object Read(object value, long real_size)
         {
@@ -802,7 +818,7 @@ namespace PangyaAPI.Utilities.BinaryModels
 
                 throw ex;
             }
-        }                                      
+        }
         public byte[] ReadBytes()
         {
             return ReadBytes((int)this.Size);

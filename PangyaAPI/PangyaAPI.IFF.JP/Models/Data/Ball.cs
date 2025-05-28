@@ -1,6 +1,5 @@
-﻿using PangyaAPI.IFF.JP.Models.General;
-using PangyaAPI.IFF.JP.Models.Flags;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
+using PangyaAPI.IFF.JP.Models.General;
 namespace PangyaAPI.IFF.JP.Models.Data
 {
     #region Struct Ball.iff
@@ -13,29 +12,29 @@ namespace PangyaAPI.IFF.JP.Models.Data
         public uint Bound { get; set; }
         public uint Roll { get; set; }
         [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 40)]
-        public string BallFx1  { get; set; }
+        public string BallFx1 { get; set; }
         [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 40)]
-        public string BallFx2  { get; set; }
+        public string BallFx2 { get; set; }
         [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 40)]
-        public string BallFx3  { get; set; }
+        public string BallFx3 { get; set; }
         [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 40)]
-        public string BallFx4  { get; set; }
+        public string BallFx4 { get; set; }
         [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 40)]
-        public string BallFx5  { get; set; }
+        public string BallFx5 { get; set; }
         [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 40)]
-        public string BallFx6  { get; set; }
+        public string BallFx6 { get; set; }
         [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 40)]
-        public string BallFx7  { get; set; }
+        public string BallFx7 { get; set; }
         [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 40)]
-        public string BallFx8  { get; set; }
+        public string BallFx8 { get; set; }
         [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 40)]
-        public string BallFx9  { get; set; }
+        public string BallFx9 { get; set; }
         [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 40)]
-        public string BallFx10  { get; set; }
+        public string BallFx10 { get; set; }
         [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 40)]
-        public string BallFx11  { get; set; }
+        public string BallFx11 { get; set; }
         [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 40)]
-        public string BallFx12  { get; set; }
+        public string BallFx12 { get; set; }
         [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 40)]
         public string BallFx13 { get; set; }
         [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 40)]

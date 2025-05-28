@@ -1,11 +1,10 @@
-﻿using PangyaAPI.Network.Pangya_St;
+﻿using System;
+using PangyaAPI.Network.Pangya_St;
 using PangyaAPI.SQL;
-
-using System;
 
 namespace PangyaAPI.Network.Cmd
 {
-    public class CmdAuthServerKey: Pangya_DB
+    public class CmdAuthServerKey : Pangya_DB
     {
         int m_server_uid = -1;
         AuthServerKey m_ask;
@@ -49,7 +48,7 @@ namespace PangyaAPI.Network.Cmd
                 throw new Exception("[CmdAuthServerKey::prepareConsulta][Error] m_server_uid is invalid(zero).");
 
 
-            var r = consulta( "SELECT server_uid, 'key', VALID FROM pangya.pangya_auth_key WHERE server_uid =" + m_server_uid);
+            var r = consulta("SELECT server_uid, 'key', VALID FROM pangya.pangya_auth_key WHERE server_uid =" + m_server_uid);
 
             checkResponse(r, "nao conseguiu pegar o Auth Server Key do Server[UID=" + (m_server_uid) + "]");
             return r;
@@ -61,7 +60,7 @@ namespace PangyaAPI.Network.Cmd
             return m_server_uid;
         }
 
-       public void setServerUID(int _server_uid)
+        public void setServerUID(int _server_uid)
         {
             m_server_uid = _server_uid;
         }

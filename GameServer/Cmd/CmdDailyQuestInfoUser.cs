@@ -1,8 +1,8 @@
-﻿using GameServer.GameType;
-using System;
+﻿using System;
+using Pangya_GameServer.GameType;
 using PangyaAPI.SQL;
 
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     internal class CmdDailyQuestInfoUser : Pangya_DB
     {
@@ -67,7 +67,7 @@ namespace GameServer.Cmd
         {
             if (m_type == TYPE.GET)
             {
-               checkColumnNumber(6);
+                checkColumnNumber(6);
 
                 m_dqiu.now_date = IFNULL(result.data[0]);
                 m_dqiu.accept_date = IFNULL(result.data[1]);

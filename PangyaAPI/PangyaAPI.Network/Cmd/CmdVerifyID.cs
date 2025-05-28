@@ -1,16 +1,10 @@
 ﻿
-using PangyaAPI.SQL;
-
 using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using PangyaAPI.SQL;
 
 namespace PangyaAPI.Network.Cmd
 {
-    public class CmdVerifyID: Pangya_DB
+    public class CmdVerifyID : Pangya_DB
     {
         int m_uid = -1;
         string m_id = "";

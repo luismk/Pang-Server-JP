@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace GameServer.PangyaEnums
+namespace Pangya_GameServer.PangyaEnums
 {
     [Flags]
     public enum PlaceFlags : byte

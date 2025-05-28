@@ -1,21 +1,21 @@
-﻿using GameServer.Cmd;
-using GameServer.GameType;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Pangya_GameServer.Cmd;
+using Pangya_GameServer.GameType;
 using PangyaAPI.SQL;
 using PangyaAPI.SQL.Manager;
 using PangyaAPI.Utilities;
 using PangyaAPI.Utilities.Log;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using static Pangya_GameServer.GameType._Define;
 using _smp = PangyaAPI.Utilities.Log;
-using static GameServer.GameType._Define;
-namespace GameServer.Game.Manager
+namespace Pangya_GameServer.Game.Manager
 {
     public class PlayerMailBox
     {
-        private DateTime m_last_update;                                                                                          
-        protected uint m_uid;                                                                           
-        protected Dictionary<uint, EmailInfoEx> m_emails = new Dictionary<uint, EmailInfoEx>();    
+        private DateTime m_last_update;
+        protected uint m_uid;
+        protected Dictionary<uint, EmailInfoEx> m_emails = new Dictionary<uint, EmailInfoEx>();
 
         public PlayerMailBox()
         {
@@ -75,7 +75,7 @@ namespace GameServer.Game.Manager
             m_emails = cmd_mbi2.getInfo();
 
             // Update last time update
-            m_last_update = DateTime.Now;                                                                                                             
+            m_last_update = DateTime.Now;
 
         }
 
@@ -131,7 +131,7 @@ namespace GameServer.Game.Manager
             mails.Sort((rhs, lhs) => lhs.id.CompareTo(rhs.id));
 
             return mails;
-        }       
+        }
 
         public List<MailBox> getAllUnreadEmail()
         {
@@ -213,7 +213,7 @@ namespace GameServer.Game.Manager
 
                     // Simula a interação com o banco de dados
                     NormalManagerDB.add(0, cmdEmailInfo2, null, null);
-                                      
+
                     if (cmdEmailInfo2.getException().getCodeError() != 0)
                         throw cmdEmailInfo2.getException();
 
@@ -252,7 +252,7 @@ namespace GameServer.Game.Manager
                     if (_ler)
                     {
                         // Marca como lido
-                        if (email.lida_yn== 0)
+                        if (email.lida_yn == 0)
                         {
                             email.lida_yn = 1;
                         }
@@ -363,7 +363,7 @@ namespace GameServer.Game.Manager
             {
                 mail.item = email.itens.First();
             }
-        }                                  
+        }
 
         public void SQLDBResponse(int _msg_id, Pangya_DB _pangya_db, object _arg)
         {
@@ -428,6 +428,6 @@ namespace GameServer.Game.Manager
             {
                 _smp.message_pool.push(new message($"[PlayerMailBox::SQLDBResponse][Error] QUERY_MSG[ID={_msg_id}] {e.Message}", type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
-        }            
+        }
     }
 }

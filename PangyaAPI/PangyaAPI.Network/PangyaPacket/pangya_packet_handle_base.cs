@@ -1,5 +1,5 @@
 ﻿using PangyaAPI.Network.PangyaSession;
-using PangyaAPI.Network.PangyaUtil;                         
+using PangyaAPI.Network.PangyaUtil;
 namespace PangyaAPI.Network.PangyaPacket
 {
     public enum TT

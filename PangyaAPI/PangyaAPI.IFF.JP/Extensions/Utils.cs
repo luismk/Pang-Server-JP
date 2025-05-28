@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Text;
+﻿using System.Text;
 namespace PangyaAPI.IFF.JP.Extensions
 {
     public class Utils
@@ -33,6 +30,6 @@ namespace PangyaAPI.IFF.JP.Extensions
         public static uint GetItemGroup(uint _typeid)
         {
             return (uint)((_typeid & 0xFC000000) >> 26);
-        }                      
+        }
     }
 }

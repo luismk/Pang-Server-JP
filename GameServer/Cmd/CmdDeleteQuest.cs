@@ -1,41 +1,41 @@
-﻿using PangyaAPI.SQL;
-using PangyaAPI.Utilities;
-using GameServer.GameType;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Pangya_GameServer.GameType;
+using PangyaAPI.SQL;
+using PangyaAPI.Utilities;
 
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
-    public class CmdDeleteQuest  : Pangya_DB
-    {                   
+    public class CmdDeleteQuest : Pangya_DB
+    {
         public CmdDeleteQuest(uint _uid,
             List<QuestStuffInfo> _v_id)
-        {                    
+        {
             this.m_uid = _uid;
-             this.v_id = new List<int>();
+            this.v_id = new List<int>();
 
             foreach (var el in _v_id)
             {
                 v_id.Add((int)el.id);
             }
-        }                                           
+        }
         public uint getUID()
         {
             return (m_uid);
         }
 
         public void setUID(uint _uid)
-        {                  
+        {
             m_uid = _uid;
-         }
+        }
 
         public int getId()
-        {                                                               
+        {
             if (v_id.Count > 0)
             {
                 return v_id.First();
-            }                       
+            }
             return -1;
         }
 
@@ -99,7 +99,7 @@ namespace GameServer.Cmd
 
             return r;
         }
-                                     
+
 
         protected uint m_uid = new uint();
         protected List<int> v_id = new List<int>();

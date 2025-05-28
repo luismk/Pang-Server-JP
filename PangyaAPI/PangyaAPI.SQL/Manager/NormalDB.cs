@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using _smp = PangyaAPI.Utilities.Log;
-using PangyaAPI.Utilities;
 using PangyaAPI.SQL.Manager;
+using PangyaAPI.Utilities;
+using _smp = PangyaAPI.Utilities.Log;
 namespace PangyaAPI.SQL
 {
     public class NormalDB
@@ -16,16 +16,16 @@ namespace PangyaAPI.SQL
             TT_NORMAL_RESPONSE
         }
 
-        public class msg_t 
+        public class msg_t
         {
-            public msg_t(int _id,  Pangya_DB __pangya_db, Action<int, Pangya_DB, object> _callback_response, object _arg)
+            public msg_t(int _id, Pangya_DB __pangya_db, Action<int, Pangya_DB, object> _callback_response, object _arg)
             {
                 this.id = _id;
                 this._pangya_db = __pangya_db;
                 this.func = _callback_response;
                 this.arg = _arg;
             }
-           
+
             public void execFunc()
             {
                 if (func == null)
@@ -50,7 +50,7 @@ namespace PangyaAPI.SQL
             }
 
             public void execQuery()
-            {                    
+            {
                 try
                 {
                     if (_pangya_db == null)
@@ -61,11 +61,11 @@ namespace PangyaAPI.SQL
                     _pangya_db.exec();
                 }
                 catch (Exception ex)
-                {            
+                {
                     throw ex;
                 }
             }
-         
+
             protected int id; // ID da msg
             protected Pangya_DB _pangya_db;
             protected Action<int, Pangya_DB, object> func;
@@ -80,8 +80,8 @@ namespace PangyaAPI.SQL
         }
 
         public void Init()
-        {                
-            _db = new mssql();         
+        {
+            _db = new mssql();
             _db.connect();
 
             m_pExec = new Thread(new ThreadStart(RunExecQuery));
@@ -123,10 +123,10 @@ namespace PangyaAPI.SQL
             }
 
         }
-                                                                                                 
+
 
         protected Thread m_pExec;
-        protected Thread m_pResponse;                
+        protected Thread m_pResponse;
         protected bool m_state;
         protected uint m_continue_exec;
         protected uint m_continue_response;

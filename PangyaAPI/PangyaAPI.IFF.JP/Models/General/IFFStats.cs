@@ -9,9 +9,9 @@ namespace PangyaAPI.IFF.JP.Models.General
         public ushort Impact { get; set; }
         public ushort Spin { get; set; }
         public ushort Curve { get; set; }
-        public byte[] getSlot => new byte[] { (byte) Power, (byte)Control, (byte) Impact, (byte)Spin, (byte) Curve};
+        public byte[] getSlot => new byte[] { (byte)Power, (byte)Control, (byte)Impact, (byte)Spin, (byte)Curve };
 
-   
+
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1, Size = 10)]

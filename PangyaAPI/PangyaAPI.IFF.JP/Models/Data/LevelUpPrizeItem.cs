@@ -1,6 +1,4 @@
-﻿using PangyaAPI.IFF.JP.Models.General;
-using PangyaAPI.IFF.JP.Models.Flags;
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
 using System.Text;
 

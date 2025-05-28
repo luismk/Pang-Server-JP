@@ -1,16 +1,15 @@
-﻿using GameServer.GameType;
+﻿using System;
+using Pangya_GameServer.GameType;
 using PangyaAPI.SQL;
-using System;
-using System.Data;
 
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     public class CmdTrofelInfo : Pangya_DB
     {
         private uint m_uid;
         TYPE_SEASON m_season;
         TrofelInfo m_ti = new TrofelInfo();
-        public  enum TYPE_SEASON : byte
+        public enum TYPE_SEASON : byte
         {
             ALL,        // Todas SEASON
             ONE,        // 1
@@ -33,11 +32,11 @@ namespace GameServer.Cmd
             m_ti = new TrofelInfo();
         }
 
-		protected override void lineResult(ctx_res _result, uint _index_result)
-		{
-			checkColumnNumber(39);
-			try
-			{
+        protected override void lineResult(ctx_res _result, uint _index_result)
+        {
+            checkColumnNumber(39);
+            try
+            {
                 short i = 0, j = 0;
 
                 // AMA 6~1
@@ -49,7 +48,7 @@ namespace GameServer.Cmd
                 for (i = 0; i < 7; ++i)
                     for (j = 0; j < 3; ++j)
                         m_ti.pro_1_a_7[i, j] = IFNULL<short>(_result.data[18 + (i * 3) + j]);    // 18 a (3 * 7) = 39
-                                               
+
                 //            for (i = 0; i < 3; i++)
                 //                m_ti.ama_6[i] = (short)Convert.ToUInt32(_result.data[0 + i]);   // 0 + 3
                 //            for (i = 0; i < 3; i++)
@@ -79,46 +78,46 @@ namespace GameServer.Cmd
 
             }
             catch (Exception ex)
-			{
-				Console.WriteLine(ex.Message);
+            {
+                Console.WriteLine(ex.Message);
 
-			}
-		}
+            }
+        }
 
-		protected override Response prepareConsulta()
-		{                                               
-            var r = procedure("pangya.ProcGetTrofel ", m_uid.ToString()+ ", "+((int)m_season).ToString());
-			checkResponse(r, "nao conseguiu pegar o member info do player: " + (m_uid));
-			return r;
-		}
+        protected override Response prepareConsulta()
+        {
+            var r = procedure("pangya.ProcGetTrofel ", m_uid.ToString() + ", " + ((int)m_season).ToString());
+            checkResponse(r, "nao conseguiu pegar o member info do player: " + (m_uid));
+            return r;
+        }
 
 
-		public TrofelInfo getInfo()
-		{
+        public TrofelInfo getInfo()
+        {
             return m_ti;
-		}
+        }
 
 
 
-		public uint getUID()
-		{
-			return m_uid;
-		}
+        public uint getUID()
+        {
+            return m_uid;
+        }
 
-		public void setUID(uint _uid)
-		{
-			m_uid = _uid;
-		}
+        public void setUID(uint _uid)
+        {
+            m_uid = _uid;
+        }
 
-		public TYPE_SEASON getSeason()
-		{
-			return m_season;
-		}
+        public TYPE_SEASON getSeason()
+        {
+            return m_season;
+        }
 
-		public void getSeason(TYPE_SEASON _type)
-		{
-			m_season = _type;
-		}
+        public void getSeason(TYPE_SEASON _type)
+        {
+            m_season = _type;
+        }
 
-	}
+    }
 }

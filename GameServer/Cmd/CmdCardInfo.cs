@@ -1,10 +1,8 @@
-﻿using GameServer.GameType;
-using System;
-using System.Collections.Generic;
+﻿using Pangya_GameServer.Game.Manager;
+using Pangya_GameServer.GameType;
 using PangyaAPI.SQL;
-using GameServer.Game.Manager;
 
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     public class CmdCardInfo : Pangya_DB
     {
@@ -89,7 +87,7 @@ namespace GameServer.Cmd
 
             v_ci.Add(ci.id, ci);
         }
-         
+
         protected override Response prepareConsulta()
         {
             v_ci.Clear();

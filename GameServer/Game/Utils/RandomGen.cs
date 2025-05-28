@@ -1,11 +1,7 @@
-﻿using PangyaAPI.Utilities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System;
+using PangyaAPI.Utilities;
 
-namespace GameServer.Game.Utils
+namespace Pangya_GameServer.Game.Utils
 {
     public class RandomGen : IDisposable
     {
@@ -139,7 +135,7 @@ namespace GameServer.Game.Utils
             catch (exception e)
             {
             }
-            
+
             // Não conseguiu com o chronos
             if (!ok)
             {

@@ -1,10 +1,8 @@
 ﻿using System.Collections.Generic;
-using System;
+using Pangya_GameServer.GameType;
 using PangyaAPI.SQL;
-using PangyaAPI.Utilities;
-using GameServer.GameType;
 
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     public class CmdItemBuffInfo : Pangya_DB
     {
@@ -18,7 +16,7 @@ namespace GameServer.Cmd
         {
             this.m_uid = _uid;
             this.v_ib = new List<ItemBuffEx>();
-        } 
+        }
 
         public List<ItemBuffEx> GetInfo()
         {
@@ -46,7 +44,7 @@ namespace GameServer.Cmd
 
             if (_result.IsNotNull(2))
             {
-               ib.use_date.CreateTime(_translateDate(_result.data[2]));
+                ib.use_date.CreateTime(_translateDate(_result.data[2]));
             }
 
             if (_result.IsNotNull(3))

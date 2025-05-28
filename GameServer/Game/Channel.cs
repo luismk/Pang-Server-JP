@@ -1820,22 +1820,7 @@ namespace GameServer.Game
                 // se ele não fez o login com o Server ele não pode fazer nada até que ele faça o login
 
                 var mails = _session.m_pi.m_mail_box.GetPage(pagina);
-
-                /*CmdMailBoxInfo cmd_mbi(_session.m_pi.m_uid, CmdMailBoxInfo::NORMAL, pagina, true);
-
-                snmdb::NormalManagerDB.add(0, &cmd_mbi, null, null);
-
-                cmd_mbi.waitEvent();
-
-                if (cmd_mbi.getException().getCodeError() != 0)
-                    throw cmd_mbi.getException();
-
-                var mails = cmd_mbi.getInfo();
-
-                if (mails.empty() && cmd_mbi.getTotalPage() > 0)
-                    throw new exception("[channel::requestOpenMailBox][Error] Player[UID=" + (_session.m_pi.m_uid) + "] tentou abrir MailBox[Pagina="
-                            + (pagina) + "] mas ela nao existe. Hacker ou Bug",ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.CHANNEL, 0x7900001, 1));*/
-
+ 
                 if (mails.Any())
                 {
 
@@ -1878,18 +1863,7 @@ namespace GameServer.Game
                 //CHECK_SESSION_IS_AUTHORIZED("InfoMail");
 
                 var email = _session.m_pi.m_mail_box.getEmailInfo(email_id);
-
-                /*CmdEmailInfo cmd_ei(_session.m_pi.m_uid, email_id, true);	// waitable
-
-                snmdb::NormalManagerDB.add(0, &cmd_ei, null, null);
-
-                cmd_ei.waitEvent();
-
-                if (cmd_ei.getException().getCodeError() != 0)
-                    throw cmd_ei.getException();
-
-                var email = cmd_ei.getInfo();*/
-
+  
                 if (email.id == 0)
                     throw new exception("[channel::requestInfoMail][Error] Player[UID=" + (_session.m_pi.uid) + "] pediu para ver o info do Mail[ID=" + (email_id)
                             + "], mais ele nao existe no banco de dados. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.CHANNEL, 0x5500251, 1));

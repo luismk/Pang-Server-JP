@@ -1,10 +1,8 @@
-﻿using GameServer.GameType;
-using System.Collections.Generic;
-using System;
+﻿using System.Collections.Generic;
+using Pangya_GameServer.GameType;
 using PangyaAPI.SQL;
-using PangyaAPI.Utilities.Log;
 
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     public class CmdMsgOffInfo : Pangya_DB
     {
@@ -18,7 +16,7 @@ namespace GameServer.Cmd
         {
             this.m_uid = _uid;
             this.v_moi = new List<MsgOffInfo>();
-        } 
+        }
 
         public List<MsgOffInfo> GetInfo()
         {
@@ -73,7 +71,7 @@ namespace GameServer.Cmd
 
             return r;
         }
-         
+
         private uint m_uid;
         private List<MsgOffInfo> v_moi;
 

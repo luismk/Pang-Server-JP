@@ -1,14 +1,10 @@
-﻿using PangyaAPI.IFF.JP.Extensions;
+﻿using System;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Text;
 using PangyaAPI.IFF.JP.Models.Flags;
 using PangyaAPI.IFF.JP.Models.General;
 using PangyaAPI.Utilities.BinaryModels;
-using System;
-using System.Diagnostics;
-using System.Drawing;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text;
 
 namespace PangyaAPI.IFF.JP.Models.Data
 {
@@ -46,9 +42,9 @@ namespace PangyaAPI.IFF.JP.Models.Data
         {
             get => Encoding.GetEncoding("Shift_JIS").GetString(addWithInBytes != null ? addWithInBytes : new byte[40]).Replace("\0", "");
             set => addWithInBytes = Encoding.GetEncoding("Shift_JIS").GetBytes(value.PadRight(40, '\0'));
-        }                                                
+        }
         [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 2)]
-        public uint[] SubPart { get; set; }     
+        public uint[] SubPart { get; set; }
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         public class CardSlot
         {
@@ -148,7 +144,7 @@ namespace PangyaAPI.IFF.JP.Models.Data
             MPet = reader.ReadPStr(40);
             type_item = (PART_TYPE)reader.ReadUInt32();
             position_mask = (u_part_type)reader.ReadStruct<u_part_type>();
-            HideMask = (u_part_type)reader.ReadStruct<u_part_type>();         
+            HideMask = (u_part_type)reader.ReadStruct<u_part_type>();
             Texture1 = reader.ReadPStr(40);
             Texture2 = reader.ReadPStr(40);
             Texture3 = reader.ReadPStr(40);
@@ -172,19 +168,20 @@ namespace PangyaAPI.IFF.JP.Models.Data
                 CurveSlot = reader.ReadUInt16()
             };
             addWithInBytes = reader.ReadBytes(40);
-              SubPart = reader.ReadUInt32Array(2).ToArray();
-             _CardSlot = new CardSlot()
+            SubPart = reader.ReadUInt32Array(2).ToArray();
+            _CardSlot = new CardSlot()
             {
                 CharSlot = reader.ReadUInt16(),
-                CaddieSlot = reader.ReadUInt16(), NPCSlot
-                 = reader.ReadUInt16()
+                CaddieSlot = reader.ReadUInt16(),
+                NPCSlot
+                = reader.ReadUInt16()
             };
             Points = reader.ReadUInt16();
             RentPang = reader.ReadUInt32();
-            Unk = reader.ReadUInt32();    
+            Unk = reader.ReadUInt32();
         }
         public Part()
-        {       
+        {
             MPet = "";
             type_item = PART_TYPE.TOP; // Aqui você pode definir o valor padrão desejado
             position_mask = new u_part_type();
@@ -198,7 +195,7 @@ namespace PangyaAPI.IFF.JP.Models.Data
             Stats = new IFFStats(); // Supondo que IFFStats tenha um construtor padrão
             SlotStats = new IFFSlotStats(); // Supondo que IFFSlotStats tenha um construtor padrão
             addWithInBytes = new byte[40];
-            SubPart = new uint[2];    
+            SubPart = new uint[2];
             _CardSlot = new CardSlot();
         }
 
@@ -215,7 +212,7 @@ namespace PangyaAPI.IFF.JP.Models.Data
             Texture5 = part.Texture5;
             Texture6 = part.Texture6;
             Stats = part.Stats; // Supondo que IFFStats tenha um construtor padrão
-            SlotStats =part.SlotStats; // Supondo que IFFSlotStats tenha um construtor padrão
+            SlotStats = part.SlotStats; // Supondo que IFFSlotStats tenha um construtor padrão
             addWithInBytes = part.addWithInBytes;
             SubPart = part.SubPart;
             _CardSlot = part._CardSlot;
@@ -223,20 +220,20 @@ namespace PangyaAPI.IFF.JP.Models.Data
 
         public bool IsUCC()
         {
-          return  type_item == PART_TYPE.UCC_DRAW_ONLY || type_item == PART_TYPE.UCC_COPY_ONLY;
+            return type_item == PART_TYPE.UCC_DRAW_ONLY || type_item == PART_TYPE.UCC_COPY_ONLY;
         }
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     public class u_part_type
-    {                                                              
-        public uint ul_part_type;                                     
+    {
+        public uint ul_part_type;
         public bool getSlot(int index)
         {
             if (index < 0 || index > 23)
                 return false;
 
-            
+
             return (ul_part_type & (1 << index)) != 0;
         }
     }

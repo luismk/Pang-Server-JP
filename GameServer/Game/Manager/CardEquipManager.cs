@@ -1,46 +1,13 @@
-﻿using GameServer.GameType;
-using PangyaAPI.Utilities.BinaryModels;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Pangya_GameServer.GameType;
+using PangyaAPI.Utilities.BinaryModels;
 
-namespace GameServer.Game.Manager
+namespace Pangya_GameServer.Game.Manager
 {
-    public class CardEquipManager : Dictionary<uint, CardEquipInfo>
-    {               
-        public byte[] Build()
-        {
-            var p = new PangyaBinaryWriter();
-            try
-            {
-                p.WriteUInt16((short)Count);    
-                foreach (var item in Values)
-                {
-                    p.WriteBytes(item.Build());
-                }
-                return p.GetBytes;
-            }
-            catch (Exception)
-            {
-                return new byte[0];
-            }
-        }
-
-        public byte[] GetInfo(uint _id)
-        {
-            var char_info = findCardEquipById(_id);
-            if (char_info == null)
-                return new byte[0x19];
-            else
-            {
-                var p = new PangyaBinaryWriter();
-                p.WriteBytes(char_info.Build());
-                return p.GetBytes;
-            }
-        }
-
+    public class CardEquipManager : Dictionary<uint, CardEquipInfoEx>
+    {  
         public CardEquipInfo findCardEquipById(uint _id)
         {
             return this.Values.FirstOrDefault(c => c.id == _id);

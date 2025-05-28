@@ -1,21 +1,15 @@
-﻿using GameServer.Game.Manager;
-using GameServer.GameType;
-using PangyaAPI.SQL;
-using PangyaAPI.Utilities.Log;
-using System;
-using System.Collections.Generic;
-using System.Data;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.ConstrainedExecution;
-using _smp = PangyaAPI.Utilities.Log;
-namespace GameServer.Cmd
+using Pangya_GameServer.GameType;
+using PangyaAPI.SQL;
+namespace Pangya_GameServer.Cmd
 {
     public class CmdPapelShopCoupon : Pangya_DB
     {
         public CmdPapelShopCoupon()
         {
             this.m_ctx_psc = new Dictionary<uint, ctx_papel_shop_coupon>();
-        }               
+        }
 
         public Dictionary<uint, ctx_papel_shop_coupon> getInfo()
         {

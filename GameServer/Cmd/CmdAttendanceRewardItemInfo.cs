@@ -1,9 +1,8 @@
-﻿using GameServer.GameType;
+﻿using System.Collections.Generic;
+using Pangya_GameServer.GameType;
 using PangyaAPI.SQL;
-using System.Collections.Generic;
-using System;
 
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     public class CmdAttendanceRewardItemInfo : Pangya_DB
     {
@@ -45,7 +44,7 @@ namespace GameServer.Cmd
 
             return r;
         }
-                       
+
 
         private List<AttendanceRewardItemCtx> v_item = new List<AttendanceRewardItemCtx>();
 

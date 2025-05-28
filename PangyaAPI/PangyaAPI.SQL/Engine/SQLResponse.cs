@@ -1,28 +1,24 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PangyaAPI.SQL
 {
     public class SQLResponse
     {
-     DataTable _data { get; set; }
+        DataTable _data { get; set; }
         public DataRow data { get; set; }
         int next { get; set; }
         public int cols { get; }
         public int count { get; }
         public bool read { get; set; }
-        
+
         public SQLResponse(DataTable collection)
         {
-            if (collection !=null)
+            if (collection != null)
             {
                 Add(collection);
-                 read = true;
-               
+                read = true;
+
                 if (_data.Rows.Count == 1)
                 {
                     count = 1;
@@ -30,7 +26,7 @@ namespace PangyaAPI.SQL
                 if (_data.Rows.Count > 1)
                 {
                     count = _data.Rows.Count - 1;
-                }               
+                }
                 cols = _data.Columns.Count;
             }
             else
@@ -38,7 +34,7 @@ namespace PangyaAPI.SQL
                 read = false;
 
                 count = 0;
-                cols =0;
+                cols = 0;
             }
         }
 
@@ -97,7 +93,7 @@ namespace PangyaAPI.SQL
 
         public void Add(DataTable collection)
         {
-            _data =(collection);
+            _data = (collection);
         }
     }
 }

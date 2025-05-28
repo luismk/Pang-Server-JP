@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Data;
 using System.Runtime.InteropServices;
-using PangyaAPI.IFF.JP.Models.Flags;
 namespace PangyaAPI.IFF.JP.Models.General
 {
     [StructLayout(LayoutKind.Sequential, Pack = 1, Size = 1)]
@@ -39,7 +37,8 @@ namespace PangyaAPI.IFF.JP.Models.General
         /// </summary>
         public bool is_max
         {
-            get { 
+            get
+            {
                 if (_level == 70)
                     return true;
                 else if ((_level & 128) == 128)

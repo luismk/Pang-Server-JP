@@ -1,13 +1,13 @@
-﻿using GameServer.GameType;
+﻿using System;
+using System.Collections.Generic;
+using Pangya_GameServer.GameType;
 using PangyaAPI.SQL;
 using PangyaAPI.Utilities;
-using System;
-using System.Collections.Generic;
 
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     public class CmdGrandPrixClear : Pangya_DB
-    {                   
+    {
         public CmdGrandPrixClear(uint uid)
         {
             this.m_uid = uid;

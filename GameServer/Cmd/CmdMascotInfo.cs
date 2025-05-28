@@ -1,16 +1,12 @@
-﻿using PangyaAPI.SQL;
-
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Data;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Pangya_GameServer.Game.Manager;
+using Pangya_GameServer.GameType;
+using PangyaAPI.SQL;
 using _smp = PangyaAPI.Utilities.Log;
-using GameServer.GameType;
-using GameServer.Game.Manager;
 
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     public class CmdMascotInfo : Pangya_DB
     {

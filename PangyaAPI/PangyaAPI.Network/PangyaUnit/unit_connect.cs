@@ -38,7 +38,7 @@
 //        public override string getID() => m_pi.id;
 //        public ServerInfoEx m_si;
 //        public player_info m_pi;
-            
+
 //        public UnitPlayer(threadpool_base _base,ServerInfoEx serverInfo) : base(_base)
 //        {
 //            m_si = serverInfo;
@@ -101,7 +101,7 @@
 //        }
 //        public virtual void DisconnectSession(SessionBase _session)
 //        {
-//            if (_session != null && _session.getConnected())
+//            if (_session != null && _session.isConnected())
 //            {
 
 //                // on Disconnect
@@ -114,7 +114,7 @@
 
 //        public virtual bool isLive()
 //        {
-//            return (m_session.getState() && m_session.getConnected());
+//            return (m_session.getState() && m_session.isConnected());
 //        }
 
 //        protected abstract void onHeartBeat();
@@ -150,7 +150,7 @@
 
 //                throw new Exception("[UnitConnectBase::ConnectAndAssoc][Error] Falha ao conectar.", ex);
 //            }
-              
+
 //            // On Connected
 //            onConnected();
 
@@ -197,12 +197,12 @@
 //        { 
 
 //            message_pool.push(new message("[server::HandleSession][Log] New Player Connected [IP: " + m_session.getIP() + ", Key: " + m_session.m_key + "]", type_msg.CL_FILE_LOG_AND_CONSOLE));
-             
-//            while (m_session.getConnected())
+
+//            while (m_session.isConnected())
 //            {
 //                try
 //                {
-//                    if (!m_session.getConnected())
+//                    if (!m_session.isConnected())
 //                    {
 //                        DisconnectSession(m_session);
 //                        break;
@@ -232,7 +232,7 @@
 
 //        protected void DispatchPacketSameThread(SessionBase session, Packet packet)
 //        {
-//            if (session == null || session.getConnected() == false || packet == null)
+//            if (session == null || session.isConnected() == false || packet == null)
 //            {
 //                return;//nao esta mais conectado!
 //            }
@@ -313,11 +313,11 @@
 
 //        public class packet_func_as
 //        {
-//            public static void session_send(PangyaBinaryWriter p, UnitPlayer s, byte _debug)
+//            public static void session_send(packet p, UnitPlayer s, byte _debug)
 //            {
 //                s.Send(p, _debug == 1);
 //            }
-//            public static void session_send(List<PangyaBinaryWriter> v_p, UnitPlayer s, byte _debug) { s.Send(v_p); }
+//            public static void session_send(List<packet> v_p, UnitPlayer s, byte _debug) { s.Send(v_p); }
 //        }
 
 //    }

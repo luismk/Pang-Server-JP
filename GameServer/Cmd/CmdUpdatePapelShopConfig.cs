@@ -1,13 +1,7 @@
-﻿using GameServer.Game.Manager;
-using GameServer.GameType;
+﻿using System;
+using Pangya_GameServer.GameType;
 using PangyaAPI.SQL;
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Runtime.ConstrainedExecution;
-using _smp = PangyaAPI.Utilities.Log;
-namespace GameServer.Cmd
+namespace Pangya_GameServer.Cmd
 {
     public class CmdUpdatePapelShopConfig : Pangya_DB
     {

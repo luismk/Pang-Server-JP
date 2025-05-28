@@ -1,101 +1,68 @@
-﻿//// C++ TO C# CONVERTER WARNING: The following #include directive was ignored:
-////#include "../../Projeto IOCP/UTIL/util_time.h"
+﻿using Pangya_GameServer.GameType;
+using PangyaAPI.SQL;
+using PangyaAPI.Utilities;
+using System;
 
-//using GameServer.GameType;
-//using System;
+namespace Pangya_GameServer.Cmd
+{
+    public class CmdUpdateLoginRewardPlayer : Pangya_DB
+    {
 
-//// Arquivo cmd_update_login_reward_player.cpp
-//// Criado em 27/10/2020 as 20:21 por Acrisio
-//// Implementa��o da classe CmdUpdateLoginRewardPlayer
+        public CmdUpdateLoginRewardPlayer(stPlayerState _ps)
+        {
+            this.m_ps = (_ps);
+        }
 
-//#if _WIN32
-//// C++ TO C# CONVERTER TASK: There is no equivalent to most C++ 'pragma' directives in C#:
-////#pragma pack(1)
-//#endif
-//// Arquivo cmd_update_login_reward_player.hpp
-//// Criado em 27/10/2020 as 20:11 por Acrisio
-//// Defini��o da classe CmdUpdateLoginRewardPlayer
+        public CmdUpdateLoginRewardPlayer()
+        {
+            this.m_ps = new stPlayerState(0u);
+        }
 
+        public virtual void Dispose()
+        {
+        }
 
-//// C++ TO C# CONVERTER WARNING: The following #include directive was ignored:
-////#include "../../Projeto IOCP/PANGYA_DB/pangya_db.h"
+        public stPlayerState getPlayerState()
+        {                      return m_ps;
+        }
 
-//namespace GameServer.Cmd
-//{
+        public void setPlayerState(stPlayerState _ps)
+        {                      m_ps = _ps;
+        }
 
-//	public class CmdUpdateLoginRewardPlayer : Pangya_DB
-//	{
+        protected override void lineResult(ctx_res _result, uint _index_result)
+        {
 
-//			public CmdUpdateLoginRewardPlayer(stPlayerState _ps)
-//			{
-//				this.m_ps = new stPlayerState(_ps);
-//			}
+            // N�o usa por que � um UPDATE
+            return;
+        }
 
-//			public CmdUpdateLoginRewardPlayer()
-//			{
-//				this.m_ps = new stPlayerState(0u);
-//			}
+        protected override Response prepareConsulta()
+        {
 
-//			public virtual void Dispose()
-//			{
-//			}
+            if (m_ps.id == 0Ul)
+            {
+                throw new exception("[CmdUpdateLoginRewardPlayer::prepareConsulta][Error] m_ps.id is invalid(" + Convert.ToString(m_ps.id) + ")", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PANGYA_DB,
+                    4, 0));
+            }
 
-//			public stPlayerState getPlayerState()
-//			{
-//// C++ TO C# CONVERTER TASK: The following line was determined to contain a copy constructor call - this should be verified and a copy constructor should be created:
-// return m_ps;
-//				return new stPlayerState(m_ps);
-//			}
+            if (m_ps.uid == 0u)
+            {
+                throw new exception("[CmdUpdateLoginRewardPlayer::prepareConsulta][Error] m_ps.uid is invalid(" + Convert.ToString(m_ps.uid) + ")", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PANGYA_DB,
+                    4, 0));
+            }
 
-//			public void setPlayerState(stPlayerState _ps)
-//			{
-//// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
-// m_ps = _ps;
-//				m_ps.CopyFrom(_ps);
-//			}
+            var r = procedure(
+                m_szConsulta,
+                Convert.ToString(m_ps.id) + ", " + Convert.ToString(m_ps.uid) + ", " + Convert.ToString(m_ps.count_days) + ", " + Convert.ToString(m_ps.count_seq) + ", " + (m_ps.is_clear ? "1" : "0") + ", " + _formatDate(m_ps.update_date.ConvertTime())) ;
 
-//			protected override void lineResult(ctx_res _result, uint _index_result)
-//			{
+            checkResponse(r, "nao conseguiu atualizar o Player[" + m_ps.toString() + "]");
 
-//				// N�o usa por que � um UPDATE
-//				return;
-//			}
+            return r;
+        }
+                                
+        private stPlayerState m_ps = new stPlayerState();
 
-//			protected override Response prepareConsulta()
-//			{
-
-//				if(m_ps.id == 0Ul)
-//				{
-//					throw new exception("[CmdUpdateLoginRewardPlayer::prepareConsulta][Error] m_ps.id is invalid(" + Convert.ToString(m_ps.id) + ")", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PANGYA_DB,
-//						4, 0));
-//				}
-
-//				if(m_ps.uid == 0u)
-//				{
-//					throw new exception("[CmdUpdateLoginRewardPlayer::prepareConsulta][Error] m_ps.uid is invalid(" + Convert.ToString(m_ps.uid) + ")", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PANGYA_DB,
-//						4, 0));
-//				}
-
-//				var r = procedure(
-//					m_szConsulta,
-//					Convert.ToString(m_ps.id) + ", " + Convert.ToString(m_ps.uid) + ", " + Convert.ToString(m_ps.count_days) + ", " + Convert.ToString(m_ps.count_seq) + ", " + new string(m_ps.is_clear ? "1" : "0") + ", " + _db.makeText(_formatDate(m_ps.update_date)));
-
-//				checkResponse(r, "nao conseguiu atualizar o Player[" + m_ps.toString() + "]");
-
-//				return r;
-//			}
-
-//			protected override string _getName()
-//			{
-//				return "CmdUpdateLoginRewardPlayer";
-//			}
-//			protected override string _wgetName()
-//			{
-//				return "CmdUpdateLoginRewardPlayer";
-//			}
-
-//			private stPlayerState m_ps = new stPlayerState();
-
-//			private const string m_szConsulta = "pangya.procUpdateLoginRewardPlayer";
-//	}
-//}
+        private const string m_szConsulta = "pangya.procUpdateLoginRewardPlayer";
+    }
+}

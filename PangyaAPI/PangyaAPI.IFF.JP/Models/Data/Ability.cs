@@ -1,8 +1,6 @@
-﻿using PangyaAPI.IFF.JP.Extensions;
-using PangyaAPI.IFF.JP.Models.Flags;
-using PangyaAPI.Utilities.BinaryModels;
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
+using PangyaAPI.Utilities.BinaryModels;
 namespace PangyaAPI.IFF.JP.Models.Data
 {
     #region Struct Ability.iff
