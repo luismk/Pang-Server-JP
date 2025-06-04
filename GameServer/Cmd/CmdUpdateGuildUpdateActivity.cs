@@ -29,7 +29,7 @@
 
 //			public CmdUpdateGuildUpdateActiviy(uint64_t _index)
 //			{
-//// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+//
 // this.m_index = _index;
 //				this.m_index.CopyFrom(_index);
 //			}
@@ -45,7 +45,7 @@
 
 //			public void setIndex(uint64_t _index)
 //			{
-//// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+//
 // m_index = _index;
 //				m_index.CopyFrom(_index);
 //			}

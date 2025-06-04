@@ -33,8 +33,7 @@ namespace Pangya_GameServer.Cmd
                 m_mi.school = Convert.ToUInt32(_result.data[5]);
                 m_mi.capability.ulCapability = Convert.ToInt32(_result.data[6]);
                 m_mi.manner_flag = Convert.ToUInt32(_result.data[9]);
-
-                if (_result.IsNotNull(11))
+                if (is_valid_c_string(_result.data[11]))
                     m_mi.guild_name = Convert.ToString(_result.data[11]);
 
                 m_mi.guild_uid = Convert.ToUInt32(_result.data[12]);
@@ -59,7 +58,7 @@ namespace Pangya_GameServer.Cmd
 
                 m_mi.level = Convert.ToByte(_result.data[25]);
 
-                if (_result.IsNotNull(26))
+                if (is_valid_c_string(_result.data[26]))
                     m_mi.guild_mark_img = Convert.ToString(_result.data[26]);
 
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using PangyaAPI.Network.Pangya_St;
 using PangyaAPI.SQL;
+using PangyaAPI.Utilities;
 
 namespace PangyaAPI.Network.Cmd
 {
@@ -21,23 +22,17 @@ namespace PangyaAPI.Network.Cmd
             {
                 for (int i = (int)0u; i < 9u; i++)
                 {
-
-                    if (_result.data[i] != null)
+                    string _chat = "";
+                    if (is_valid_c_string(_result.data[i]) && !( _chat = _result.data[i].ToString()).empty())
                     {
-                        var _chat = _result.data[i].ToString();
-                        // var _chat = verifyAndTranslate(_result.data[i].ToString(), 2/*fixed size*/);
-                        // !@ possivel erro de violação de acesso
-                        if (!string.IsNullOrEmpty(_chat))
+                        try
                         {
-                            try
-                            {
-                                m_macro_user.macro[i] = _result.data[i].ToString();
-                            }
-                            catch (Exception)
-                            {
+                            m_macro_user.setMacro(i, _result.data[i].ToString());
+                        }
+                        catch (Exception)
+                        {
 
-                                throw;
-                            }
+                            throw;
                         }
                     }
                 }

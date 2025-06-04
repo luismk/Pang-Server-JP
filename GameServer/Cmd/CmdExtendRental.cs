@@ -38,7 +38,7 @@ namespace Pangya_GameServer.Cmd
 
         public void setItemID(int _item_id)
         {
-            // C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+            
              m_item_id = _item_id;
         }
 

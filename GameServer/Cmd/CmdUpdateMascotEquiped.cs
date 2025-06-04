@@ -31,10 +31,10 @@ namespace Pangya_GameServer.Cmd
         public CmdUpdateMascotEquiped(uint _uid,
             int _mascot_id)
         {
-            // C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+            
             this.m_uid = _uid;
             //this.
-            // C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+            
             this.m_mascot_id = _mascot_id;
         }
 
@@ -49,7 +49,7 @@ namespace Pangya_GameServer.Cmd
 
         public void setUID(uint _uid)
         {
-            // C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+            
             m_uid = _uid;
 
         }
@@ -61,7 +61,7 @@ namespace Pangya_GameServer.Cmd
 
         public void setMascotID(int _mascot_id)
         {
-            // C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+            
             m_mascot_id = _mascot_id;
         }
 

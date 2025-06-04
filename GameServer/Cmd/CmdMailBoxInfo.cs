@@ -136,7 +136,7 @@ namespace Pangya_GameServer.Cmd
         private EmailInfo.item GetItemFromResult(ctx_res _result)
         {
             var mb = new EmailInfo.item();
-            mb.id = IFNULL(_result.data[7]);
+            mb.id = IFNULL<int>(_result.data[7]);
             mb._typeid = IFNULL(_result.data[8]);
             mb.flag_time = (byte)IFNULL(_result.data[9]);
             mb.qntd = IFNULL(_result.data[10]);

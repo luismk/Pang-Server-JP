@@ -767,7 +767,7 @@ namespace PangyaAPI.IFF.JP.Extensions
             var commom = findCommomItem(_typeid);
 
             if (commom != null)
-                return (commom.Active && commom.Shop.flag_shop.is_saleable);
+                return (commom.Active && (commom.Shop.flag_shop.IsShop || commom.Shop.flag_shop.is_saleable || commom.Shop.flag_shop.IsNormal));
 
             return false;
         }
@@ -1064,7 +1064,7 @@ namespace PangyaAPI.IFF.JP.Extensions
 
             if (commom != null)
                 return (commom.Active && commom.Shop.flag_shop.IsCash
-                    && commom.Shop.flag_shop.IsGift && commom.Shop.flag_shop.is_saleable);
+                    && commom.Shop.flag_shop.IsGift && commom.Shop.flag_shop.is_saleable == false);
 
             return false;
         }
@@ -1713,6 +1713,11 @@ namespace PangyaAPI.IFF.JP.Extensions
         {
             return m_furniture_ability;
         }
+        public IFFFile<CounterItem> getCounterItem()
+        {
+            return Counter_item;
+        }
+
         public List<ClubSet> findClubSetOriginal(uint _typeid)
         {
 
@@ -1749,14 +1754,22 @@ namespace PangyaAPI.IFF.JP.Extensions
             return m_loaded;
         }
 
-        public bool EMPTY_ARRAY_PRICE(ushort[] price)
+        public bool EMPTY_ARRAY_PRICE<T>(T[] price) where T : struct, IComparable
         {
-            return !price.Any(el => el != 0);
+            return !price.Any(el => !el.Equals(default(T)));
         }
 
-        public uint SUM_ARRAY_PRICE_ULONG(ushort[] price)
+                            
+        public uint SUM_ARRAY_PRICE_ULONG<T>(T[] price) where T : struct, IComparable
         {
-            return (uint)price.Sum(el => (uint)el);
+            uint sum = 0;
+
+            foreach (var el in price)
+            {
+                sum += Convert.ToUInt32(el);
+            }
+
+            return sum;
         }
 
         public SortedDictionary<uint, TimeLimitItem> getTimeLimitItem()

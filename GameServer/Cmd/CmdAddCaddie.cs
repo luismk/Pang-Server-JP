@@ -33,12 +33,12 @@ namespace Pangya_GameServer.Cmd
 
             checkColumnNumber(2);
 
-            m_ci.id = IFNULL(_result.data[0]);
-
-            if (_result.data[1] != null)
+            m_ci.id = IFNULL<int>(_result.data[0]); 
+            if (_result.IsNotNull(1))
             {
                 m_ci.end_date.CreateTime(_translateDate(_result.data[1]));
             }
+            m_ci.Check();
         }
 
         protected override Response prepareConsulta()

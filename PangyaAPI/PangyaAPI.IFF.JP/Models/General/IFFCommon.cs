@@ -74,7 +74,7 @@ namespace PangyaAPI.IFF.JP.Models.General
             Name = reader.ReadPStr(LenghtStr);
             Level = new IFFLevel
             {
-                level = reader.ReadByte() //49 start position
+                level = reader.ReadSByte() //49 start position
             };
             ShopIcon = reader.ReadPStr(43); //89 start position
             //--------------------------end--------------------------------\\
@@ -109,7 +109,7 @@ namespace PangyaAPI.IFF.JP.Models.General
             Name = reader.ReadPStr(LenghtStr);
             Level = new IFFLevel
             {
-                level = reader.ReadByte() //49 start position
+                level = reader.ReadSByte() //49 start position
             };
             ShopIcon = reader.ReadPStr(43); //89 start position
             //--------------------------end--------------------------------\\
@@ -135,9 +135,9 @@ namespace PangyaAPI.IFF.JP.Models.General
             get => Shop == null ? 0 : Shop.Price;
             set => Shop.Price = value;
         }
-        public byte ItemLevel
+        public sbyte ItemLevel
         {
-            get => (byte)(Level == null ? 0 : Level.level);
+            get => (sbyte)(Level == null ? 0 : Level.level);
             set => Level.level = value;
         }
         public uint DiscountPrice

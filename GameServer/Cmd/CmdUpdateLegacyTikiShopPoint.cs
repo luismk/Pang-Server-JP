@@ -26,10 +26,10 @@
 //			public CmdUpdateLegacyTikiShopPoint(uint _uid,
 //				uint64_t _tiki_pts)
 //				{
-//// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+//
 // this.m_uid = _uid;
 //				//this.
-//// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+//
 // this.m_tiki_shop_point = _tiki_pts;
 //				this.m_tiki_shop_point.CopyFrom(_tiki_pts);
 //				}
@@ -51,7 +51,7 @@
 
 //			public void setUID(uint _uid)
 //			{
-//// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+//
 // m_uid = _uid;
 
 //			}
@@ -63,7 +63,7 @@
 
 //			public void setTikiShopPoint(uint64_t _tiki_pts)
 //			{
-//// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+//
 // m_tiki_shop_point = _tiki_pts;
 //				m_tiki_shop_point.CopyFrom(_tiki_pts);
 //			}

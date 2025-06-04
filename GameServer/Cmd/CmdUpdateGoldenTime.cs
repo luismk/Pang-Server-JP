@@ -32,7 +32,7 @@
 //			public CmdUpdateGoldenTime(uint _id,
 //				bool _is_end)
 //				{
-//// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+//
 // this.m_id = _id;
 //				this.m_id.CopyFrom(_id);
 //				this.m_is_end = _is_end;
@@ -49,7 +49,7 @@
 
 //			public void setId(uint _id)
 //			{
-//// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+//
 // m_id = _id;
 //				m_id.CopyFrom(_id);
 //			}

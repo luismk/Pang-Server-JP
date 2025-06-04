@@ -72,7 +72,7 @@ namespace Pangya_GameServer.Cmd
 
                 CaddieInfoEx ci = new CaddieInfoEx
                 {
-                    id = _result.GetUInt32(0),
+                    id = _result.GetInt32(0),
                     _typeid = _result.GetUInt32(2),
                     parts_typeid = _result.GetUInt32(3),
                     level = _result.GetByte(4),
@@ -81,14 +81,16 @@ namespace Pangya_GameServer.Cmd
                 };
 
                 if (_result.IsNotNull(7))
-                    ci.end_date.CreateTime(_result.GetDateTime(7));
+                    ci.end_date.CreateTime(_translateDate(_result.data[7]));
 
                 ci.purchase = _result.GetByte(8);
 
                 if (_result.IsNotNull(9))
-                    ci.end_parts_date.CreateTime(_result.GetDateTime(9));
+                    ci.end_parts_date.CreateTime(_translateDate(_result.data[9]));
 
                 ci.check_end = _result.GetByte(10);
+
+                ci.Check();
 
                 v_ci.Add(ci.id, ci);
 

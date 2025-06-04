@@ -6,6 +6,7 @@ using Pangya_GameServer.Game.Utils;
 using Pangya_GameServer.GameType;
 using Pangya_GameServer.Session;
 using PangyaAPI.IFF.JP.Extensions;
+using PangyaAPI.Network.PangyaSession;
 using PangyaAPI.SQL.Manager;
 using PangyaAPI.Utilities;
 using PangyaAPI.Utilities.Log;
@@ -198,6 +199,8 @@ namespace Pangya_GameServer.Game.System
 
             return level > MEMORIAL_LEVEL_MAX ? (uint)MEMORIAL_LEVEL_MAX : level;
         }/*static*/
+
+
         public List<ctx_coin_item_ex> Test(ctx_coin _ctx_c)
         {
             {
@@ -227,7 +230,7 @@ namespace Pangya_GameServer.Game.System
             ctx_coin_set_item csi = null;
 
             // Calcula Memorial Level Pelos Achievement Pontos
-            uint level = 1/* calculeMemorialLevel(_session.m_pi.mgr_achievement.getPontos())*/;
+            uint level = 1;
 
             // Initialize Rare Item e add � roleta
             foreach (var el in _ctx_c.item)
@@ -385,7 +388,7 @@ namespace Pangya_GameServer.Game.System
             ctx_coin_set_item csi = null;
 
             // Calcula Memorial Level Pelos Achievement Pontos
-            uint level = 1/* calculeMemorialLevel(_session.m_pi.mgr_achievement.getPontos())*/;
+            uint level = calculeMemorialLevel(_session.m_pi.mgr_achievement.getPontos());
 
             // Initialize Rare Item e add � roleta
             foreach (var el in _ctx_c.item)

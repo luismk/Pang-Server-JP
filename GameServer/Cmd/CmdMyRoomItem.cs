@@ -69,7 +69,7 @@ namespace Pangya_GameServer.Cmd
                 MyRoomItem mri = new MyRoomItem();
                 uint uid_req = 0u;
 
-                mri.id = IFNULL<uint>(_result.data[0]);
+                mri.id = IFNULL<int>(_result.data[0]);
                 uid_req = IFNULL<uint>(_result.data[1]);
                 mri._typeid = IFNULL<uint>(_result.data[2]);
                 mri.number = IFNULL<short>(_result.data[3]);

@@ -83,7 +83,7 @@ namespace Pangya_GameServer.GameType
             m_uid = _uid;
         }
 
-        public bool visible = true; // 0 ou 1, Visible
+        public bool visible = false; // 0 ou 1, Visible
         public bool whisper = true; // 0 ou 1, Whisper Geral
         public bool channel = false; // 0 ou 1, Whisper do Canal
 

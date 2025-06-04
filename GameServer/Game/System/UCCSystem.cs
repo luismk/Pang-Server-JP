@@ -183,7 +183,7 @@ namespace Pangya_GameServer.Game.System
 
                             p.WriteByte(1);    // no outro fala que � op��o de erro, mas n�o sei n�o
 
-                            p.WriteUInt32(it.Value.id);
+                            p.WriteInt32(it.Value.id);
                             p.WriteUInt32(it.Value._typeid);
                             p.WritePStr(it.Value.ucc.idx);
                             p.WritePStr(it.Value.ucc.name);
@@ -192,7 +192,7 @@ namespace Pangya_GameServer.Game.System
                         }
                     case 1: // Info
                         {
-                            var ucc_id = _packet.ReadUInt32();
+                            var ucc_id = _packet.ReadInt32();
                             var owner = _packet.ReadUInt8();  // acho que 1 � do pr�prio player, 0 de outro player
 
                             if (ucc_id <= 0)
@@ -243,7 +243,7 @@ namespace Pangya_GameServer.Game.System
                             uint ucc_typeid = _packet.ReadUInt32();
                             string ucc_idx = _packet.ReadString();
                             ushort seq = _packet.ReadUInt16();
-                            uint cpy_id = _packet.ReadUInt32();
+                            int cpy_id = _packet.ReadInt32();
 
                             // INICIO CHECK UCC VALID FOR SERVER
                             if (sIff.getInstance().getItemGroupIdentify(ucc_typeid) != 2)
@@ -347,8 +347,8 @@ namespace Pangya_GameServer.Game.System
                             p.WritePStr(it.Value.ucc.idx);
                             p.WriteUInt16(it.Value.ucc.seq);
 
-                            p.WriteUInt32(pWi.id);
-                            p.WriteUInt32(pWi.id);
+                            p.WriteInt32(pWi.id);
+                            p.WriteInt32(pWi.id);//ta errado??@@@@@
                             p.WriteUInt32(pWi._typeid);
                             p.WritePStr(pWi.ucc.idx);
                             p.WriteUInt16(pWi.ucc.seq);

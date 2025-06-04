@@ -20,41 +20,18 @@ namespace Pangya_GameServer.Cmd
             checkColumnNumber(13);
             try
             {
-                //m_gi.uid = _result.GetUInt32(0);
+                m_gi.uid = IFNULL<int>(_result.data[0]);
 
-                //if (_result.data[1] != null)
-                //	m_gi.name = _result.data[1].ToString();
+                if (is_valid_c_string(_result.data[1]))
+                    m_gi.name = _result.GetString(1);
 
+                if (is_valid_c_string(_result.data[3]))
+                    m_gi.mark_emblem = _result.GetString(3);
 
-                //m_gi.total_member = _result.GetUInt32(2);
-
-
-                //if (_result.data[3] != null)
-                //{
-                //	m_gi.Image = (_result.data[3]).ToString().Replace(".png","");
-                //}
-                //else
-                //{
-                //                m_gi.Image = "guild_mark";
-                //            }
-
-                //if ((_result.data[5]) !=null)
-                //{
-                //                m_gi.Notice = (_result.data[5]).ToString();
-                //}
-
-                //if ((_result.data[6]) != null)
-                //            {
-                //                m_gi.Introducting = (_result.data[6]).ToString();
-                //}
-                //m_gi.point = _result.GetUInt32(7);
-                //m_gi.pang = _result.GetUInt32(8);
-                //m_gi.Position = _result.GetUInt32(9);
-                //m_gi.LeaderUID = _result.GetUInt32(10);
-                //if (_result.data[11] != null)
-                //{
-                //                m_gi.LeaderNickname = (_result.data[11]).ToString();
-                //}
+                m_gi.index_mark_emblem = IFNULL<uint>(_result.data[4]);
+                 
+                m_gi.point = IFNULL(_result.data[7]);
+                m_gi.pang = IFNULL(_result.data[8]);
             }
             catch (Exception ex)
             {

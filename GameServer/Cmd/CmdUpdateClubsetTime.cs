@@ -11,7 +11,7 @@ namespace Pangya_GameServer.Cmd
         public CmdUpdateClubSetTime(uint _uid,
             WarehouseItemEx _wi)
         {
-            // C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+            
             this.m_uid = _uid;
             //this.
             this.m_wi = (_wi);
@@ -24,20 +24,18 @@ namespace Pangya_GameServer.Cmd
 
         public void setUID(uint _uid)
         {
-            // C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+            
             m_uid = _uid;
 
         }
 
         public WarehouseItemEx getClubSet()
         {
-            // C++ TO C# CONVERTER TASK: The following line was determined to contain a copy constructor call - this should be verified and a copy constructor should be created:
-            return m_wi;
+             return m_wi;
         }
 
         public void setClubSet(WarehouseItemEx _wi)
         {
-            // C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
             m_wi = _wi;
         }
 

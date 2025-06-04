@@ -106,7 +106,7 @@ namespace Pangya_GameServer.Cmd
 
             var r = procedure(
                 m_szConsulta,
-                Convert.ToString(m_uid) + ", " + _db.makeText(m_name) + ", " + Convert.ToString(m_typeid) + ", 1, " + Convert.ToString(m_status));
+                Convert.ToString(m_uid) + ", " + m_name + ", " + Convert.ToString(m_typeid) + ", 1, " + Convert.ToString(m_status));
 
             checkResponse(r, "nao conseguiu adicionar Achievement para o player: " + Convert.ToString(m_uid));
 

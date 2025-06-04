@@ -7,14 +7,14 @@ using PangyaAPI.Utilities.BinaryModels;
 
 namespace Pangya_GameServer.Game.Manager
 {
-    public class MascotManager : Dictionary<uint/*ID*/, MascotInfoEx>
+    public class MascotManager : Dictionary<int/*ID*/, MascotInfoEx>
     {
         public MascotManager()
         {
 
         }
 
-        public MascotManager(Dictionary<uint/*ID*/, MascotInfoEx> keys)
+        public MascotManager(Dictionary<int/*ID*/, MascotInfoEx> keys)
         {
             // this.(keys);    add array 
         }
@@ -37,7 +37,7 @@ namespace Pangya_GameServer.Game.Manager
             }
         }
 
-        public MascotInfo findMascotById(uint _id)
+        public MascotInfo findMascotById(int _id)
         {
             return this.Values.FirstOrDefault(c => c.id == _id);
         }
@@ -47,7 +47,7 @@ namespace Pangya_GameServer.Game.Manager
             return this.Values.FirstOrDefault(c => c._typeid == _typeid);
         }
 
-        public MascotInfo findMascotByTypeidAndId(uint _typeid, uint _id)
+        public MascotInfo findMascotByTypeidAndId(uint _typeid, int _id)
         {
             return this.Values.FirstOrDefault(c => c.id == _id && c._typeid == _typeid);
         }

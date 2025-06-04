@@ -291,11 +291,10 @@ namespace PangyaAPI.SQL.Manager
                         commandText += string.Join(", ", valorArray);
                     }
                 }
-
-
                 m_ctx.hEnv = new SqlCommand(commandText, m_ctx.hDbc);
                 var da = new SqlDataAdapter(m_ctx.hEnv);
                 da.Fill(m_ctx.hStmt, m_ctx_db.db_name);
+                //Environment.StackTrace
             }
             catch (exception ex)
             {

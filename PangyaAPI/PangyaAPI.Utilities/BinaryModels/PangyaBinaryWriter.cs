@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Xml.Schema;
 namespace PangyaAPI.Utilities.BinaryModels
 {
     public class PangyaBinaryWriter : BinaryWriter
@@ -309,7 +310,20 @@ namespace PangyaAPI.Utilities.BinaryModels
             }
             return true;
         }
-         
+        public bool WriteByte(Enum value)
+        { 
+
+            try
+            {
+                Write(Convert.ToByte(value));
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[WriteByte] Exceção ao escrever byte: {ex.Message}");
+            }
+            return false;
+        }
         public bool WriteByte(int value)
         {
             if (value < byte.MinValue || value > byte.MaxValue)
@@ -442,6 +456,20 @@ namespace PangyaAPI.Utilities.BinaryModels
             try
             {
                 Write(value);
+            }
+            catch
+            {
+                return false;
+            }
+            return true;
+        }
+
+        public bool WriteInt64(long[] value)
+        {
+            try
+            {
+                for (int i = 0; i < value.Length; i++)
+                    Write(value[i]);
             }
             catch
             {
@@ -692,6 +720,30 @@ namespace PangyaAPI.Utilities.BinaryModels
         public void WriteFloat(float v)
         {
             this.Write(v);
+        }
+        public void WriteFloat(float[] value)
+        {
+            for (int i = 0; i < value.Length; i++)
+                this.Write(value[i]);
+        }
+
+        public void WriteInt32(int[] value)
+        {
+            for (int i = 0; i < value.Length; i++)
+                this.Write(value[i]);
+        }
+        public void WriteUInt64(ulong[] value)
+        {
+            for (int i = 0; i < value.Length; i++)
+                this.Write(value[i]);
+        }
+
+        public void WriteUInt32(uint[] values, uint count)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                WriteUInt32(values[i]);
+            }
         }
     }
 }

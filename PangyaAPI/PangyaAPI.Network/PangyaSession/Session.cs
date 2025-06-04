@@ -187,7 +187,10 @@ namespace PangyaAPI.Network.PangyaSession
             m_ip_maked = false;
 
             m_use_ctx.clear();
-            m_sock.Dispose();
+
+            m_sock?.Dispose();
+            m_sock = null;   // ✅ RECOMENDADO!
+
             return true;
         }
 

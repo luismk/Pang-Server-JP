@@ -20,6 +20,7 @@ using PangyaAPI.IFF.JP.Extensions;
 using PangyaAPI.IFF.JP.Models.Data;
 using PangyaAPI.IFF.JP.Models.Flags;
 using PangyaAPI.IFF.JP.Models.General;
+using PangyaAPI.Network.Cmd;
 using PangyaAPI.Network.Pangya_St;
 using PangyaAPI.Network.PangyaPacket;
 using PangyaAPI.Network.PangyaSession;
@@ -139,7 +140,7 @@ namespace Pangya_GameServer.Session
                                     bi.time = (short)it.reward.Time[ii];
 
                                     item_manager.initItemFromBuyItem(m_pi,
-                                        ref item, bi, false, 0, 0,
+                                        item, bi, false, 0, 0,
                                         1);
 
                                     if (item._typeid == 0)
@@ -291,8 +292,8 @@ namespace Pangya_GameServer.Session
                 message_pool.push(new message("[player::addMascotExp][Log] player[UID=" + Convert.ToString(m_pi.uid) + "] add Exp para o Mascot[TYPEID=" + Convert.ToString(m_pi.ei.mascot_info._typeid) + ", ID=" + Convert.ToString(m_pi.ei.mascot_info.id) + ", LEVEL=" + Convert.ToString((ushort)m_pi.ei.mascot_info.level + 1) + ", EXP=" + Convert.ToString(m_pi.ei.mascot_info.exp) + "]" + (upou ? " Upou de Level!" : ""), type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
         }
-
-        public void addExp(uint _uid, uint _exp)
+        // Add Exp Estático
+        public static void addExp(uint _uid, uint _exp)
         {
 
             if (_exp == 0)
@@ -367,7 +368,7 @@ namespace Pangya_GameServer.Session
                                     bi.time = (short)it.reward.Time[ii];
 
                                     item_manager.initItemFromBuyItem(pi,
-                                        ref item, bi, false, 0, 0,
+                                        item, bi, false, 0, 0,
                                         1/**/);
 
                                     if (item._typeid == 0)
@@ -464,6 +465,90 @@ namespace Pangya_GameServer.Session
 
             packet_func.session_send(p,
                 this, 1);
+        }
+
+        public void saveCPLog(CPLog _cp_log)
+        {
+            ulong cp = _cp_log.getCookie();
+
+            try
+            {
+                if (cp > 0)
+                {
+                  long log_id = -1;
+
+                    var cmd_icpl =new CmdInsertCPLog(m_pi.uid, _cp_log); // Waiter
+
+                    NormalManagerDB.add(0, cmd_icpl, null, null);
+
+                    if (cmd_icpl.getException().getCodeError() != 0)
+                        throw cmd_icpl.getException();
+
+                    if ((log_id = cmd_icpl.getId()) <= 0)
+                        throw new exception($"[player::saveCPLog][Error] Player[UID={m_pi.uid}] nao conseguiu salvar o CPLog[{_cp_log.toString()}] do player. Bug",
+                             ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PLAYER, 1300, 0));
+
+                    if ((_cp_log.getType() == CPLog.TYPE.BUY_SHOP || _cp_log.getType() == CPLog.TYPE.GIFT_SHOP)
+                            && _cp_log.getItemCount() > 0)
+                    {
+
+                        // Tem item(ns), salva o log do(s) item(ns)
+                        foreach (var el in _cp_log.getItens())
+                        {
+                            NormalManagerDB.add(3, new Cmd.CmdInsertCPLogItem(m_pi.uid, log_id, el), SQLDBResponse, this);
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                message_pool.push(new message($"[player::saveCPLog][ErrorSystem] {e.Message}", type_msg.CL_FILE_LOG_AND_CONSOLE));
+            }
+        }
+
+        public static void saveCPLog(uint _uid, CPLog _cp_log)
+        {
+            if (_uid == 0)
+                throw new exception($"[player::saveCPLog(static)][Error] _uid is invalid({_uid})",
+                    ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PLAYER, 1301, 0));
+
+            ulong cp = _cp_log.getCookie();
+
+            try
+            {
+                if (cp > 0)
+                {
+                    long log_id = -1;
+
+                    //CmdInsertCPLog cmd_icpl = new CmdInsertCPLog(_uid, _cp_log, true); // Waiter
+
+                    //NormalManagerDB.add(0, cmd_icpl, null, null);
+
+                    //cmd_icpl.waitEvent();
+
+                    //if (cmd_icpl.getException().getCodeError() != 0)
+                    //    throw cmd_icpl.getException();
+
+                    //if ((log_id = cmd_icpl.getId()) <= 0)
+                    //    throw new exception($"[player::saveCPLog(static)][Error] Player[UID={_uid}] nao conseguiu salvar o CPLog[{_cp_log.toString()}] do player. Bug",
+                    //        ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PLAYER, 1300, 0));
+
+                    //if ((_cp_log.getType() == CPLog.TYPE.BUY_SHOP || _cp_log.getType() == CPLog.TYPE.GIFT_SHOP)
+                    //        && _cp_log.getItemCount() > 0)
+                    //{
+
+                    //    // Tem item(ns), salva o log do(s) item(ns)
+                    //    foreach (var el in _cp_log.getItens())
+                    //    {
+                    //       // NormalManagerDB.add(3, new CmdInsertCPLogItem(_uid, log_id, el), SQLDBResponse, null);
+                    //    }
+                    //}
+                }
+            }
+            catch (Exception e)
+            {
+                message_pool.push(new message($"[player::saveCPLog(static)][ErrorSystem] {e.Message}", type_msg.CL_FILE_LOG_AND_CONSOLE));
+            }
         }
 
         public void addCookie(ulong _cookie)
@@ -569,7 +654,7 @@ namespace Pangya_GameServer.Session
                                 upt_on_db = true;
 
 #if _DEBUG
-							message_pool.push(new message("[player::checkCharacterEquipedAuxPart][Log] player[UID=" + Convert.ToString(m_pi.uid) + "] Character[TYPEID=" + Convert.ToString(ci._typeid) + ", ID=" + Convert.ToString(ci.id) + "] AuxPart[TYPEID=" + Convert.ToString(ci.auxparts[i]) + ", SLOT=" + Convert.ToString(i) + "]  Player[Lv=" + Convert.ToString(m_pi.level) + "] nao tem o level[is_max=" + Convert.ToString((ushort)aux.level.is_max) + ", Lv=" + Convert.ToString((ushort)aux.level.level) + "] para equipar esse item. Hacker ou bug.", type_msg.CL_FILE_LOG_AND_CONSOLE));
+							message_pool.push(new message("[player::checkCharacterEquipedAuxPart][Log] player[UID=" + Convert.ToString(m_pi.uid) + "] Character[TYPEID=" + Convert.ToString(ci._typeid) + ", ID=" + Convert.ToString(ci.id) + "] AuxPart[TYPEID=" + Convert.ToString(ci.auxparts[i]) + ", SLOT=" + Convert.ToString(i) + "]  Player[Lv=" + Convert.ToString(m_pi.level) + "] nao tem o level[is_max=" + Convert.ToString(aux.Level.is_max) + ", Lv=" + Convert.ToString((ushort)aux.Level.level) + "] para equipar esse item. Hacker ou bug.", type_msg.CL_FILE_LOG_AND_CONSOLE));
 #else
                                 message_pool.push(new message("[player::checkCharacterEquipedAuxPart][Log] player[UID=" + Convert.ToString(m_pi.uid) + "] Character[TYPEID=" + Convert.ToString(ci._typeid) + ", ID=" + Convert.ToString(ci.id) + "] AuxPart[TYPEID=" + Convert.ToString(ci.auxparts[i]) + ", SLOT=" + Convert.ToString(i) + "]  Player[Lv=" + Convert.ToString(m_pi.level) + "] nao tem o level[is_max=" + Convert.ToString(aux.Level.is_max) + ", Lv=" + Convert.ToString(aux.Level.level) + "] para equipar esse item. Hacker ou bug.", type_msg.CL_FILE_LOG_AND_CONSOLE));
 #endif // _DEBUG
@@ -635,7 +720,7 @@ namespace Pangya_GameServer.Session
                 if (ci.cut_in[i] != 0)
                 {
 
-                    var pCutin = m_pi.findWarehouseItemById(ci.cut_in[i]);
+                    var pCutin = m_pi.findWarehouseItemById((int)ci.cut_in[i]);
 
                     if (pCutin == null)
                     {
@@ -748,7 +833,7 @@ namespace Pangya_GameServer.Session
                             else
                             {
 
-                                var parts = m_pi.findWarehouseItemById(ci.parts_id[i]);
+                                var parts = m_pi.findWarehouseItemById((int)ci.parts_id[i]);
 
                                 if (parts != null/* != _session.m_pi.v_wi.end()*/)
                                 {
@@ -910,7 +995,7 @@ namespace Pangya_GameServer.Session
                             // Verifica se o title tem condição e atualiza se tiver
                             uint title_num = sIff.getInstance().getItemTitleNum(pSkin._typeid);
 
-                            var check_title = m_pi.getTitleCallBack(title_num);
+                            var check_title = m_pi.getTitleCallBack((int)title_num);
 
                             // check_title == nullptr, title não tem condição
                             if (check_title != null && check_title.exec() == 0)
@@ -1154,7 +1239,7 @@ namespace Pangya_GameServer.Session
             if (_ue.mascot_id != 0)
             {
 
-                var pMascot = m_pi.findMascotById(_ue.mascot_id);
+                var pMascot = m_pi.findMascotById((int)_ue.mascot_id);
 
                 if (pMascot == null)
                 {
@@ -1632,7 +1717,7 @@ namespace Pangya_GameServer.Session
                 bi.qntd = 1;
 
                 item_manager.initItemFromBuyItem(m_pi,
-                    ref item, bi, false, 0, 0,
+                    item, bi, false, 0, 0,
                     1);
 
                 if (item._typeid != 0)
@@ -1709,7 +1794,7 @@ namespace Pangya_GameServer.Session
                 bi.qntd = 1;
 
                 item_manager.initItemFromBuyItem(m_pi,
-                   ref item, bi, false, 0, 0,
+                   item, bi, false, 0, 0,
                     1 );
 
                 if (item._typeid != 0)
@@ -1721,7 +1806,7 @@ namespace Pangya_GameServer.Session
                     {
 
                         // Equipa o ClubSet CV1
-                        pWi = m_pi.findWarehouseItemById((uint)item_id);
+                        pWi = m_pi.findWarehouseItemById((int)item_id);
 
                         if (pWi != null)
                         {
@@ -1825,7 +1910,7 @@ namespace Pangya_GameServer.Session
                 bi.qntd = 1;
 
                 item_manager.initItemFromBuyItem(m_pi,
-                    ref item, bi, false, 0);
+                    item, bi, false, 0);
 
                 if (item._typeid != 0)
                 {
@@ -1837,7 +1922,7 @@ namespace Pangya_GameServer.Session
                     {
 
                         // Equipa a Ball padrao
-                        pWi = m_pi.findWarehouseItemById((uint)item_id);
+                        pWi = m_pi.findWarehouseItemById((int)item_id);
 
                         if (pWi != null)
                         {

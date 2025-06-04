@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using Pangya_GameServer.Cmd;
 using Pangya_GameServer.Game.Manager;
 using Pangya_GameServer.Game.Utils;
@@ -36,8 +37,8 @@ namespace Pangya_GameServer.GameType
         {
 
             public uint _typeid;
-            public uint id;
-            public stIdentifyKey(uint __typeid, uint _id)
+            public int id;
+            public stIdentifyKey(uint __typeid, int _id)
             {
                 _typeid = (__typeid);
                 id = (_id);
@@ -105,7 +106,7 @@ namespace Pangya_GameServer.GameType
 
 
         private Dictionary<uint/*key*/, stTitleMapCallback> mp_title_callback { get; set; }
-        public stTitleMapCallback getTitleCallBack(uint _id)
+        public stTitleMapCallback getTitleCallBack(int _id)
         {
 
             var it = mp_title_callback.FirstOrDefault(c=> c.Key == _id);
@@ -410,7 +411,7 @@ namespace Pangya_GameServer.GameType
                 }
             }
 
-            mp_scl = new Dictionary<uint, StateCharacterLounge>();
+            mp_scl = new Dictionary<int, StateCharacterLounge>();
 
             mp_ce = new CharacterManager();
             mp_ci = new CaddieManager();
@@ -432,7 +433,7 @@ namespace Pangya_GameServer.GameType
             v_tgp_rest_season = new List<TrofelEspecialInfo>(); // Trofel Grand Prix
             v_mri = new List<MyRoomItem>();     // MyRoomItem
             v_gpc = new List<GrandPrixClear>(); // Grand Prix Clear os grand prix que o player já jogou
-
+            assist_flag = false;//set flag assistent -> ASSISTENT_TYPEID have in inventory
             mrc = new MyRoomConfig();
             df = new DolfiniLocker();   // DolfiniLocker
             gi = new GuildInfoEx();
@@ -468,7 +469,7 @@ namespace Pangya_GameServer.GameType
         }
 
 
-
+        public bool assist_flag { get; set; } //set assistent
         public ulong cookie { get; set; }
         public CouponGacha cg { get; set; }
         public MemberInfoEx mi { get; set; }
@@ -489,7 +490,7 @@ namespace Pangya_GameServer.GameType
         public List<MapStatisticsEx> a_ms_grand_prix { get; set; } = new List<MapStatisticsEx>(22);
         public List<MapStatisticsEx> a_msa_grand_prix { get; set; } = new List<MapStatisticsEx>(22);
         public List<MapStatisticsEx> aa_ms_normal_todas_season { get; set; }   // Esse aqui é diferente, explico ele no pacote InitialLogin
-        public Dictionary<uint, StateCharacterLounge> mp_scl { get; set; }
+        public Dictionary<int, StateCharacterLounge> mp_scl { get; set; }
 
         public CharacterManager mp_ce { get; set; }      //  
         public CaddieManager mp_ci { get; set; }
@@ -576,67 +577,7 @@ namespace Pangya_GameServer.GameType
         public stSyncUpdateDB m_update_pang_db;
         public stSyncUpdateDB m_update_cookie_db;
 
-
-        public void addCookie(ulong _cookie)
-        {
-            if (_cookie <= 0)
-                throw new exception("[PlayerInfo::addCookie][Error] _cookie valor invalido: " + _cookie);
-
-            try
-            {
-                // Check alteration on cookie of DB 
-                if (checkAlterationCookieOnDB())
-                    throw new exception("[PlayerInfo::addCookie][Error] Player[UID=" + uid + "] cookie on db is different of server.");
-
-                cookie += _cookie;
-
-                m_update_cookie_db.requestUpdateOnDB();
-
-                NormalManagerDB.add(2, new CmdUpdateCookie(uid, _cookie, CmdUpdateCookie.T_UPDATE_COOKIE.INCREASE), SQLDBResponse, this);
-
-
-            }
-            catch (exception e)
-            {
-
-                _smp::message_pool.push(new message("[PlayerInfo::addCookie][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
-
-                throw;
-            }
-
-            _smp::message_pool.push(new message("[PlayerInfo::addCookie][Log] Player: " + uid + ", ganhou " + _cookie + " e ficou com " + cookie + " Cookie(s).", type_msg.CL_FILE_LOG_AND_CONSOLE));
-        }
-
-        public void addCookie(uint _uid, ulong _cookie)
-        {
-            if (_cookie <= 0)
-                throw new exception("[PlayerInfo::addCookie][Error] _cookie valor invalido: " + _cookie);
-
-            try
-            {
-                // Check alteration on cookie of DB 
-                if (checkAlterationCookieOnDB())
-                    throw new exception("[PlayerInfo::addCookie][Error] Player[UID=" + _uid + "] cookie on db is different of server.");
-
-                cookie += _cookie;
-
-                m_update_cookie_db.requestUpdateOnDB();
-
-                NormalManagerDB.add(2, new CmdUpdateCookie(_uid, _cookie, CmdUpdateCookie.T_UPDATE_COOKIE.INCREASE), SQLDBResponse, this);
-
-
-            }
-            catch (exception e)
-            {
-
-                _smp::message_pool.push(new message("[PlayerInfo::addCookie][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
-
-                throw;
-            }
-
-            _smp::message_pool.push(new message("[PlayerInfo::addCookie][Log] Player: " + uid + ", ganhou " + _cookie + " e ficou com " + cookie + " Cookie(s).", type_msg.CL_FILE_LOG_AND_CONSOLE));
-        }
-
+         
         public int addExp(uint _exp)
         {
             if (_exp == 0)
@@ -722,8 +663,88 @@ namespace Pangya_GameServer.GameType
 
         }
 
+
+        public void consomeMoeda(ulong _pang, ulong _cookie)
+        {
+
+            if (_pang > 0)
+                consomePang(_pang);
+
+            if (_cookie > 0)
+                consomeCookie(_cookie);
+        }
+
+        public void consomeCookie(ulong _cookie)
+        {
+
+            if ((long)_cookie <= 0)
+                throw new exception("[PlayerInfo::consomeCookie][Error] _cookie valor invalido: " + ((long)_cookie), ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PLAYER_INFO, 21, 0));
+
+            try
+            {
+
+                // Check alteration on cookie of DB
+                if (checkAlterationCookieOnDB())
+                    throw new exception("[PlayerInfo::consomeCookie][Error] Player[UID=" + (uid) + "] cookie on db is different of server.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PLAYER_INFO, 200, 0));
+
+                if (((ulong)cookie - _cookie) < 0)
+                    throw new exception("[PlayerInfo::consomeCookie][Error] O Player[UID=" + (uid) + "] nao tem cookies suficiente para consumir", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PLAYER_INFO, 20, 0));
+
+                cookie -= _cookie;
+
+                m_update_cookie_db.requestUpdateOnDB();
+
+                NormalManagerDB.add(2, new CmdUpdateCookie(uid, _cookie, CmdUpdateCookie.T_UPDATE_COOKIE.DECREASE), SQLDBResponse, this);
+
+            }
+            catch (exception e)
+            {
+
+                message_pool.push(new message("[PlayerInfo::consomeCookie][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+
+                throw;
+            }
+
+            message_pool.push(new message("[PlayerInfo::consomeCookie][Log] Player: " + (uid) + ", gastou " + (_cookie) + " e ficou com " + (cookie) + " Cookie(s).", type_msg.CL_FILE_LOG_AND_CONSOLE));
+        }
+
+        public void consomePang(ulong _pang)
+        {
+
+            if ((long)_pang <= 0)
+                throw new exception("[PlayerInfo::consomePang][Error] _pang valor invalido: " + ((long)_pang), ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PLAYER_INFO, 21, 0));
+
+            try
+            {
+
+                // Check alteration on pang of DB
+                if (checkAlterationPangOnDB())
+                    throw new exception("[PlayerInfo::consomePang][Error] Player[UID=" + (uid) + "] pang on db is different of server.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PLAYER_INFO, 200, 0));
+
+                if (((ulong)ui.pang - _pang) < 0)
+                    throw new exception("[PlayerInfo::consomePang][Error] O Player[UID=" + (uid) + "] nao tem pangs suficiente para consumir", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PLAYER_INFO, 20, 0));
+
+                ui.pang -= _pang;
+
+                m_update_pang_db.requestUpdateOnDB();
+
+                NormalManagerDB.add(1, new CmdUpdatePang(uid, _pang, CmdUpdatePang.T_UPDATE_PANG.DECREASE), SQLDBResponse, this);
+
+            }
+            catch (exception e)
+            {
+
+                message_pool.push(new message("[PlayerInfo::consomePang][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+
+                throw;
+            }
+
+            message_pool.push(new message("[PlayerInfo::consomePang][Log] Player: " + (uid) + ", gastou " + (_pang) + " e ficou com " + (ui.pang) + " Pang(s).", type_msg.CL_FILE_LOG_AND_CONSOLE));
+        }
+
         public void addMoeda(ulong _pang, ulong _cookie)
         {
+
             if (_pang > 0)
                 addPang(_pang);
 
@@ -731,11 +752,42 @@ namespace Pangya_GameServer.GameType
                 addCookie(_cookie);
         }
 
+        public void addCookie(ulong _cookie)
+        {
+
+            if ((long)_cookie <= 0)
+                throw new exception("[PlayerInfo::addCookie][Error] _cookie valor invalido: " + ((long)_cookie), ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PLAYER_INFO, 21, 0));
+
+            try
+            {
+
+                // Check alteration on cookie of DB 
+                if (checkAlterationCookieOnDB())
+                    throw new exception("[PlayerInfo::addCookie][Error] Player[UID=" + (uid) + "] cookie on db is different of server.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PLAYER_INFO, 200, 0));
+
+                cookie += _cookie;
+
+                m_update_cookie_db.requestUpdateOnDB();
+
+                NormalManagerDB.add(2, new CmdUpdateCookie(uid, _cookie, CmdUpdateCookie.T_UPDATE_COOKIE.INCREASE), SQLDBResponse, this);
+
+            }
+            catch (exception e)
+            {
+
+                message_pool.push(new message("[PlayerInfo::addCookie][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+
+                throw;
+            }
+
+            message_pool.push(new message("[PlayerInfo::addCookie][Log] Player: " + (uid) + ", ganhou " + (_cookie) + " e ficou com " + (cookie) + " Cookie(s).", type_msg.CL_ONLY_FILE_LOG));
+        }
+
         public void addPang(ulong _pang)
         {
 
-            if (_pang <= 0)
-                throw new exception("[PlayerInfo::addPang][Error] _pang valor invalido: " + _pang);
+            if ((long)_pang <= 0)
+                throw new exception("[PlayerInfo::addPang][Error] _pang valor invalido: " + ((long)_pang), ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PLAYER_INFO, 21, 0));
 
             try
             {
@@ -745,7 +797,7 @@ namespace Pangya_GameServer.GameType
                 {
 
                     // Pang é diferente atualiza o pang com o valor do banco de daos
-                    _smp::message_pool.push(new message("[PlayerInfo::addPang][Error] Player[UID=" + uid + "] pang on db is different of server.", type_msg.CL_FILE_LOG_AND_CONSOLE));
+                    message_pool.push(new message("[PlayerInfo::addPang][Error] Player[UID=" + (uid) + "] pang on db is different of server.", type_msg.CL_FILE_LOG_AND_CONSOLE));
 
                     var old_pang = ui.pang;
 
@@ -753,8 +805,8 @@ namespace Pangya_GameServer.GameType
                     updatePang();
 
                     // Log
-                    _smp::message_pool.push(new message("[PlayerInfo::addPang][Log] Player[UID=" + uid
-                            + "] o Pang[DB=" + ui.pang + ", GS=" + old_pang
+                    message_pool.push(new message("[PlayerInfo::addPang][Log] Player[UID=" + (uid)
+                            + "] o Pang[DB=" + (ui.pang) + ", GS=" + (old_pang)
                             + "] no banco de dados eh diferente do que esta no server, atualiza para o valor do banco de dados.", type_msg.CL_FILE_LOG_AND_CONSOLE));
                 }
 
@@ -765,29 +817,100 @@ namespace Pangya_GameServer.GameType
 
                 NormalManagerDB.add(1, new CmdUpdatePang(uid, _pang, CmdUpdatePang.T_UPDATE_PANG.INCREASE), SQLDBResponse, this);
 
+            }
+            catch (exception e)
+            {
+
+                message_pool.push(new message("[PlayerInfo::addPang][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+
+                throw;
+            }
+
+            message_pool.push(new message("[PlayerInfo::addPang][Log] Player: " + (uid) + ", ganhou " + (_pang) + " e ficou com " + (ui.pang) + " Pang(s).", type_msg.CL_ONLY_FILE_LOG));
+        }
+
+        public void updateMoeda()
+        {
+
+            // Update Cookie
+            updateCookie();
+
+            // Update Pang
+            updatePang();
+
+        }
+
+        public void updateCookie()
+        {
+            try
+            {
+
+                var cmd_cp = new CmdCookie(uid);    // Waiter
+
+                NormalManagerDB.add(0, cmd_cp, null, null);
+
+                if (cmd_cp.getException().getCodeError() != 0)
+                    throw cmd_cp.getException();
+
+                cookie = cmd_cp.getCookie();
 
             }
             catch (exception e)
             {
 
-                _smp::message_pool.push(new message("[PlayerInfo::addPang][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                message_pool.push(new message("[PlayerInfo::updateCookie][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
 
+                // Relanção por que essa função não tem retorno para verifica, então a exception garante que o código não vai continua
                 throw;
             }
-            _smp::message_pool.push(new message("[PlayerInfo::addPang][Log] Player: " + uid + ", ganhou " + _pang + " e ficou com " + ui.pang + " Pang(s).", type_msg.CL_FILE_LOG_AND_CONSOLE));
-
         }
 
-        public void addPang(uint _uid, ulong _pang)
+        public void updatePang()
         {
-            if (_pang <= 0)
-                throw new exception("[PlayerInfo::addPang][Error] _pang valor invalido: " + _pang, ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PLAYER_INFO, 21, 0));
+            try
+            {
 
-            snmdb::NormalManagerDB.add(1, new CmdUpdatePang(_uid, _pang, CmdUpdatePang.T_UPDATE_PANG.INCREASE), SQLDBResponse, null);
+                var cmd_pang = new CmdPang(uid);    // Waiter
 
-            _smp::message_pool.push(new message("[PlayerInfo::addPang][Log] Player: " + _uid + ", ganhou " + _pang + " Pang(s).", type_msg.CL_FILE_LOG_AND_CONSOLE));
+                NormalManagerDB.add(0, cmd_pang, null, null);
+
+                if (cmd_pang.getException().getCodeError() != 0)
+                    throw cmd_pang.getException();
+
+                ui.pang = cmd_pang.getPang();
+
+            }
+            catch (exception e)
+            {
+
+                message_pool.push(new message("[PlayerInfo::updatePang][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+
+                // Relanção por que essa função não tem retorno para verifica, então a exception garante que o código não vai continua
+                throw;
+            }
         }
 
+        public static void addPang(uint _uid, ulong _pang)
+        {
+
+            if ((long)_pang <= 0)
+                throw new exception("[PlayerInfo::addPang][Error] _pang valor invalido: " + ((long)_pang), ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PLAYER_INFO, 21, 0));
+
+            NormalManagerDB.add(1, new CmdUpdatePang(_uid, _pang, CmdUpdatePang.T_UPDATE_PANG.INCREASE), SQLDBResponse, null);
+
+            message_pool.push(new message("[PlayerInfo::addPang][Log] Player: " + (_uid) + ", ganhou " + (_pang) + " Pang(s).", type_msg.CL_ONLY_FILE_LOG));
+        }
+
+        public static void addCookie(uint _uid, ulong _cookie)
+        {
+
+            if ((long)_cookie <= 0)
+                throw new exception("[PlayerInfo::addCookie][Error] _cookie valor invalido: " + ((long)_cookie), ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PLAYER_INFO, 21, 0));
+
+            NormalManagerDB.add(2, new CmdUpdateCookie(_uid, _cookie, CmdUpdateCookie.T_UPDATE_COOKIE.INCREASE), SQLDBResponse, null);
+
+            message_pool.push(new message("[PlayerInfo::addCookie][Log] Player: " + (_uid) + ", ganhou " + (_cookie) + " Cookie Point(s).", type_msg.CL_FILE_LOG_AND_CONSOLE));
+        }
 
         public void addUserInfo(UserInfoEx _ui, ulong _total_pang_win_game = 0)
         {
@@ -854,19 +977,7 @@ namespace Pangya_GameServer.GameType
             return ib;
         }
 
-        public void consomeCookie(ulong _cookie)
-        {
-        }
-
-        public void consomeMoeda(ulong _pang, ulong _cookie)
-        {
-        }
-
-        public void consomePang(ulong _pang)
-        {
-        }
-
-        public CaddieInfoEx findCaddieById(uint _id)
+        public CaddieInfoEx findCaddieById(int _id)
         {
             return mp_ci.findCaddieById(_id);
         }
@@ -876,12 +987,12 @@ namespace Pangya_GameServer.GameType
             return mp_ci.findCaddieByTypeid(_typeid);
         }
 
-        public CaddieInfoEx findCaddieByTypeidAndId(uint _typeid = 0, uint _id = 0)
+        public CaddieInfoEx findCaddieByTypeidAndId(uint _typeid = 0, int _id = 0)
         {
             return mp_ci.findCaddieByTypeidAndId(_typeid, _id);
         }
 
-        public CardInfo findCardById(uint _id)
+        public CardInfo findCardById(int _id)
         {
             return null;
         }
@@ -901,7 +1012,7 @@ namespace Pangya_GameServer.GameType
             return null;
         }
 
-        public CharacterInfo findCharacterById(uint _id)
+        public CharacterInfo findCharacterById(int _id)
         {
             return this.mp_ce.findCharacterById(_id);
         }
@@ -911,7 +1022,7 @@ namespace Pangya_GameServer.GameType
             return null;
         }
 
-        public CharacterInfo findCharacterByTypeidAndId(uint _typeid, uint _id)
+        public CharacterInfo findCharacterByTypeidAndId(uint _typeid, int _id)
         {
             return null;
         }
@@ -944,9 +1055,9 @@ namespace Pangya_GameServer.GameType
             return null;
         }
 
-        public MascotInfoEx findMascotById(uint _id)
+        public MascotInfoEx findMascotById(int _id)
         {
-            return (MascotInfoEx)mp_mi.findMascotById((uint)_id);
+            return (MascotInfoEx)mp_mi.findMascotById(_id);
         }
 
         public MascotInfoEx findMascotByTypeid(uint _typeid)
@@ -954,12 +1065,12 @@ namespace Pangya_GameServer.GameType
             return null;
         }
 
-        public MascotInfoEx findMascotByTypeidAndId(uint _typeid, uint _id)
+        public MascotInfoEx findMascotByTypeidAndId(uint _typeid, int _id)
         {
             return null;
         }
 
-        public MyRoomItem findMyRoomItemById(uint _id)
+        public MyRoomItem findMyRoomItemById(int _id)
         {
             return null;
         }
@@ -969,7 +1080,7 @@ namespace Pangya_GameServer.GameType
             return new MyRoomItem();
         }
 
-        public TrofelEspecialInfo findTrofelEspecialById(uint _id)
+        public TrofelEspecialInfo findTrofelEspecialById(int _id)
         {
             return new TrofelEspecialInfo();
         }
@@ -979,12 +1090,12 @@ namespace Pangya_GameServer.GameType
             return new TrofelEspecialInfo();
         }
 
-        public TrofelEspecialInfo findTrofelEspecialByTypeidAndId(uint _typeid, uint _id)
+        public TrofelEspecialInfo findTrofelEspecialByTypeidAndId(uint _typeid, int _id)
         {
             return new TrofelEspecialInfo();
         }
 
-        public TrofelEspecialInfo findTrofelGrandPrixById(uint _id)
+        public TrofelEspecialInfo findTrofelGrandPrixById(int _id)
         {
             return new TrofelEspecialInfo();
         }
@@ -994,22 +1105,31 @@ namespace Pangya_GameServer.GameType
             return new TrofelEspecialInfo();
         }
 
-        public TrofelEspecialInfo findTrofelGrandPrixByTypeidAndId(uint _typeid, uint _id)
+        public TrofelEspecialInfo findTrofelGrandPrixByTypeidAndId(uint _typeid, int _id)
         {
             return new TrofelEspecialInfo();
         }
 
-        public WarehouseItemEx findWarehouseItemById(uint _id)
+        public WarehouseItemEx findWarehouseItemById(int _id)
         {
             return mp_wi.findWarehouseItemById(_id);
         }
+
+        public bool ItemExist(uint _typeid)
+        {
+            if (mp_wi.findWarehouseItemByTypeid(_typeid) != null)
+                return true; 
+
+            return false;
+        }
+
 
         public WarehouseItemEx findWarehouseItemByTypeid(uint _typeid)
         {
             return mp_wi.findWarehouseItemByTypeid(_typeid);
         }
 
-        public WarehouseItemEx findWarehouseItemByTypeidAndId(uint _typeid, uint _id)
+        public WarehouseItemEx findWarehouseItemByTypeidAndId(uint _typeid, int _id)
         {
             return mp_wi.findWarehouseItemByTypeidAndId(_typeid, _id);
         }
@@ -1073,7 +1193,7 @@ namespace Pangya_GameServer.GameType
             return false;
         }
 
-        public bool isPartEquiped(uint _typeid, uint _id)
+        public bool isPartEquiped(uint _typeid, int _id)
         {
             return false;
         }
@@ -1102,31 +1222,7 @@ namespace Pangya_GameServer.GameType
         {
             return false;
         }
-
-        public void updateCookie()
-        {
-            try
-            {
-
-                var cmd_cp = new CmdCookie(uid);    // Waiter
-
-                snmdb::NormalManagerDB.add(0, cmd_cp, null, null);
-
-                if (cmd_cp.getException().getCodeError() != 0)
-                    throw cmd_cp.getException();
-
-                cookie = cmd_cp.getCookie();
-
-            }
-            catch (exception e)
-            {
-
-                _smp::message_pool.push(new message("[PlayerInfo::updateCookie][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
-
-                // Relanção por que essa função não tem retorno para verifica, então a exception garante que o código não vai continua
-                throw;
-            }
-        }
+         
 
         public bool updateGrandPrixClear(uint _typeid, int _position)
         {
@@ -1172,40 +1268,7 @@ namespace Pangya_GameServer.GameType
         {
              
               }
-
-        public void updateMoeda()
-        {
-            // Update Cookie
-            updateCookie();
-
-            // Update Pang
-            updatePang();
-        }
-
-        public void updatePang()
-        {
-            try
-            {
-
-                var cmd_pang = new CmdPang(uid);    // Waiter
-
-                snmdb::NormalManagerDB.add(0, cmd_pang, null, null);
-
-                if (cmd_pang.getException().getCodeError() != 0)
-                    throw cmd_pang.getException();
-
-                ui.pang = cmd_pang.getPang();
-            }
-            catch (exception e)
-            {
-
-                _smp::message_pool.push(new message("[PlayerInfo::updatePang][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
-
-                // Relanção por que essa função não tem retorno para verifica, então a exception garante que o código não vai continua
-                throw;
-            }
-        }
-
+         
         public void updateTrofelInfo(uint _trofel_typeid, byte _trofel_rank)
         {
         }
@@ -1239,7 +1302,7 @@ namespace Pangya_GameServer.GameType
                 .ToDictionary(it => it.Key, it => it.Value);
         }
 
-        public Dictionary<stIdentifyKey/*int/*ID*/, UpdateItem> findUpdateItemByTypeidAndId(uint _typeid, uint _id)
+        public Dictionary<stIdentifyKey/*int/*ID*/, UpdateItem> findUpdateItemByTypeidAndId(uint _typeid, int _id)
         {
             return mp_ui
                 .Where(it => it.Value._typeid == _typeid && it.Value.id == _id)
@@ -1407,5 +1470,30 @@ namespace Pangya_GameServer.GameType
             }
         }
 
+        public List<WarehouseItemEx> findAllPartNotEquiped(uint _typeid)
+        {
+
+            List<WarehouseItemEx> v_item = new List<WarehouseItemEx>();
+
+            foreach (var el in mp_wi)
+            {
+
+                var item = el.Value;
+
+                bool hasPartEquipped = mp_ce.Any(el2 => el2.Value.isPartEquiped(item._typeid, item.id));
+
+                if (item._typeid == _typeid &&
+                    (item.flag & 96) != 96 &&   // Não pode Part Rental
+                    (item.flag & 0x20) != 0x20 &&
+                    (item.flag & 0x40) != 0x40 &&
+                    !hasPartEquipped)
+                {
+
+                    v_item.Add(item);
+                }
+            }
+
+            return v_item;
+        }
     }
 }

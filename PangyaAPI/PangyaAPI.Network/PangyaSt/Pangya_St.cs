@@ -695,16 +695,32 @@ namespace PangyaAPI.Network.Pangya_St
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public class chat_macro_user
     {
-        [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 64)]
-        public string[] macro { get; set; }
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 9)]
+        public chat_macro[] macro;
 
-        public chat_macro_user()
+        public chat_macro_user(uint _ul = 0u)
         {
-            macro = new string[9];
-            for (int i = 0; i < 9; i++)
+            macro = new chat_macro[9];
+            clear();
+        }
+
+        public void setMacro(int index,string macros)
+        {
+            macro[index].text = macros; 
+        }
+
+        public void clear()
+        {
+            for (int i = 0; i < macro.Length; i++)
             {
-                macro[i] = "Pangya!";
+                macro[i] = new chat_macro();
             }
+        }
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        public class chat_macro
+        {
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 64)]
+            public string text;
         }
     }
 
@@ -783,7 +799,7 @@ namespace PangyaAPI.Network.Pangya_St
             S_CURVE,
         }
         public uint _typeid { get; set; }
-        public uint id { get; set; }
+        public int id { get; set; }
         public byte default_hair { get; set; }
         public byte default_shirts { get; set; }
         public byte gift_flag { get; set; }

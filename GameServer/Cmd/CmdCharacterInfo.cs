@@ -37,7 +37,7 @@ namespace Pangya_GameServer.Cmd
                 CharacterInfo ce = new CharacterInfo();
                 var i = 0;
 
-                ce.id = Convert.ToUInt32(_result.data[0]);
+                ce.id = Convert.ToInt32(_result.data[0]);
                 ce._typeid = Convert.ToUInt32(_result.data[1]);
                 for (i = 0; i < 24; i++)
                     ce.parts_id[i] = Convert.ToUInt32(_result.data[2 + i]);        // 2 + 24

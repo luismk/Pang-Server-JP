@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Runtime.Serialization;
+using System.Web.ModelBinding;
 
 namespace PangyaAPI.Utilities
 {
@@ -179,6 +180,17 @@ namespace PangyaAPI.Utilities
             m_message_error_full = m_message_error + "\t Error Code: " + code_error;
 
             Debug.WriteLine(m_message_error_full);
+        }
+
+        public exception(string message_error, STDA_ERROR_TYPE code_error) : this(message_error + "\t Error Code: " + code_error)
+        {
+            m_message_error = message_error;
+            m_code_error = (uint)code_error;
+
+            m_message_error_full = m_message_error + "\t Error Code: " + code_error;
+
+            Debug.WriteLine(m_message_error_full);
+
         }
 
         public Exception GetException()

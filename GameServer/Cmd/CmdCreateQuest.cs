@@ -102,7 +102,7 @@ namespace Pangya_GameServer.Cmd
                     4, 0));
             }
 
-            if (m_quest.Counter_Item_Qtnd[0] == 0 && m_quest.Counter_Item_TypeID[0] == 0)
+            if (m_quest.counter_item._typeid[0] == 0 && m_quest.counter_item._typeid[0] == 0)
             {
                 throw new exception("[CmdCreateQuest::prepareConsulta][Error] IFF::QuestStuff not have counter item, invalid create quest", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PANGYA_DB,
                     4, 1));
@@ -113,7 +113,7 @@ namespace Pangya_GameServer.Cmd
 
             var r = procedure(
                 m_szConsulta,
-                Convert.ToString(m_uid) + ", " + _db.makeText(m_quest.Name) + ", " + Convert.ToString(m_achievement_id) + ", " + Convert.ToString(m_quest.ID) + ", " + Convert.ToString((m_include_counter ? m_quest.Counter_Item_TypeID[0] : 0)));
+                Convert.ToString(m_uid) + ", " + m_quest.Name + ", " + Convert.ToString(m_achievement_id) + ", " + Convert.ToString(m_quest.ID) + ", " + Convert.ToString((m_include_counter ? m_quest.counter_item._typeid[0] : 0)));
 
             checkResponse(r, "nao conseguiu adicionar Quest para o player: " + Convert.ToString(m_uid));
 

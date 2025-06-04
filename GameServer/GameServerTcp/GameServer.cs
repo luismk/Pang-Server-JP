@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
@@ -27,6 +28,7 @@ using PangyaAPI.Utilities;
 using PangyaAPI.Utilities.BinaryModels;
 using PangyaAPI.Utilities.Log;
 using static Pangya_GameServer.GameType._Define;
+using static PangyaAPI.SQL.NormalDB;
 using _smp = PangyaAPI.Utilities.Log;
 
 namespace Pangya_GameServer.GameServerTcp
@@ -245,8 +247,8 @@ namespace Pangya_GameServer.GameServerTcp
                 //    sGrandZodiacEvent.getInstance().load();
 
                 //// Coin Cube Location System
-                //if (!sCoinCubeLocationUpdateSystem.getInstance().isLoad())
-                //    sCoinCubeLocationUpdateSystem.getInstance().load();
+                if (!sCoinCubeLocationUpdateSystem.getInstance().isLoad())
+                    sCoinCubeLocationUpdateSystem.getInstance().load();
 
                 //// Golden Time System
                 //if (!sGoldenTimeSystem.getInstance().isLoad())
@@ -279,11 +281,11 @@ namespace Pangya_GameServer.GameServerTcp
                     sLoginRewardSystem.getInstance().updateLoginReward();
 
                 //// Check Daily Quest
-                //if (MgrDailyQuest.checkCurrentQuest(m_dqi))
-                //    MgrDailyQuest.updateDailyQuest(m_dqi);  // Atualiza daily quest
+                if (MgrDailyQuest.checkCurrentQuest(m_dqi))
+                    MgrDailyQuest.updateDailyQuest(ref m_dqi);  // Atualiza daily quest
 
                 //// Check Update Dia do Papel Shop System
-                //sPapelShopSystem.getInstance().updateDia();
+                sPapelShopSystem.getInstance().updateDia();
 
                 //if (sTreasureHunterSystem.getInstance().checkUpdateTimePointCourse())
                 //{
@@ -389,8 +391,20 @@ namespace Pangya_GameServer.GameServerTcp
 
         public virtual void destroyRoom(byte _channel_owner, short _number)
         {
+            try
+            {
 
-        }
+                var c = findChannel(_channel_owner);
+
+                if (c != null)
+                    c.destroyRoom(_number);
+
+            }
+            catch (exception e) {
+
+                _smp::message_pool.push(new message("[game_server::destroyRoom][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+            }
+            }
 
         public virtual void sendServerListAndChannelListToSession(Player _session)
         {
@@ -473,7 +487,7 @@ namespace Pangya_GameServer.GameServerTcp
         public virtual void blockOID(uint _oid) { m_player_manager.blockOID(_oid); }
         public virtual void unblockOID(uint _oid) { m_player_manager.unblockOID(_oid); }
 
-        DailyQuestInfo getDailyQuestInfo() { return m_dqi; }
+       public DailyQuestInfo getDailyQuestInfo() { return m_dqi; }
 
  
         // Update Daily Quest Info
@@ -501,12 +515,225 @@ namespace Pangya_GameServer.GameServerTcp
                 _smp::message_pool.push(new message("[game_server::sendUpdateRoomInfo][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
         }
-
-        public virtual bool checkCommand(string[] _command) 
-        
+         
+        public override bool CheckCommand(Queue<string> _command)
         {
-            return true;
+            if (_command.Count == 0)
+                return false;
+
+            string s = _command.Dequeue();
+
+            if (!string.IsNullOrEmpty(s) && s == "exit")
+            {
+                return true;
+            }
+            else if (!string.IsNullOrEmpty(s) && s == "reload_files")
+            {
+                reload_files();
+            }
+            else if (!string.IsNullOrEmpty(s) && s == "reload_socket_config")
+            {
+                //if (m_accept_sock != null)
+                //    m_accept_sock.reload_config_file();
+                //else
+                //    _smp.message_pool.push(new message("[game_server::checkCommand][WARNING] m_accept_sock(socket que gerencia os socket que pode aceitar etc) is invalid.", type_msg.CL_FILE_LOG_AND_CONSOLE));
+            }
+            else if (!string.IsNullOrEmpty(s) && s == "rate")
+            {
+                string sTipo = _command.Dequeue();
+                int tipo = -1;
+
+                if (!string.IsNullOrEmpty(sTipo))
+                {
+                    switch (sTipo)
+                    {
+                        case "pang": tipo = 0; break;
+                        case "exp": tipo = 1; break;
+                        case "club": tipo = 2; break;
+                        case "chuva": tipo = 3; break;
+                        case "treasure": tipo = 4; break;
+                        case "scratchy": tipo = 5; break;
+                        case "pprareitem": tipo = 6; break;
+                        case "ppcookieitem": tipo = 7; break;
+                        case "memorial": tipo = 8; break;
+                        default:
+                            _smp.message_pool.push(new message($"[game_server::checkCommand][Error] Unknown Command: \"rate {sTipo}\"", type_msg.CL_ONLY_CONSOLE));
+                            break;
+                    }
+                }
+                else
+                {
+                    _smp.message_pool.push(new message($"[game_server::checkCommand][Error] Unknown Command: \"rate {sTipo}\"", type_msg.CL_ONLY_CONSOLE));
+                }
+
+                if (tipo != -1 && tipo >= 0 && tipo <= 8)
+                {
+                    if (uint.TryParse(_command.Dequeue(), out uint qntd) && qntd > 0)
+                    {
+                        updateRateAndEvent(tipo, qntd);
+                    }
+                    else
+                    {
+                        _smp.message_pool.push(new message($"[game_server::checkCommand][Error] Unknown value, Command: \"rate {sTipo}\"", type_msg.CL_ONLY_CONSOLE));
+                    }
+                }
+            }
+            else if (!string.IsNullOrEmpty(s) && s == "event")
+            {
+                s = _command.Dequeue();
+                uint qntd = 0;
+
+                if (!string.IsNullOrEmpty(s))
+                {
+                    qntd = uint.Parse(_command.Dequeue());
+
+                    switch (s)
+                    {
+                        case "grand_zodiac_event":
+                            updateRateAndEvent(9, qntd);
+                            break;
+                        case "angel_event":
+                            updateRateAndEvent(10, qntd);
+                            break;
+                        case "grand_prix":
+                            updateRateAndEvent(11, qntd);
+                            break;
+                        case "golden_time":
+                            updateRateAndEvent(12, qntd);
+                            break;
+                        case "login_reward":
+                            updateRateAndEvent(13, qntd);
+                            break;
+                        case "bot_gm_event":
+                            updateRateAndEvent(14, qntd);
+                            break;
+                        case "smart_calc":
+                            updateRateAndEvent(15, qntd);
+                            break;
+                        default:
+                            _smp.message_pool.push(new message($"[game_server::checkCommand][Error] Unknown Comamnd: \"Event {s}\"", type_msg.CL_ONLY_CONSOLE));
+                            break;
+                    }
+                }
+            }
+            else if (!string.IsNullOrEmpty(s) && s == "reload_system")
+            {
+                string sTipo = _command.Dequeue();
+                int tipo = -1;
+
+                if (!string.IsNullOrEmpty(sTipo))
+                {
+                    switch (sTipo)
+                    {
+                        case "all": tipo = 0; break;
+                        case "iff": tipo = 1; break;
+                        case "card": tipo = 2; break;
+                        case "comet_refill": tipo = 3; break;
+                        case "papel_shop": tipo = 4; break;
+                        case "box": tipo = 5; break;
+                        case "memorial_shop": tipo = 6; break;
+                        case "cube_coin": tipo = 7; break;
+                        case "treasure_hunter": tipo = 8; break;
+                        case "drop": tipo = 9; break;
+                        case "attendance_reward": tipo = 10; break;
+                        case "map_course": tipo = 11; break;
+                        case "approach_mission": tipo = 12; break;
+                        case "grand_zodiac_event": tipo = 13; break;
+                        case "coin_cube_location": tipo = 14; break;
+                        case "golden_time": tipo = 15; break;
+                        case "login_reward": tipo = 16; break;
+                        case "bot_gm_event": tipo = 17; break;
+                        case "smart_calc": tipo = 18; break;
+                        default:
+                            _smp.message_pool.push(new message($"[game_server::checkCommand][Error] Unknown Command: \"reload_system {sTipo}\"", type_msg.CL_ONLY_CONSOLE));
+                            break;
+                    }
+                }
+                else
+                {
+                    _smp.message_pool.push(new message($"[game_server::checkCommand][Error] Unknown Command: \"reload_system {sTipo}\"", type_msg.CL_ONLY_CONSOLE));
+                }
+
+                if (tipo != -1 && tipo >= 0 && tipo <= 18)
+                {
+                    reloadGlobalSystem((uint)tipo);
+                }
+            }
+            else if (s == "broadcast_tst")
+            {
+                string GetItemName(uint typeid)
+                {
+                    var baseItem = sIff.getInstance().findCommomItem(typeid);
+                    return baseItem != null ? baseItem.Name : "";
+                }
+
+                const string MESSAGE_BOT_GM_EVENT_START_PART1 = "Bot GM Event comecou, o jogo comeca em ";
+                const string MESSAGE_BOT_GM_EVENT_START_PART2 = " minutos. Os premios sao ";
+
+                int durationEventInterval = 2; // Minutos para começar o jogo
+
+                var reward = sBotGMEvent.getInstance().calculeReward();
+
+                string rewardStr = "{" + string.Join(", ", reward.ConvertAll(r => $"[{r}]")) + "}";
+
+                message_pool.push(new message(
+                    $"[GameServer::CheckCommand][Log] Bot GM Event Broadcast teste, criando a sala agora, o jogo comeca em {durationEventInterval} minutos. Reward({reward.Count}){rewardStr}"));
+
+                string msg = MESSAGE_BOT_GM_EVENT_START_PART1
+                    + durationEventInterval
+                    + MESSAGE_BOT_GM_EVENT_START_PART2
+                    + string.Join(", ", reward.ConvertAll(r => $"{GetItemName(r._typeid)}({(r.qntd_time > 0 ? $"{r.qntd_time}day" : $"{r.qntd}")})"));
+
+                var p = new PangyaBinaryWriter(0x1D3);
+                p.WriteUInt32(1); // Count
+                p.WriteUInt32((uint)eBROADCAST_TYPES.BT_MESSAGE_PLAIN);
+                p.WriteStr(msg);
+
+                foreach (var channel in v_channel)
+                    packet_func.channel_broadcast(channel, p, 1);
+            }
+            else if (s == "scratch")		// !@ Teste
+            {
+                var p = new PangyaBinaryWriter(0x1EB);
+                p.WriteUInt32(0); // Count
+                p.WriteByte(0); // Count
+                foreach (var c in v_channel) 
+                    packet_func.channel_broadcast(c, p, 1);
+            }
+            else if (s == "upt_coin_cube_location")		// !@ Teste
+            {
+                sCoinCubeLocationUpdateSystem.getInstance().forceUpdate();
+            }
+            else if (s == "msg_gz")
+            {
+                string opt = (_command.Dequeue());
+
+                uint optBroadcast = string.IsNullOrEmpty(opt) ? 0 : uint.Parse(opt);
+                const ushort PACKET_ID = 0x1D3;
+                uint count = 1;
+
+                var p = new PangyaBinaryWriter(PACKET_ID);
+                p.WriteUInt32(count); // Count
+
+                for (uint i = 0; i < count; ++i)
+                {
+
+                    p.WriteUInt32(optBroadcast); // Option, 15 Running Time, ou exibir a msg
+
+                    p.WriteString("<PARAMS><RunningTime>10</RunningTime><TYPEID>469762063</TYPEID><BOX_TYPEID>436207963</BOX_TYPEID><QTY>7</QTY><NICKNAME>Saitama(rock)</NICKNAME><NICKNAME>Genos(idea)</NICKNAME><EVENTSTARTTIME>2017-07-29 17:50:31.447</EVENTSTARTTIME><EVENTNEXTTIME>2017-07-29 19:50:31.447</EVENTNEXTTIME><WinnerEventNotice>Parabens</WinnerEventNotice><BroadCastReservedNoticesIdx>531</BroadCastReservedNoticesIdx></PARAMS>");
+
+                }
+
+                foreach (var channel in v_channel)
+                    packet_func.channel_broadcast(channel, p, 1);
+
+                message_pool.push(new message($"[GameServer::CheckCommand][Log] Broadcast Msg ID={optBroadcast}"));
+
+            }
+
+            return false;
         }
+
         public virtual void reload_files() { }
         public virtual void init_systems()
         {
@@ -580,16 +807,16 @@ namespace Pangya_GameServer.GameServerTcp
             //    sGrandZodiacEvent.getInstance().load();
 
             //// Carrega Coin Cube Location Update Syatem
-            //if (!sCoinCubeLocationUpdateSystem.getInstance().isLoad())
-            //    sCoinCubeLocationUpdateSystem.getInstance().load();
+            if (!sCoinCubeLocationUpdateSystem.getInstance().isLoad())
+                sCoinCubeLocationUpdateSystem.getInstance().load();
 
             //// Carrega Golden Time System
             //if (!sGoldenTimeSystem.getInstance().isLoad())
             //    sGoldenTimeSystem.getInstance().load();
 
             //// Carrega Login Reward System
-            //if (!sLoginRewardSystem.getInstance().isLoad())
-            //    sLoginRewardSystem.getInstance().load();
+            if (!sLoginRewardSystem.getInstance().isLoad())
+                sLoginRewardSystem.getInstance().load();
 
             //// Carrega Bot GM Event
             if (!sBotGMEvent.getInstance().isLoad())
@@ -1084,6 +1311,9 @@ namespace Pangya_GameServer.GameServerTcp
             packet_func.funcs_sv.addPacketCall(0x280, packet_func.packet_svFazNada, this);
             packet_func.funcs_sv.addPacketCall(0x281, packet_func.packet_svFazNada, this);
 
+            packet_func.funcs_sv.addPacketCall(0x24D, packet_func.packet_svFazNada, this);
+            packet_func.funcs_sv.addPacketCall(0x24E, packet_func.packet_svFazNada, this);
+
             // Auth Server Comandos
             packet_func.funcs_as.addPacketCall(0x1, packet_func.packet_as001, this);
         }
@@ -1120,11 +1350,308 @@ namespace Pangya_GameServer.GameServerTcp
             }
 
         }
-        public virtual void reload_systems() { }
-        public virtual void reloadGlobalSystem(uint _tipo) { }
+      
+        public virtual void reload_systems()
+        {
+
+            // Recarrega IFF_STRUCT
+            sIff.getInstance().load();
+
+            // Recarrega Card System
+            sCardSystem.getInstance().load();
+
+            // Recarrega Comet Refill System
+            sCometRefillSystem.getInstance().load();
+
+            // Recarrega Papel Shop System
+            sPapelShopSystem.getInstance().load();
+
+            // Recarrega Box System
+           // sBoxSystem.getInstance().load();
+
+            // Recarrega Memorial System
+            sMemorialSystem.getInstance().load();
+
+            // Recarrega Cube Coin System
+            sCubeCoinSystem.getInstance().load();
+
+            // Recarrega Treasure Hunter System
+            sTreasureHunterSystem.getInstance().load();
+
+            // Recarrega Drop System
+            sDropSystem.getInstance().load();
+
+            // Recarrega Attendance Reward System
+            sAttendanceRewardSystem.getInstance().load();
+
+            // Recarrega Map Dados Estáticos
+            sMap.getInstance().load();
+
+            //// Recarrega Approach Mission System
+            //sApproachMissionSystem.getInstance().load();
+
+            //// Recarrega Grand Zodiac Event System
+            //sGrandZodiacEvent.getInstance().load();
+
+            // Recarrega Coin Cube Location Update Syatem
+            sCoinCubeLocationUpdateSystem.getInstance().load();
+
+            // Recarrega Golden Time System
+            //sGoldenTimeSystem.getInstance().load();
+
+            // Recarrega Login Reward System
+            sLoginRewardSystem.getInstance().load();
+
+            // Recarrega Bot GM Event
+            sBotGMEvent.getInstance().load();
+             
+        }
+
+
+        public virtual void reloadGlobalSystem(uint _tipo)
+        {
+            try
+            {
+                switch (_tipo)
+                {
+                    case 0:     // Reload All Globals Systems
+                        reload_systems();
+                        break;
+
+                    case 1:     // IFF
+                                // Recarrega IFF_STRUCT
+                        sIff.getInstance().load();
+                        break;
+
+                    case 2:     // Card
+                                // Recarrega Card System
+                        sCardSystem.getInstance().load();
+                        break;
+
+                    case 3:     // Comet Refill
+                                // Recarrega Comet Refill System
+                        sCometRefillSystem.getInstance().load();
+                        break;
+
+                    case 4:     // Papel Shop
+                                // Recarrega Papel Shop System
+                        sPapelShopSystem.getInstance().load();
+                        break;
+
+                    case 5:     // Box
+                                // Recarrega Box System
+                        //sBoxSystem.getInstance().load();
+                        break;
+
+                    case 6:     // Memorial Shop
+                                // Recarrega Memorial System
+                        sMemorialSystem.getInstance().load();
+                        break;
+
+                    case 7:     // Cube e Coin
+                                // Recarrega Cube Coin System
+                        sCubeCoinSystem.getInstance().load();
+                        break;
+
+                    case 8:     // Treasure Hunter
+                                // Recarrega Treasure Hunter System
+                        sTreasureHunterSystem.getInstance().load();
+                        break;
+
+                    case 9:     // Drop
+                                // Recarrega Drop System
+                        sDropSystem.getInstance().load();
+                        break;
+
+                    case 10:    // Attendance Reward
+                                // Recarrega Attendance Reward System
+                        sAttendanceRewardSystem.getInstance().load();
+                        break;
+
+                    case 11:    // Map Course Dados
+                                // Recarrega Map Dados Estáticos
+                        sMap.getInstance().load();
+                        break;
+
+                    case 12:    // Approach Mission
+                                // Recarrega Approach Mission
+                        //sApproachMissionSystem.getInstance().load();
+                        break;
+
+                    case 13:    // Grand Zodiac Event
+                                // Recarrega Grand Zodiac Event
+                        //sGrandZodiacEvent.getInstance().load();
+                        break;
+
+                    case 14:    // Coin Cube Location Update System
+                                // Recarrega Coin Cube Location Update System
+                        sCoinCubeLocationUpdateSystem.getInstance().load();
+                        break;
+
+                    case 15:    // Golden Time System
+                                // Recarrega Golden Time System
+                       // sGoldenTimeSystem.getInstance().load();
+                        break;
+
+                    case 16:    // Login Reward System
+                                // Recarrega Login Reward System
+                        sLoginRewardSystem.getInstance().load();
+                        break;
+
+                    case 17:    // Bot GM Event
+                                // Recarrega Bot GM Event
+                        sBotGMEvent.getInstance().load();
+                        break;
+
+                    case 18:    // Smart Calculator Lib
+                                // Recarrega Smart Calculator Lib
+                       // sSmartCalculator.getInstance().load();
+                        break;
+
+                    default:
+                        throw new Exception($"[game_server::reloadGlobalSystem][Error] Tipo[VALUE={_tipo}] desconhecido.");
+                }
+
+                // Log
+                _smp.message_pool.push(
+                    new message($"[game_server::reloadGlobalSystem][Log] Recarregou o Sistema[Tipo={_tipo}] com sucesso!", type_msg.CL_FILE_LOG_AND_CONSOLE)
+                );
+            }
+            catch (Exception e)
+            {
+                _smp.message_pool.push(
+                    new message($"[game_server::reloadGlobalSystem][ErrorSystem] {e.Message}", type_msg.CL_FILE_LOG_AND_CONSOLE)
+                );
+            }
+        }
+
 
         // Update rate e Event of Server
-        public virtual void updaterateAndEvent(uint _tipo, uint _qntd) { }
+
+        public virtual void updateRateAndEvent(int _tipo, uint _qntd)
+        {
+            try
+            {
+
+                if (_qntd == 0u && _tipo != 9/*Grand Zodiac Event Time*/ && _tipo != 10/*Angel Event*/
+                    && _tipo != 11/*Grand Prix Event*/ && _tipo != 12/*Golden Time Event*/ && _tipo != 13/*Login Reward Event*/
+                    && _tipo != 14/*Bot GM Event*/ && _tipo != 15/*Smart Calculator*/)
+                    throw new exception("[game_server::updateRateAndEvent][Error] Rate[TIPO=" + (_tipo) + ", QNTD="
+                            + (_qntd) + "], qntd is invalid(zero).", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.GAME_SERVER, 120, 0));
+
+                switch (_tipo)
+                {
+                    case 0: // Pang
+                        setratePang((short)_qntd);
+                        break;
+                    case 1: // Exp
+                        setrateExp((short)_qntd);
+                        break;
+                    case 2: // Mastery
+                        setrateClubMastery((short)_qntd);
+                        break;
+                    case 3: // Chuva
+                        m_si.rate.chuva = (short)_qntd;
+                        break;
+                    case 4: // Treasure Hunter
+                        m_si.rate.treasure = (short)_qntd;
+                        break;
+                    case 5: // Scratchy
+                        m_si.rate.scratchy = (short)_qntd;
+                        break;
+                    case 6: // Papel Shop Rare Item
+                        m_si.rate.papel_shop_rare_item = (short)_qntd;
+                        break;
+                    case 7: // Papel Shop Cookie Item
+                        m_si.rate.papel_shop_cookie_item = (short)_qntd;
+                        break;
+                    case 8: // Memorial shop
+                        m_si.rate.memorial_shop = (short)_qntd;
+                        break;
+                    case 9: // Event Grand Zodiac Time Event [Active/Desactive]
+                        {
+                            m_si.rate.grand_zodiac_event_time = (short)_qntd;
+
+                            // Recarrega o Grand Zodiac Event se ele foi ativado
+                            if (m_si.rate.grand_zodiac_event_time == 1)
+                                reloadGlobalSystem(13/*Grand Zodiac Event*/);
+
+                            break;
+                        }
+                    case 10: // Event Angel (Reduce 1 quit per game done)
+                        setAngelEvent((short)_qntd);
+                        break;
+                    case 11: // Grand Prix Event
+                        m_si.rate.grand_prix_event = (short)_qntd;
+                        break;
+                    case 12: // Golden Time Event
+                        {
+                            m_si.rate.golden_time_event = (short)_qntd;
+
+                            // Recarrega o Golden Time Event se ele foi ativado
+                            if (m_si.rate.golden_time_event == 1)
+                                reloadGlobalSystem(15/*Golden Time Event*/);
+
+                            break;
+                        }
+                    case 13: // Login Reward System Event
+                        {
+                            m_si.rate.login_reward_event = (short)_qntd;
+
+                            // Recarrega o Login Reward Event se ele foi ativado
+                            if (m_si.rate.login_reward_event == 1)
+                                reloadGlobalSystem(16/*Login Reward Event*/);
+
+                            break;
+                        }
+                    case 14: // Bot GM Event
+                        {
+                            m_si.rate.bot_gm_event = (short)_qntd;
+
+                            // Recarrega o Bot GM Event se ele foi ativado
+                            if (m_si.rate.bot_gm_event == 1)
+                                reloadGlobalSystem(17/*Bot GM Event*/);
+
+                            break;
+                        }
+                    case 15: // Smart Calculator
+                        {
+                            m_si.rate.smart_calculator = (short)_qntd;
+
+                            // Recarrega o Smart Calculator System se ele foi ativado
+                            if (m_si.rate.smart_calculator == 1)
+                                reloadGlobalSystem(18/*Smart Calculator*/);
+
+                            break;
+                        }
+                    default:
+                        throw new exception("[game_server::updateRateAndEvent][Error] troca Rate[TIPO=" + (_tipo) + ", QNTD="
+                                + (_qntd) + "], tipo desconhecido.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.GAME_SERVER, 120, 0));
+                }
+
+                // Update no DB os server do server que foram alterados
+                NormalManagerDB.add(8, new CmdUpdateRateConfigInfo(m_si.uid, m_si.rate), SQLDBResponse, this);
+
+                // Log
+                _smp::message_pool.push(new message("[game_server::updateRateAndEvent][Log] New Rate[Tipo=" + (_tipo) + ", QNTD="
+                        + (_qntd) + "] com sucesso!", type_msg.CL_FILE_LOG_AND_CONSOLE));
+
+                // UPDATE ON GAME
+                var p = new PangyaBinaryWriter(0xF9);
+
+                p.WriteBytes(m_si.ToArray());
+
+                foreach (var el in v_channel)
+                    packet_func.channel_broadcast(el, p, 1);
+
+            }
+            catch (exception e)
+            {
+
+                _smp::message_pool.push(new message("[game_server::updateRateAndEvent][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+            }
+        }
+
 
         // Shutdown With Time
 
@@ -1423,8 +1950,8 @@ namespace Pangya_GameServer.GameServerTcp
 
                 // Se vazio substitiu por um macro padrão
                 for (var i = 0u; i < 9; ++i)
-                    if (string.IsNullOrEmpty(cmu.macro[i]))
-                        cmu.macro[i] = "PangYa! Por favor configure seu chat macro";
+                    if (string.IsNullOrEmpty(cmu.macro[i].text))
+                        cmu.macro[i].text = "PangYa! Por favor configure seu chat macro";
 
                 _session.m_pi.cmu = cmu;
 
@@ -1559,7 +2086,7 @@ namespace Pangya_GameServer.GameServerTcp
                         }
                     }
                 }
-
+                
                 // Normal Message
                 if (_session.m_pi.mi.sala_numero != ushort.MaxValue)
                     c.requestSendMsgChatRoom(_session, msg);
@@ -2317,12 +2844,7 @@ namespace Pangya_GameServer.GameServerTcp
             }
         }
 
-        public override bool CheckCommand(string commandLine)
-        {
-            throw new NotImplementedException();
-        }
-
-
+       
         public PangyaTimer makeTime(uint milliseconds, List<uint> intervalTable = null)
         {
             var _timer = new PangyaTimer(milliseconds);

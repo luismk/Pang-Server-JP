@@ -7,19 +7,19 @@ using PangyaAPI.Utilities.BinaryModels;
 
 namespace Pangya_GameServer.Game.Manager
 {
-    public class CaddieManager : Dictionary<uint/*ID*/, CaddieInfoEx>
+    public class CaddieManager : Dictionary<int/*ID*/, CaddieInfoEx>
     {
         public CaddieManager()
         {
 
         }
 
-        public CaddieManager(Dictionary<uint/*ID*/, CaddieInfoEx> keys)
+        public CaddieManager(Dictionary<int/*ID*/, CaddieInfoEx> keys)
         {
             // this.(keys);    add array 
         }
          
-        public CaddieInfoEx findCaddieById(uint _id)
+        public CaddieInfoEx findCaddieById(int _id)
         {
             return this.Values.FirstOrDefault(c => c.id == _id);
         }
@@ -29,7 +29,7 @@ namespace Pangya_GameServer.Game.Manager
             return this.Values.FirstOrDefault(c => c._typeid == _typeid);
         }
 
-        public CaddieInfoEx findCaddieByTypeidAndId(uint _typeid, uint _id)
+        public CaddieInfoEx findCaddieByTypeidAndId(uint _typeid, int _id)
         {
             return this.Values.FirstOrDefault(c => c.id == _id && c._typeid == _typeid);
         }

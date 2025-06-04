@@ -5,7 +5,7 @@ using PangyaAPI.Utilities;
 using PangyaAPI.Utilities.BinaryModels;
 namespace Pangya_GameServer.Game.Manager
 {
-    public class WarehouseManager : Dictionary<uint/*ID*/, WarehouseItemEx>
+    public class WarehouseManager : Dictionary<int/*ID*/, WarehouseItemEx>
     {
         public WarehouseManager()
         {
@@ -40,18 +40,18 @@ namespace Pangya_GameServer.Game.Manager
             return responses;
         }
 
-        public List<KeyValuePair<uint, WarehouseItemEx>> GetValues(uint _id)
+        public List<KeyValuePair<int, WarehouseItemEx>> GetValues(int _id)
         {
             return this.Where(c => c.Key == _id).ToList();
         }
 
-        public bool Insert(uint _id, WarehouseItemEx item)
+        public bool Insert(int _id, WarehouseItemEx item)
         {
             Add(_id, item);
             return true;
         }
 
-        public WarehouseItemEx findWarehouseItemById(uint _id)
+        public WarehouseItemEx findWarehouseItemById(int _id)
         {
             return this.Values.FirstOrDefault(c => c.id == _id);
         }
@@ -61,7 +61,7 @@ namespace Pangya_GameServer.Game.Manager
             return this.Values.FirstOrDefault(c => c._typeid == _typeid);
         }
 
-        public WarehouseItemEx findWarehouseItemByTypeidAndId(uint _typeid, uint _id)
+        public WarehouseItemEx findWarehouseItemByTypeidAndId(uint _typeid, int _id)
         {
             return this.Values.FirstOrDefault(c => c.id == _id && c._typeid == _typeid);
         }

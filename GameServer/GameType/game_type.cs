@@ -1120,6 +1120,8 @@ namespace Pangya_GameServer.GameType
 
             public byte active = 1;
             public ulong tick = 0;
+
+            public DateTime time;
         }
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         public class uBoostItemFlag
@@ -1137,7 +1139,7 @@ namespace Pangya_GameServer.GameType
         public uint uid = 0;
         public uint oid = 0;
         public byte level;
-        public byte hole; // Número do Hole que o player está
+        public byte hole = 255; // Número do Hole que o player está
 
         public bool init_first_hole = true; // Flag que guarda quando o player inicializou o primeiro hole do jogo
 
@@ -1203,7 +1205,7 @@ namespace Pangya_GameServer.GameType
         public stProgress progress = new stProgress(); // Progresso do jogo, tacadas e score
         public PangyaTime time_finish = new PangyaTime(); // Tempo que acabou o game
         public uMedalWin medal_win = new uMedalWin(); // Medal que Ganhou no Jogo
-        //public SysAchievement sys_achieve = new SysAchievement(); // System of Achievement of Player
+        public SysAchievement sys_achieve = new SysAchievement(); // System of Achievement of Player
     }
 
     // Ticket Report Info
@@ -1309,6 +1311,11 @@ namespace Pangya_GameServer.GameType
             R_BIGBONGDARI,
             VOICE_CLUB
         }
+
+        public string name;
+        public eTYPE type;
+        [field: MarshalAs(UnmanagedType.ByValArray)]
+        public byte[] table = new byte[100];
         public TableRateVoiceAndEffect()
         {
             clear();
@@ -1318,10 +1325,8 @@ namespace Pangya_GameServer.GameType
             this.name = _name;
             this.type = _type;
             randomTable();
-        }
-        public void Dispose()
-        {
-        }
+        } 
+
         public void clear()
         {
             name = "";
@@ -1329,7 +1334,7 @@ namespace Pangya_GameServer.GameType
         }
         public void randomTable()
         {
-
+            var rnd = new Random();
             ushort min_value = 0;
 
             if (type == eTYPE.VOICE_CLUB)
@@ -1338,12 +1343,10 @@ namespace Pangya_GameServer.GameType
             }
             for (var i = 0; i < 100; ++i)
             {
-                table[i] = (byte)(min_value + ((byte)sRandomGen.getInstance().rIbeMt19937_64_chrono() % (4 - min_value)));
+                var randValue = rnd.Next((int)DateTime.Now.Ticks * 2);
+                table[i] = (byte)(min_value + (randValue % (4 - min_value)));
             }
         }
-        public string name = "";
-        public eTYPE type = new eTYPE();
-        [field: MarshalAs(UnmanagedType.ByValArray)] public byte[] table = new byte[100];
     }
 
     public class TreasureHunterVersusInfo

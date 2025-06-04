@@ -400,15 +400,9 @@ namespace Pangya_GameServer.Game
 
         public virtual void addPlayer(Player _session)
         {
-
-            Monitor.Enter(m_cs);
-
             m_players.Add(_session);
 
             makePlayerInfo(_session);
-
-            Monitor.Exit(m_cs);
-
         }
         public virtual bool deletePlayer(Player _session, int _option)
         {
@@ -544,6 +538,13 @@ namespace Pangya_GameServer.Game
                         1, 0x5200101));
                 }
 
+
+                if (!(item_typeid == 0x1BE00016))
+                {
+                    throw new exception("[Game::requestActiveAssistGreen][Error] player[UID=" + Convert.ToString(_session.m_pi.uid) + "] tentou ativar Assist[TYPEID=" + Convert.ToString(item_typeid) + "] do Green, mas o item_typeid esta errado. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.GAME,
+                           1, 0x5200101));
+                }
+                 
                 var pWi = _session.m_pi.findWarehouseItemByTypeid(item_typeid);
 
                 if (pWi == null)
@@ -551,18 +552,23 @@ namespace Pangya_GameServer.Game
                     throw new exception("[Game::requestActiveAssistGreen][Error] player[UID=" + Convert.ToString(_session.m_pi.uid) + "] tentou ativar Assist[TYPEID=" + Convert.ToString(item_typeid) + "] do Green, mas o Assist Mode do player nao esta ligado. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.GAME,
                         2, 0x5200102));
                 }
+                if (_session.m_pi.assist_flag)
+                {
 
-                // Resposta para Active Assist Green
-                p.init_plain((ushort)0x26B);
+                    // Resposta para Active Assist Green
+                    p.init_plain((ushort)0x26B);
 
-                p.WriteUInt32(0); // OK
+                    p.WriteUInt32(0); // OK
 
-                p.WriteUInt32(pWi._typeid);
-                p.WriteUInt32(_session.m_pi.uid);
+                    p.WriteUInt32(pWi._typeid);
+                    p.WriteUInt32(_session.m_pi.uid);
 
-                packet_func.session_send(p,
-                    _session, 1);
-
+                    packet_func.session_send(p,
+                        _session, 1);
+                }
+                else
+                    throw new exception("[Game::requestActiveAssistGreen][Error] player[UID=" + Convert.ToString(_session.m_pi.uid) + "] tentou ativar Assist[TYPEID=" + Convert.ToString(item_typeid) + "] do Green, mas o Assist Mode do player nao esta ligado. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.GAME,
+                       2, 0x5200102));
             }
             catch (exception e)
             {
@@ -678,12 +684,12 @@ namespace Pangya_GameServer.Game
                     1, 4));
             }
 
-            if (pgi.hole > -1)
+            if (pgi.hole != 255)
             {
 
                 hole = m_course.findHoleSeq(pgi.hole);
 
-                if (hole == ~0)
+                if (hole == ushort.MaxValue)
                 {
 
                     // Valor padrão
@@ -1501,7 +1507,7 @@ namespace Pangya_GameServer.Game
             if (!pgi.drop_list.v_drop.empty())
             {
 
-                Dictionary<uint32_t, stItem> v_item = new Dictionary<uint32_t, stItem>();
+                List<stItem> v_item = new List<stItem>();
                 stItem item = new stItem();
 
                 foreach (var el in pgi.drop_list.v_drop)
@@ -1513,20 +1519,18 @@ namespace Pangya_GameServer.Game
                     item.qntd = (uint)((el.type == DropItem.eTYPE.QNTD_MULTIPLE_500) ? el.qntd * 500 : el.qntd);
                     item.STDA_C_ITEM_QNTD = (ushort)item.qntd;
 
-                    if (!v_item.TryGetValue(item._typeid, out var it))
+                    if (!v_item.Any(c=>c._typeid== item._typeid))
                     {
                         // Novo item
-                        v_item.Add(item._typeid, item);
+                        v_item.Add(item);
                     }
                     else
                     { // J� tem
-                        it.qntd += item.qntd;
-                        it.STDA_C_ITEM_QNTD = (ushort)it.qntd;
+                        v_item.First(c => c._typeid == item._typeid).qntd += item.qntd;
+                        v_item.First(c => c._typeid == item._typeid).STDA_C_ITEM_QNTD = (ushort)v_item.First(c => c._typeid == item._typeid).qntd;
                     }
                 }
-
-                var rai = item_manager.addItem(v_item,
-                    _session, 0, 0);
+                var rai = item_manager.addItem(v_item, _session, 0, 0); 
 
                 if (rai.fails.Count() > 0 && rai.type != item_manager.RetAddItem.TYPE.T_SUCCESS_PANG_AND_EXP_AND_CP_POUCH)
                 {
@@ -1540,12 +1544,12 @@ namespace Pangya_GameServer.Game
 
                 foreach (var el in v_item)
                 {
-                    p.WriteByte(el.Value.type);
-                    p.WriteUInt32(el.Value._typeid);
-                    p.WriteInt32(el.Value.id);
-                    p.WriteUInt32(el.Value.flag_time);
-                    p.WriteBytes(el.Value.stat.ToArray());
-                    p.WriteUInt32((el.Value.STDA_C_ITEM_TIME > 0) ? el.Value.STDA_C_ITEM_TIME : el.Value.STDA_C_ITEM_QNTD);
+                    p.WriteByte(el.type);
+                    p.WriteUInt32(el._typeid);
+                    p.WriteInt32(el.id);
+                    p.WriteUInt32(el.flag_time);
+                    p.WriteBytes(el.stat.ToArray());
+                    p.WriteUInt32((el.STDA_C_ITEM_TIME > 0) ? el.STDA_C_ITEM_TIME : el.STDA_C_ITEM_QNTD);
                     p.WriteZeroByte(25);
                 }
 
@@ -2243,7 +2247,7 @@ namespace Pangya_GameServer.Game
 
                 // Tacadas do hole
                 tacada_hole = pgi.data.tacada_num;
-
+                pgi.data.score = 0;
                 pgi.data.score += score_hole;  // SEM alterar o sinal, conforme original
 
                 //// Achievement Score
@@ -2547,7 +2551,7 @@ namespace Pangya_GameServer.Game
 
                 if (club != null)
                 {
-                    ui.club.rate = club.Rate;
+                    ui.club.rate = club.work_shop.rate;
                 }
                 else
                 {
@@ -2845,7 +2849,7 @@ namespace Pangya_GameServer.Game
                     bi.qntd = el.qntd;
 
                     item_manager.initItemFromBuyItem(_session.m_pi,
-                        ref item, bi, false, 0, 0, 1);
+                        item, bi, false, 0, 0, 1);
 
                     if (item._typeid == 0)
                     {
@@ -3511,8 +3515,7 @@ namespace Pangya_GameServer.Game
         public virtual void score_consecutivos_count(Player _session)
         {
 
-            int32_t score = -2, last_score = -2;
-            uint32_t count = 0;
+            int32_t score = -2, last_score = -2; 
 
             INIT_PLAYER_INFO("rain_score_consecutivos", "tentou atualizar o achievement contador de score consecutivos do player no jogo", _session, out PlayerGameInfo pgi);
 

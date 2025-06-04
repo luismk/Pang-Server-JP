@@ -61,22 +61,22 @@ namespace Pangya_GameServer.Cmd
                     4, 0));
             }
 
-            string accept_dt = "null";
-            string today_dt = "null";
+            string accept_dt = "NULL";
+            string today_dt = "NULL";
 
             if (m_dqiu.accept_date != 0)
-            {
-                accept_dt = _db.makeText(formatDateLocal(m_dqiu.accept_date));
-            }
+                accept_dt = "'" + DateTimeOffset.FromUnixTimeSeconds(m_dqiu.accept_date)
+                                               .ToString("yyyy-MM-dd HH:mm:ss.fffffff") + "'";
 
             if (m_dqiu.current_date != 0)
-            {
-                today_dt = _db.makeText(formatDateLocal(m_dqiu.current_date));
-            }
+                today_dt = "'" + DateTimeOffset.FromUnixTimeSeconds(m_dqiu.current_date)
+                                              .ToString("yyyy-MM-dd HH:mm:ss.fffffff") + "'";
 
-            var r = procedure(
-                m_szConsulta,
-                Convert.ToString(m_uid) + ", " + accept_dt + ", " + today_dt);
+
+            var r = _update(m_szConsulta
+                + "last_quest_accept = " + accept_dt
+                + ", today_quest = " + today_dt
+                + " WHERE UID = " + m_uid);
 
             checkResponse(r, "nao conseguiu Atualizar o DailyQuest[ACCEPT_DT=" + accept_dt + ", TODAY_DT=" + today_dt + "] do player[UID=" + Convert.ToString(m_uid) + "]");
 
@@ -87,6 +87,6 @@ namespace Pangya_GameServer.Cmd
         private uint m_uid = new uint();
         private DailyQuestInfoUser m_dqiu = new DailyQuestInfoUser();
 
-        private const string m_szConsulta = "pangya.ProcUpdateDailyQuestUser";
+        private const string m_szConsulta = "UPDATE pangya.pangya_daily_quest_player SET ";
     }
 }

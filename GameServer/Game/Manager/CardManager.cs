@@ -6,7 +6,7 @@ using PangyaAPI.Utilities.BinaryModels;
 
 namespace Pangya_GameServer.Game.Manager
 {
-    public class CardManager : Dictionary<uint, CardInfo>
+    public class CardManager : Dictionary<int, CardInfo>
     {
         public byte[] Build()
         {
@@ -27,7 +27,7 @@ namespace Pangya_GameServer.Game.Manager
             }
         }
 
-        public byte[] GetInfo(uint _id)
+        public byte[] GetInfo(int _id)
         {
             var char_info = findCardById(_id);
             if (char_info == null)
@@ -39,7 +39,7 @@ namespace Pangya_GameServer.Game.Manager
                 return p.GetBytes;
             }
         }
-        public CardInfo findCardById(uint _id)
+        public CardInfo findCardById(int _id)
         {
             return this.Values.FirstOrDefault(c => c.id == _id);
         }
@@ -49,7 +49,7 @@ namespace Pangya_GameServer.Game.Manager
             return this.Values.FirstOrDefault(c => c._typeid == _typeid);
         }
 
-        public CardInfo findCardByTypeidAndId(uint _typeid, uint _id)
+        public CardInfo findCardByTypeidAndId(uint _typeid, int _id)
         {
             return this.Values.FirstOrDefault(c => c.id == _id && c._typeid == _typeid);
         }

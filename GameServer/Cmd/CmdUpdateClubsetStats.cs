@@ -11,10 +11,10 @@ namespace Pangya_GameServer.Cmd
             WarehouseItemEx _wi,
             uint _pang)
         {
-            // C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+            
             this.m_uid = _uid;
             //this.
-            // C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+            
             this.m_pang = _pang;
             this.m_wi = (_wi);
         }
@@ -30,7 +30,7 @@ namespace Pangya_GameServer.Cmd
 
         public void setUID(uint _uid)
         {
-            // C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+            
             m_uid = _uid;
 
         }
@@ -42,7 +42,7 @@ namespace Pangya_GameServer.Cmd
 
         public void setPang(ulong _pang)
         {
-            // C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+            
             m_pang = _pang;
         }
 
@@ -54,7 +54,7 @@ namespace Pangya_GameServer.Cmd
 
         public void setInfo(WarehouseItemEx _wi)
         {
-            // C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+            
             m_wi = _wi;
         }
 

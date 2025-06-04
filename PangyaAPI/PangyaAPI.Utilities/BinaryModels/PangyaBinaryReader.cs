@@ -349,6 +349,14 @@ namespace PangyaAPI.Utilities.BinaryModels
                 yield return ReadUInt32();
             }
         }
+
+        public IEnumerable<int> Read(int count)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                yield return ReadInt32();
+            }
+        }
         //não testado
         public bool Read(out object value, int Count)
         {
@@ -372,22 +380,29 @@ namespace PangyaAPI.Utilities.BinaryModels
             return true;
         }
 
-        public bool ReadBuffer<T>(out T value, int Count)
+
+        public bool ReadBuffer<T>(ref T value, int Count)
         {
-            int count = (typeof(T) == typeof(bool)) ? 1 : Marshal.SizeOf(typeof(T));
-            GCHandle handle = GCHandle.Alloc(this.ReadBytes(count), GCHandleType.Pinned);
             try
             {
-                value = (T)Marshal.PtrToStructure(handle.AddrOfPinnedObject(), typeof(T));
-                return true;
+                 byte[] recordData = ReadBytes(Count);
+
+                IntPtr ptr = Marshal.AllocHGlobal(Count);
+
+                Marshal.Copy(recordData, 0, ptr, Count);
+
+                value = (T)Marshal.PtrToStructure(ptr, value.GetType());
+                Marshal.FreeHGlobal(ptr);
             }
             catch
             {
                 value = default;
                 return false;
             }
+            return true;
         }
 
+         
         public T Read<T>() where T : new()
         {
             T local;

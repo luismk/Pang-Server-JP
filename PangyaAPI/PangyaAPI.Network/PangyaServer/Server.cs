@@ -737,7 +737,7 @@ namespace PangyaAPI.Network.PangyaServer
         }
 
 
-        public abstract bool CheckCommand(string commandLine);
+        public abstract bool CheckCommand(Queue<string> _command);
 
         public int getBotTTL() => m_Bot_TTL;
         #endregion

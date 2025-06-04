@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using Newtonsoft.Json.Linq;
 using PangyaAPI.Network.Cryptor;
 using PangyaAPI.Utilities;
 using PangyaAPI.Utilities.BinaryModels;

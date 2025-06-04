@@ -398,7 +398,7 @@ namespace Pangya_GameServer.Game.System
             DropItem di = new DropItem();
 
 
-            short qntd = 0;
+            ushort qntd = 0;
 
             var pWi = _session.m_pi.findWarehouseItemByTypeid(GRAND_PRIX_TICKET);
 

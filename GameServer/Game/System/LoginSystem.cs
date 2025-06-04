@@ -145,8 +145,8 @@ namespace Pangya_GameServer.Game.System
 
                     }
                 }
- 
 
+                
                 // Verifica o Auth Key do player
                 var cmd_akli = new CmdAuthKeyLoginInfo((int)_session.m_pi.uid); // Waiter
 
@@ -415,7 +415,7 @@ namespace Pangya_GameServer.Game.System
                         }
                     case 8: // Guild Info
                         {
-                            _session.m_pi.gi = ((CmdGuildInfo)(_pangya_db)).getInfo();   // cmd_gi.getInfo();
+                            _session.m_pi.gi = ((CmdGuildInfo)(_pangya_db)).getInfo();   // cmd_gi.getInfo(); 
                             break;
                         }
                     case 9:     // Donfini Locker Info
@@ -584,20 +584,19 @@ namespace Pangya_GameServer.Game.System
                                 try
                                 {
 
-                                    //var pWi = pi.findWarehouseItemById(ui_ticket_report_scroll.FirstOrDefault().Value.id);
+                                    var pWi = pi.findWarehouseItemById(ui_ticket_report_scroll.FirstOrDefault().Value.id);
 
-                                    //if (pWi != null)
-                                    //    item_manager.openTicketReportScroll(_session, pWi.id, (uint)((pWi.c[1] * 0x800) | pWi.c[2]));
+                                    if (pWi != null)
+                                        item_manager.openTicketReportScroll(_session, pWi.id, ((pWi.c[1] * 0x800) | pWi.c[2]));
 
                                 }
                                 catch (exception e)
                                 {
 
-                                    _smp.message_pool.push("[checkWarehouse][ErrorSystem] " + e.getFullMessageError());
-                                    //if (e.getCodeError() == STDA_ERROR_TYPE._ITEM_MANAGER)
-                                    //    throw new exception("[SQLDBResponse][Error] " + e.getFullMessageError(), STDA_ERROR_TYPE.LOGIN_MANAGER);
-                                    //else
-                                    //    throw;  // Relança
+                                     if (e.getCodeError() == (int)STDA_ERROR_TYPE._ITEM_MANAGER)
+                                        throw new exception("[SQLDBResponse][Error] " + e.getFullMessageError(), STDA_ERROR_TYPE.LOGIN_MANAGER);
+                                    else
+                                        throw;  // Relança
                                 }
                             }
 
@@ -672,38 +671,38 @@ namespace Pangya_GameServer.Game.System
                                     bi._typeid = AIR_KNIGHT_SET;
                                     bi.qntd = 1;
 
-                                    item_manager.initItemFromBuyItem(pi, ref @item, bi, false, 0, 0, 1/*Não verifica o Level*/);
+                                    item_manager.initItemFromBuyItem(pi, @item, bi, false, 0, 0, 1/*Não verifica o Level*/);
 
-                                    //if (item._typeid != 0 && (item.id = (uint)item_manager.addItem(ref item, _session, 2/*Padrão item*/, 0)) != -4
-                                    //    && (it = pi.findWarehouseItemById(item.id)) != null)
-                                    //{
+                                    if (item._typeid != 0 && (item.id = (int)item_manager.addItem(item, _session, 2/*Padrão item*/, 0)) != -4
+                                        && (it = pi.findWarehouseItemById(item.id)) != null)
+                                    {
 
-                                    //    pi.ue.clubset_id = it.id;
-                                    //    pi.ei.clubset = it;
+                                        pi.ue.clubset_id = it.id;
+                                        pi.ei.clubset = it;
 
-                                    //    // Esse C do WarehouseItem, que pega do DB, não é o ja updado inicial da taqueira é o que fica tabela enchant, 
-                                    //    // que no original fica no warehouse msm, eu só confundi quando fiz
-                                    //    // [AJEITEI JA] (tem que ajeitar na hora que coloca no DB e no DB isso)
-                                    //    pi.ei.csi.setValues(it.id, it._typeid, it.c);
+                                        // Esse C do WarehouseItem, que pega do DB, não é o ja updado inicial da taqueira é o que fica tabela enchant, 
+                                        // que no original fica no warehouse msm, eu só confundi quando fiz
+                                        // [AJEITEI JA] (tem que ajeitar na hora que coloca no DB e no DB isso)
+                                        pi.ei.csi.setValues(it.id, it._typeid, it.c);
 
-                                    //    var cs = sIff.getInstance().findClubSet(it._typeid);
+                                        var cs = sIff.getInstance().findClubSet(it._typeid);
 
-                                    //    if (cs != null)
-                                    //    {
+                                        if (cs != null)
+                                        {
 
-                                    //        for (var i = 0u; i < 5; ++i)
-                                    //            pi.ei.csi.enchant_c[i] = (short)(cs.SlotStats.getSlot()[i] + it.clubset_workshop.c[i]);
+                                            for (var i = 0u; i < 5; ++i)
+                                                pi.ei.csi.enchant_c[i] = (short)(cs.SlotStats.getSlot[i] + it.clubset_workshop.c[i]);
 
-                                    //    }
-                                    //    else
-                                    //        _smp.message_pool.push("[SQLDBResponse][Erro] player[UID=" + (pi.uid) + "] tentou inicializar ClubSet[TYPEID="
-                                    //            + (it._typeid) + ", ID=" + (it.id) + "] equipado, mas ClubSet Not exists on IFF_STRUCT do Server. Bug");
+                                        }
+                                        else
+                                            _smp.message_pool.push("[SQLDBResponse][Erro] player[UID=" + (pi.uid) + "] tentou inicializar ClubSet[TYPEID="
+                                                + (it._typeid) + ", ID=" + (it.id) + "] equipado, mas ClubSet Not exists on IFF_STRUCT do Server. Bug");
 
 
-                                    //}
-                                    //else
-                                    //    throw new exception("[SQLDBResponse][Error] Player[UID=" + (pi.uid)
-                                    //            + "] nao conseguiu adicionar o ClubSet[TYPEID=" + (AIR_KNIGHT_SET) + "] padrao para ele. Bug");
+                                    }
+                                    else
+                                        throw new exception("[SQLDBResponse][Error] Player[UID=" + (pi.uid)
+                                                + "] nao conseguiu adicionar o ClubSet[TYPEID=" + (AIR_KNIGHT_SET) + "] padrao para ele. Bug");
 
                                 }
                             }
@@ -738,22 +737,24 @@ namespace Pangya_GameServer.Game.System
                                     bi._typeid = DEFAULT_COMET_TYPEID;
                                     bi.qntd = 1;
 
-                                    //item_manager.initItemFromBuyItem(_session.m_pi, ref item, bi, false, 0, 0, 1/*Não verifica o Level*/);
+                                    item_manager.initItemFromBuyItem(_session.m_pi, item, bi, false, 0, 0, 1/*Não verifica o Level*/);
 
-                                    //if (true)
-                                    //{
+                                    if (true)
+                                    {
 
-                                    //    _session.m_pi.ei.comet = it;
+                                        _session.m_pi.ei.comet = it;
 
-                                    //}
-                                    //else
-                                    //{
-                                    //    throw new exception("[SQLDBResponse][Error] Player[UID=" + (_pi.uid)
-                                    //            + "] nao conseguiu adicionar a Comet(Ball)[TYPEID=" + (DEFAULT_COMET_TYPEID) + "] padrao para ele. Bug");
-                                    //}
+                                    }
+                                    else
+                                    {
+                                        throw new exception("[SQLDBResponse][Error] Player[UID=" + (pi.uid)
+                                                + "] nao conseguiu adicionar a Comet(Ball)[TYPEID=" + (DEFAULT_COMET_TYPEID) + "] padrao para ele. Bug");
+                                    }
 
                                 }
                             }
+
+                            _session.m_pi.assist_flag = _session.m_pi.ItemExist(ASSIST_ITEM_TYPEID);
 
                             // Premium Ticket Tem que ser chamado depois que o Warehouse Item ja foi carregado
                             NormalManagerDB.add(4, new Cmd.CmdPremiumTicketInfo(_session.m_pi.uid), SQLDBResponse, _session);
@@ -778,21 +779,21 @@ namespace Pangya_GameServer.Game.System
                         {
                             //// --------------------- AVISO ----------------------
                             //// esse aqui os outros tem que depender dele para, não ir sem ele
-                            //var cmd_cAchieve = (CmdCheckAchievement)(_pangya_db);
+                            var cmd_cAchieve = (CmdCheckAchievement)(_pangya_db);
 
-                            //// Cria Achievements do player
-                            //if (!cmd_cAchieve.getLastState())
-                            //{
-                            //    _session.m_pi.mgr_achievement.initAchievement(_session.m_pi.uid, true/*Create sem verifica se o player tem achievement, por que aqui ele já verificou*/);
+                            // Cria Achievements do player
+                            if (!cmd_cAchieve.getLastState())
+                            {
+                                _session.m_pi.mgr_achievement.initAchievement(_session.m_pi.uid, true/*Create sem verifica se o player tem achievement, por que aqui ele já verificou*/);
 
-                            // Add o Task + 1 por que não pede o achievement do db, porque criou ele aqui e salvo no DB
-                            incremenetCount();
+                            //    Add o Task + 1 por que não pede o achievement do db, porque criou ele aqui e salvo no DB
+                            //incremenetCount();
 
-                            //}
-                            //else
-                            //{
-                            //    NormalManagerDB.add(19, new CmdAchievementInfo(_session.m_pi.uid), SQLDBResponse, _session);
-                            //}
+                            }
+                            else
+                            {
+                                NormalManagerDB.add(19, new CmdAchievementInfo(_session.m_pi.uid), SQLDBResponse, _session);
+                            }
 
                         }
                         break;
@@ -801,7 +802,7 @@ namespace Pangya_GameServer.Game.System
                             var cmd_ai = ((CmdAchievementInfo)(_pangya_db));
 
                             // Inicializa o Achievement do player
-                            //_session.m_pi.mgr_achievement.initAchievement(_session.m_pi.uid, cmd_ai.GetInfo());
+                            _session.m_pi.mgr_achievement.initAchievement(_session.m_pi.uid, cmd_ai.GetInfo());
 
                             break;
                         }
@@ -1094,9 +1095,9 @@ namespace Pangya_GameServer.Game.System
                 //call messenger server
                 packet_func.session_send(packet_func.pacote0F1(), _session);
 
-                //_session.m_pi.mgr_achievement.sendCounterItemToPlayer(_session);
+                _session.m_pi.mgr_achievement.sendCounterItemToPlayer(_session);
 
-                //_session.m_pi.mgr_achievement.sendAchievementToPlayer(_session);
+                _session.m_pi.mgr_achievement.sendAchievementToPlayer(_session);
 
 
                 packet_func.session_send(packet_func.pacote144(), _session);        // Pacote novo do JP
@@ -1129,11 +1130,11 @@ namespace Pangya_GameServer.Game.System
                 packet_func.session_send(packet_func.pacote25D(pi.v_tgp_current_season, 5/*season atual*/), _session);
 
                 packet_func.session_send(packet_func.pacote25D(pi.v_tgp_rest_season, 0), _session);
-                //depois vejo porque esta travando o login
+                //ver porque esta travando o login
                 //UCCSystem.HandleUCCLoad(_session); 
 
                 //// Login Reward System - verifica se o player ganhou algum item por logar
-                //if (sgs.gs.getInstance().getInfo().rate.login_reward_event == 1)//feito
+                //if (sgs.gs.getInstance().getInfo().rate.login_reward_event == 1)
                 //    sLoginRewardSystem.getInstance().checkRewardLoginAndSend(_session);
 
                 _smp.message_pool.push("[LoginSystem::requestLogin][Log] Player[OID=" + (_session.m_oid) + ", UID=" + (pi.uid) + ", NICK="

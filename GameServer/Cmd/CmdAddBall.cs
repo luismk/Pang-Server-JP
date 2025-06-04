@@ -38,7 +38,7 @@ namespace Pangya_GameServer.Cmd
 
             checkColumnNumber(1);
 
-            m_wi.id = IFNULL(_result.data[0]);
+            m_wi.id = IFNULL<int>(_result.data[0]);
         }
 
         protected override Response prepareConsulta()

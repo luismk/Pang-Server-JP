@@ -343,7 +343,7 @@ namespace Pangya_GameServer.Game.Manager
             CommandInfo ci = new CommandInfo();
 
             ci.id = 4; // New Mail Arrived on Mailbox of player
-                       // C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+                       
             ci.arg[0] = (int)_to_uid;
 
             ci.arg[1] = _mail_id;

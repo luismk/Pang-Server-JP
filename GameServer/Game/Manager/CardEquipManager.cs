@@ -8,7 +8,7 @@ namespace Pangya_GameServer.Game.Manager
 {
     public class CardEquipManager : Dictionary<uint, CardEquipInfoEx>
     {  
-        public CardEquipInfo findCardEquipById(uint _id)
+        public CardEquipInfo findCardEquipById(int _id)
         {
             return this.Values.FirstOrDefault(c => c.id == _id);
         }
@@ -18,7 +18,7 @@ namespace Pangya_GameServer.Game.Manager
             return this.Values.FirstOrDefault(c => c._typeid == _typeid);
         }
 
-        public CardEquipInfo findCardEquipByTypeidAndId(uint _typeid, uint _id)
+        public CardEquipInfo findCardEquipByTypeidAndId(uint _typeid, int _id)
         {
             return this.Values.FirstOrDefault(c => c.id == _id && c._typeid == _typeid);
         }

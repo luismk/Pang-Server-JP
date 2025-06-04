@@ -56,7 +56,7 @@ namespace Pangya_GameServer.Cmd
 
                     if (item._typeid != 0)
                     {
-                        item.id = IFNULL(_result.data[6]); // ID vem antes de typeid na consulta
+                        item.id = IFNULL<int>(_result.data[6]); // ID vem antes de typeid na consulta
                         item.flag_time = (byte)IFNULL(_result.data[8]);
                         item.qntd = IFNULL(_result.data[9]);
                         item.tempo_qntd = IFNULL(_result.data[10]);
@@ -119,7 +119,7 @@ namespace Pangya_GameServer.Cmd
 
                     if (item._typeid != 0)
                     {
-                        item.id = IFNULL(_result.data[6]); // ID vem antes de typeid na consulta
+                        item.id = IFNULL<int>(_result.data[6]); // ID vem antes de typeid na consulta
                         item.flag_time = (byte)IFNULL(_result.data[8]);
                         item.qntd = IFNULL(_result.data[9]);
                         item.tempo_qntd = IFNULL(_result.data[10]);

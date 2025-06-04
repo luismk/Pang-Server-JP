@@ -106,7 +106,7 @@ namespace Pangya_GameServer.Cmd
             return r;
         }
 
-        private string getConsultaWithLimit(int limit = 999)
+        private string getConsultaWithLimit(int limit = 100)
         {
             return $"SELECT TOP ({limit}) [index], course, hole, tipo, tipo_location, rate, x, y, z FROM pangya.pangya_coin_cube_location WHERE course = {m_course} ORDER BY course, hole";
         }

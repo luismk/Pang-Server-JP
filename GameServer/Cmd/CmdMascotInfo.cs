@@ -47,7 +47,7 @@ namespace Pangya_GameServer.Cmd
 
                 MascotInfoEx mi = new MascotInfoEx
                 {
-                    id = Convert.ToUInt32(_result.data[0]),
+                    id = Convert.ToInt32(_result.data[0]),
                     _typeid = Convert.ToUInt32(_result.data[2]),
                     level = (byte)Convert.ToUInt32(_result.data[3]),
                     exp = Convert.ToUInt32(_result.data[4]),

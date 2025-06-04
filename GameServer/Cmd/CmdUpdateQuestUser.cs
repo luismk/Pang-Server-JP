@@ -56,16 +56,22 @@ namespace Pangya_GameServer.Cmd
                     4, 0));
             }
 
-            string clear_dt = "null";
-
+            string clear_dt = "NULL";
+             
             if (m_qsi.clear_date_unix != 0)
-            {
-                clear_dt = formatDateLocal(m_qsi.clear_date_unix);
-            }
+                clear_dt = "'" + DateTimeOffset.FromUnixTimeSeconds(m_qsi.clear_date_unix)
+                                               .ToString("yyyy-MM-dd HH:mm:ss.fffffff") + "'";
 
-            var r = procedure(
-                m_szConsulta,
-                Convert.ToString(m_uid) + ", " + Convert.ToString(m_qsi.id) + ", " + Convert.ToString(m_qsi.counter_item_id) + ", " + clear_dt);
+            var query = string.Format(
+        m_szConsulta,
+        Convert.ToString(m_qsi.counter_item_id),  // {0}
+        clear_dt,                                 // {1}
+        Convert.ToString(m_uid),                  // {2}
+        Convert.ToString(m_qsi.id)                // {3}
+    );
+
+            var r = _update(query);
+
 
             checkResponse(r, "nao conseguiu atualizar a quest[ID=" + Convert.ToString(m_qsi.id) + "] do player: " + Convert.ToString(m_uid));
 
@@ -73,7 +79,6 @@ namespace Pangya_GameServer.Cmd
         }
         private uint m_uid = new uint();
         private QuestStuffInfo m_qsi = new QuestStuffInfo();
-
-        private const string m_szConsulta = "pangya.ProcUpdateQuestUser";
+        private const string m_szConsulta = "UPDATE pangya.pangya_quest SET counter_item_id = {0}, [date] = {1} WHERE UID = {2} AND id = {3};";
     }
 }

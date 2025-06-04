@@ -18,7 +18,7 @@ namespace PangyaAPI.Network.Cmd
             checkColumnNumber(1);
             try
             {
-                m_ci.id = (uint)(_result.data[0]);
+                m_ci.id = (int)(_result.data[0]);
             }
             catch (Exception ex)
             {

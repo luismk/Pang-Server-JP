@@ -12,7 +12,7 @@ namespace PangyaAPI.Network.PangyaSession
     public class SessionManager
     {
         public uint m_max_session;
-        public readonly List<Session> m_sessions = new List<Session>();
+        public readonly Dictionary<int, Session> m_sessions = new Dictionary<int, Session>();
         private readonly List<Session> m_session_del = new List<Session>();
         private uint m_ttl;
         public uint m_count = 0;
@@ -50,7 +50,7 @@ namespace PangyaAPI.Network.PangyaSession
                 m_session_del.Clear();
                 foreach (var session in m_sessions)
                 {
-                    session.clear();
+                    session.Value.clear();
                 }
                 m_sessions.Clear();
             }
@@ -106,9 +106,11 @@ namespace PangyaAPI.Network.PangyaSession
                 }
 
                 session.@lock();
-
+                var oid = session.m_oid;
                 if (ret = session.clear())
                     m_count--;
+
+                m_sessions[oid] = session;//reseta na lista
 
                 session.unlock();
             } 
@@ -120,7 +122,7 @@ namespace PangyaAPI.Network.PangyaSession
         {
             List<Session> v_gm = new List<Session>();
 
-            foreach (Session el in m_sessions)
+            foreach (Session el in m_sessions.Values)
             {
                 if ((el.getCapability() & 4) != 0 || (el.getCapability() & 128) != 0)    // GM
                     v_gm.Add(el);
@@ -133,7 +135,7 @@ namespace PangyaAPI.Network.PangyaSession
             Session session = null;
             lock (_lockObject)
             {
-                foreach (var el in m_sessions.Where(el => el.m_sock != null))
+                foreach (var el in m_sessions.Values.Where(el => el.m_sock != null))
                 {
                     if (el.m_oid == oid)
                         session = el;
@@ -147,7 +149,7 @@ namespace PangyaAPI.Network.PangyaSession
             Session session = null;
             lock (_lockObject)
             {
-                session = m_sessions.FirstOrDefault(el => el.m_sock != null && el.getUID() == uid);
+                session = m_sessions.Values.FirstOrDefault(el => el.m_sock != null && el.getUID() == uid);
             }
             return session;
         }
@@ -157,7 +159,7 @@ namespace PangyaAPI.Network.PangyaSession
             List<Session> sessions = new List<Session>();
             lock (_lockObject)
             {
-                sessions = m_sessions.Where(el => el.m_sock != null && el.getUID() == uid).ToList();
+                sessions = m_sessions.Values.Where(el => el.m_sock != null && el.getUID() == uid).ToList();
             }
             return sessions;
         }
@@ -167,7 +169,7 @@ namespace PangyaAPI.Network.PangyaSession
             Session session = null;
             lock (_lockObject)
             {
-                session = m_sessions.FirstOrDefault(el => el.m_sock != null && el.getNickname() == nickname);
+                session = m_sessions.Values.FirstOrDefault(el => el.m_sock != null && el.getNickname() == nickname);
             }
             return session;
         }
@@ -194,7 +196,7 @@ namespace PangyaAPI.Network.PangyaSession
 
         public void CheckSessionLive()
         {
-            foreach (var session in m_sessions)
+            foreach (var session in m_sessions.Values)
             {
                 if (session.m_sock != null&& session.m_sock.Connected)
                 {
@@ -220,7 +222,7 @@ namespace PangyaAPI.Network.PangyaSession
             bool isFull;
             lock (_lockObject)
             {
-                isFull = m_sessions.Count(session => session.m_sock != null) == m_sessions.Count;
+                isFull = m_sessions.Values.Count(session => session.m_sock != null) == m_sessions.Count;
             }
             return isFull;
         }
@@ -243,7 +245,7 @@ namespace PangyaAPI.Network.PangyaSession
         public virtual int findSessionFree()
         {
             int i = 0;
-            foreach (var _session in m_sessions)
+            foreach (var _session in m_sessions.Values)
             {
                 if (_session.m_oid < 0)
                 {
@@ -256,17 +258,17 @@ namespace PangyaAPI.Network.PangyaSession
 
         public bool HasSessionWithIP(string ip)
         {
-            return m_sessions.Any(s => s.isConnected() && s.getIP() == ip);
+            return m_sessions.Values.Any(s => s.isConnected() && s.getIP() == ip);
         }
 
         public Session findSessionByIP(string ip)
         {
-            return m_sessions.FirstOrDefault(s => s.isConnected() && s.getIP() == ip);
+            return m_sessions.Values.FirstOrDefault(s => s.isConnected() && s.getIP() == ip);
         }
 
         public List<Session> findAllSessionByIP(string ip)
         {
-            return m_sessions.Where(s => s.isConnected() && s.getIP() == ip).ToList();
+            return m_sessions.Values.Where(s => s.isConnected() && s.getIP() == ip).ToList();
         }
 
     }

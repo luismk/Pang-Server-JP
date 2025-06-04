@@ -284,7 +284,7 @@ namespace Pangya_GameServer.Game.System
 
             //    // Initialize Item
             //    item.type = 2;
-            //    // C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+            //    
             //     item.id = new_wi.id;
             //    item.id.CopyFrom(new_wi.id);
             //    item._typeid = new_wi._typeid;
@@ -323,7 +323,7 @@ namespace Pangya_GameServer.Game.System
             //    BuyItem bi = new BuyItem() { id = 0u };
 
             //    bi.id = -1;
-            //    // C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+            //    
             //     bi._typeid = clubset;
             //    bi._typeid.CopyFrom(clubset);
             //    bi.qntd = 1;
@@ -377,7 +377,7 @@ namespace Pangya_GameServer.Game.System
             //    BuyItem bi = new BuyItem() { id = 0u };
 
             //    bi.id = -1;
-            //    // C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+            //    
             //     bi._typeid = mascot;
             //    bi._typeid.CopyFrom(mascot);
             //    bi.qntd = 1;

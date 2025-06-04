@@ -23,7 +23,7 @@ namespace Pangya_GameServer.Cmd
 
         public void setInfo(DailyQuestInfo _dqi)
         {
-            // C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+            
             m_dqi = _dqi;
         }
 
@@ -45,7 +45,7 @@ namespace Pangya_GameServer.Cmd
 
                 for (var i = 0u; i < 3u; ++i)
                 {
-                    // C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+                    
                     m_dqi._typeid[i] = IFNULL<uint>(_result.data[1u + i]);
                     m_dqi._typeid[i] = IFNULL(_result.data[1u + i]); // 1 + 3
                 }

@@ -8,11 +8,32 @@ using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.ComTypes;
 using System.Security.Cryptography;
 using System.Text;
 
 namespace PangyaAPI.Utilities
 {
+    [StructLayout(LayoutKind.Sequential)]
+    public struct _FILETIME
+    {
+        public uint dwLowDateTime;
+        public uint dwHighDateTime;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct SYSTEMTIME
+    {
+        public ushort wYear;
+        public ushort wMonth;
+        public ushort wDayOfWeek;
+        public ushort wDay;
+        public ushort wHour;
+        public ushort wMinute;
+        public ushort wSecond;
+        public ushort wMilliseconds;
+    }
+
     public static class SocketUtils
     {
         // Definir as constantes para os parâmetros do getsockopt
@@ -317,7 +338,7 @@ namespace PangyaAPI.Utilities
             // Converte Unix timestamp (segundos) para DateTime em UTC
             return DateTimeOffset.FromUnixTimeSeconds(unixtime).ToUnixTimeMilliseconds();
         }
-         public static long UnixTimeConvert(DateTime dateTime)
+        public static long UnixTimeConvert(DateTime dateTime)
         {
             // Garante que o DateTime seja tratado como UTC
             DateTimeOffset offset = dateTime.Kind == DateTimeKind.Unspecified
@@ -392,25 +413,6 @@ namespace PangyaAPI.Utilities
             return diff.Ticks / TimeSpan.TicksPerMillisecond;
         }
 
-        // ... Rest of the methods above ...
-
-        public static long FileTimeToUnix(FILETIME ft)
-        {
-            long fileTime = ((long)ft.dwHighDateTime << 32) | (uint)ft.dwLowDateTime;
-            return (fileTime - 116444736000000000) / 10000000;
-        }
-
-        [Obsolete]
-        public static FILETIME UnixToFileTime(long time)
-        {
-            long fileTime = (time * 10000000) + 116444736000000000;
-            FILETIME ft;
-
-            ft.dwLowDateTime = (int)fileTime;
-            ft.dwHighDateTime = (int)(fileTime >> 32);
-            return ft;
-        }
-
         public static long TzLocalUnixToUnixUTC(long localUnixTime)
         {
             DateTimeOffset localTime = DateTimeOffset.FromUnixTimeSeconds(localUnixTime);
@@ -452,7 +454,10 @@ namespace PangyaAPI.Utilities
             return 0;
         }
 
-
+        public static string _formatDate(DateTime date)
+        {
+            return FormatDate(date);
+        }
         // Função para formatar hora para string
         public static string FormatTime(DateTime date)
         {
@@ -474,6 +479,15 @@ namespace PangyaAPI.Utilities
             TranslateDateLocal(timeUnix, out date);
             return date.ToString("yyyy-MM-dd HH:mm:ss.fff");
         }
+        public static string formatDateLocal(long timeUnix)
+        {
+            DateTime date;
+            TranslateDateLocal(timeUnix, out date);
+            return date.ToString("yyyy-MM-dd HH:mm:ss.fff");
+        }
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern bool SystemTimeToFileTime(ref SYSTEMTIME lpSystemTime, ref _FILETIME lpFileTime);
+
         // Função para converter System Time para Unix Timestamp
         public static long SystemTimeToUnix(DateTime st)
         {
@@ -484,6 +498,8 @@ namespace PangyaAPI.Utilities
         {
             return SystemTimeToUnix(DateTime.UtcNow);
         }
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern void GetLocalTime(ref SYSTEMTIME lpSystemTime);
 
         public static void GetLocalTime(out DateTime time)
         {
@@ -497,13 +513,37 @@ namespace PangyaAPI.Utilities
 
         public static long GetLocalTimeDiffDESC(DateTime time)
         {
-            return (long)(DateTime.Now - time).TotalMilliseconds;
+            return _GetLocalTimeDiffDESC(time).Ticks;
+        }
+
+        public static TimeSpan _GetLocalTimeDiffDESC(DateTime time)
+        {
+            if (DateTime.Now >= time)
+                return DateTime.Now - time;
+            else
+                return time - DateTime.Now;
         }
 
         public static long GetLocalTimeDiff(DateTime dateTime)
         {
             // Cada Tick = 100 nanosegundos = 0.1 microssegundo
             return DateTime.Now.Ticks - dateTime.Ticks;
+        }
+
+        public static DateTime UnixUTCToTzLocalTime(long timeUnix)
+        {
+            // Converte Unix timestamp para DateTime UTC
+            DateTime utc = DateTimeOffset.FromUnixTimeSeconds(timeUnix).UtcDateTime;
+
+            // Converte UTC para horário local
+            DateTime tzLocal = TimeZoneInfo.ConvertTimeFromUtc(utc, TimeZoneInfo.Local);
+
+            return tzLocal;
+        }
+
+        public static long TzLocalTimeToUnixUTC(DateTime dt)
+        {
+            return new DateTimeOffset(dt).ToUnixTimeSeconds();
         }
 
     }

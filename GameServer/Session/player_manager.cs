@@ -42,8 +42,8 @@ namespace Pangya_GameServer.Session
             {
                 m_indexes = new SortedList<int, uIndexOID>();
 
-                for (var i = 0u; i < m_max_session; ++i)
-                    m_sessions.Add(new Player());
+                for (var i = 0; i < m_max_session; ++i)
+                    m_sessions.Add(i, new Player());
             }
             else
             {
@@ -63,7 +63,7 @@ namespace Pangya_GameServer.Session
         public Player findPlayer(uint? _uid, bool _oid = true)
         {
 
-            foreach (var el in m_sessions)
+            foreach (var el in m_sessions.Values)
             {
                 if ((_oid ? el.getUID() : (uint)el.m_oid) == _uid)
                 {
@@ -78,7 +78,7 @@ namespace Pangya_GameServer.Session
         public Player FindPlayer(uint uid, bool oid)
         {
             Player p = null;
-            foreach (var el in m_sessions)
+            foreach (var el in m_sessions.Values)
             {
                 if (el.m_sock != null && ((!oid) ? el.getUID() : (uint)el.m_oid) == uid)
                 {
@@ -125,7 +125,7 @@ namespace Pangya_GameServer.Session
             bool ret = false;
             if (tmp_oid > -1 && (ret = _session.clear()))
             {
-
+                m_sessions[tmp_oid] = _session;//reseta na lista
                 // Libera OID
                 freeOID((uint)tmp_oid/*_session.m_oid*/);
 
@@ -140,7 +140,7 @@ namespace Pangya_GameServer.Session
             {
 
                 // !@ WARNING tem que ter o thread safe aqui, pode testar um player, e ele não está online mais
-                    foreach (var s in m_sessions)
+                    foreach (var s in m_sessions.Values)
                 {
 
                     if (s.isCreated())
@@ -244,7 +244,7 @@ namespace Pangya_GameServer.Session
                 {
 
                     // Put Update Item on vector update item of player
-                    if ((_session.m_pi.findUpdateItemByTypeidAndType(el.id, UpdateItem.UI_TYPE.CADDIE).Values) != null)
+                    if ((_session.m_pi.findUpdateItemByTypeidAndType((uint)el.id, UpdateItem.UI_TYPE.CADDIE).Values) != null)
                     {
                         _session.m_pi.mp_ui.Add(new PlayerInfo.stIdentifyKey(el._typeid, el.id), new UpdateItem(UpdateItem.UI_TYPE.CADDIE, el._typeid, el.id));
 
@@ -263,7 +263,7 @@ namespace Pangya_GameServer.Session
                 {
 
                     // Put Update Item on vector update item of player
-                    if (_session.m_pi.findUpdateItemByTypeidAndType(el.id, UpdateItem.UI_TYPE.CADDIE_PARTS) != null)
+                    if (_session.m_pi.findUpdateItemByTypeidAndType((uint)el.id, UpdateItem.UI_TYPE.CADDIE_PARTS) != null)
                     {
 
                         _session.m_pi.mp_ui.Add(new PlayerInfo.stIdentifyKey(el._typeid, el.id), new UpdateItem(UpdateItem.UI_TYPE.CADDIE_PARTS, el._typeid, el.id));
@@ -289,7 +289,7 @@ namespace Pangya_GameServer.Session
                 {
 
                     // Put Update Item on vector update item of player
-                    if (_session.m_pi.findUpdateItemByTypeidAndType(el.Value.id, UpdateItem.UI_TYPE.MASCOT).Count > 0)
+                    if (_session.m_pi.findUpdateItemByTypeidAndType((uint)el.Value.id, UpdateItem.UI_TYPE.MASCOT).Count > 0)
                     {
 
                         _session.m_pi.mp_ui.insert(new PlayerInfo.stIdentifyKey(el.Value._typeid, el.Value.id), new UpdateItem(UpdateItem.UI_TYPE.MASCOT, el.Value._typeid, el.Value.id));
@@ -331,7 +331,7 @@ namespace Pangya_GameServer.Session
                     {
 
                         // Put Update Item on vector update item of player
-                        if (_session.m_pi.findUpdateItemByTypeidAndType(el.Value.id, UpdateItem.UI_TYPE.WAREHOUSE).Count > 0)
+                        if (_session.m_pi.findUpdateItemByTypeidAndType((uint)el.Value.id, UpdateItem.UI_TYPE.WAREHOUSE).Count > 0)
                         {
 
                             _session.m_pi.mp_ui.insert(new PlayerInfo.stIdentifyKey(el.Value._typeid, el.Value.id), new UpdateItem(UpdateItem.UI_TYPE.WAREHOUSE, el.Value._typeid, el.Value.id));

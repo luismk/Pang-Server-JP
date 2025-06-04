@@ -297,10 +297,10 @@ namespace Pangya_GameServer.Game.Manager
 
                 switch (m_ri.getTipo())
                 {
-                    case RoomInfo.TIPO.TOURNEY:
-                        m_pGame = new Tourney(v_sessions,
-                            m_ri, rv, m_ri.channel_rookie);
-                        break;
+                    //case RoomInfo.TIPO.TOURNEY:
+                    //    m_pGame = new Tourney(v_sessions,
+                    //        m_ri, rv, m_ri.channel_rookie);
+                    //    break;
                     default:
                         throw new exception("[RoomBotGMEvent::startGame][Error] Server tentou comecar o jogo na sala[NUMERO=" + Convert.ToString(m_ri.numero) + ", MASTER=" + Convert.ToString(m_ri.master) + "], mas o tipo da sala nao eh Tourney. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.ROOM_BOT_GM_EVENT,
                             9, 0x5900202));
@@ -444,11 +444,7 @@ namespace Pangya_GameServer.Game.Manager
                 message_pool.push(new message($"[RoomBotGMEvent::waitTimeStart][ErrorSystem] {ex.Message}\n{ex.StackTrace}", type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
 
-#if DEBUG
             message_pool.push(new message("[RoomBotGMEvent::waitTimeStart][Log] Saindo de waitTimeStart()...", type_msg.CL_FILE_LOG_AND_CONSOLE));
-#else
-     message_pool.push(new message("[RoomBotGMEvent::waitTimeStart][Log] Saindo de waitTimeStart()...");
-#endif
         }
 
         public int _count_down_time(object _arg1, object _arg2)
@@ -700,7 +696,7 @@ namespace Pangya_GameServer.Game.Manager
                 if (m_pGame.getSessions().empty() || m_rewards.empty())
                 {
 
-                    finish_game();
+                    base.finish_game();
 
                     return;
                 }
@@ -776,7 +772,7 @@ namespace Pangya_GameServer.Game.Manager
                             bi.time = (short)(ushort)el_r.qntd_time;
 
                             item_manager.initItemFromBuyItem(p.m_pi,
-                                ref item, bi, false, 0, 0,
+                                item, bi, false, 0, 0,
                                 1);
 
                             if (item._typeid == 0)
@@ -849,7 +845,7 @@ namespace Pangya_GameServer.Game.Manager
             }
 
         }
-        public virtual bool isDropRoom()
+        protected override bool isDropRoom()
         {
             return false; // Não drop(destroy) a sala
         }

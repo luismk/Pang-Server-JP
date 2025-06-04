@@ -16,6 +16,12 @@ namespace PangyaAPI.SQL
             _db.connect();
         }
 
+        public Pangya_DB(bool wait = false)
+        {
+            _db = new mssql();
+            _db.connect();
+        }
+
 
         public virtual void exec()
         {
@@ -78,7 +84,7 @@ namespace PangyaAPI.SQL
             if (r == null || (r.getNumResultSet() <= 0 && r.getRowsAffected() == -1))
                 throw new exception("[Pangya_DB::" + _getName + "::checkResponse][Error] " + _exception_msg, ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PANGYA_DB, 0, 0));
         }
-
+        public uint STDA_MAKE_ERROR(STDA_ERROR_TYPE code, uint err_code, uint _err_sys) => ExceptionError.STDA_MAKE_ERROR_TYPE(code, err_code, _err_sys);
         protected abstract void lineResult(ctx_res _result, uint _index_result);
         protected abstract response prepareConsulta();
 

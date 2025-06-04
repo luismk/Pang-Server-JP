@@ -2,6 +2,7 @@
 using PangyaAPI.Network.Pangya_St;
 using PangyaAPI.SQL;
 using PangyaAPI.Utilities;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Pangya_GameServer.Cmd
 {
@@ -52,15 +53,15 @@ namespace Pangya_GameServer.Cmd
             }
 
             // Verifiy  and Encode Characters of not display of Encode Standard of C
-            var m0 = (m_cmu.macro[0]);
-            var m1 = (m_cmu.macro[1]);
-            var m2 = (m_cmu.macro[2]);
-            var m3 = (m_cmu.macro[3]);
-            var m4 = (m_cmu.macro[4]);
-            var m5 = (m_cmu.macro[5]);
-            var m6 = (m_cmu.macro[6]);
-            var m7 = (m_cmu.macro[7]);
-            var m8 = (m_cmu.macro[8]);
+            var m0 = (m_cmu.macro[0]).text;
+            var m1 = (m_cmu.macro[1]).text;
+            var m2 = (m_cmu.macro[2]).text;
+            var m3 = (m_cmu.macro[3]).text;
+            var m4 = (m_cmu.macro[4]).text;
+            var m5 = (m_cmu.macro[5]).text;
+            var m6 = (m_cmu.macro[6]).text;
+            var m7 = (m_cmu.macro[7]).text;
+            var m8 = (m_cmu.macro[8]).text;
 
             var r = procedure(
                 m_szConsulta,

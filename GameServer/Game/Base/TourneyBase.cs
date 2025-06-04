@@ -1137,7 +1137,7 @@ namespace Pangya_GameServer.Game.Base
                         if (s.m_pi.ei.char_info.cut_in[i] > 0)
                         {
 
-                            if ((pWi = _session.m_pi.findWarehouseItemById(s.m_pi.ei.char_info.cut_in[i])) != null)
+                            if ((pWi = _session.m_pi.findWarehouseItemById((int)s.m_pi.ei.char_info.cut_in[i])) != null)
                             {
 
                                 if ((pCutin = sIff.getInstance().findCutinInfomation(pWi._typeid)) == null)
@@ -1964,7 +1964,7 @@ namespace Pangya_GameServer.Game.Base
             }
         }
 
-        public void requestSendTimeGame(Player _session)
+        public override void requestSendTimeGame(Player _session)
         {
             //CHECK_SESSION_BEGIN("requestSendTimeGame");
 
@@ -2019,7 +2019,7 @@ namespace Pangya_GameServer.Game.Base
                     _session, 1);
             }
         }
-        public void requestUpdateEnterAfterStartedInfo(Player _session, EnterAfterStartInfo _easi)
+        public override void requestUpdateEnterAfterStartedInfo(Player _session, EnterAfterStartInfo _easi)
         {
             //CHECK_SESSION_BEGIN("requestUpdateEnterAfterStartedInfo");
 
@@ -2641,8 +2641,7 @@ namespace Pangya_GameServer.Game.Base
                 }
 
                 // Calcule Shot Cube
-              //  sCoinCubeLocationUpdateSystem.getInstance().pushOrderToCalcule(CalculeCoinCubeUpdateOrder({ CalculeCoinCubeUpdateOrder.CUBE, _session.m_pi.uid, pgi.location, hole.getPinLocation(), pgi.shot_data_for_cube, (byte)(m_ri.course & 0x7Fu), (byte)(m_ri.modo == RoomInfo.MODO.M_REPEAT ? hole.getHoleRepeat() : hole.getNumero()) }));
-
+                sCoinCubeLocationUpdateSystem.getInstance().pushOrderToCalcule(new CalculeCoinCubeUpdateOrder(CalculeCoinCubeUpdateOrder.eTYPE.CUBE, _session.m_pi.uid, pgi.location, hole.getPinLocation(), pgi.shot_data_for_cube, (byte)(m_ri.getMap()), (byte)(m_ri.modo == (byte)RoomInfo.MODO.M_REPEAT ? hole.getHoleRepeat() : hole.getNumero())));
             }
             catch (exception e)
             {
@@ -2689,7 +2688,7 @@ namespace Pangya_GameServer.Game.Base
                 }
 
                 // Calcule Shot Coin
-                //sCoinCubeLocationUpdateSystem.getInstance().pushOrderToCalcule(CalculeCoinCubeUpdateOrder({ CalculeCoinCubeUpdateOrder.eTYPE.COIN, _session.m_pi.uid, (Location)_ssd.location, hole.getPinLocation(), pgi.shot_data_for_cube, (byte)(m_ri.course & 0x7Fu), (byte)(m_ri.modo == RoomInfo.MODO.M_REPEAT ? hole.getHoleRepeat() : hole.getNumero()) }));
+                sCoinCubeLocationUpdateSystem.getInstance().pushOrderToCalcule(new CalculeCoinCubeUpdateOrder(CalculeCoinCubeUpdateOrder.eTYPE.COIN, _session.m_pi.uid, _ssd.location, hole.getPinLocation(), pgi.shot_data_for_cube, (byte)(m_ri.getMap()), (byte)(m_ri.modo ==(byte) RoomInfo.MODO.M_REPEAT ? hole.getHoleRepeat() : hole.getNumero())));
 
             }
             catch (exception e)

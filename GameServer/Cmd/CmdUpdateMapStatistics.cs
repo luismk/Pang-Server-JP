@@ -11,7 +11,7 @@ namespace Pangya_GameServer.Cmd
             MapStatisticsEx _ms,
             byte _assist)
         {
-            // C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+            
             this.m_uid = _uid;
             //this.
             this.m_assist = _assist;
@@ -25,7 +25,7 @@ namespace Pangya_GameServer.Cmd
 
         public void setUID(uint _uid)
         {
-            // C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+            
             m_uid = _uid;
 
         }
@@ -47,7 +47,7 @@ namespace Pangya_GameServer.Cmd
 
         public void setInfo(MapStatisticsEx _ms)
         {
-            // C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+            
             m_ms = _ms;
         }
 

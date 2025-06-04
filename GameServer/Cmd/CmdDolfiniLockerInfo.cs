@@ -44,7 +44,7 @@ namespace Pangya_GameServer.Cmd
 
                     DolfiniLockerItem dli = new DolfiniLockerItem();
 
-                    dli.item.id = IFNULL<uint>(_result.data[0]);
+                    dli.item.id = IFNULL<int>(_result.data[0]);
                     uid_req = IFNULL<uint>(_result.data[1]);
                     dli.item._typeid = IFNULL<uint>(_result.data[2]);
                     if (is_valid_c_string(_result.data[3]))

@@ -41,7 +41,7 @@
 //			public CmdUpdateLastPlayerGame(uint _uid,
 //				Last5PlayersGame _l5pg)
 //				{
-//// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+//
 // this.m_uid = _uid;
 //				//this.
 //				this.m_l5pg = new Last5PlayersGame(_l5pg);
@@ -58,7 +58,7 @@
 
 //			public void setUID(uint _uid)
 //			{
-//// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+//
 // m_uid = _uid;
 
 //			}
@@ -72,7 +72,7 @@
 
 //			public void setInfo(Last5PlayersGame _l5pg)
 //			{
-//// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+//
 // m_l5pg = _l5pg;
 //				m_l5pg.CopyFrom(_l5pg);
 //			}

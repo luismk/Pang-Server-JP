@@ -51,11 +51,11 @@ namespace Pangya_GameServer.Cmd
                 WarehouseItemEx wi = new WarehouseItemEx();
                 var i = 0;
 
-                wi.id = _result.GetUInt32(0);
+                wi.id = _result.GetInt32(0);
                 wi._typeid = _result.GetUInt32(2);
                 wi.ano = _result.GetInt32(3);
                 for (i = 0; i < 5; i++)
-                    wi.c[i] = _result.GetInt16(4 + i);            // 4 + 5
+                    wi.c[i] = _result.GetUInt16(4 + i);            // 4 + 5
                 wi.purchase = _result.GetByte(9);
                 wi.flag = _result.GetSByte(11);
 
@@ -103,7 +103,7 @@ namespace Pangya_GameServer.Cmd
                 }
                 wi.ucc.copier = IFNULL(_result.data[41]);
                 wi.ucc.trade = (sbyte)IFNULL(_result.data[42]);
-                wi.ucc.status = (sbyte)IFNULL(_result.data[44]);
+                wi.ucc.status = (byte)IFNULL(_result.data[44]);
 
                 var it = v_wi.GetValues(wi.id);
 

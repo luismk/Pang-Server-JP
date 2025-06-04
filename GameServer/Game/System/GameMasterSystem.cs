@@ -192,7 +192,7 @@ namespace Pangya_GameServer.Game.System
 
                         }
                         break;
-                    case COMMON_CMD_GM.CCG_GIVE_ITEM:
+                    case COMMON_CMD_GM.CCG_GIVEITEM:
                         {
                             if (!(_session.m_pi.m_cap.game_master/* & 4*/))
                                 throw new exception("[GameMasterSystem.requestCommonCmdGM][GIVE_ITEM][Error] player[UID=" + (_session.m_pi.uid) + "] nao eh GM mas tentou executar comando GM. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.GAME_SERVER, 1, 0x5700100));
@@ -232,7 +232,7 @@ namespace Pangya_GameServer.Game.System
                                 qntd = item_qntd
                             };
 
-                            item_manager.initItemFromBuyItem(s.m_pi, ref item, bi, false, 0, 0, 1/*~nao Check Level*/);
+                            item_manager.initItemFromBuyItem(s.m_pi, item, bi, false, 0, 0, 1/*~nao Check Level*/);
 
                             if (item._typeid == 0)
                                 throw new exception("[GameMasterSystem.requestCommonCmdGM][GIVE_ITEM][ErrorSystem] player[UID=" + (_session.m_pi.uid) + "] tentou enviar presente para o player[UID="

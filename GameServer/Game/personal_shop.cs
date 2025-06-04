@@ -1,57 +1,45 @@
-﻿using GameServer.GameType;
-using PangyaAPI.Utilities;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System;
-using GameServer.Session;
-using PangyaAPI.Utilities.BinaryModels;
-using GameServer.PacketFunc;
-using System.Runtime.InteropServices;
 using System.Threading;
-
-namespace GameServer.Game
+using Pangya_GameServer.GameType;
+using Pangya_GameServer.PacketFunc;
+using Pangya_GameServer.Session;
+using PangyaAPI.IFF.JP.Extensions;
+using PangyaAPI.Utilities;
+using PangyaAPI.Utilities.BinaryModels;
+using static Pangya_GameServer.GameType._Define;
+namespace Pangya_GameServer.Game
 {
     public class PersonalShop
     {
-        int LIMIT_VISIT_ON_SAME_TIME = 15;
-        // Card limit price
-        uint CARD_NORMAL_LIMIT_PRICE = 200000u;
-        uint CARD_RARE_LIMIT_PRICE = 400000u;
-        uint CARD_SUPER_RARE_LIMIT_PRICE = 1000000u;
-        uint CARD_SECRET_LIMIT_PRICE = 2000000u;
-
-        // Shop min and max price item
-        uint ITEM_MIN_PRICE = 1u;
-        uint ITEM_MAX_PRICE = 9999999u;
+      
         public enum STATE : uint
         {
             OPEN_EDIT,
             OPEN
         }
 
-        public partial class Locker
+        public class Locker
         {
             public Locker(PersonalShop _shop)
             {
-                this.m_shop = _shop;
-                m_shop._lock();
+                this.m_shop = _shop; 
             }
-
-            public void Dispose()
-            {
-                m_shop._unlock();
-            }
-
+             
             protected PersonalShop m_shop;
         }
 
         public PersonalShop(Player _session)
         {
-            this.m_owner = _session;
-            this.m_name = "";
-            this.m_visit_count = 0u;
-            this.m_pang_sale = 0Ul;
-            this.m_state = STATE.OPEN_EDIT;
+            lock (_lockObj)
+            { 
+                this.m_owner = _session;
+                this.m_name = "";
+                this.m_visit_count = 0u;
+                this.m_pang_sale = 0Ul;
+                this.m_state = STATE.OPEN_EDIT;
+            }
         }
 
         ~PersonalShop()
@@ -62,67 +50,52 @@ namespace GameServer.Game
 
         // Gets
         public string getName()
-        {
-
-            Locker _locker = new Locker(this);
-
+        { 
             return m_name;
         }
 
         public uint getVisitCount()
-        {
-
-            Locker _locker = new Locker(this);
-
+        { 
             return m_visit_count;
         }
 
         public ulong getPangSale()
-        {
-
-            Locker _locker = new Locker(this);
-
+        { 
             return m_pang_sale;
         }
 
         public Player getOwner()
         {
-
-            Locker _locker = new Locker(this);
-
-            return m_owner;
+            lock (_lockObj)
+            {
+                return m_owner;
+            }
         }
 
         public STATE getState()
         {
-
-            Locker _locker = new Locker(this);
-
-            return m_state;
+            lock (_lockObj)
+            {
+                return m_state;
+            }
         }
 
         public uint getCountItem()
         {
-
-            Locker _locker = new Locker(this);
-
-            return (uint)v_item.Count();
+            lock (_lockObj)
+            { 
+                return (uint)v_item.Count();
+            }
         }
 
         public List<Player> getClients()
-        {
-
-            Locker _locker = new Locker(this);
-
+        { 
             return v_open_shop_visit;
         }
 
         // Sets
         public void setName(string _name)
-        {
-
-            Locker _locker = new Locker(this);
-
+        { 
             if (_name.Length == 0)
             {
                 throw new exception("[PersonalShop::setName][Error] _name is empty", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PERSONAL_SHOP,
@@ -133,18 +106,12 @@ namespace GameServer.Game
         }
 
         public void setState(STATE _state)
-        {
-
-            Locker _locker = new Locker(this);
-
+        { 
             m_state = _state;
         }
 
         public void clearItem()
-        {
-
-            Locker _locker = new Locker(this);
-
+        { 
             if (v_item.Any())
             {
                 v_item.Clear();
@@ -152,10 +119,7 @@ namespace GameServer.Game
         }
 
         public void pushItem(PersonalShopItem _psi)
-        {
-
-            Locker _locker = new Locker(this);
-
+        { 
             // Verifica aqui se esse item por ser colocar no shop
 
             if (_psi.item._typeid == 0)
@@ -228,7 +192,7 @@ namespace GameServer.Game
                         break;
                     default: // Unknown Type
                         throw new exception("[PersonalShop::pushItem][Error] player[UID=" + Convert.ToString(m_owner.m_pi.uid) + "] tentou colocar um card[TYPEID=" + Convert.ToString(_psi.item._typeid) + ", TYPE=" + Convert.ToString((ushort)card.Rarity) + "] que o tipo eh desconhecido. (N,R,SR e SC) Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.PERSONAL_SHOP, 22, 0));
-                 }
+                }
             }
 
             v_item.Add(_psi);
@@ -237,7 +201,7 @@ namespace GameServer.Game
         public void deleteItem(PersonalShopItem _psi)
         {
 
-            Locker _locker = new Locker(this);
+           // Locker _locker = new Locker(this);
 
             var item = findItemIndexById((int)_psi.item.id);
 
@@ -262,7 +226,7 @@ namespace GameServer.Game
         public void putItemOnPacket(PangyaBinaryWriter _p)
         {
 
-            Locker _locker = new Locker(this);
+           // Locker _locker = new Locker(this);
 
             if (v_item.Count() == 0)
             {
@@ -274,7 +238,7 @@ namespace GameServer.Game
 
             for (var i = 0; i < v_item.Count(); ++i)
             {
-                _p.WriteBytes(v_item[i].Build());
+                _p.WriteBytes(v_item[i].ToArray());
             }
         }
 
@@ -288,7 +252,7 @@ namespace GameServer.Game
                     3, 0));
             }
 
-            Locker _locker = new Locker(this);
+           // Locker _locker = new Locker(this);
 
             PersonalShopItem psi = null;
 
@@ -307,7 +271,7 @@ namespace GameServer.Game
         public PersonalShopItem findItemByIndex(uint _index)
         {
 
-            Locker _locker = new Locker(this);
+           // Locker _locker = new Locker(this);
 
             PersonalShopItem psi = null;
 
@@ -326,7 +290,7 @@ namespace GameServer.Game
         public int findItemIndexById(int _id)
         {
 
-            Locker _locker = new Locker(this);
+           // Locker _locker = new Locker(this);
 
             int index = -1;
 
@@ -345,7 +309,7 @@ namespace GameServer.Game
         public Player findClientByUID(uint _uid)
         {
 
-            Locker _locker = new Locker(this);
+           // Locker _locker = new Locker(this);
 
             Player client = null;
 
@@ -364,7 +328,7 @@ namespace GameServer.Game
         public int findClientIndexByUID(uint _uid)
         {
 
-            Locker _locker = new Locker(this);
+           // Locker _locker = new Locker(this);
 
             int index = -1;
 
@@ -384,7 +348,7 @@ namespace GameServer.Game
         public void addClient(Player _session)
         {
 
-            Locker _locker = new Locker(this);
+           // Locker _locker = new Locker(this);
 
             if (m_state != STATE.OPEN)
             {
@@ -415,7 +379,7 @@ namespace GameServer.Game
         public void deleteClient(Player _session)
         {
 
-            Locker _locker = new Locker(this);
+           // Locker _locker = new Locker(this);
 
             var client = findClientIndexByUID(_session.m_pi.uid);
 
@@ -445,7 +409,7 @@ namespace GameServer.Game
         public void buyItem(Player _session, PersonalShopItem _psi)
         {
 
-            Locker _locker = new Locker(this);
+           // Locker _locker = new Locker(this);
 
             if (m_state != STATE.OPEN)
             {
@@ -540,13 +504,13 @@ namespace GameServer.Game
             //    m_pang_sale += pang;
 
             //    // Att no Jogo
-            //    PangyaBinaryWriter p = new PangyaBinaryWriter();
+            //    packet p = new packet();
 
             //    // Card
             //    if (sIff.getInstance().getItemGroupIdentify(_psi.item._typeid) == sIff.getInstance().CARD)
             //    {
 
-                   
+
             //        var ci_r = (CardInfo)(pWi);
 
             //        // Tira de quem vendeu
@@ -597,7 +561,7 @@ namespace GameServer.Game
             //    else
             //    { // WarehouseItem
 
-                   
+
             //        var wi_r = (WarehouseItemEx)(pWi);
 
             //        // Tira de quem vendeu
@@ -673,25 +637,11 @@ namespace GameServer.Game
             //        19, 0));
             //}
         }
-
-        protected void _lock()
-        {
-            Monitor.Enter(_lockObj);
-        }
-
-        protected void _unlock()
-        {
-            if (Monitor.IsEntered(_lockObj))
-            {
-                Monitor.Exit(_lockObj);
-            }
-        }
-
-
+         
         private void destroy()
         {
 
-            Locker _locker = new Locker(this);
+           // Locker _locker = new Locker(this);
 
             if (v_open_shop_visit.Any())
             {
@@ -709,7 +659,7 @@ namespace GameServer.Game
                     20, 0));
             }
 
-            Locker _locker = new Locker(this);
+           // Locker _locker = new Locker(this);
 
             var clients = v_open_shop_visit;
 
@@ -734,7 +684,7 @@ namespace GameServer.Game
                     20, 0));
             }
 
-            Locker _locker = new Locker(this);
+           // Locker _locker = new Locker(this);
 
             var clients = v_open_shop_visit;
 

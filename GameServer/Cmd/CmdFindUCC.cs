@@ -5,21 +5,21 @@ using PangyaAPI.Utilities;
 
 namespace Pangya_GameServer.Cmd
 {
-    internal class CmdFindUCC : Pangya_DB
+    public class CmdFindUCC : Pangya_DB
     {
-        public CmdFindUCC(uint _id)
+        public CmdFindUCC(int _id)
         {
             this.m_id = _id;
             this.m_wi = new WarehouseItemEx();
         }
 
 
-        public uint getId()
+        public int getId()
         {
             return m_id;
         }
 
-        public void setId(uint _id)
+        public void setId(int _id)
         {
             m_id = _id;
         }
@@ -34,7 +34,7 @@ namespace Pangya_GameServer.Cmd
 
             checkColumnNumber(45);
 
-            m_wi.id = IFNULL(_result.data[0]);
+            m_wi.id = IFNULL<int>(_result.data[0]);
 
             if (m_wi.id > 0)
             { // found
@@ -44,7 +44,7 @@ namespace Pangya_GameServer.Cmd
                 m_wi.ano = IFNULL<int>(_result.data[3]);
                 for (i = 0; i < 5; i++)
                 {
-                    m_wi.c[i] = (short)IFNULL(_result.data[4 + i]); // 4 + 5
+                    m_wi.c[i] = (ushort)IFNULL(_result.data[4 + i]); // 4 + 5
                 }
                 m_wi.purchase = (byte)IFNULL(_result.data[9]);
                 m_wi.flag = (sbyte)IFNULL(_result.data[11]);
@@ -101,7 +101,7 @@ namespace Pangya_GameServer.Cmd
                 }
                 m_wi.ucc.copier = IFNULL(_result.data[41]);
                 m_wi.ucc.trade = (sbyte)IFNULL(_result.data[42]);
-                m_wi.ucc.status = (sbyte)IFNULL(_result.data[44]);
+                m_wi.ucc.status = (byte)IFNULL(_result.data[44]);
             }
         }
 
@@ -125,7 +125,7 @@ namespace Pangya_GameServer.Cmd
             return r;
         }
 
-        private uint m_id = new uint();
+        private int m_id = new int();
         private WarehouseItemEx m_wi = new WarehouseItemEx();
 
         private const string m_szConsulta = "pangya.ProcFindUCC";

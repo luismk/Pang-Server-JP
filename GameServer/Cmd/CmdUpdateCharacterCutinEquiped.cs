@@ -9,10 +9,10 @@ namespace Pangya_GameServer.Cmd
         public CmdUpdateCharacterCutinEquiped(uint _uid,
             CharacterInfo _ci)
         {
-            // C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+            
             this.m_uid = _uid;
             //this.
-            // C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+            
             this.m_ci = _ci;
         }
 
@@ -27,7 +27,7 @@ namespace Pangya_GameServer.Cmd
 
         public void setUID(uint _uid)
         {
-            // C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+            
             m_uid = _uid;
 
         }
@@ -39,7 +39,7 @@ namespace Pangya_GameServer.Cmd
 
         public void setInfo(CharacterInfo _ci)
         {
-            // C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+            
             m_ci = _ci;
         }
 

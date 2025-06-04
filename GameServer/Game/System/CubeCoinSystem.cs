@@ -9,6 +9,7 @@ using Pangya_GameServer.Cmd;
 using Pangya_GameServer.Game.Utils;
 using Pangya_GameServer.GameType;
 using PangyaAPI.IFF.JP.Extensions;
+using PangyaAPI.Network.PangyaPacket;
 using PangyaAPI.SQL.Manager;
 using PangyaAPI.Utilities;
 using PangyaAPI.Utilities.Log;
@@ -291,9 +292,16 @@ namespace Pangya_GameServer.Game.System
                     var hole = new Hole((byte)i, cbih.m_all_cube, cbih.m_all_coin_and_cube);
                     hole.v_cube.AddRange(getAllCoinCubeHole((byte)i));
                     m_hole.TryAdd((byte)i, hole);
+
+                //foreach (var itt in m_hole[(byte)i].v_cube)
+                //{
+                //        var log = "[CubeCoinSystem::CourseCtx::initialize][Log] INSERT INTO pangya.pangya_coin_cube([COURSE], [HOLE], [TIPO], [TIPO_LOCATION], [X], [Y], [Z]) VALUES("
+                //        + (course_id) + ", " + i + ", " + (itt.tipo) + ", " + (itt.flag_location) + ", "
+                //        + (itt.location.x) + ", " + (itt.location.y) + ", " + (itt.location.z) + ")";
+                //         message_pool.push(new message(log));
+                //    }
                 });
             }
-
             protected List<CubeEx> getAllCoinCubeHole(byte _hole_number)
             {
 

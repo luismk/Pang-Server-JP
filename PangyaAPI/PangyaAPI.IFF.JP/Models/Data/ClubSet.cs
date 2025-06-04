@@ -13,6 +13,7 @@ namespace PangyaAPI.IFF.JP.Models.Data
         {
             Stats = new IFFStats();
             SlotStats = new IFFSlotStats();
+            work_shop = new WorkShop();
         }
 
         public ClubSet(ref PangyaBinaryReader read, uint strLen)
@@ -26,12 +27,8 @@ namespace PangyaAPI.IFF.JP.Models.Data
             Clubs = reader.Read<SubClubs>();
             Stats = reader.Read<IFFStats>();
             SlotStats = reader.Read<IFFSlotStats>();
-            ClubType = reader.ReadUInt32();
-            rank_s_stat = reader.ReadUInt32();
-            total_recovery = reader.ReadUInt32();
-            Rate = reader.ReadSingle();
-            Rank_WorkShop = reader.ReadUInt32();
-            flag_transformar = reader.ReadUInt16();
+            work_shop = reader.Read<WorkShop>();
+
             ulUnknown = reader.ReadUInt32();
             text_pangya = reader.ReadUInt32();
         }
@@ -51,13 +48,19 @@ namespace PangyaAPI.IFF.JP.Models.Data
 
         [field: MarshalAs(UnmanagedType.Struct)]
         public IFFSlotStats SlotStats { get; set; }
-        public uint ClubType { get; set; }
-        public uint rank_s_stat { get; set; }
-        public uint total_recovery { get; set; }
-        public float Rate { get; set; }
-        public uint Rank_WorkShop { get; set; }
-        public uint flag_transformar { get; set; }
-        public uint ulUnknown { get; set; }
+        [StructLayout(LayoutKind.Sequential, Pack = 4)]
+        public class WorkShop
+        {
+            public int tipo;                           // -1 não pode up rank e nem level, 0 pode tudo
+            public uint rank_s_stat;           // para o stat do rank S bonus
+            public uint total_recovery;        // recovery points
+            public float rate;                         // Rate que vai pegar por hole jogados
+            public uint tipo_rank_s;           // power, spin, control end special para EXP
+            public uint flag_transformar;      // Que pode Transformar nas taqueiras especiais, pode ser short e aqui em baixo ter outra flag
+        }
+        [field: MarshalAs(UnmanagedType.Struct)]
+        public WorkShop work_shop;
+        public uint ulUnknown;     // Pode ser do WorkShop, mas ainda não sei 
         public uint text_pangya { get; set; }
     }
     #endregion

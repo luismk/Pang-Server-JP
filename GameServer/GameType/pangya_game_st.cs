@@ -12,6 +12,7 @@ using System.Text;
 using System.Threading;
 using System.Timers;
 using Pangya_GameServer.PangyaEnums;
+using Pangya_GameServer.UTIL;
 using PangyaAPI.IFF.JP.Extensions;
 using PangyaAPI.Network.Pangya_St;
 using PangyaAPI.Network.PangyaPacket;
@@ -253,16 +254,11 @@ namespace Pangya_GameServer.GameType
         public const uint SSC_TICKET = 0x1A0000F7;
         // Motion Item da Treasure Hunter Point Também
         public static readonly uint[] motion_item = { 0x08026800, 0x08026801, 0x08026802, 0x08064800, 0x08064801, 0x08064802, 0x08064803, 0x080A2800, 0x080A2801, 0x080A2802, 0x080E4800, 0x080E4801, 0x080E4802, 0x08122800, 0x08122801, 0x08122802, 0x0816E801, 0x0816E802, 0x0816E803, 0x0816E805, 0x816E806, 0x081A4800, 0x081A4801, 0x081EA800, 0x08228800, 0x08228801, 0x08228802, 0x08228803, 0x08268800, 0x082A6800, 0x082E4800, 0x082E4801, 0x08320800, 0x08320801, 0x08320802, 0x083A4800, 0x083A4801, 0x083A4802 };
-        public static int LAST_ELEMENT_IN_ARRAY<T>(T[] _element_arr)
-        {
-            return _element_arr.Length;
-        }
-
-        public static T N_ELEMENT_IN_ARRAY<T>(T[] _element_arr, int _n)
-        {
-            return (_n >= _element_arr.Length) ? _element_arr[0] : _element_arr[_n];
-        }
-
+        public const float ALTURA_MIN_TO_CUBE_SPAWN = 60.0f; // 60 (SCALE_PANGYA)
+        public const uint LIMIT_LOCATION_COIN_CUBE_PER_HOLE_PAR_3 = 30;
+        public const uint LIMIT_LOCATION_COIN_CUBE_PER_HOLE_PAR_4 = 100;
+        public const uint LIMIT_LOCATION_COIN_CUBE_PER_HOLE_PAR_5 = 150;
+        public const uint UPDATE_TIME_INTERVAL_HOUR = 24u;
         public const string BOT_GM_EVENT_NAME = "Bot GM Event";//title room gm bot
         public const string MESSAGE_BOT_GM_EVENT_START_PART1 = @"Bot GM Event comecou, sala criada no canal """;
         public const string MESSAGE_BOT_GM_EVENT_START_PART2 = @""", o jogo comeca em ";
@@ -312,6 +308,53 @@ namespace Pangya_GameServer.GameType
             return 1UL << Convert.ToInt32(value);
         }
 
+        public static eTYPE_DISTANCE calculeTypeDistance(float distance)
+        {
+            eTYPE_DISTANCE type = eTYPE_DISTANCE.BIGGER_OR_EQUAL_58;
+
+            if (distance >= 58f)
+                return eTYPE_DISTANCE.BIGGER_OR_EQUAL_58;
+            else if (distance < 10f)
+                return eTYPE_DISTANCE.LESS_10;
+            else if (distance < 15f)
+                return eTYPE_DISTANCE.LESS_15;
+            else if (distance < 28f)
+                return eTYPE_DISTANCE.LESS_28;
+            else if (distance < 58f)
+                return eTYPE_DISTANCE.LESS_58;
+
+            return type;
+        }
+
+        public static eTYPE_DISTANCE calculeTypeDistanceByPosition(Vector3D vec1, Vector3D vec2)
+        {
+            return calculeTypeDistance(vec1.distanceXZTo(vec2) * DIVIDE_SCALE_PANGYA);
+        }
+
+        public static float getPowerShotFactory(byte ps)
+        {
+            float powerShotFactory = 0f;
+
+            switch ((ePOWER_SHOT_FACTORY)ps)
+            {
+                case ePOWER_SHOT_FACTORY.ONE_POWER_SHOT:
+                    powerShotFactory = 10f;
+                    break;
+                case ePOWER_SHOT_FACTORY.TWO_POWER_SHOT:
+                    powerShotFactory = 20f;
+                    break;
+                case ePOWER_SHOT_FACTORY.ITEM_15_POWER_SHOT:
+                    powerShotFactory = 15f;
+                    break;
+            }
+
+            return powerShotFactory;
+        }
+
+        public static float getPowerByDegreeAndSpin(float degree, float spin)
+        {
+            return (float)(0.5f + (0.5f * (degree + (spin * POWER_SPIN_PW_FACTORY))) / ((56f / 180f) * PI));
+        }
     }
 
     //---------------------Broadcast Types---------------------//
@@ -495,8 +538,7 @@ namespace Pangya_GameServer.GameType
             guild_name_bytes = new byte[17];
             guild_mark_img_bytes = new byte[12];
             ucUnknown35 = new byte[35];
-            nick_NT_bytes = new byte[22];
-            ucUnknown106 = new byte[106];
+            nick_NT_bytes = new byte[128];
             capability = new uCapability();
             state_flag = new uMemberInfoStateFlag();
             papel_shop = new PlayerPapelShopInfo();
@@ -551,15 +593,13 @@ namespace Pangya_GameServer.GameType
         public uint point_point_event;         // S4 TH
         public ulong flag_block;                // S4 TH é 32 bytes é time_block, mas no Fresh UP JP o flag block do pacote principal é de 64, então não tem mais o time block
         public uint channeling_flag;			// S4 TH
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 22)]
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 128)]
         private byte[] nick_NT_bytes;
         public string nick_NT
         {
             get => nick_NT_bytes.GetString();
             set => nick_NT_bytes.SetString(value);
         }
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 106)]
-        public byte[] ucUnknown106;
 
         /// <summary>
         /// Size = 297 bytes
@@ -568,11 +608,11 @@ namespace Pangya_GameServer.GameType
         public byte[] ToArray()
         {
             using (var p = new PangyaBinaryWriter())
-            { 
+            {
                 p.WriteStr(id, 22);
                 p.WriteStr(nick_name, 22);
                 p.WriteStr(guild_name, 17);
-                p.WriteStr(guild_mark_img, 12); 
+                p.WriteStr(guild_mark_img, 12);
                 p.WriteBytes(ucUnknown35, 35);      // ainda não sei direito o que tem aqui	, talvez seja o nome da escola!]
                 p.WriteUInt32(school);          // ainda não o que é aqui direito
                 p.WriteInt32(capability.ulCapability);
@@ -583,19 +623,16 @@ namespace Pangya_GameServer.GameType
                 p.WriteUInt32(guild_mark_img_no);   // só tem no JP
                 p.Write(state_flag.ucByte);
                 p.WriteUInt16(flag_login_time);     // 1 é primeira vez que logou, 2 já não é mais a primeira vez que fez login no server
-                p.WriteBytes(papel_shop.ToArray()); 
+                p.WriteBytes(papel_shop.ToArray());
                 p.WriteUInt32(point_point_event);         // S4 TH
                 p.WriteUInt64(flag_block);              // S4 TH é 32 bytes é time_block, mas no Fresh UP JP o flag block do pacote principal é de 64, então não tem mais o time block
                 p.WriteUInt32(channeling_flag);         // S4 TH
-                p.WriteStr(nick_NT, 22);             // S4 TH
-                p.WriteBytes(ucUnknown106, 105);                // S4 TH  
-
+                p.WriteStr(nick_NT, 128);             // S4 TH 
                 Debug.Assert(!(p.GetSize != 297), "MemberInfo::Build() is Error");
                 return p.GetBytes;
             }
         }
     }
-
     // MemberInfoEx extendido tem o m_uid, limite papel shop e tutorial,
     // so os que nao manda para o pangya no pacote MemberInfo
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
@@ -636,11 +673,19 @@ namespace Pangya_GameServer.GameType
                 _ulCapability = value;
             }
         }
-
+        public bool PLAYER //normal
+        {
+            get => (ulCapability == 0); // 0x01
+            set
+            {
+                if (value) _ulCapability = 0; // Ativar o bit
+                else _ulCapability &= ~0; // Desativar o bit
+            }
+        }
         // Flags de bit diretamente nos setters
         public bool A_I_MODE
         {
-            get => (ulCapability & (uint)CapabilityFlags.A_I_MODE) != 0; // 0x01
+            get => (ulCapability & (uint)CapabilityFlags.COMPUTER) != 0; // 0x01
             set
             {
                 if (value) _ulCapability |= 1; // Ativar o bit
@@ -690,13 +735,13 @@ namespace Pangya_GameServer.GameType
 
 
 
-        public bool unknown_1
+        public bool God
         {
-            get => (_ulCapability & (int)CapabilityFlags.UNKNOWN_1) != 0; // 0x40
+            get => (_ulCapability & (int)CapabilityFlags.GOD) != 0; // 0x40
             set
             {
-                if (value) _ulCapability |= (int)CapabilityFlags.UNKNOWN_1; // Ativar o bit
-                else _ulCapability &= ~(int)CapabilityFlags.UNKNOWN_1; // Desativar o bit
+                if (value) _ulCapability |= (int)CapabilityFlags.GOD; // Ativar o bit
+                else _ulCapability &= ~(int)CapabilityFlags.GOD; // Desativar o bit
             }
         }
 
@@ -710,7 +755,7 @@ namespace Pangya_GameServer.GameType
             }
         }
 
-        public bool mod_system_event  //pode esta errado
+        public bool mod_system_event
         {
             get => (_ulCapability & 64) != 0; // 0x40
             set
@@ -813,7 +858,7 @@ namespace Pangya_GameServer.GameType
             if (game_master) sb.AppendLine("game_master: True");
             if (gm_edit_site) sb.AppendLine("gm_edit_site: True");
             if (observer) sb.AppendLine("observer: True");
-            if (unknown_1) sb.AppendLine("unknown_1: True");
+            if (God) sb.AppendLine("unknown_1: True");
             if (block_give_item_gm) sb.AppendLine("block_give_item_gm: True");
             if (mod_system_event) sb.AppendLine("mod_system_event: True");
             if (gm_normal) sb.AppendLine("gm_normal: True");
@@ -884,9 +929,9 @@ namespace Pangya_GameServer.GameType
     // Player Papel Shop Info
     [StructLayout(LayoutKind.Sequential, Pack = 1, Size = 6)]
     public class PlayerPapelShopInfo
-    { 
-        public ushort remain_count { get; set; } 
-        public ushort current_count { get; set; } 
+    {
+        public ushort remain_count { get; set; }
+        public ushort current_count { get; set; }
         public ushort limit_count { get; set; }
         public PlayerPapelShopInfo()
         {
@@ -901,10 +946,9 @@ namespace Pangya_GameServer.GameType
             {
                 p.WriteUInt16(remain_count);
                 p.WriteUInt16(current_count);
-                p.WriteUInt16(limit_count);
-				p.WriteZero(16);
+                p.WriteUInt16(limit_count); 
                 return p.GetBytes;
-            }     
+            }
         }
     }
 
@@ -1242,7 +1286,7 @@ namespace Pangya_GameServer.GameType
                 p.WriteInt32(sys_school_serie);           // Sistema antigo do pangya JP que era de Serie de escola, respondia as perguntas se passasse ia pra outra serie é da 1° a 5°
                 p.WriteInt32(game_count_season);
                 p.WriteInt16(_16bit_nao_sei);
-                Debug.Assert(!(p.GetSize != 267), "UserInfo::Build() is Error");
+                Debug.Assert(!(p.GetSize != 265), "UserInfo::Build() is Error");
 
                 return p.GetBytes;
             }
@@ -1508,8 +1552,19 @@ namespace Pangya_GameServer.GameType
         {
             clear();
         }
+        public CounterItemInfo(CounterItemInfo _ul)
+        {
+            this.active = _ul.active;
+            this._typeid = _ul._typeid;
+            this.id = _ul.id;
+            this.value = _ul.value;
+        }
         public void clear()
         {
+            this.active = 0;
+            this._typeid = 0;
+            this.id = 0;
+            this.value = 0;
         }
         public bool isValid()
         {
@@ -1517,7 +1572,7 @@ namespace Pangya_GameServer.GameType
         }
         public byte active;
         public uint _typeid = new uint();
-        public uint id = 0;
+        public int id = 0;
         public uint value = 0;
     }
 
@@ -1533,7 +1588,7 @@ namespace Pangya_GameServer.GameType
         }
         public uint id = 0;
         public uint _typeid = new uint();
-        public uint counter_item_id = 0;
+        public int counter_item_id = 0;
         public uint clear_date_unix = new uint();
     }
     public class AchievementInfo
@@ -1617,7 +1672,7 @@ namespace Pangya_GameServer.GameType
             {
                 if (quest.clear_date_unix == 0)
                 {
-                    var counterItem = FindCounterItemById(quest.counter_item_id);
+                    var counterItem = FindCounterItemById((uint)quest.counter_item_id);
                     if (counterItem != null && counterItem._typeid == typeId)
                     {
                         counterItem.value += value;
@@ -1642,7 +1697,7 @@ namespace Pangya_GameServer.GameType
 
         public byte active;
         public uint _typeid = 0;
-        public uint id = 0;
+        public int id = 0;
         public uint status = 0; // 1 pendente, 2 excluído, 3 ativo, 4 concluído
         public Dictionary<uint, CounterItemInfo> map_counter_item = new Dictionary<uint, CounterItemInfo>();
         public List<QuestStuffInfo> v_qsi = new List<QuestStuffInfo>();
@@ -1829,7 +1884,7 @@ namespace Pangya_GameServer.GameType
         {
             ucUnknown90 = new byte[90];
         }
-         
+
         public byte[] ToArray()
         {
             using (var p = new PangyaBinaryWriter())
@@ -1847,7 +1902,7 @@ namespace Pangya_GameServer.GameType
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public class MyRoomItem
     {
-        public uint id;
+        public int id;
         public uint _typeid;
         public short number;
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
@@ -1858,6 +1913,13 @@ namespace Pangya_GameServer.GameType
             public float z;
             public float r;
 
+            public void SetLoc(PangyaAPI.IFF.JP.Models.Data.Furniture.Location location)
+            {
+                x = location.x;
+                y = location.y;
+                z = location.z;
+                r = location.r; // face
+            }
         }
         public MyRoomItem()
         {
@@ -1942,7 +2004,7 @@ namespace Pangya_GameServer.GameType
     public class TradeItem
     {
         public uint _typeid;
-        public uint id;
+        public int id;
         public uint qntd;
         [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 3)]
         public byte[] ucUnknown3;//[3]
@@ -1991,7 +2053,7 @@ namespace Pangya_GameServer.GameType
             using (var p = new PangyaBinaryWriter())
             {
                 p.WriteUInt32(_typeid);
-                p.WriteUInt32(id);
+                p.WriteInt32(id);
                 p.WriteUInt32(qntd);
                 p.WriteBytes(ucUnknown3, 3);//[3]
                 p.WriteUInt64(pang);
@@ -2038,6 +2100,12 @@ namespace Pangya_GameServer.GameType
             date.clear();
             date_reserve = 0;
         }
+
+        public bool IsUCC()
+        {
+            return type_iff == (byte)PangyaAPI.IFF.JP.Models.Flags.PART_TYPE.UCC_DRAW_ONLY || type_iff == (byte)PangyaAPI.IFF.JP.Models.Flags.PART_TYPE.UCC_COPY_ONLY;
+        }
+
         public int id = new int();
         public uint _typeid = new uint();
 
@@ -2102,6 +2170,11 @@ namespace Pangya_GameServer.GameType
             {
                 clear();
             }
+            public stDate(int index, stDateSys st)
+            {
+                clear();
+                date.sysDate = st.sysDate;
+            }
             public void clear()
             {
                 active = 0;
@@ -2124,7 +2197,7 @@ namespace Pangya_GameServer.GameType
         public ushort date_reserve;
 
         public ushort[] c = new ushort[5];
-        public ushort STDA_C_ITEM_QNTD { get => c[0]; set => c[0] = value; }
+        public ushort STDA_C_ITEM_QNTD { get => c[0]; set => c[0] = value; } //nao tem item é 0xFFFF
         public ushort STDA_C_ITEM_TICKET_REPORT_ID_HIGH { get => c[1]; set => c[1] = value; }
         public ushort STDA_C_ITEM_TICKET_REPORT_ID_LOW { get => c[2]; set => c[2] = value; }
         public ushort STDA_C_ITEM_TIME { get => c[3]; set => c[3] = value; }
@@ -2275,7 +2348,7 @@ namespace Pangya_GameServer.GameType
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public class RemoveDailyQuestUser
     {
-        public uint id;
+        public int id;
         public uint _typeid;
     }
 
@@ -2328,10 +2401,7 @@ namespace Pangya_GameServer.GameType
                 p.WriteInt16(flag_visible_gm);
                 p.WriteUInt32(l_unknown);
                 p.WriteStr(nickNT, 22);             // S4 TH
-                p.WriteBytes(ucUnknown106, 106);                // S4 TH     
-                                                                //if (p.GetSize == 200)
-                                                                //    Debug.AddLine("PlayerCanalInfo Size OKay");
-                Debug.Assert(!(p.GetSize != 200), "PlayerCanalInfo::Build() is error");
+                p.WriteBytes(ucUnknown106, 106);                // S4 TH      
                 return p.GetBytes;
             }
         }
@@ -3256,7 +3326,7 @@ namespace Pangya_GameServer.GameType
             }
         }
 
-        
+
 
         public int guild_1_uid;
         public int guild_2_uid;
@@ -3341,7 +3411,7 @@ namespace Pangya_GameServer.GameType
         public RoomInfoEx()
         {
 
-            base.clear(); 
+            base.clear();
             senha = "";
             hole_repeat = 0;
             fixed_hole = 0;
@@ -3467,7 +3537,7 @@ namespace Pangya_GameServer.GameType
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         public class item
         {
-            public uint id;
+            public int id;
             public uint _typeid;
             public byte flag_time;
             public uint qntd;
@@ -3497,7 +3567,7 @@ namespace Pangya_GameServer.GameType
             {
                 using (var p = new PangyaBinaryWriter())
                 {
-                    p.WriteUInt32(id);
+                    p.WriteInt32(id);
                     p.WriteUInt32(_typeid);
                     p.WriteByte(flag_time);
                     p.WriteUInt32(qntd);
@@ -3512,7 +3582,7 @@ namespace Pangya_GameServer.GameType
                     return p.GetBytes;
                 }
             }
-            public item(uint _id, uint typeid, byte _flag_time, uint _qntd, ushort _tempo_qntd, uint _pang, uint _cookie, uint _gm_id, uint _flag_gift, string _ucc_img_mark, short _type)
+            public item(int _id, uint typeid, byte _flag_time, uint _qntd, ushort _tempo_qntd, uint _pang, uint _cookie, uint _gm_id, uint _flag_gift, string _ucc_img_mark, short _type)
             {
                 id = _id;
                 _typeid = typeid;
@@ -3617,7 +3687,7 @@ namespace Pangya_GameServer.GameType
     {
         public void clear()
         {
-            id = uint.MaxValue;
+            id = -1;
             date = new PangyaTime();
 
             v_players = new List<stPlayerDados>();
@@ -3642,7 +3712,7 @@ namespace Pangya_GameServer.GameType
             public byte premium_user;
             public byte item_boost; // [Bit] 1 = Pang Mastery x2, 2 = Pang Nitro x4, 3 = (ACHO) Exp x2
             public uint level;
-            public byte score;
+            public sbyte score;
             public uMedalWin medalha;
             public byte trofel;
             [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 22)]
@@ -3659,7 +3729,7 @@ namespace Pangya_GameServer.GameType
             public byte ucUnknown_flg;    // Não sei mas sempre peguei o valor 2
             public PangyaTime finish_time;
         }
-        public uint id;
+        public int id;
         public PangyaTime date;
         public List<stPlayerDados> v_players;
     }
@@ -3707,8 +3777,8 @@ namespace Pangya_GameServer.GameType
         }
         public UI_TYPE type;
         public uint _typeid;
-        public uint id;
-        public UpdateItem(UI_TYPE _type, uint typeid, uint _id)
+        public int id;
+        public UpdateItem(UI_TYPE _type, uint typeid, int _id)
         {
             this.type = _type;
             this._typeid = typeid;
@@ -3773,11 +3843,11 @@ namespace Pangya_GameServer.GameType
         }
         [field: MarshalAs(UnmanagedType.U1)]
         public TYPE_CHANGE type;                   // Type Change
-        public uint caddie;                // Caddie ID
+        public int caddie;                // Caddie ID
         public uint ball;                  // Ball Typeid
-        public uint clubset;               // ClubSet ID
-        public uint character;         // Character ID
-        public uint mascot;                // Mascot ID
+        public int clubset;               // ClubSet ID
+        public int character;         // Character ID
+        public int mascot;                // Mascot ID
         [field: MarshalAs(UnmanagedType.Struct)]
         public stItemEffectLounge effect_lounge = new stItemEffectLounge();   // Item effect lounge
     }
@@ -3943,9 +4013,9 @@ namespace Pangya_GameServer.GameType
         }
 
 
-        public uint caddie_id;
-        public uint character_id;
-        public uint clubset_id;
+        public int caddie_id;
+        public int character_id;
+        public int clubset_id;
         public uint ball_typeid;
         [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 10)]
         public uint[] item_slot;//[10];      // 10 Item slot
@@ -3953,7 +4023,7 @@ namespace Pangya_GameServer.GameType
         public uint[] skin_id;//[6];     // 6 skin id, tem o title, frame, stick e etc
         [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 6)]
         public uint[] skin_typeid; // 6 skin typeid, tem o title, frame, stick e etc
-        public uint mascot_id;
+        public int mascot_id;
         [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 2)]
         public uint[] poster;     // Poster, tem 2 o poster A e poster B
         public uint m_title => skin_typeid[5];// Titulo Typeid 
@@ -3966,16 +4036,16 @@ namespace Pangya_GameServer.GameType
         {
             using (var p = new PangyaBinaryWriter())
             {
-                p.WriteUInt32(caddie_id);
-                p.WriteUInt32(character_id);
-                p.WriteUInt32(clubset_id);
+                p.WriteInt32(caddie_id);
+                p.WriteInt32(character_id);
+                p.WriteInt32(clubset_id);
                 p.WriteUInt32(ball_typeid);
 
                 p.WriteUInt32(item_slot);//[10];      // 10 Item slot
                 p.WriteUInt32(skin_id);//[6];     // 6 skin id, tem o title, frame, stick e etc
                 p.WriteUInt32(skin_typeid); // 6 skin typeid, tem o title, frame, stick e etc
 
-                p.WriteUInt32(mascot_id);
+                p.WriteInt32(mascot_id);
                 p.WriteUInt32(poster);     // Poster, tem 2 o poster A e poster B
 
                 Debug.Assert(!(p.GetSize != 116), "UserEquip::Build is Error");
@@ -4002,7 +4072,7 @@ namespace Pangya_GameServer.GameType
             // Player fez record nesse Course
             return (best_score != 127 ? true : false);
         }
-       
+
         public sbyte course;
         public uint tacada;
         public uint putt;
@@ -4064,12 +4134,12 @@ namespace Pangya_GameServer.GameType
         public MapStatisticsEx(uint _ul = 0) : base(_ul)
         {
             tipo = 0;
-        } 
+        }
         public MapStatisticsEx(MapStatisticsEx _cpy)
         {
             CopyFrom(_cpy);
         }
-        public MapStatisticsEx(MapStatistics _cpy) 
+        public MapStatisticsEx(MapStatistics _cpy)
         {
             tipo = 0;
             CopyFrom(_cpy);
@@ -4080,13 +4150,13 @@ namespace Pangya_GameServer.GameType
     // Caddie Info
     public class CaddieInfo
     {
-        public uint id;
+        public int id;
         public uint _typeid;
         public uint parts_typeid;
         public byte level;
         public uint exp;
         public byte rent_flag;
-        public short end_date_unix;
+        public ushort end_date_unix;
         public short parts_end_date_unix;
         public byte purchase;
         public short check_end;
@@ -4109,13 +4179,13 @@ namespace Pangya_GameServer.GameType
 
                 using (var p = new PangyaBinaryWriter())
                 {
-                    p.WriteUInt32(id);
+                    p.WriteInt32(id);
                     p.WriteUInt32(_typeid);
                     p.WriteUInt32(parts_typeid);
                     p.WriteByte(level);
                     p.WriteUInt32(exp);
                     p.WriteByte(rent_flag);
-                    p.WriteInt16(end_date_unix);
+                    p.WriteUInt16(end_date_unix);
                     p.WriteInt16(parts_end_date_unix);
                     p.WriteByte(purchase);
                     p.WriteInt16(check_end);
@@ -4145,39 +4215,53 @@ namespace Pangya_GameServer.GameType
         }
         public void updatePartsEndDate()
         {
-
-            ulong diff_end_parts_date = (ulong)(end_parts_date.IsEmpty ? 0 : UtilTime.GetLocalDateDiffDESC(end_parts_date.ConvertTime()));
-
-            // Não tem mais o parts _typeid acabou o tempo dela
-            if (diff_end_parts_date <= 0)
+            if (end_parts_date.IsEmpty)
             {
-
                 parts_end_date_unix = 0;
-
                 // Zera Parts_Typeid
                 if (parts_typeid > 0)
                 {
-
                     parts_typeid = 0;
 
                     need_update = true;   // Precisa Atulizar para o cliente
                 }
-
+                return;
             }
-            else
-                parts_end_date_unix = (short)((diff_end_parts_date /= _Define.STDA_10_MICRO_PER_HOUR) == 0 ? 1 : (short)diff_end_parts_date);
+            DateTime now = DateTime.Now.Date;  // Só data, sem hora
+            DateTime end = end_parts_date.ConvertTime().Date;
 
+            int diffDays = (end - now).Days;
+            // Não tem mais o parts _typeid acabou o tempo dela
+            if (diffDays <= 0)
+            {
+                // Zera Parts_Typeid
+                if (parts_typeid > 0)
+                { 
+                    parts_typeid = 0;
+
+                    need_update = true;   // Precisa Atulizar para o cliente
+                }
+            }
+            else 
+            parts_end_date_unix = (short)diffDays; 
         }
         public void updateEndDate()
         {
 
-            ulong diff_end_date = (ulong)(end_date.IsEmpty ? 0 : UtilTime.GetLocalDateDiffDESC(end_date.ConvertTime()));
+            if (end_date.IsEmpty)
+            {
+                end_date_unix = 0;
+                return;
+            } 
+            DateTime now = DateTime.Now.Date;  // Só data, sem hora
+            DateTime end = end_date.ConvertTime().Date;
 
-            if (diff_end_date <= 0)
+            int diffDays = (end - now).Days;
+
+            if (diffDays <= 0)
                 end_date_unix = 0;
             else
-                end_date_unix = ((short)((diff_end_date /= _Define.STDA_10_MICRO_PER_DAY) == 0 ? 1/*Less 1 Day, bot not left time*/ : (short)diff_end_date));
-
+                end_date_unix = (ushort)diffDays;
         }
 
         //precisa ser o CaddieInfoEx mesmo, depois modifico
@@ -4303,14 +4387,14 @@ namespace Pangya_GameServer.GameType
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public class ClubSetInfo
     {
-        public uint id;
+        public int id;
         public uint _typeid;
         [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 5)]
-        public short[] slot_c = new short[5];// [5];        // Total de slot para upa do stats, força, controle, spin e etc
+        public ushort[] slot_c = new ushort[5];// [5];        // Total de slot para upa do stats, força, controle, spin e etc
         [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 5)]
         public short[] enchant_c = new short[5];// [5];     // Enchant Club, Força, controle, spin e etc
 
-        public void setValues(uint _uid, uint id_type, short[] value)
+        public void setValues(int _uid, uint id_type, ushort[] value)
         {
             slot_c = value;
             _typeid = id_type;
@@ -4318,7 +4402,7 @@ namespace Pangya_GameServer.GameType
         }
         public ClubSetInfo()
         {
-            slot_c = new short[5];
+            slot_c = new ushort[5];
             enchant_c = new short[5];
         }
         /// <summary>
@@ -4329,10 +4413,10 @@ namespace Pangya_GameServer.GameType
         {
             using (var p = new PangyaBinaryWriter())
             {
-                p.WriteUInt32(id);
+                p.WriteInt32(id);
                 p.WriteUInt32(_typeid);
 
-                p.WriteInt16(slot_c);// [5];        // Total de slot para upa do stats, força, controle, spin e etc
+                p.WriteUInt16(slot_c);// [5];        // Total de slot para upa do stats, força, controle, spin e etc
                 p.WriteInt16(enchant_c);// [5];     // Enchant Club, Força, controle, spin e etc
                 //if (p.GetSize == 28)
                 //    Debug.WriteLine("GetClubData Size Okay");
@@ -4346,7 +4430,7 @@ namespace Pangya_GameServer.GameType
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public class MascotInfo
     {
-        public uint id;
+        public int id;
         public uint _typeid;
         public byte level;
         public uint exp;
@@ -4368,7 +4452,7 @@ namespace Pangya_GameServer.GameType
         {
             using (var p = new PangyaBinaryWriter())
             {
-                p.WriteUInt32(id);
+                p.WriteInt32(id);
                 p.WriteUInt32(_typeid);
                 p.WriteByte(level);
                 p.WriteUInt32(exp);
@@ -4410,17 +4494,17 @@ namespace Pangya_GameServer.GameType
         }
         public void clear()
         {
-            c = new short[5];
+            c = new ushort[5];
             card = new Card()
             { caddie = new uint[4], character = new uint[4], NPC = new uint[4] };
             clubset_workshop = new ClubsetWorkshop() { c = new short[5] };
             ucc = new UCC();
         }
-        public uint id { get; set; }
+        public int id { get; set; }
         public uint _typeid { get; set; }
         public int ano { get; set; }            // acho que seja só tempo que o item ainda tem
         [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 5)]
-        public short[] c { get; set; } = new short[4];     // Stats do item ctrl, força etc, se não usa isso o [0] é a quantidade
+        public ushort[] c { get; set; } = new ushort[4];     // Stats do item ctrl, força etc, se não usa isso o [0] é a quantidade
         public byte purchase { get; set; }
         public sbyte flag { get; set; }
         public long apply_date { get; set; }
@@ -4436,7 +4520,7 @@ namespace Pangya_GameServer.GameType
             [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 9)]
             private byte[] idx_bytes;
             public string idx { get => idx_bytes.GetString(); set => idx_bytes.SetString(value); }             // 8 
-            public sbyte status { get; set; }
+            public byte status { get; set; }
             public short seq { get; set; }          // aqui é a seq de sd que vendeu
             [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 22)]
             private byte[] copier_nick_bytes;
@@ -4526,10 +4610,10 @@ namespace Pangya_GameServer.GameType
         {
             using (var p = new PangyaBinaryWriter())
             {
-                p.WriteUInt32(id);
+                p.WriteInt32(id);
                 p.WriteUInt32(_typeid);
                 p.WriteInt32(ano);
-                p.WriteInt16(c);
+                p.WriteUInt16(c);
                 p.WriteByte(purchase);
                 p.WriteSByte(flag);//sbyte
                 p.WriteInt64(apply_date);
@@ -4538,7 +4622,7 @@ namespace Pangya_GameServer.GameType
                 p.WriteStr(ucc.name, 40);
                 p.WriteSByte(ucc.trade);//sbyte
                 p.WriteStr(ucc.idx, 9);
-                p.WriteSByte(ucc.status);//sbyte
+                p.WriteByte(ucc.status);//sbyte
                 p.WriteInt16(ucc.seq);
                 p.WriteStr(ucc.copier_nick, 22);
                 p.WriteUInt32(ucc.copier);
@@ -4562,10 +4646,10 @@ namespace Pangya_GameServer.GameType
         // Date to Calcule dates
         public uint apply_date_unix_local;
         public uint end_date_unix_local;
-        public short STDA_C_ITEM_QNTD { get => c[0]; set => c[0] = value; }
-        public short STDA_C_ITEM_TICKET_REPORT_ID_HIGH { get => c[1]; set => c[1] = value; }
-        public short STDA_C_ITEM_TICKET_REPORT_ID_LOW { get => c[2]; set => c[2] = value; }
-        public short STDA_C_ITEM_TIME { get => c[3]; set => c[3] = value; }
+        public ushort STDA_C_ITEM_QNTD { get => c[0]; set => c[0] = value; }
+        public ushort STDA_C_ITEM_TICKET_REPORT_ID_HIGH { get => c[1]; set => c[1] = value; }
+        public ushort STDA_C_ITEM_TICKET_REPORT_ID_LOW { get => c[2]; set => c[2] = value; }
+        public ushort STDA_C_ITEM_TIME { get => c[3]; set => c[3] = value; }
     }
 
     // ClubSet Workshop Last Up Level
@@ -4638,7 +4722,7 @@ namespace Pangya_GameServer.GameType
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public class CardInfo
     {
-        public uint id;
+        public int id;
         public uint _typeid;
         public uint slot;
         public uint efeito;
@@ -4649,13 +4733,15 @@ namespace Pangya_GameServer.GameType
         public byte type;
         public byte use_yn;
         public CardInfo()
-        { use_date = new PangyaTime();
-        end_date = new PangyaTime(); }
+        {
+            use_date = new PangyaTime();
+            end_date = new PangyaTime();
+        }
         public byte[] ToArray()
         {
             using (var p = new PangyaBinaryWriter())
             {
-                p.WriteUInt32(id);
+                p.WriteInt32(id);
                 p.WriteUInt32(_typeid);
                 p.WriteUInt32(slot);
                 p.WriteUInt32(efeito);
@@ -4664,7 +4750,7 @@ namespace Pangya_GameServer.GameType
 
                 if (use_date.IsEmpty)
                 {
-                    p.WriteZero(16); 
+                    p.WriteZero(16);
                 }
                 else
                 {
@@ -4785,7 +4871,7 @@ namespace Pangya_GameServer.GameType
                 p.WriteStr(nick, 22);//[22];
                 p.WriteStr(msg, 64);//[64];
                 p.WriteStr(date, 16);// [17];
-                p.Write(Un); 
+                p.Write(Un);
                 return p.GetBytes;
             }
         }
@@ -4881,7 +4967,7 @@ namespace Pangya_GameServer.GameType
             public string nick;
             public string id;
             public uint uid;
-              
+
             public bool Equals(LastPlayerGame obj)
             {
                 return (uid == obj.uid
@@ -5049,12 +5135,164 @@ namespace Pangya_GameServer.GameType
         {
             using (var p = new PangyaBinaryWriter())
             {
-                p.WriteStruct(this);
+                p.Write(uid);
+                p.Write(leadder);
+                p.WriteStr(name, 32);
+                p.Write(index_mark_emblem);
+                p.Write(ull_unknown);
+                p.Write(pang);
+                p.WriteBytes(_16unknown, 16);
+                p.Write(point);
                 return p.GetBytes;
             }
         }
     }
 
+
+    public class CPLog
+    {
+
+        public enum TYPE : byte
+        {
+            BUY_SHOP,
+            GIFT_SHOP,
+            TICKER,
+            CP_POUCH,    // Player ganha CP pela CP(Cookie Point) Pouch
+        }
+
+        public struct stItem
+        {
+
+            public uint _typeid;
+            public uint qntd;
+            public ulong price;
+
+            public stItem(uint _ul = 0u)
+            {
+                _typeid = 0;
+                qntd = 0;
+                price = 0;
+                clear();
+            }
+
+            public stItem(uint __typeid, uint _qntd, ulong _cp)
+            {
+                _typeid = __typeid;
+                qntd = _qntd;
+                price = _cp;
+            }
+
+            public void clear()
+            {
+                _typeid = 0;
+                qntd = 0;
+                price = 0;
+            }
+        }
+
+        protected TYPE m_type;
+        protected int m_mail_id;
+        protected ulong m_cookie;
+        protected List<stItem> v_item;
+
+        public CPLog(uint _ul = 0u)
+        {
+            v_item = new List<stItem>();
+            clear();
+        }
+
+        ~CPLog() { }
+
+        public void clear()
+        {
+            m_type = TYPE.BUY_SHOP;
+            m_mail_id = -1;
+            m_cookie = 0UL;
+
+            if (v_item != null && v_item.Count > 0)
+            {
+                v_item.Clear();
+                v_item.TrimExcess();
+            }
+        }
+
+        public TYPE getType()
+        {
+            return m_type;
+        }
+
+        public void setType(TYPE _type)
+        {
+            m_type = _type;
+        }
+
+        public int getMailId()
+        {
+            return m_mail_id;
+        }
+
+        public void setMailId(int _mail_id)
+        {
+            m_mail_id = _mail_id;
+        }
+
+        public ulong getCookie()
+        {
+            ulong total = m_cookie;
+
+            v_item.ForEach(el =>
+            {
+                total += el.price;
+            });
+
+            return total;
+        }
+
+        public void setCookie(ulong _cp)
+        {
+            m_cookie = _cp;
+        }
+
+        public uint getItemCount()
+        {
+            return (uint)v_item.Count;
+        }
+
+        public List<stItem> getItens()
+        {
+            return v_item;
+        }
+
+        public void putItem(uint _typeid, uint _qntd, ulong _cp)
+        {
+            v_item.Add(new stItem(_typeid, _qntd, _cp));
+        }
+
+        public void putItem(stItem _item)
+        {
+            v_item.Add(_item);
+        }
+
+        public string toString()
+        {
+            StringBuilder str = new StringBuilder();
+
+            str.Append("TYPE=").Append((ushort)m_type)
+                .Append(", mail_id=").Append(m_mail_id)
+                .Append(", cookie=").Append(getCookie())
+                .Append(", item(ns) quantidade=").Append(v_item.Count);
+
+            foreach (var el in v_item)
+            {
+                str.Append(", {TYPEID=").Append(el._typeid)
+                   .Append(", QNTD=").Append(el.qntd)
+                   .Append(", PRICE=").Append(el.price)
+                   .Append("}");
+            }
+
+            return str.ToString();
+        }
+    }
     // GuildInfoEx
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public class GuildInfoEx : GuildInfo
@@ -5081,15 +5319,31 @@ namespace Pangya_GameServer.GameType
         {
             return Math.Sqrt(Math.Pow(x - _l.x, 2) + Math.Pow(z - _l.z, 2));
         }
+        public double diffXZ(ShotEndLocationData.stLocation _l)
+        {
+            return Math.Sqrt(Math.Pow(x - _l.x, 2) + Math.Pow(z - _l.z, 2));
+        }
         public static double diffXZ(Location _l1, Location _l2)
         {
             return Math.Sqrt(Math.Pow(_l1.x - _l2.x, 2) + Math.Pow(_l1.z - _l2.z, 2));
+        }
+        public double diff(Cube.stLocation _l)
+        {
+            return Math.Sqrt(Math.Pow(x - _l.x, 2) + Math.Pow(y - _l.y, 2) + Math.Pow(z - _l.z, 2));
+        }
+        public double diff(ShotEndLocationData.stLocation _l)
+        {
+            return Math.Sqrt(Math.Pow(x - _l.x, 2) + Math.Pow(y - _l.y, 2) + Math.Pow(z - _l.z, 2));
         }
         public double diff(Location _l)
         {
             return Math.Sqrt(Math.Pow(x - _l.x, 2) + Math.Pow(y - _l.y, 2) + Math.Pow(z - _l.z, 2));
         }
         public static double diff(Location _l1, Location _l2)
+        {
+            return Math.Sqrt(Math.Pow(_l1.x - _l2.x, 2) + Math.Pow(_l1.y - _l2.y, 2) + Math.Pow(_l1.z - _l2.z, 2));
+        }
+        public static double diff(Location _l1, Cube.stLocation _l2)
         {
             return Math.Sqrt(Math.Pow(_l1.x - _l2.x, 2) + Math.Pow(_l1.y - _l2.y, 2) + Math.Pow(_l1.z - _l2.z, 2));
         }
@@ -5118,6 +5372,16 @@ namespace Pangya_GameServer.GameType
         public Location()
         {
 
+        }
+
+        public static implicit operator Location(ShotSyncData.Location loc)
+        {
+            return new Location()
+            {
+                x = loc.x,
+                y = loc.y,
+                z = loc.z,
+            };
         }
     }
 

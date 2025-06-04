@@ -14,7 +14,7 @@ namespace Pangya_GameServer.Cmd
         public CmdUpdateCardSpecialTime(uint _uid,
             CardEquipInfoEx _cei)
         {
-            // C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+            
             this.m_uid = _uid;
             //this.
             this.m_cei = (_cei);
@@ -31,7 +31,7 @@ namespace Pangya_GameServer.Cmd
 
         public void setUID(uint _uid)
         {
-            // C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+            
             m_uid = _uid;
 
         }
@@ -44,7 +44,7 @@ namespace Pangya_GameServer.Cmd
 
         public void setInfo(CardEquipInfoEx _cei)
         {
-            // C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+            
             m_cei = _cei;
         }
 

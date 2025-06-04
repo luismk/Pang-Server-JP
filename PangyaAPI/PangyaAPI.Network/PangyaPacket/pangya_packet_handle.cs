@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Net.Sockets;
 using PangyaAPI.Network.Cryptor;
 using PangyaAPI.Network.PangyaSession;
@@ -49,9 +50,20 @@ namespace PangyaAPI.Network.PangyaPacket
                     DisconnectSession(_session);//desconecta pq deu errado
                 }
             }
-            catch (exception e)
+            catch (SocketException se)
             {
-                throw e;//falso pq deu errado
+                Debug.WriteLine("[pangya_packet_handle::recv_new] SocketException: " + se.Message);
+                DisconnectSession(_session);
+            }
+            catch (ObjectDisposedException ode)
+            {
+                Debug.WriteLine("[pangya_packet_handle::recv_new] Socket fechado: " + ode.Message);
+                DisconnectSession(_session);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine("[pangya_packet_handle::recv_new] Exception: " + e.Message);
+                DisconnectSession(_session);
             }
             return false;//falso pq deu errado
         }

@@ -326,7 +326,7 @@ namespace Pangya_GameServer.Game.System
                 bi.time = (short)_lr.item_reward.qntd_time;
 
                 item_manager.initItemFromBuyItem(_session.m_pi,
-                   ref item, bi, false, 0, 0, 1);
+                   item, bi, false, 0, 0, 1);
 
                 if (item._typeid == 0)
                 {
@@ -400,11 +400,8 @@ object _arg)
             }
         }
 
-        private bool m_load;
-
-        private List<stLoginReward> m_events = new List<stLoginReward>();
-        private object m_cs = new object();
-
+        private bool m_load; 
+        private List<stLoginReward> m_events = new List<stLoginReward>(); 
     }
     public class sLoginRewardSystem : Singleton<LoginRewardSystem>
     {

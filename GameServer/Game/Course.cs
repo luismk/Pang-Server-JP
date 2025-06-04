@@ -420,7 +420,7 @@ namespace Pangya_GameServer.Game
                         {
                             if ((lc = lottery.SpinRoleta(true)) != null)
                             {
-                                m_seq.Add(new Sequencia((ushort)lc.Value));
+                                m_seq.Add(new Sequencia(Convert.ToUInt16(lc.Value)));
                             }
                         }
 
@@ -445,7 +445,7 @@ namespace Pangya_GameServer.Game
                         {
                             if ((lc = lottery.SpinRoleta(true)) != null && (uint16_t)lc.Value != hole_ssc)
                             {
-                                m_seq.Add(new Sequencia((ushort)lc.Value));
+                                m_seq.Add(new Sequencia(Convert.ToUInt16(lc.Value)));
                             }
                         }
 

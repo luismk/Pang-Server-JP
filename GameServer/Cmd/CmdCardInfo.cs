@@ -69,7 +69,7 @@ namespace Pangya_GameServer.Cmd
 
             var ci = new CardInfo
             {
-                id = IFNULL(result.data[0]),
+                id = IFNULL<int>(result.data[0]),
                 _typeid = IFNULL(result.data[2]),
                 slot = IFNULL(result.data[3]),
                 efeito = IFNULL(result.data[4]),

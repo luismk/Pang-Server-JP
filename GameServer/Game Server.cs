@@ -22,8 +22,9 @@ namespace Pangya_GameServer
                 sgs.gs.getInstance().Start();
                 for (; ; )
                 {
-                    var comando = Console.ReadLine().Split(new char[] { ' ' }, 2);
-                    sgs.gs.getInstance().checkCommand(comando);
+                    var input = Console.ReadLine();
+                    var comando = new Queue<string>(input.Split(' '));
+                    sgs.gs.getInstance().CheckCommand(comando);
                 }
             }
             catch (Exception e)

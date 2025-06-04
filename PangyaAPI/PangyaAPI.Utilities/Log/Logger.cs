@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace PangyaAPI.Utilities.Log
 {
@@ -78,25 +79,31 @@ namespace PangyaAPI.Utilities.Log
                 }
             }
         }
-
-        private static void LogOnly()
+        private static async Task LogOnly()
         {
             InitializeLogFile();
+
             var m = getMessage();
             if (m == null)
                 return;
-            lock (_lock)
+
+            try
             {
+                // Não precisa Task.Run, WriteLineAsync já é async.
                 using (var writer = new StreamWriter(_file, append: true))
                 {
-                    writer.WriteLine(m.get());
+                    await writer.WriteLineAsync(m.get());
                 }
+            }
+            catch (IOException ex)
+            {
+                Console.WriteLine($"[Log Error] {ex.Message}");
             }
         }
 
-        private static void LogAndConsole()
+        private static async void LogAndConsole()
         {
-            LogOnly();
+            await LogOnly();
             console_log();
         }
 

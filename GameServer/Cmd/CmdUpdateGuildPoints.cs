@@ -45,7 +45,7 @@
 
 //			public void setInfo(GuildPoints _gp)
 //			{
-//// C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+//
 // m_gp = _gp;
 //				m_gp.CopyFrom(_gp);
 //			}

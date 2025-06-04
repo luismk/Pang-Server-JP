@@ -12,6 +12,7 @@ using Pangya_GameServer.GameType;
 using Pangya_GameServer.PacketFunc;
 using Pangya_GameServer.Session;
 using PangyaAPI.IFF.JP.Extensions;
+using PangyaAPI.Network.Cmd;
 using PangyaAPI.Network.Pangya_St;
 using PangyaAPI.Network.PangyaPacket;
 using PangyaAPI.Network.PangyaSession;
@@ -32,6 +33,7 @@ namespace Pangya_GameServer.Game
     public class room
     {
         protected List<Player> v_sessions = new List<Player>();
+        protected List<Player> v_deletes_sessions = new List<Player>();
         protected Dictionary<Player, PlayerRoomInfoEx> m_player_info = new Dictionary<Player, PlayerRoomInfoEx>();
         protected Dictionary<Player, PlayerRoomInfoEx> m_deletes_player_info = new Dictionary<Player, PlayerRoomInfoEx>();
         protected Dictionary<uint, bool> m_player_kicked = new Dictionary<uint, bool>();
@@ -87,11 +89,10 @@ namespace Pangya_GameServer.Game
         }
 
         private void geraSecurityKey()
-        { 
+        {
             new Random().NextBytes(m_ri.key);
-            m_ri.key[16] = 0;//ultima chave é zerada
         }
-        public void destroy()
+        ~room()
         {
 
             // Leave All Players
@@ -131,7 +132,8 @@ namespace Pangya_GameServer.Game
 
 
             m_personal_shop.destroy();
-
+            m_deletes_player_info.Clear();//meu
+            m_deletes_player_info.Clear();//meu 
             // Destruindo a sala
             try
             {
@@ -589,13 +591,13 @@ namespace Pangya_GameServer.Game
         }
 
         public int leave(Player _session, int _option)
-        { 
+        {
             try
             {
                 int index = findIndexSession(_session);
 
-                if (index == (int)~0)
-                { 
+                if (index == -1)
+                {
                     throw new exception("[room::leave][Error] session[UID=" + Convert.ToString(_session.m_pi.uid) + "] nao existe no vector de sessions da sala[NUMERO=" + Convert.ToString(m_ri.numero) + "].", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.ROOM,
                         5, 0));
                 }
@@ -626,7 +628,12 @@ namespace Pangya_GameServer.Game
                     _smp.message_pool.push(new message("[room::leave][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
                 }
 
-                v_sessions.RemoveAt(index);
+                if (v_sessions != null && index >= 0 && index < v_sessions.Count)
+                {
+                    v_sessions.RemoveAt(index);
+                }
+
+
 
                 if ((m_ri.num_player - 1) > 0 || v_sessions.Count == 0)
                 {
@@ -767,7 +774,7 @@ namespace Pangya_GameServer.Game
                 // Fim Update Players State
 
                 if ((m_pGame == null && m_ri.getTipo() == RoomInfo.TIPO.SPECIAL_SHUFFLE_COURSE && _session.m_pi.uid == m_ri.master) || (_session.m_pi.m_cap.game_master && m_ri.master == _session.m_pi.uid && m_ri.tipo != (byte)RoomInfo.TIPO.LOUNGE && m_ri.trofel == TROFEL_GM_EVENT_TYPEID))
-                { 
+                {
                     return 0x801; // deleta todos da sala
 
                 }
@@ -799,7 +806,7 @@ namespace Pangya_GameServer.Game
 
         public void sendUpdate()
         {
-            var p = packet_func.pacote04A(m_ri, -1/*valor constante*/); 
+            var p = packet_func.pacote04A(m_ri, -1/*valor constante*/);
             packet_func.room_broadcast(this, p, 0);
         }
 
@@ -968,8 +975,8 @@ namespace Pangya_GameServer.Game
                 var p = new PangyaBinaryWriter();
 
                 // Option 0, passa todos que estão na sala
-                if (packet_func.pacote048(ref p, _session, v_element, 0x100)) 
-                packet_func.room_broadcast(this, p, 1);
+                if (packet_func.pacote048(ref p, _session, v_element, 0x100))
+                    packet_func.room_broadcast(this, p, 1);
 
                 // Option 1, passa só o Player que entrou na sala, nesse caso foi o Bot
                 if (packet_func.pacote048(ref p, _session, new List<PlayerRoomInfoEx> { pri }, 0x101))
@@ -1025,7 +1032,7 @@ namespace Pangya_GameServer.Game
 
 
         // Game
-        public  virtual  void finish_game()
+        public virtual void finish_game()
         {
 
             if (m_pGame != null)
@@ -1037,8 +1044,8 @@ namespace Pangya_GameServer.Game
                 var toAdd = new List<(Player player, PlayerRoomInfoEx info)>();
                 // Zera Player Flags
                 var player_info = m_player_info.ToList();
-                foreach (var el in player_info) 
-                {  
+                foreach (var el in player_info)
+                {
                     // Update Place Player
                     if (m_ri.getTipo() == RoomInfo.TIPO.PRACTICE || m_ri.getTipo() == RoomInfo.TIPO.GRAND_ZODIAC_PRACTICE)
                     {
@@ -1066,7 +1073,7 @@ namespace Pangya_GameServer.Game
 
                     // SLast update on room
                     sendCharacter(el.Key, 3);
-                } 
+                }
 
                 // Atualiza flag da sala, só não atualiza se for GM evento ou GZ Event e SSC
                 if (!(m_ri.trofel == TROFEL_GM_EVENT_TYPEID || (m_ri.getTipo() == RoomInfo.TIPO.SPECIAL_SHUFFLE_COURSE || m_ri.master == -2)))
@@ -1516,7 +1523,7 @@ namespace Pangya_GameServer.Game
                 pri = m_deletes_player_info.FirstOrDefault(c => c.Value.uid == _session.m_pi.uid).Value;
                 if (pri == null)
                     throw new exception("Error pri is nullptr. Em room::getPlayerInfo()", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.ROOM,
-                    7, 0)); 
+                    7, 0));
             }
 
 
@@ -2288,7 +2295,7 @@ namespace Pangya_GameServer.Game
 
                 if (m_ri.master != _session.m_pi.uid)
                 {
-                    if (!_session.m_pi.m_cap.game_master) 
+                    if (!_session.m_pi.m_cap.game_master)
                         throw new exception("[room::requestChangeInfoRoom][Error] Player[UID=" + Convert.ToString(_session.m_pi.uid) + "] tentou trocar o info da sala[NUMERO=" + Convert.ToString(m_ri.numero) + ", MASTER=" + Convert.ToString(m_ri.master) + "], mas nao pode trocar o info da sala sem ser master.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.ROOM,
                         11, 0));
                 }
@@ -2428,10 +2435,10 @@ namespace Pangya_GameServer.Game
                     if (pri == null && _option != 2)
                         throw new exception("[room::sendCharacter][Error] player[UID=" + _session.m_pi.uid + "] tentou pegar o info do player na sala[NUMERO=" + m_ri.numero + "], mas nao tem o info dele na sala. Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.ROOM, 1, 5000));
 
-                    var p = new PangyaBinaryWriter(); 
+                    var p = new PangyaBinaryWriter();
 
-                    if (packet_func.pacote048(ref p, _session, ((_option == 1 || _option == 4 || _option == 0x103) ? new List<PlayerRoomInfoEx>() { pri  } : v_element), option))
-                        packet_func.room_broadcast(this, p, 1); 
+                    if (packet_func.pacote048(ref p, _session, ((_option == 1 || _option == 4 || _option == 0x103) ? new List<PlayerRoomInfoEx>() { pri } : v_element), option))
+                        packet_func.room_broadcast(this, p, 1);
                 }
             }
             catch (exception e)
@@ -2455,7 +2462,7 @@ namespace Pangya_GameServer.Game
                 }
 
                 var p = packet_func.pacote196(_session, it.Value);
-                 
+
                 packet_func.room_broadcast(this,
                     p, 0);
             }
@@ -2626,9 +2633,256 @@ namespace Pangya_GameServer.Game
                 switch (_cpir.type)
                 {
                     case ChangePlayerItemRoom.TYPE_CHANGE.TC_CADDIE:
+                        {
+                            CaddieInfoEx pCi = null;
+
+                            // Caddie
+                            if (_cpir.caddie != 0 && (pCi = _session.m_pi.findCaddieById(_cpir.caddie)) != null
+                                    && sIff.getInstance().getItemGroupIdentify(pCi._typeid) == sIff.getInstance().CADDIE)
+                            {
+
+                                // Check if item is in map of update item
+                                var v_it = _session.m_pi.findUpdateItemByTypeidAndId(pCi._typeid, pCi.id);
+
+                                if (!v_it.empty())
+                                {
+
+                                    foreach (var el in v_it)
+                                    {
+
+                                        if (el.Value.type == UpdateItem.UI_TYPE.CADDIE)
+                                        {
+
+                                            // Desequipa o caddie
+                                            _session.m_pi.ei.cad_info = null;
+                                            _session.m_pi.ue.caddie_id = 0;
+
+                                            _cpir.caddie = 0;
+
+                                        }
+                                        else if (el.Value.type == UpdateItem.UI_TYPE.CADDIE_PARTS)
+                                        {
+
+                                            // Limpa o caddie Parts
+                                            pCi.parts_typeid = 0u;
+                                            pCi.parts_end_date_unix = 0;
+                                            pCi.end_parts_date = new PangyaTime();
+
+                                            _session.m_pi.ei.cad_info = pCi;
+                                            _session.m_pi.ue.caddie_id = _cpir.caddie;
+                                        }
+
+                                        // Tira esse Update Item do map
+                                        _session.m_pi.mp_ui.Remove(el.Key);
+                                    }
+
+                                }
+                                else
+                                {
+
+                                    // Caddie is Good, Update caddie equiped ON SERVER AND DB
+                                    _session.m_pi.ei.cad_info = pCi;
+                                    _session.m_pi.ue.caddie_id = _cpir.caddie;
+
+                                    // Verifica se o Caddie pode ser equipado
+                                    if (_session.checkCaddieEquiped(_session.m_pi.ue))
+                                        _cpir.caddie = _session.m_pi.ue.caddie_id;
+
+                                }
+
+                                // Update ON DB
+                                NormalManagerDB.add(0, new CmdUpdateCaddieEquiped(_session.m_pi.uid, _cpir.caddie), SQLDBResponse, this);
+
+                            }
+                            else if (_session.m_pi.ue.caddie_id > 0 && _session.m_pi.ei.cad_info != null)
+                            {   // Desequipa Caddie
+
+                                error = (_cpir.caddie == 0) ? 1/*client give invalid item id*/ : (pCi == null ? 2/*Item Not Found*/ : 3/*Erro item typeid invalid*/);
+
+                                if (error > 1)
+                                {
+                                    message_pool.push(new message("[room::requestChangePlayerItemRoom][Log][WARNING] player[UID=" + (_session.m_pi.uid)
+                                            + "] tentou trocar o Caddie[ID=" + (_cpir.caddie) + "] para comecar o jogo, mas deu Error[VALUE="
+                                            + (error) + "], desequipando o caddie. Hacker ou Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
+                                }
+
+                                // Check if item is in map of update item
+                                var v_it = _session.m_pi.findUpdateItemByTypeidAndId(_session.m_pi.ei.cad_info._typeid, _session.m_pi.ei.cad_info.id);
+
+                                if (!v_it.empty())
+                                {
+
+                                    foreach (var el in v_it)
+                                    {
+
+                                        // Caddie já vai se desequipar, só verifica o parts
+                                        if (el.Value.type == UpdateItem.UI_TYPE.CADDIE_PARTS)
+                                        {
+
+                                            // Limpa o caddie Parts
+                                            _session.m_pi.ei.cad_info.parts_typeid = 0u;
+                                            _session.m_pi.ei.cad_info.parts_end_date_unix = 0;
+                                            _session.m_pi.ei.cad_info.end_parts_date = new PangyaTime();
+                                        }
+
+                                        // Tira esse Update Item do map
+                                        _session.m_pi.mp_ui.Remove(el.Key);
+                                    }
+
+                                }
+
+                                _session.m_pi.ei.cad_info = null;
+                                _session.m_pi.ue.caddie_id = 0;
+
+                                _cpir.caddie = 0;
+
+                                // Zera o Error para o cliente desequipar o caddie que o server desequipou
+                                error = 0;
+
+                                // Att No DB
+                                NormalManagerDB.add(0, new CmdUpdateCaddieEquiped(_session.m_pi.uid, _cpir.caddie), SQLDBResponse, this);
+                            }
+
+
+                            packet_func.room_broadcast(this, packet_func.pacote04B(_session, (byte)_cpir.type, error)); 
+                        }
                         break;
                     case ChangePlayerItemRoom.TYPE_CHANGE.TC_BALL:
-                        break; 
+                        {
+                            WarehouseItemEx pWi = null;
+
+                            if (_cpir.ball != 0 && (pWi = _session.m_pi.findWarehouseItemByTypeid(_cpir.ball)) != null
+                                    && sIff.getInstance().getItemGroupIdentify(pWi._typeid) == sIff.getInstance().BALL)
+                            {
+
+                                _session.m_pi.ei.comet = pWi;
+                                _session.m_pi.ue.ball_typeid = _cpir.ball;      // Ball(Comet) é o typeid que o cliente passa
+
+                                // Verifica se a bola pode ser equipada
+                                if (_session.checkBallEquiped(_session.m_pi.ue))
+                                    _cpir.ball = _session.m_pi.ue.ball_typeid;
+
+                                // Update ON DB
+                                NormalManagerDB.add(0, new CmdUpdateBallEquiped(_session.m_pi.uid, _cpir.ball), SQLDBResponse, this);
+
+                            }
+                            else if (_cpir.ball == 0)
+                            { // Bola 0 coloca a bola padrão para ele, se for premium user coloca a bola de premium user
+
+                                // Zera para equipar a bola padrão
+                                _session.m_pi.ei.comet = null;
+                                _session.m_pi.ue.ball_typeid = 0;
+
+                                // Verifica se a Bola pode ser equipada (Coloca para equipar a bola padrão
+                                if (_session.checkBallEquiped(_session.m_pi.ue))
+                                    _cpir.ball = _session.m_pi.ue.ball_typeid;
+
+                                // Update ON DB
+                                NormalManagerDB.add(0, new CmdUpdateBallEquiped(_session.m_pi.uid, _cpir.ball), SQLDBResponse, this);
+
+                            }
+                            else
+                            {
+
+                                error = (pWi == null ? 2 : 3);
+
+                                pWi = _session.m_pi.findWarehouseItemByTypeid(DEFAULT_COMET_TYPEID);
+
+                                if (pWi != null)
+                                {
+
+                                    message_pool.push(new message("[room::requestChangePlayerItemRoom][Log][WARNING] player[UID=" + (_session.m_pi.uid)
+                                            + "] tentou trocar a Ball[TYPEID=" + (_cpir.ball) + "] para comecar o jogo, mas deu Error[VALUE="
+                                            + (error) + "], colocando a Ball Padrao do player. Hacker ou Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
+
+                                    _session.m_pi.ei.comet = pWi;
+                                    _cpir.ball = _session.m_pi.ue.ball_typeid = pWi._typeid;
+
+                                    // Zera o Error para o cliente equipar a Ball Padrão que o server equipou
+                                    error = 0;
+
+                                    // Update ON DB
+                                    NormalManagerDB.add(0, new CmdUpdateBallEquiped(_session.m_pi.uid, _cpir.ball), SQLDBResponse, this);
+
+                                }
+                                else
+                                {
+
+                                    message_pool.push(new message("[room::requestChangePlayerItemRoom][Log][WARNING] player[UID=" + (_session.m_pi.uid)
+                                            + "] tentou trocar a Ball[TYPEID=" + (_cpir.ball) + "] para comecar o jogo, mas deu Error[VALUE="
+                                            + (error) + "], ele nao tem a Ball Padrao, adiciona a Ball pardrao para ele. Hacker ou Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
+
+                                    BuyItem bi = new BuyItem();
+                                    stItem item = new stItem();
+
+                                    bi.id = -1;
+                                    bi._typeid = DEFAULT_COMET_TYPEID;
+                                    bi.qntd = 1;
+
+                                    item_manager.initItemFromBuyItem(_session.m_pi, item, bi, false, 0, 0, 1);
+
+                                    if (item._typeid != 0)
+                                    {
+
+                                        if ((_cpir.ball = (uint)item_manager.addItem(item, _session, 2, 0)) != (int)item_manager.RetAddItem.TYPE.T_ERROR)
+                                        {
+
+                                            // Equipa a Ball padrao
+                                            pWi = _session.m_pi.findWarehouseItemById((int)_cpir.ball);
+
+                                            if (pWi != null)
+                                            {
+
+                                                _session.m_pi.ei.comet = pWi;
+                                                _session.m_pi.ue.ball_typeid = pWi._typeid;
+
+                                                // Zera o Error para o cliente equipar a Ball Padrão que o server equipou
+                                                error = 0;
+
+                                                // Update ON DB
+                                                NormalManagerDB.add(0, new CmdUpdateBallEquiped(_session.m_pi.uid, _cpir.ball), SQLDBResponse, this);
+
+                                                // Update ON GAME
+                                                p.init_plain(0x216);
+
+                                                p.WriteUInt32((uint)UtilTime.GetSystemTimeAsUnix());
+                                                p.WriteUInt32(1);   // Count
+
+                                                p.WriteByte(item.type);
+                                                p.WriteUInt32(item._typeid);
+                                                p.WriteInt32(item.id);
+                                                p.WriteUInt32(item.flag_time);
+                                                p.WriteBytes(item.stat.ToArray());
+                                                p.WriteUInt32((item.STDA_C_ITEM_TIME > 0) ? item.STDA_C_ITEM_TIME : item.STDA_C_ITEM_QNTD);
+                                                p.WriteZero(25);
+
+                                                packet_func.session_send(p, _session, 1);
+
+                                            }
+                                            else
+                                                message_pool.push(new message("[room::requestChangePlayerItemRoom][Log][WARNING] player[UID=" + (_session.m_pi.uid)
+                                                        + "] nao conseguiu achar a Ball[ID="
+                                                        + (item.id) + "] que acabou de adicionar para ele. Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
+
+                                        }
+                                        else
+                                            message_pool.push(new message("[room::requestChangePlayerItemRoom][Log][WARNING] player[UID=" + (_session.m_pi.uid)
+                                                    + "] nao conseguiu adicionar a Ball[TYPEID="
+                                                    + (item._typeid) + "] para ele. Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
+
+                                    }
+                                    else
+                                        message_pool.push(new message("[room::requestChangePlayerItemRoom][Log][WARNING] player[UID=" + (_session.m_pi.uid)
+                                                + "] nao conseguiu inicializar a Ball[TYPEID="
+                                                + (bi._typeid) + "] para ele. Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
+                                }
+                            }
+                            p = packet_func.pacote04B(_session,
+                               (byte)_cpir.type, error);
+                            packet_func.room_broadcast(this,
+                                p, 1);
+                        } 
+                        break;
                     case ChangePlayerItemRoom.TYPE_CHANGE.TC_CLUBSET: // ClubSet
                         {
                             WarehouseItemEx pWi = null;
@@ -2639,7 +2893,7 @@ namespace Pangya_GameServer.Game
                                 && sIff.getInstance().getItemGroupIdentify(pWi._typeid) == sIff.getInstance().CLUBSET)
                             {
 
-                                var c_it = _session.m_pi.findUpdateItemByTypeidAndType(_cpir.clubset, UpdateItem.UI_TYPE.WAREHOUSE);
+                                var c_it = _session.m_pi.findUpdateItemByTypeidAndType((uint)_cpir.clubset, UpdateItem.UI_TYPE.WAREHOUSE);
 
                                 if (c_it.First().Key == _session.m_pi.mp_ui.LastOrDefault().Key)
                                 {
@@ -2648,13 +2902,13 @@ namespace Pangya_GameServer.Game
 
                                     // Esse C do WarehouseItem, que pega do DB, não é o ja updado inicial da taqueira é o que fica tabela enchant,
                                     // que no original fica no warehouse msm, eu só confundi quando fiz
-                                    _session.m_pi.ei.csi.setValues( pWi.id, pWi._typeid, pWi.c);
+                                    _session.m_pi.ei.csi.setValues(pWi.id, pWi._typeid, pWi.c);
 
                                     var cs = sIff.getInstance().findClubSet(pWi._typeid);
 
                                     if (cs != null)
                                     {
-                                         
+
                                         for (var j = 0u; j < (_session.m_pi.ei.csi.enchant_c.Length); ++j)
                                         {
                                             _session.m_pi.ei.csi.enchant_c[j] = (short)(cs.SlotStats.getSlot[j] + pWi.clubset_workshop.c[j]);
@@ -2697,7 +2951,7 @@ namespace Pangya_GameServer.Game
 
                                             if (cs != null)
                                             {
-                                                 for (var j = 0u; j < (_session.m_pi.ei.csi.enchant_c.Length); ++j)
+                                                for (var j = 0u; j < (_session.m_pi.ei.csi.enchant_c.Length); ++j)
                                                 {
                                                     _session.m_pi.ei.csi.enchant_c[j] = (short)(cs.SlotStats.getSlot[j] + pWi.clubset_workshop.c[j]);
                                                 }
@@ -2728,11 +2982,11 @@ namespace Pangya_GameServer.Game
                                             bi.qntd = 1;
 
                                             item_manager.initItemFromBuyItem(_session.m_pi,
-                                                ref item, bi, false, 0, 0, 1);
+                                                item, bi, false, 0, 0, 1);
 
                                             if (item._typeid != 0)
                                             {
-                                                _cpir.clubset = (uint)item_manager.addItem(item,
+                                                _cpir.clubset = (int)item_manager.addItem(item,
                                                     _session, 2, 0);
                                                 if (unchecked(_cpir.clubset != (uint)item_manager.RetAddItem.TYPE.T_ERROR))
                                                 {
@@ -2747,7 +3001,7 @@ namespace Pangya_GameServer.Game
                                                         // que no original fica no warehouse msm, eu só confundi quando fiz
                                                         _session.m_pi.ei.csi.setValues(pWi.id, pWi._typeid, pWi.c);
 
-                                                       cs = sIff.getInstance().findClubSet(pWi._typeid);
+                                                        cs = sIff.getInstance().findClubSet(pWi._typeid);
 
                                                         if (cs != null)
                                                         {
@@ -2858,12 +3112,12 @@ namespace Pangya_GameServer.Game
                                         bi.qntd = 1;
 
                                         item_manager.initItemFromBuyItem(_session.m_pi,
-                                          ref item, bi, false, 0, 0, 1);
+                                          item, bi, false, 0, 0, 1);
 
                                         if (item._typeid != 0)
                                         {
 
-                                            if ((_cpir.clubset = (uint)item_manager.addItem(item,
+                                            if ((_cpir.clubset = (int)item_manager.addItem(item,
                                                         _session, 2, 0)) != Convert.ToUInt32(item_manager.RetAddItem.TYPE.T_ERROR))
                                             {
 
@@ -2982,12 +3236,12 @@ namespace Pangya_GameServer.Game
                                     bi.qntd = 1;
 
                                     item_manager.initItemFromBuyItem(_session.m_pi,
-                                       ref item, bi, false, 0, 0, 1);
+                                       item, bi, false, 0, 0, 1);
 
                                     if (item._typeid != 0)
                                     {
 
-                                        if ((_cpir.clubset = (uint)item_manager.addItem(item,
+                                        if ((_cpir.clubset = (int)item_manager.addItem(item,
                                                          _session, 2, 0)) != Convert.ToUInt32(item_manager.RetAddItem.TYPE.T_ERROR))
                                         {
 
@@ -3004,7 +3258,7 @@ namespace Pangya_GameServer.Game
                                                 var cs = sIff.getInstance().findClubSet(pWi._typeid);
 
                                                 if (cs != null)
-                                                { 
+                                                {
                                                     for (var j = 0u; j < (_session.m_pi.ei.csi.enchant_c.Length); ++j)
                                                     {
                                                         _session.m_pi.ei.csi.enchant_c[j] = (short)(cs.SlotStats.getSlot[j] + pWi.clubset_workshop.c[j]);
@@ -3060,12 +3314,11 @@ namespace Pangya_GameServer.Game
                             }
 
                             p = packet_func.pacote04B(_session,
-                               (byte) _cpir.type, error);
+                               (byte)_cpir.type, error);
                             packet_func.room_broadcast(this,
                                 p, 1);
                             break;
                         }
-
                     case ChangePlayerItemRoom.TYPE_CHANGE.TC_CHARACTER:
                         {
                             CharacterInfo pCe = null;
@@ -3089,23 +3342,23 @@ namespace Pangya_GameServer.Game
                                 PlayerRoomInfoEx pri = getPlayerInfo(_session);
 
                                 if (getInfo().getTipo() != RoomInfo.TIPO.PRACTICE && getInfo().getTipo() != RoomInfo.TIPO.GRAND_ZODIAC_PRACTICE)
-                                { 
-                                        if (packet_func.pacote048(ref p,
-                                        _session,
-                                        new List<PlayerRoomInfoEx>() { pri == null ? new PlayerRoomInfoEx() : pri },
-            0x103))
-                                        {
-                                            packet_func.room_broadcast(this,
-                                                p, 0);
+                                {
+                                    if (packet_func.pacote048(ref p,
+                                    _session,
+                                    new List<PlayerRoomInfoEx>() { pri == null ? new PlayerRoomInfoEx() : pri },
+        0x103))
+                                    {
+                                        packet_func.room_broadcast(this,
+                                            p, 0);
 
-                        //                if (getInfo().getTipo() == RoomInfo.TIPO.LOUNGE)
-                        //                {
-                        //                    var v_element = m_player_info.Where(c => c.Key.m_pi.mi.sala_numero == _session.m_pi.mi.sala_numero).
+                                        //                if (getInfo().getTipo() == RoomInfo.TIPO.LOUNGE)
+                                        //                {
+                                        //                    var v_element = m_player_info.Where(c => c.Key.m_pi.mi.sala_numero == _session.m_pi.mi.sala_numero).
 
-                        //                    packet_func.pacote048(ref p, _session, v_element.ke, 0))
-                        //packet_func.room_broadcast(this, p, 1);
-                        //                }
-                                        } 
+                                        //                    packet_func.pacote048(ref p, _session, v_element.ke, 0))
+                                        //packet_func.room_broadcast(this, p, 1);
+                                        //                }
+                                    }
                                 }
 
                                 if (getInfo().getTipo() == RoomInfo.TIPO.LOUNGE)
@@ -3125,7 +3378,7 @@ namespace Pangya_GameServer.Game
                                     }
                                     p = packet_func.pacote196(_session, it.Value);
                                     packet_func.room_broadcast(this,
-                                        p, 0); 
+                                        p, 0);
                                 }
 
                             }
@@ -3156,7 +3409,7 @@ namespace Pangya_GameServer.Game
                                     PlayerRoomInfoEx pri = getPlayerInfo(_session);
 
                                     if (getInfo().getTipo() != RoomInfo.TIPO.PRACTICE && getInfo().getTipo() != RoomInfo.TIPO.GRAND_ZODIAC_PRACTICE)
-                                    { 
+                                    {
                                         if (packet_func.pacote048(ref p,
                                               _session,
                                               new List<PlayerRoomInfoEx>() { (pri == null) ? new PlayerRoomInfoEx() : pri },
@@ -3170,7 +3423,7 @@ namespace Pangya_GameServer.Game
                                     if (getInfo().getTipo() == RoomInfo.TIPO.LOUNGE)
                                     {
 
-                                        var it = (_session.m_pi.ei.char_info == null) ? _session.m_pi.mp_scl.LastOrDefault() : _session.m_pi.mp_scl.FirstOrDefault(c=> c.Key == _session.m_pi.ei.char_info.id);
+                                        var it = (_session.m_pi.ei.char_info == null) ? _session.m_pi.mp_scl.LastOrDefault() : _session.m_pi.mp_scl.FirstOrDefault(c => c.Key == _session.m_pi.ei.char_info.id);
 
                                         if (it.Value == null)
                                         {
@@ -3201,11 +3454,11 @@ namespace Pangya_GameServer.Game
                                     bi.qntd = 1;
 
                                     item_manager.initItemFromBuyItem(_session.m_pi,
-                                       ref item, bi, false, 0, 0, 1);
+                                       item, bi, false, 0, 0, 1);
 
                                     if (item._typeid != 0)
                                     {
-                                        _cpir.character = (uint)item_manager.addItem(item,
+                                        _cpir.character = (int)item_manager.addItem(item,
                                             _session, 2, 0);
                                         // Add Item já atualiza o Character equipado
                                         if ((int)_cpir.character != (int)item_manager.RetAddItem.TYPE.T_ERROR)
@@ -3237,7 +3490,7 @@ namespace Pangya_GameServer.Game
                                             PlayerRoomInfoEx pri = getPlayerInfo(_session);
 
                                             if (getInfo().getTipo() != RoomInfo.TIPO.PRACTICE && getInfo().getTipo() != RoomInfo.TIPO.GRAND_ZODIAC_PRACTICE)
-                                            { 
+                                            {
                                                 if (packet_func.pacote048(ref p,
                                                     _session,
                                                     new List<PlayerRoomInfoEx>() { pri == null ? new PlayerRoomInfoEx() : pri },
@@ -3287,12 +3540,88 @@ namespace Pangya_GameServer.Game
                             p = packet_func.pacote04B(
                             _session, (byte)_cpir.type, error);
                             packet_func.room_broadcast(this, p);
-                            
+
                             break;
                         }
-
                     case ChangePlayerItemRoom.TYPE_CHANGE.TC_MASCOT:
-                        break;
+                        MascotInfoEx pMi = null;
+
+                        if (_cpir.mascot != 0)
+                        {
+
+                            if ((pMi = _session.m_pi.findMascotById(_cpir.mascot)) != null && sIff.getInstance().getItemGroupIdentify(pMi._typeid) == sIff.getInstance().MASCOT)
+                            {
+
+                                var m_it = _session.m_pi.findUpdateItemByTypeidAndType((uint)_session.m_pi.ue.mascot_id, UpdateItem.UI_TYPE.MASCOT);
+
+                                if (m_it.Keys.Count > 0)
+                                {
+
+                                    // Desequipa o Mascot que acabou o tempo dele
+                                    _session.m_pi.ei.mascot_info = null;
+                                    _session.m_pi.ue.mascot_id = 0;
+
+                                    _cpir.mascot = 0;
+
+                                }
+                                else
+                                {
+
+                                    // Mascot is good, update on server, DB and game
+                                    _session.m_pi.ei.mascot_info = pMi;
+                                    _session.m_pi.ue.mascot_id = _cpir.mascot;
+
+                                    // Verifica se o mascot pode equipar
+                                    if (_session.checkMascotEquiped(_session.m_pi.ue))
+                                        _cpir.mascot = _session.m_pi.ue.mascot_id;
+
+                                }
+
+                                // Update ON DB
+                                NormalManagerDB.add(0, new CmdUpdateMascotEquiped(_session.m_pi.uid, _cpir.mascot), SQLDBResponse, this);
+
+                            }
+                            else
+                            {
+
+                                error = (_cpir.mascot == 0) ? 1/*client give invalid item id*/ : (pMi == null ? 2/*Item Not Found*/ : 3/*Erro item typeid invalid*/);
+
+                                if (error > 1)
+                                {
+                                    message_pool.push(new message("[room::requestChangePlayerItemRoom][Log][WARNING] player[UID=" + (_session.m_pi.uid)
+                                            + "] tentou trocar o Mascot[ID=" + (_cpir.mascot) + "] para comecar o jogo, mas deu Error[VALUE="
+                                            + (error) + "], desequipando o Mascot. Hacker ou Bug", type_msg.CL_FILE_LOG_AND_CONSOLE));
+                                }
+
+                                _session.m_pi.ei.mascot_info = null;
+                                _session.m_pi.ue.mascot_id = 0;
+
+                                _cpir.mascot = 0;
+
+                                // Att No DB
+                                NormalManagerDB.add(0, new CmdUpdateMascotEquiped(_session.m_pi.uid, _cpir.mascot), SQLDBResponse, this);
+                            }
+
+                        }
+                        else if (_session.m_pi.ue.mascot_id > 0 && _session.m_pi.ei.mascot_info != null)
+                        {   // Desequipa Mascot
+
+                            _session.m_pi.ei.mascot_info = null;
+                            _session.m_pi.ue.mascot_id = 0;
+
+                            _cpir.mascot = 0;
+
+                            // Att No DB
+                            NormalManagerDB.add(0, new CmdUpdateMascotEquiped(_session.m_pi.uid, _cpir.mascot), SQLDBResponse, this);
+
+                        } // else Não tem nenhum mascot equipado, para desequipar, então o cliente só quis atualizar o estado
+
+
+                        p = packet_func.pacote04B(_session,
+               (byte)_cpir.type, error);
+                        packet_func.room_broadcast(this,
+                            p, 1);
+                        break; 
                     case ChangePlayerItemRoom.TYPE_CHANGE.TC_ITEM_EFFECT_LOUNGE:  // Itens Active, Jester x2 velocidade no lounge, e Harmes tamanho da cabeça
                         {
                             // ignora o item_id por que ele envia 0
@@ -3461,13 +3790,13 @@ namespace Pangya_GameServer.Game
                                     bi._typeid = (uint)(sIff.getInstance().CHARACTER << 26);    // Nuri
                                     bi.qntd = 1;
 
-                                    item_manager.initItemFromBuyItem(_session.m_pi, ref item, bi, false, 0, 0, 1/*Não verifica o Level*/);
+                                    item_manager.initItemFromBuyItem(_session.m_pi, item, bi, false, 0, 0, 1/*Não verifica o Level*/);
 
                                     if (item._typeid != 0)
                                     {
 
                                         // Add Item já atualiza o Character equipado
-                                        if ((_cpir.character = (uint)item_manager.addItem(item, _session, 2/*Padrão Item*/, 0)) != Convert.ToUInt32(item_manager.RetAddItem.TYPE.T_ERROR))
+                                        if ((_cpir.character = (int)item_manager.addItem(item, _session, 2/*Padrão Item*/, 0)) != Convert.ToUInt32(item_manager.RetAddItem.TYPE.T_ERROR))
                                         {
 
                                             // Update ON GAME
@@ -3609,7 +3938,7 @@ namespace Pangya_GameServer.Game
                                     && sIff.getInstance().getItemGroupIdentify(pWi._typeid) == sIff.getInstance().CLUBSET)
                             {
 
-                                var c_it = _session.m_pi.findUpdateItemByTypeidAndType(_cpir.clubset, UpdateItem.UI_TYPE.WAREHOUSE);
+                                var c_it = _session.m_pi.findUpdateItemByTypeidAndType((uint)_cpir.clubset, UpdateItem.UI_TYPE.WAREHOUSE);
 
                                 if (c_it.Count <= 0)
                                 {
@@ -3688,12 +4017,12 @@ namespace Pangya_GameServer.Game
                                             bi._typeid = AIR_KNIGHT_SET;
                                             bi.qntd = 1;
 
-                                            item_manager.initItemFromBuyItem(_session.m_pi, ref item, bi, false, 0, 0, 1/*Não verifica o Level*/);
+                                            item_manager.initItemFromBuyItem(_session.m_pi, item, bi, false, 0, 0, 1/*Não verifica o Level*/);
 
                                             if (item._typeid != 0)
                                             {
 
-                                                if ((_cpir.clubset = (uint)item_manager.addItem(item, _session, 2/*Padrão Item*/, 0)) != Convert.ToUInt32(item_manager.RetAddItem.TYPE.T_ERROR))
+                                                if ((_cpir.clubset = (int)item_manager.addItem(item, _session, 2/*Padrão Item*/, 0)) != Convert.ToUInt32(item_manager.RetAddItem.TYPE.T_ERROR))
                                                 {
 
                                                     // Equipa o ClubSet CV1
@@ -3799,12 +4128,12 @@ namespace Pangya_GameServer.Game
                                         bi._typeid = AIR_KNIGHT_SET;
                                         bi.qntd = 1;
 
-                                        item_manager.initItemFromBuyItem(_session.m_pi, ref item, bi, false, 0, 0, 1/*Não verifica o Level*/);
+                                        item_manager.initItemFromBuyItem(_session.m_pi, item, bi, false, 0, 0, 1/*Não verifica o Level*/);
 
                                         if (item._typeid != 0)
                                         {
 
-                                            if ((_cpir.clubset = (uint)item_manager.addItem(item, _session, 2/*Padrão Item*/, 0)) != Convert.ToUInt32(item_manager.RetAddItem.TYPE.T_ERROR))
+                                            if ((_cpir.clubset = (int)item_manager.addItem(item, _session, 2/*Padrão Item*/, 0)) != Convert.ToUInt32(item_manager.RetAddItem.TYPE.T_ERROR))
                                             {
 
                                                 // Equipa o ClubSet CV1
@@ -3911,12 +4240,12 @@ namespace Pangya_GameServer.Game
                                     bi._typeid = AIR_KNIGHT_SET;
                                     bi.qntd = 1;
 
-                                    item_manager.initItemFromBuyItem(_session.m_pi, ref item, bi, false, 0, 0, 1/*Não verifica o Level*/);
+                                    item_manager.initItemFromBuyItem(_session.m_pi, item, bi, false, 0, 0, 1/*Não verifica o Level*/);
 
                                     if (item._typeid != 0)
                                     {
 
-                                        if ((_cpir.clubset = (uint)item_manager.addItem(item, _session, 2/*Padrão Item*/, 0)) != Convert.ToUInt32(item_manager.RetAddItem.TYPE.T_ERROR))
+                                        if ((_cpir.clubset = (int)item_manager.addItem(item, _session, 2/*Padrão Item*/, 0)) != Convert.ToUInt32(item_manager.RetAddItem.TYPE.T_ERROR))
                                         {
 
                                             // Equipa o ClubSet CV1
@@ -4043,7 +4372,7 @@ namespace Pangya_GameServer.Game
                                     bi._typeid = DEFAULT_COMET_TYPEID;
                                     bi.qntd = 1;
 
-                                    item_manager.initItemFromBuyItem(_session.m_pi, ref item, bi, false, 0, 0, 1/*Não verifica o Level*/);
+                                    item_manager.initItemFromBuyItem(_session.m_pi, item, bi, false, 0, 0, 1/*Não verifica o Level*/);
 
                                     if (item._typeid != 0)
                                     {
@@ -4052,7 +4381,7 @@ namespace Pangya_GameServer.Game
                                         {
 
                                             // Equipa a Ball padrao
-                                            pWi = _session.m_pi.findWarehouseItemById(_cpir.ball);
+                                            pWi = _session.m_pi.findWarehouseItemById((int)_cpir.ball);
 
                                             if (pWi != null)
                                             {
@@ -4103,7 +4432,7 @@ namespace Pangya_GameServer.Game
                             if (_session.m_pi.ue.mascot_id != 0 && _session.m_pi.ei.mascot_info != null)
                             {
                                 //FindUpdateItemByIdAndType
-                                var m_it = _session.m_pi.findUpdateItemByTypeidAndType(_session.m_pi.ue.mascot_id, UpdateItem.UI_TYPE.MASCOT);
+                                var m_it = _session.m_pi.findUpdateItemByTypeidAndType((uint)_session.m_pi.ue.mascot_id, UpdateItem.UI_TYPE.MASCOT);
 
                                 if (m_it.Count > 0)
                                 {
@@ -4122,7 +4451,7 @@ namespace Pangya_GameServer.Game
                             }
 
                             // Começa jogo
-                            startGame(_session); 
+                            startGame(_session);
                         }
                         break;
                     default:
@@ -4286,12 +4615,12 @@ namespace Pangya_GameServer.Game
                 else if (master == null && v_sessions.Count > 0 && m_ri.master != -2)
                 {
                     if (m_ri.getTipo() != RoomInfo.TIPO.SPECIAL_SHUFFLE_COURSE && m_ri.getTipo() != RoomInfo.TIPO.GRAND_PRIX)
-                    {			
+                    {
                         // Find GM 
 
                         lock (m_cs)
                         {
-                            var i  = v_sessions.FirstOrDefault(pl => pl.m_pi.m_cap.game_master);
+                            var i = v_sessions.FirstOrDefault(pl => pl.m_pi.m_cap.game_master);
 
                             if (i != null)
                                 master = i;
@@ -4393,7 +4722,17 @@ namespace Pangya_GameServer.Game
                     }
                 }
             }
-
+            if (index == -1)
+            {
+                for (int i = 0; i < v_deletes_sessions.Count; ++i)
+                {
+                    if (v_deletes_sessions[i] == _session)
+                    {
+                        index = i;
+                        break;
+                    }
+                }
+            }
             return index;
         }
 
@@ -4455,12 +4794,12 @@ namespace Pangya_GameServer.Game
         public void unlock()
         {
             lock (m_lock_cs)
-            { 
+            {
                 if (--m_lock_spin_state < 0)
-                { 
-                   // _smp::message_pool.push(new message("[room::unlock][WARNING] a sala[NUMERO=" + (m_ri.numero) + "] ja esta desbloqueada.", type_msg.CL_FILE_TIME_LOG_AND_CONSOLE));     
+                {
+                    // _smp::message_pool.push(new message("[room::unlock][WARNING] a sala[NUMERO=" + (m_ri.numero) + "] ja esta desbloqueada.", type_msg.CL_FILE_TIME_LOG_AND_CONSOLE));     
                 }
-            } 
+            }
         }
 
         public void setDestroying()
@@ -4811,45 +5150,33 @@ namespace Pangya_GameServer.Game
                 item.id = -1;
                 item._typeid = ASSIST_ITEM_TYPEID;
 
-                var pWi = _session.m_pi.findWarehouseItemByTypeid(ASSIST_ITEM_TYPEID);
-
+                var pWi = _session.m_pi.findWarehouseItemByTypeid(ASSIST_ITEM_TYPEID); 
                 if (pWi == null)
                 { // Não tem ativa o Assist
                     item.qntd = 1;
-                    item.c[0] = 1;
+                    item.STDA_C_ITEM_QNTD = 1;
 
-                    if ((rt = (item_manager.RetAddItem.TYPE)item_manager.addItem(item,
-                        _session, 0, 0)) < 0)
+                    if ((rt = item_manager.addItem(item, _session, 0, 0)) < 0)
                     {
                         throw new exception("[room::requestToggleAssist][Error] player[UID=" + Convert.ToString(_session.m_pi.uid) + "] tentou ativar o Assist[TYPEID=" + Convert.ToString(ASSIST_ITEM_TYPEID) + "], mas nao conseguiu adicionar o item. Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.ROOM,
                             1, 0x5200801));
                     }
-
-#if DEBUG
+                    _session.m_pi.assist_flag = true;
                     _smp.message_pool.push(new message("[room::requestToggleAssist][Log] player[UID=" + Convert.ToString(_session.m_pi.uid) + "] Ligou o Assist Modo", type_msg.CL_FILE_LOG_AND_CONSOLE));
-#else
-						_smp.message_pool.push(new message("[room::requestToggleAssist][Log] player[UID=" + Convert.ToString(_session.m_pi.uid) + "] Ligou o Assist Modo", type_msg.CL_ONLY_FILE_LOG));
-#endif // _DEBUG
-
                 }
                 else
                 { // Já tem, Desativa
-
-                    item.id = (int)pWi.id;
-                    item.qntd = (uint)((pWi.c[0] <= 0) ? 1 : pWi.c[0]);
-                    item.c[0] = (ushort)(item.qntd * -1);
-
+                    _session.m_pi.assist_flag = false;
+                    item.id = pWi.id;
+                    item.qntd = (uint)((pWi.STDA_C_ITEM_QNTD <= 0) ? 1 : pWi.STDA_C_ITEM_QNTD);
+                    item.STDA_C_ITEM_QNTD = (ushort)(item.qntd * -1);
                     if (item_manager.removeItem(item, _session) <= 0)
                     {
                         throw new exception("[room::requestToggleAssist][Error] player[UID=" + Convert.ToString(_session.m_pi.uid) + "] tentou desativar o Assist[TYPEID=" + Convert.ToString(ASSIST_ITEM_TYPEID) + "], mas nao conseguiu remover o item. Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.ROOM,
                             2, 0x5200802));
                     }
 
-#if DEBUG
                     _smp.message_pool.push(new message("[room::requestToggleAssist][Log] player[UID=" + Convert.ToString(_session.m_pi.uid) + "] Desligou o Assist Modo", type_msg.CL_FILE_LOG_AND_CONSOLE));
-#else
-						_smp.message_pool.push(new message("[room::requestToggleAssist][Log] player[UID=" + Convert.ToString(_session.m_pi.uid) + "] Desligou o Assist Modo", type_msg.CL_ONLY_FILE_LOG));
-#endif // _DEBUG
 
                 }
 
@@ -4863,11 +5190,13 @@ namespace Pangya_GameServer.Game
                     p.WriteUInt32(1); // Count
 
                     p.WriteByte(item.type);
-                    p.WriteUInt32(item._typeid);
-                    p.WriteInt32(item.id);
+                    p.WriteUInt32(ASSIST_ITEM_TYPEID); 
+                    p.WriteInt32(item.id);//149086 problema com o id? bem estranho, ou o codigo nao trabalha @@@@@
                     p.WriteUInt32(item.flag_time);
-                    p.WriteBytes(item.stat.ToArray());
-                    p.WriteUInt32((item.c[3] > 0) ? item.c[3] : item.c[0]);
+                    p.WriteBytes(item.stat.ToArray()); //pelo que eu vi, tem que esta 1 1, e o ultimo deve esta em 0
+                    p.WriteUInt32(Convert.ToUInt32((item.STDA_C_ITEM_TIME > 0) ? item.STDA_C_ITEM_TIME : item.STDA_C_ITEM_QNTD));
+
+
                     p.WriteZeroByte(25);
 
                     packet_func.session_send(p,
@@ -4947,7 +5276,7 @@ namespace Pangya_GameServer.Game
                 // Add o Player ao (team)time
                 m_teans[team].addPlayer(_session);
 
-                pPri.state_flag.team = team; // ~pri->state_flag.uFlag.stFlagBit.team;
+                pPri.state_flag.team = team; // ~pri.state_flag.uFlag.stFlagBit.team;
 
 
                 p = new PangyaBinaryWriter((ushort)0x7D);
@@ -4990,7 +5319,7 @@ namespace Pangya_GameServer.Game
 
                 if (m_ri.master != _session.m_pi.uid)
                 {
-                    if (!_session.m_pi.mi.capability.game_master) 
+                    if (!_session.m_pi.mi.capability.game_master)
                         throw new exception("[room::requestStartGame][Error] player[UID=" + Convert.ToString(_session.m_pi.uid) + "] tentou comecar o jogo na sala[NUMERO=" + Convert.ToString(m_ri.numero) + "], mas ele nao eh o master da sala. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.ROOM,
                             1, 0x5900201));
                 }
@@ -5018,6 +5347,7 @@ namespace Pangya_GameServer.Game
                     && m_ri.getTipo() != RoomInfo.TIPO.GRAND_ZODIAC_ADV
                     && m_ri.getTipo() != RoomInfo.TIPO.GRAND_ZODIAC_PRACTICE)
                 {
+                    if (m_ri.flag_gm !=1) 
                     throw new exception("[room::requestStartGame][Error] player[UID=" + Convert.ToString(_session.m_pi.uid) + "] tentou comecar o jogo na sala[NUMERO=" + Convert.ToString(m_ri.numero) + "], mas nao tem quantidade de jogadores suficiente para da comecar. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.ROOM,
                         1, 0x5900202));
                 }
@@ -5082,13 +5412,13 @@ namespace Pangya_GameServer.Game
                         {
                             case 0: // Não tem duas guilds na sala
                                 throw new exception("[room::requestStartGame][Error] Player[UID=" + Convert.ToString(_session.m_pi.uid) + "] tentou comecar o Guild Battle na sala[NUMERO=" + Convert.ToString(m_ri.numero) + "], mas nao tem guilds suficientes para comecar o jogo. Hacker ou Bug.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.ROOM,
-                                    10, 0x5900202)); 
+                                    10, 0x5900202));
                             case -1: // Não tem o mesmo número de jogadores na sala as duas guilds
                                 throw new exception("[room::requestStartGame][Error] Player[UID=" + Convert.ToString(_session.m_pi.uid) + "] tentou comecar o Guild Battle na sala[NUMERO=" + Convert.ToString(m_ri.numero) + "], mas as duas guilds nao tem o mesmo numero de jogadores na sala. Hacker ou Bug.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.ROOM,
-                                    11, 0x5900202)); 
+                                    11, 0x5900202));
                             case -2: // Uma das Guilds ou as duas não tem 2 jogadores
                                 throw new exception("[room::requestStartGame][Error] Player[UID=" + Convert.ToString(_session.m_pi.uid) + "] tentou comecar o Guild Battle na sala[NUMERO=" + Convert.ToString(m_ri.numero) + "], mas uma ou as duas guilds tem menos que 2 jogadores na sala. Hacker ou Bug.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.ROOM,
-                                    12, 0x5900202)); 
+                                    12, 0x5900202));
                         }
                     }
                 }
@@ -5199,8 +5529,8 @@ namespace Pangya_GameServer.Game
                 switch (m_ri.getTipo())
                 {
                     case RoomInfo.TIPO.STROKE:
-                        m_pGame = new Versus(v_sessions,
-                            m_ri, rv, m_ri.channel_rookie);
+                        //m_pGame = new Versus(v_sessions,
+                        //    m_ri, rv, m_ri.channel_rookie);
                         break;
                     //case RoomInfo.TIPO.MATCH:
                     //    m_pGame = new Match(v_sessions,
@@ -5220,8 +5550,8 @@ namespace Pangya_GameServer.Game
                             m_ri, rv, m_ri.channel_rookie);
                         break;
                     case RoomInfo.TIPO.TOURNEY:
-                        m_pGame = new Tourney(v_sessions,
-                            m_ri, rv, m_ri.channel_rookie);
+                        //m_pGame = new Tourney(v_sessions,
+                        //    m_ri, rv, m_ri.channel_rookie);
                         break;
                     //case RoomInfo.TIPO.SPECIAL_SHUFFLE_COURSE:
                     //    m_pGame = new SpecialShuffleCourse(v_sessions,
@@ -5249,7 +5579,7 @@ namespace Pangya_GameServer.Game
 
                 // Update Room State
                 m_ri.state = 0; // IN GAME
-                 
+
                 p.init_plain((ushort)0x230);
 
                 packet_func.room_broadcast(this,
@@ -6396,7 +6726,7 @@ namespace Pangya_GameServer.Game
                 }
 
                 // Acabou o tempo /*Sai do Practice*/
-               Tools.reinterpret_cast<TourneyBase>(m_pGame).timeIsOver();
+                Tools.reinterpret_cast<TourneyBase>(m_pGame).timeIsOver();
 
             }
             catch (exception e)
@@ -7206,7 +7536,7 @@ namespace Pangya_GameServer.Game
             try
             {
 
-                // Update on Flag Lounge or Game Course->hole->weather
+                // Update on Flag Lounge or Game Course.hole.weather
                 if (m_ri.getTipo() == RoomInfo.TIPO.LOUNGE)
                 {
 
@@ -7299,7 +7629,7 @@ namespace Pangya_GameServer.Game
                     item.clear();
 
                     item_manager.initItemFromBuyItem(el.m_pi,
-                        ref item, bi, false, 0, 0, 1);
+                        item, bi, false, 0, 0, 1);
 
                     if (item._typeid == 0)
                     {
@@ -7421,7 +7751,7 @@ namespace Pangya_GameServer.Game
                     }
                 case 12: // Update ClubSet Workshop
                     {
-                         var cmd_ucw = Tools.reinterpret_cast<CmdUpdateClubSetWorkshop>(_pangya_db);
+                        var cmd_ucw = Tools.reinterpret_cast<CmdUpdateClubSetWorkshop>(_pangya_db);
 
                         _smp.message_pool.push(new message("[room::SQLDBResponse][Log] player[UID=" + Convert.ToString(cmd_ucw.getUID()) + "] Atualizou ClubSet[TYPEID=" + Convert.ToString(cmd_ucw.getInfo()._typeid) + ", ID=" + Convert.ToString(cmd_ucw.getInfo().id) + "] Workshop[C0=" + Convert.ToString(cmd_ucw.getInfo().clubset_workshop.c[0]) + ", C1=" + Convert.ToString(cmd_ucw.getInfo().clubset_workshop.c[1]) + ", C2=" + Convert.ToString(cmd_ucw.getInfo().clubset_workshop.c[2]) + ", C3=" + Convert.ToString(cmd_ucw.getInfo().clubset_workshop.c[3]) + ", C4=" + Convert.ToString(cmd_ucw.getInfo().clubset_workshop.c[4]) + ", Level=" + Convert.ToString(cmd_ucw.getInfo().clubset_workshop.level) + ", Mastery=" + Convert.ToString(cmd_ucw.getInfo().clubset_workshop.mastery) + ", Rank=" + Convert.ToString(cmd_ucw.getInfo().clubset_workshop.rank) + ", Recovery=" + Convert.ToString(cmd_ucw.getInfo().clubset_workshop.recovery_pts) + "] Flag=" + Convert.ToString(cmd_ucw.getFlag()) + "", type_msg.CL_FILE_LOG_AND_CONSOLE));
                         break;

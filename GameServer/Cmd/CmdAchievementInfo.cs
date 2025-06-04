@@ -34,12 +34,12 @@ namespace Pangya_GameServer.Cmd
             var cii = new CounterItemInfo { active = 1 };
 
             ai._typeid = IFNULL(_result.data[1]);
-            ai.id = IFNULL(_result.data[2]);
+            ai.id = IFNULL<int>(_result.data[2]);
 
             qsi.id = IFNULL(_result.data[4]);
             qsi._typeid = IFNULL(_result.data[5]);
             cii._typeid = IFNULL(_result.data[6]);
-            cii.id = qsi.counter_item_id = IFNULL(_result.data[7]);
+            cii.id = qsi.counter_item_id = IFNULL<int>(_result.data[7]);
             cii.value = IFNULL(_result.data[8]);
             qsi.clear_date_unix = IFNULL(_result.data[9]);
 
@@ -59,7 +59,7 @@ namespace Pangya_GameServer.Cmd
                 ai.v_qsi.Add(qsi);
 
                 if (cii.id > 0)
-                    ai.map_counter_item[cii.id] = cii;
+                    ai.map_counter_item[(uint)cii.id] = cii;
 
                 map_ai[ai._typeid].Add(ai);
             }
@@ -69,7 +69,7 @@ namespace Pangya_GameServer.Cmd
                 existingAi.v_qsi.Add(qsi);
 
                 if (cii.id > 0)
-                    existingAi.map_counter_item[cii.id] = cii;
+                    existingAi.map_counter_item[(uint)cii.id] = cii;
             }
         }
 
@@ -86,13 +86,13 @@ namespace Pangya_GameServer.Cmd
 
         private void CheckAchievementRetorno(AchievementInfoEx ai)
         {
-            var achievement = sIff.getInstance().findAchievement(ai.id);
+            var achievement = sIff.getInstance().findAchievement((uint)ai.id);
 
-            if (sIff.getInstance().getItemGroupIdentify(ai.id) != sIff.getInstance().QUEST_ITEM && achievement != null)
+            if (sIff.getInstance().getItemGroupIdentify((uint)ai.id) != sIff.getInstance().QUEST_ITEM && achievement != null)
             {
                 ai.quest_base_typeid = achievement.TypeID_Quest_Index;
             }
-            else if (sIff.getInstance().getItemGroupIdentify(ai.id) == sIff.getInstance().ACHIEVEMENT)
+            else if (sIff.getInstance().getItemGroupIdentify((uint)ai.id) == sIff.getInstance().ACHIEVEMENT)
             {
                 Console.WriteLine($"[CmdAchievementInfo::LineResult][WARNING] Achievement[TypeId={ai.id}] not found in .iff file for player: {m_uid}");
             }

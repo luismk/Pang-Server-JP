@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Xml.Linq;
 using Pangya_GameServer.Cmd;
 using Pangya_GameServer.GameType;
 using Pangya_GameServer.PacketFunc;
@@ -15,7 +16,7 @@ using PangyaAPI.Utilities.Log;
 using static Pangya_GameServer.GameType._Define;
 namespace Pangya_GameServer.Game.Utils
 {
-    public partial class MgrAchievement
+    public class MgrAchievement
     {
 
         protected Dictionary<uint, AchievementInfoEx> map_ai = new Dictionary<uint, AchievementInfoEx>();
@@ -241,15 +242,17 @@ namespace Pangya_GameServer.Game.Utils
                         1000, 0));
                 }
             };
+            if(_it.Current.Key <= 0)
+            _it.MoveNext();
 
-            if (_it.Current.Key == map_ai.Last().Key)
+            if (_it.Current.Key <= 0)
             {
                 throw new exception("[MgrAchievement::removeAchievement][Error] Enumerator achievement invalid", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.MGR_ACHIEVEMENT,
                     12, 0));
             }
 
             // Delete Counter Item
-            if (!_it.Current.Value.map_counter_item.empty())
+            if ((_it.Current.Value != null) && !_it.Current.Value.map_counter_item.empty())
             {
                 NormalManagerDB.add(1,
                     new CmdDeleteCounterItem(m_uid, _it.Current.Value.map_counter_item),
@@ -258,26 +261,30 @@ namespace Pangya_GameServer.Game.Utils
             }
 
             // Delete Quest
-            if (!_it.Current.Value.v_qsi.empty())
+            if ((_it.Current.Value != null) && !_it.Current.Value.v_qsi.empty())
             {
                 NormalManagerDB.add(2,
                     new CmdDeleteQuest(m_uid, _it.Current.Value.v_qsi),
                     MgrAchievement.SQLDBResponse,
                     this);
             }
+            if ((_it.Current.Value != null))
+            {
 
-            // Delete Achievement
-            NormalManagerDB.add(3,
-                new CmdDeleteAchievement(m_uid, (int)_it.Current.Value.id),
-                MgrAchievement.SQLDBResponse,
-                this);
+                // Delete Achievement
+                NormalManagerDB.add(3,
+                    new CmdDeleteAchievement(m_uid, (int)_it.Current.Value.id),
+                    MgrAchievement.SQLDBResponse,
+                    this);
 
-            var id = _it.Current.Value.id;
+                var id = _it.Current.Value.id;
 
-            map_ai.Remove(_it.Current.Key);
+                map_ai.Remove(_it.Current.Key);
 
-            // Log
-            message_pool.push(new message("[MgrAchievement::removeAchievement][Log] player[UID=" + Convert.ToString(m_uid) + "] deletou Achievement[ID=" + Convert.ToString(id) + "]", type_msg.CL_FILE_LOG_AND_CONSOLE));
+                // Log
+                message_pool.push(new message("[MgrAchievement::removeAchievement][Log] player[UID=" + Convert.ToString(m_uid) + "] deletou Achievement[ID=" + Convert.ToString(id) + "]", type_msg.CL_FILE_LOG_AND_CONSOLE));
+
+            }
         }
 
         // Add Achievement
@@ -307,12 +314,12 @@ namespace Pangya_GameServer.Game.Utils
 
                     if (el.clear_date_unix != 0 && (qsi = sIff.getInstance().findQuestStuff(el._typeid)) != null)
                     {
-                        for (var i = 0u; i < (qsi.Reward_Item_TypeID.Length); ++i)
+                        for (var i = 0u; i < (qsi.reward_item._typeid.Length); ++i)
                         {
 
-                            if (qsi.Reward_Item_TypeID[i] != 0 && qsi.Reward_Item_TypeID[i] == 0x6C000001)
+                            if (qsi.reward_item._typeid[i] != 0 && qsi.reward_item._typeid[i] == 0x6C000001)
                             {
-                                m_pontos += qsi.Reward_Item_TypeID[i];
+                                m_pontos += qsi.reward_item._typeid[i];
                             }
                         }
                     }
@@ -341,60 +348,10 @@ namespace Pangya_GameServer.Game.Utils
                 }
             };
 
-            // Tem que passar o 22D com os dados, e 22C para mostrar o GUI
-
-            Dictionary<uint, AchievementInfoEx> v_element = new Dictionary<uint, AchievementInfoEx>();
-
-            map_ai.ToList().ForEach(el =>
-             {
-                 if (sIff.getInstance().getItemGroupIdentify(el.Value._typeid) == sIff.getInstance().ACHIEVEMENT)
-                 {
-                     v_element.insert(Tuple.Create(el.Value._typeid, el.Value));
-                 }
-             });
-
-            var elements = v_element.Count;
-            var map_i = v_element.First();
-
-            var p = new PangyaBinaryWriter();
-            CounterItemInfo cii = null;
-
-            int total = v_element.Count;
-            int por_packet = ((1000 - 100) > (17 + 4 + (16 * 10)) ? (1000 - 100) / ((17 + 4) + (16 * 10)) : 1);
-            int processed = 0;
-            var split_list = v_element.Values.ToList().Split(por_packet);
-            foreach (var batch in split_list)
-            {
-                p.init_plain((ushort)0x22D);
-                p.WriteUInt32(0); // SUCCESS
-                p.WriteUInt32((uint)batch.Count());
-                p.WriteUInt32((uint)batch.Count());
-
-                foreach (var ai in batch)
-                {
-                    p.WriteUInt32(ai._typeid);
-                    p.WriteUInt32(ai.id);
-                    p.WriteUInt32((uint)ai.v_qsi.Count);
-
-                    foreach (var qsi in ai.v_qsi)
-                    {
-                        p.WriteUInt32(qsi._typeid);
-                        p.WriteUInt32(qsi.counter_item_id > 0 && (cii = ai.FindCounterItemById(qsi.counter_item_id)) != null ? cii.value : 0);
-                        p.WriteUInt32(qsi.clear_date_unix);
-                    }
-                }
-
-                packet_func.session_send(p, _session, 1);
-                processed += batch.Count();
-                total -= batch.Count();
-            } // FIM MAKE_SPLIT_PACKET
-
-            p.init_plain((ushort)0x22C);
-
-            p.WriteUInt32(0); // SUCCESS
-
-            packet_func.session_send(p,
-                _session, 1);
+            // Tem que passar o 22D com os dados, e 22C para mostrar o GUI 
+            packet_func.session_send(Build(map_ai.Values.ToList(), 20, 2), _session);
+             
+            packet_func.session_send(packet_func.pacote22C(), _session); // SUCCESS 
         }
 
         public virtual void sendAchievementToPlayer(Player _session)
@@ -414,53 +371,8 @@ namespace Pangya_GameServer.Game.Utils
                         1, 0));
                 }
             };
-
-            var elements = map_ai.Count;
-            var map_i = map_ai.First();
-
-            var p = new PangyaBinaryWriter();
-            CounterItemInfo cii = null;
-
-            int por_packet = ((1000 - 100) > (17 + 4 + (16 * 10))) ? (1000 - 100) / ((17 + 4) + (16 * 10)) : 1; // por pacote
-
-            int total = elements;
-            foreach (var batch in map_ai.Values.Chunk(por_packet))
-            {
-                p.init_plain((ushort)0x21E);
-
-                p.WriteUInt32(0); // SUCCESS
-                p.WriteUInt32((uint)total);
-                p.WriteUInt32((uint)batch.Count());
-
-                foreach (var ai in batch)
-                {
-                    p.WriteByte(ai.active);
-                    p.WriteUInt32(ai._typeid);
-                    p.WriteUInt32(ai.id);
-                    p.WriteUInt32(ai.status);
-                    p.WriteUInt32((uint)ai.v_qsi.Count);
-
-                    foreach (var qsi in ai.v_qsi)
-                    {
-                        p.WriteUInt32(qsi._typeid);
-
-                        if (qsi.counter_item_id > 0 && (cii = ai.FindCounterItemById(qsi.counter_item_id)) != null)
-                        {
-                            p.WriteUInt32(cii._typeid);
-                            p.WriteUInt32(cii.id);
-                        }
-                        else
-                        {
-                            p.WriteZero(8);
-                        }
-
-                        p.WriteUInt32(qsi.clear_date_unix);
-                    }
-                }
-
-                packet_func.session_send(p, _session, 0);
-                total -= batch.Count();
-            }
+             
+            packet_func.session_send(Build(map_ai.Values.ToList(), 20, 0), _session);
 
         }
 
@@ -482,34 +394,55 @@ namespace Pangya_GameServer.Game.Utils
                 }
             };
 
-            var v_element = getCounterItemInfo();
-            var elements = v_element.Count;
+            var v_element = getCounterItemInfo(); 
 
-            var p = new PangyaBinaryWriter();
-            int por_packet = ((1000 - 100) > (17 + 4 + (16 * 10))) ? (1000 - 100) / ((17 + 4) + (16 * 10)) : 1; // por pacote
-
-            int total = elements;
-            var split_list = v_element.Split(por_packet);
-            foreach (var batch in split_list)
-            {
-                p.init_plain((ushort)0x21D);
-
-                p.WriteUInt32(0); // SUCCESS    
-                p.WriteUInt32((uint)total);
-                p.WriteUInt32((uint)batch.Count());
-                foreach (var counter in batch)
-                {
-                    p.WriteByte(counter.active);//;
-                    p.WriteUInt32(counter._typeid);//
-                    p.WriteUInt32(counter.id);//
-                    p.WriteUInt32(counter.value);//
-                }
-                packet_func.session_send(p,
-                    _session, 0);
-
-            }
-
+           packet_func.session_send(Build(v_element, 20, 1), _session);
         } // FIM MAKE_SPLIT_PACKET --- // Fim do primeiro FOR, então estou usando o end desse MACRO por que ele colocar no VECTOR no final
+
+        private PangyaBinaryWriter Build<T>(List<T> list, byte tipo =0)
+        {
+            try
+            {
+                if (tipo == 0)
+                    return PacketFunc.packet_func.pacote21E(list as List<AchievementInfoEx>);
+                else if(tipo == 1)
+                    return PacketFunc.packet_func.pacote21D(list as List<CounterItemInfo>);
+                else if(tipo == 2)
+                    return PacketFunc.packet_func.pacote22D(list as List<AchievementInfoEx>);
+                else
+                    return PacketFunc.packet_func.pacote21D(list as List<CounterItemInfo>);
+            }
+            catch
+            {
+                return new PangyaBinaryWriter();
+            }
+        }
+
+        /// <summary>
+        /// Criar o packet de cada pacote, com limite de envio, recomendado, é 20
+        /// </summary>
+        /// <typeparam name="T">t seria uma conversor, com lista de elementos por exemplo</typeparam>
+        /// <param name="counters">list por exemplo</param>
+        /// <param name="itensPerPacket">total que sera enviado por lista, no maximo é 20</param>
+        /// <param name="tipo">0=pacote021E, 1=pacote021D, 2 = pacote022D, outro esta desconhecido@@</param>
+        /// 
+
+        private List<PangyaBinaryWriter> Build<T>(List<T> counters,int itensPerPacket, byte tipo)
+        {
+            var responses = new List<PangyaBinaryWriter>();
+            if (counters.Count * 196 < (1000 - 100))//envio normal
+            {
+                responses.Add(Build(counters, tipo));
+            }
+            else
+            {
+                var splitList = counters.ToList().Split(itensPerPacket); //ChunkBy(this.ToList(), totalBySplit);
+
+                //Percorre lista e adiciona ao resultado
+                splitList.ForEach(lista => responses.Add(Build(lista, tipo)));
+            }
+            return responses;
+        }
 
         // Increasers
         public void incrementPoint(uint _increase = 1u)
@@ -657,8 +590,11 @@ namespace Pangya_GameServer.Game.Utils
                 throw new exception("[MgrAchievement::findAchievementById][Error] _id is invalid", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.MGR_ACHIEVEMENT,
                     13, 0));
             }
+            var filtered = map_ai
+        .Where(kv => kv.Value.id == _id)
+        .ToDictionary(kv => kv.Key, kv => kv.Value);
 
-            return (Dictionary<uint, AchievementInfoEx>.Enumerator)map_ai.Where(c => c.Value.id == _id).GetEnumerator();
+            return filtered.GetEnumerator() ;
         }
 
         // Statics methods
@@ -703,11 +639,11 @@ namespace Pangya_GameServer.Game.Utils
                     cmd_ca, null, null);
 
                 var i = 0u;
-                if (cmd_ca.getException().getCodeError() == 0 && (ai.id = (uint)cmd_ca.getID()) != uint.MaxValue)
+                if (cmd_ca.getException().getCodeError() == 0 && (ai.id = cmd_ca.getID()) != -1)
                 {
 
 
-                    cmd_cq.setAchievementID((ai.id));
+                    cmd_cq.setAchievementID(((uint)ai.id));
 
                     do
                     {
@@ -717,7 +653,7 @@ namespace Pangya_GameServer.Game.Utils
                             qsi.clear();
 
                             qsi._typeid = _achievement.Quest_TypeID[i];
-                            cii._typeid = qs.Counter_Item_TypeID[0];
+                            cii._typeid = qs.counter_item._typeid[0];
 
                             cmd_cq.setQuest(qs, (_achievement.TypeID_Quest_Index == 0 || _achievement.TypeID_Quest_Index == _achievement.Quest_TypeID[i]) ? true : false);
 
@@ -725,7 +661,7 @@ namespace Pangya_GameServer.Game.Utils
                                 cmd_cq, null, null);
 
                             qsi.id = (uint)cmd_cq.getID();
-                            cii.id = (uint)cmd_cq.getCounterItemID();
+                            cii.id = (int)cmd_cq.getCounterItemID();
 
                             if (cmd_cq.getException().getCodeError() != 0
                                 || qsi.id == uint.MaxValue
@@ -747,7 +683,7 @@ namespace Pangya_GameServer.Game.Utils
 
                             if (cii.id > 0)
                             {
-                                ai.map_counter_item[cii.id] = cii;
+                                ai.map_counter_item[(uint)cii.id] = cii;
                             }
                         }
                     } while (++i < (_achievement.Quest_TypeID.Length));
@@ -811,7 +747,7 @@ namespace Pangya_GameServer.Game.Utils
 
             QuestStuff qs = null;
 
-            if (_qi.Quest_Counter > 0 || _qi.Quest_TypeID[0] > 0)
+            if (_qi.quest.qntd > 0 || _qi.quest._typeid[0] > 0)
             {
                 //CmdCreateQuest cmd_cq(pi->uid, *qi, 3/*1 pendente, 2 excluida, 3 ativa, 4 concluida*/);
                 var name = (_qi.Name);
@@ -822,22 +758,22 @@ namespace Pangya_GameServer.Game.Utils
                 NormalManagerDB.add(0,
                     cmd_ca, null, null);
 
-                if (cmd_ca.getException().getCodeError() == 0 && (ai.id = (uint)cmd_ca.getID()) != uint.MaxValue)
+                if (cmd_ca.getException().getCodeError() == 0 && (ai.id = cmd_ca.getID()) != -1)
                 {
 
                     var i = 0u;
 
-                    cmd_cq.setAchievementID((ai.id));
+                    cmd_cq.setAchievementID((uint)(ai.id));
 
                     do
                     {
-                        if (_qi.Quest_TypeID[i] != 0 && (qs = sIff.getInstance().findQuestStuff(_qi.Quest_TypeID[i])) != null)
+                        if (_qi.quest._typeid[i] != 0 && (qs = sIff.getInstance().findQuestStuff(_qi.quest._typeid[i])) != null)
                         {
 
                             qsi.clear();
 
-                            qsi._typeid = _qi.Quest_TypeID[i];
-                            cii._typeid = qs.Counter_Item_TypeID[0];
+                            qsi._typeid = _qi.quest._typeid[i];
+                            cii._typeid = qs.counter_item._typeid[0];
 
                             cmd_cq.setQuest(qs, (_status != AchievementInfo.AchievementStatus.Pending) ? true : false);
 
@@ -845,7 +781,7 @@ namespace Pangya_GameServer.Game.Utils
                                 cmd_cq, null, null);
 
                             qsi.id = (uint)cmd_cq.getID();
-                            cii.id = (uint)cmd_cq.getCounterItemID();
+                            cii.id = (int)cmd_cq.getCounterItemID();
 
                             if (cmd_cq.getException().getCodeError() != 0
                                 || qsi.id == -1
@@ -858,7 +794,7 @@ namespace Pangya_GameServer.Game.Utils
                             // Add o Counter Item Id para o Quest Stuff Info, se a quest tem o counter item
                             if (cmd_cq.getIncludeCounter())
                             {
-                                // C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
+                                
                                 qsi.counter_item_id = cii.id;
                             }
 
@@ -868,16 +804,16 @@ namespace Pangya_GameServer.Game.Utils
 
                             if (cii.id > 0)
                             {
-                                // C++ TO C# CONVERTER TASK: The following line was determined to be a copy assignment (rather than a reference assignment) - this should be verified and a 'CopyFrom' method should be created:
-                                ai.map_counter_item[cii.id] = cii;
+                                
+                                ai.map_counter_item[(uint)cii.id] = cii;
                             }
                         }
-                    } while (++i < _qi.Quest_Counter);
+                    } while (++i < _qi.quest.qntd);
 
                     // Atualiza os counter item id nas quest stuff se o achievement esta com o quest base
                     var it = ai.getQuestBase();
 
-                    // C++ TO C# CONVERTER TASK: Iterators are only converted within the context of 'while' and 'for' loops:
+                    
                     if (it.Current != ai.v_qsi.ToList().GetEnumerator().Current)
                     {
 

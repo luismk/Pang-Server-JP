@@ -55,7 +55,7 @@ namespace PangyaAPI.IFF.JP.Models.Data
         [field: MarshalAs(UnmanagedType.Struct)]
         public CardSlot _CardSlot { get; set; }
         public ushort Points { get; set; }//is rental point?
-        public uint RentPang { get; set; }
+        public uint valor_rental { get; set; }
         public uint Unk { get; set; }   //nao sei o que é
         public uint EquipmentCategory { get => Convert.ToUInt32(type_item); set => type_item = (PART_TYPE)value; }
         public uint CharacterType => (uint)((ID & 0x3fc0000) / Math.Pow(2.0, 18.0));
@@ -132,7 +132,7 @@ namespace PangyaAPI.IFF.JP.Models.Data
         //public new bool IsNew()
         //{
         //    Debug.WriteLine($"Test=> {(uint)(((uint)type_item & ~0xFC000000) >> 0)}");
-        //    if (base.IsNew() && RentPang > 0)
+        //    if (base.IsNew() && valor_rental > 0)
         //    {
         //        return false;
         //    }
@@ -177,7 +177,7 @@ namespace PangyaAPI.IFF.JP.Models.Data
                 = reader.ReadUInt16()
             };
             Points = reader.ReadUInt16();
-            RentPang = reader.ReadUInt32();
+            valor_rental = reader.ReadUInt32();
             Unk = reader.ReadUInt32();
         }
         public Part()

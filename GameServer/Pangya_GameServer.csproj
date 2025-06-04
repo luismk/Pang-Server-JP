@@ -34,7 +34,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>GameServer\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;_VERSION_PACKET_CALCULE_12F;_DEBUG;_VERSION_PACKET_CALCULE_12;RELEASE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
@@ -66,9 +66,19 @@
     <Compile Include="Cmd\CmdAchievementInfo.cs" />
     <Compile Include="Cmd\CmdAddBall.cs" />
     <Compile Include="Cmd\CmdAddCaddie.cs" />
+    <Compile Include="Cmd\CmdAddCard.cs" />
+    <Compile Include="Cmd\CmdAddCharacterHairStyle.cs" />
+    <Compile Include="Cmd\CmdAddClubSet.cs" />
+    <Compile Include="Cmd\CmdAddCounterItem.cs" />
     <Compile Include="Cmd\CmdAddDolfiniLockerItem.cs" />
+    <Compile Include="Cmd\CmdAddFurniture.cs" />
+    <Compile Include="Cmd\CmdAddItem.cs" />
     <Compile Include="Cmd\CmdAddLoginRewardPlayer.cs" />
+    <Compile Include="Cmd\CmdAddMascot.cs" />
     <Compile Include="Cmd\CmdAddMsgMail.cs" />
+    <Compile Include="Cmd\CmdAddPart.cs" />
+    <Compile Include="Cmd\CmdAddSkin.cs" />
+    <Compile Include="Cmd\CmdAddTrofelEspecial.cs" />
     <Compile Include="Cmd\CmdAttendanceRewardInfo.cs" />
     <Compile Include="Cmd\CmdAttendanceRewardItemInfo.cs" />
     <Compile Include="Cmd\CmdBotGMEventInfo.cs" />
@@ -88,22 +98,43 @@
     <Compile Include="Cmd\CmdDailyQuestInfo.cs" />
     <Compile Include="Cmd\CmdDailyQuestInfoUser.cs" />
     <Compile Include="Cmd\CmdDeleteAchievement.cs" />
+    <Compile Include="Cmd\CmdDeleteBall.cs" />
+    <Compile Include="Cmd\CmdDeleteCaddie.cs" />
+    <Compile Include="Cmd\CmdDeleteCard.cs" />
     <Compile Include="Cmd\CmdDeleteCounterItem.cs" />
+    <Compile Include="Cmd\CmdDeleteDailyQuest.cs" />
     <Compile Include="Cmd\CmdDeleteEmail.cs" />
+    <Compile Include="Cmd\CmdDeleteFurniture.cs" />
+    <Compile Include="Cmd\CmdDeleteItem.cs" />
+    <Compile Include="Cmd\CmdDeleteMascot.cs" />
     <Compile Include="Cmd\CmdDeleteQuest.cs" />
     <Compile Include="Cmd\CmdDolfiniLockerInfo.cs" />
     <Compile Include="Cmd\CmdDropCourseConfig.cs" />
     <Compile Include="Cmd\CmdDropCourseInfo.cs" />
     <Compile Include="Cmd\CmdEmailInfo2.cs" />
     <Compile Include="Cmd\CmdExtendRental.cs" />
+    <Compile Include="Cmd\CmdFindCaddie.cs" />
+    <Compile Include="Cmd\CmdFindCard.cs" />
+    <Compile Include="Cmd\CmdFindCharacter.cs" />
+    <Compile Include="Cmd\CmdFindDolfiniLockerItem.cs" />
+    <Compile Include="Cmd\CmdFindFurniture.cs" />
+    <Compile Include="Cmd\CmdFindMailBoxItem.cs" />
+    <Compile Include="Cmd\CmdFindMascot.cs" />
     <Compile Include="Cmd\CmdFindTrofelEspecial.cs" />
     <Compile Include="Cmd\CmdFindUCC.cs" />
+    <Compile Include="Cmd\CmdFindWarehouseItem.cs" />
     <Compile Include="Cmd\CmdFriendInfo.cs" />
     <Compile Include="Cmd\CmdGeraWebKey.cs" />
+    <Compile Include="Cmd\CmdGetGiftClubSet.cs" />
+    <Compile Include="Cmd\CmdGetGiftPart.cs" />
+    <Compile Include="Cmd\CmdGiftClubSet.cs" />
+    <Compile Include="Cmd\CmdGiftPart.cs" />
     <Compile Include="Cmd\CmdGrandPrixClear.cs" />
     <Compile Include="Cmd\CmdGrandZodiacPontos.cs" />
     <Compile Include="Cmd\CmdGuildInfo.cs" />
     <Compile Include="Cmd\CmdInsertCommand.cs" />
+    <Compile Include="Cmd\CmdInsertCPLog.cs" />
+    <Compile Include="Cmd\CmdInsertCPLogItem.cs" />
     <Compile Include="Cmd\CmdInsertMemorialRareWinLog.cs" />
     <Compile Include="Cmd\CmdInsertPapelShopRareWinLog.cs" />
     <Compile Include="Cmd\CmdItemBuffInfo.cs" />
@@ -122,15 +153,19 @@
     <Compile Include="Cmd\CmdMsgOffInfo.cs" />
     <Compile Include="Cmd\CmdMyRoomConfig.cs" />
     <Compile Include="Cmd\CmdMyRoomItem.cs" />
+    <Compile Include="Cmd\CmdOldDailyQuestInfo.cs" />
     <Compile Include="Cmd\CmdPang.cs" />
     <Compile Include="Cmd\CmdPapelShopConfig.cs" />
     <Compile Include="Cmd\CmdPapelShopCoupon.cs" />
     <Compile Include="Cmd\CmdPapelShopItem.cs" />
+    <Compile Include="Cmd\CmdPersonalShopLog.cs" />
     <Compile Include="Cmd\CmdPlayerInfo.cs" />
     <Compile Include="Cmd\CmdPremiumTicketInfo.cs" />
     <Compile Include="Cmd\CmdPutItemMailBox.cs" />
     <Compile Include="Cmd\CmdRegisterLogonServer.cs" />
     <Compile Include="Cmd\CmdSetNoticeCaddieHolyDay.cs" />
+    <Compile Include="Cmd\CmdTicketReportDadosInfo.cs" />
+    <Compile Include="Cmd\CmdTransferPart.cs" />
     <Compile Include="Cmd\CmdTreasureHunterInfo.cs" />
     <Compile Include="Cmd\CmdTreasureHunterItem.cs" />
     <Compile Include="Cmd\CmdTrofelInfo.cs" />
@@ -147,7 +182,6 @@
     <Compile Include="Cmd\CmdUpdateCardSpecialTime.cs" />
     <Compile Include="Cmd\CmdUpdateCharacterAllPartEquiped.cs" />
     <Compile Include="Cmd\CmdUpdateCharacterCutinEquiped.cs" />
-    <Compile Include="Cmd\CmdUpdateCharacterEquiped.cs" />
     <Compile Include="Cmd\CmdUpdateCharacterMastey.cs" />
     <Compile Include="Cmd\CmdUpdateCharacterPcl.cs" />
     <Compile Include="Cmd\CmdUpdateChatMacroUser.cs" />
@@ -202,7 +236,9 @@
     <Compile Include="GameType\approach_type.cs" />
     <Compile Include="GameType\bot_gm_event_type.cs" />
     <Compile Include="GameType\card_type.cs" />
+    <Compile Include="GameType\coin_cube_type.cs" />
     <Compile Include="GameType\comet_refill_type.cs" />
+    <Compile Include="GameType\extra_power_interface.cs" />
     <Compile Include="GameType\guild_type.cs" />
     <Compile Include="GameType\game_type.cs" />
     <Compile Include="GameType\hole_type.cs" />
@@ -212,13 +248,16 @@
     <Compile Include="Cmd\CmdDeleteRental.cs" />
     <Compile Include="Cmd\CmdPayCaddieHolyDay.cs" />
     <Compile Include="GameType\tourney_base_type.cs" />
+    <Compile Include="GameType\versus_base_type.cs" />
+    <Compile Include="GameType\_3d_type.cs" />
     <Compile Include="Game\Base\TourneyBase.cs" />
-    <Compile Include="Game\Base\VersusBase.cs" />
     <Compile Include="Game\Course.cs" />
     <Compile Include="Game\Dupla.cs" />
     <Compile Include="Game\Hole.cs" />
+    <Compile Include="Game\Manager\BlockMemoryManager.cs" />
     <Compile Include="Game\Manager\CardEquipManager.cs" />
     <Compile Include="Game\Manager\CardManager.cs" />
+    <Compile Include="Game\Manager\CoinCubeLocationUpdateSystem.cs" />
     <Compile Include="Game\Manager\CometRefillSystem.cs" />
     <Compile Include="Game\Manager\DuplaManager.cs" />
     <Compile Include="Game\Manager\item_manager.cs" />
@@ -252,15 +291,14 @@
     <Compile Include="Game\System\TreasureHunterSystem.cs" />
     <Compile Include="Game\System\UCCSystem.cs" />
     <Compile Include="Game\Team.cs" />
-    <Compile Include="Game\Tourney.cs" />
     <Compile Include="Game\Utils\BroadCastList.cs" />
     <Compile Include="Game\Utils\Lottery.cs" />
-    <Compile Include="Game\Utils\Lottery_1.cs" />
     <Compile Include="Game\Utils\MgrAchievement.cs" />
+    <Compile Include="Game\Utils\MgrDailyQuest.cs" />
     <Compile Include="Game\Utils\MultMap.cs" />
     <Compile Include="Game\Utils\RandomGen.cs" />
     <Compile Include="Game\Guild.cs" />
-    <Compile Include="Game\Versus.cs" />
+    <Compile Include="Game\Utils\SysAchievement.cs" />
     <Compile Include="PacketFunc\packet_func_gs.cs" />
     <Compile Include="PangyaEnums\COMMAND_CMD_GM.cs" />
     <Compile Include="PangyaEnums\CapabilityFlags.cs" />
@@ -278,8 +316,14 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="GameServerTcp\GameServer.cs" />
     <Compile Include="Session\player_manager.cs" />
+    <Compile Include="UTIL\Ball3D.cs" />
+    <Compile Include="UTIL\club3d.cs" />
+    <Compile Include="UTIL\club_info3d.cs" />
+    <Compile Include="UTIL\Matrix3D.cs" />
     <Compile Include="UTIL\PangyaTimer.cs" />
+    <Compile Include="UTIL\QuadTree3D.cs" />
     <Compile Include="UTIL\timer_manager.cs" />
+    <Compile Include="UTIL\Vector3D.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
