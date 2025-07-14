@@ -10,8 +10,9 @@ Servidor baseado no código de Acrisio (SuperSS Dev) — reconstruído e adaptad
 Este projeto simula os principais componentes de um servidor PangYa:
 
 - **LoginServer** – Autenticação de jogadores.
-- **MessengerServer** – Sistema de mensagens e amigos.
+- **MessengerServer** – Sistema de mensagens e amigos, guild.
 - **GameServer** – Lobby, salas e partidas.
+- **AuthServer** – Sicronia entre os servidores, dados, envio e conversa entre si.
 
 É compatível com o cliente japonês **ProjectG JP versão 972.00 ou superior**.
 
@@ -20,9 +21,10 @@ Este projeto simula os principais componentes de um servidor PangYa:
 
 | Componente       | Progresso |
 |------------------|-----------|
-| GameServer       | 15%       |
-| MessengerServer  | 98%       |
-| LoginServer      | 100%        |
+| GameServer       | 85%       |
+| MessengerServer  | 99%       |
+| LoginServer      | 100%      |
+| AuthServer       | 100%      |
 
 ---
 
@@ -41,13 +43,12 @@ Você vai precisar de alguns programas e ferramentas:
 
 O Pang-Server-JP é dividido em 5 principais bibliotecas (`PangyaAPI`) que organizam o código de forma modular:
 
-| API                         | Função principal                                                                 |
-|----------------------------|----------------------------------------------------------------------------------|
-| **PangyaAPI.Network**      | Gerencia conexões TCP, sessões, buffers, envio/recebimento e tratamento de pacotes. |
+| API                        | Função principal                                                                      |
+|----------------------------|---------------------------------------------------------------------------------------|
+| **PangyaAPI.Network**      | Gerencia conexões TCP, sessões, buffers, envio/recebimento e tratamento de pacotes.   |
 | **PangyaAPI.SQL**          | Interface de acesso ao banco de dados (SQL Server), comandos e respostas assíncronas. |
-| **PangyaAPI.IFF.JP**       | Manipula os arquivos IFF do cliente japonês (itens, personagens, cursos etc.).     |
-| **PangyaAPI.Discord**      | Integração com Discord para logs, status do servidor ou notificações.             |
-| **PangyaAPI.Utilities**    | Ferramentas auxiliares: logging, enums, config `.ini`, criptografia, estrutura de erros. |
+| **PangyaAPI.IFF.JP**       | Manipula os arquivos IFF do cliente japonês (itens, personagens, cursos etc.).        |
+| **PangyaAPI.Utilities**    | Ferramentas auxiliares: Log, enums, config `.ini`, criptografia, estrutura de erros.  |
 
 Essa separação torna o código mais limpo, reutilizável e facilita a manutenção e expansão.
 
@@ -61,15 +62,16 @@ Essa separação torna o código mais limpo, reutilizável e facilita a manuten�
 ### 🧠 Dicas rápidas
 
 - Confira os arquivos `.ini` para ajustar configurações de porta, IP e nome do servidor.
-- Observe o `SessionManager` e `PacketHandler` para entender como os pacotes são tratados.
+- Observe o `pangya_packet_handle.cs` para entender como os pacotes são tratados.
+- Observe o `SessionManager.cs` para entender como os jogadores são tratados.
 - Use os logs no console para debugar conexões e autenticações.
 
 ---
 
 ### 🖼️ Capturas de Tela
 
-![pangya_001](https://cdn.discordapp.com/attachments/521180240542826498/1376218557020504064/image-12.png?ex=683486e8&is=68333568&hm=95a745f9d436116f5f4a7d9c44de4aacef9b056a66ecfec1cf6644387e536b1a&)
-![pangya_002](https://cdn.discordapp.com/attachments/521180240542826498/1376365845080444998/image-18.png?ex=68351015&is=6833be95&hm=1adc41a7b5229d2ae59663ba2d46aaa960b16600e945588181e649c300286b49&)
+   [![Test Stress](https://img.youtube.com/vi/bshhw92QnSQ/0.jpg)](https://www.youtube.com/watch?v=bshhw92QnSQ)
+   [![Test Stress 2](https://img.youtube.com/vi/VhF3byU_azc/0.jpg)](https://www.youtube.com/watch?v=VhF3byU_azc) 
 ---
 
 ### 👨‍💻 Autores
