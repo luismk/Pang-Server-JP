@@ -820,7 +820,7 @@ namespace Pangya_GameServer.Game
 
             return state;
         }
-        public vector<Player> getSessions(int _lobby = 0)
+        public vector<Player> getSessions(int _lobby = DEFAULT_CHANNEL)
         {
             vector<Player> v_session = new vector<Player>();
             Monitor.Enter(m_cs);
@@ -5572,6 +5572,8 @@ namespace Pangya_GameServer.Game
                                 _session.checkCharacterEquipedAuxPart(ci);
 
                                 pCe = ci;
+                                _session.m_pi.ei.char_info = ci;
+                                _session.m_pi.mp_ce[ci.j] = ci;
                                 NormalManagerDB.add(0,
                                     new CmdUpdateCharacterAllPartEquiped(_session.m_pi.uid, ci),
                                     SQLDBResponse, this);
@@ -18679,7 +18681,7 @@ namespace Pangya_GameServer.Game
                 _session.m_pi.mi.state_flag.icon_angel = false;
             }
 
-            _session.m_pi.mi.state_flag.sexo = _session.m_pi.mi.state_flag.sexo;
+                        _session.m_pi.mi.sexo = (byte)(_session.m_pi.mi.state_flag.sexo == true? 1: 0); 
 
             makePlayerInfo(_session);
             Monitor.Exit(m_cs);

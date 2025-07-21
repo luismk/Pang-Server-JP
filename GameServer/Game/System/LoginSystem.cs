@@ -178,6 +178,7 @@ namespace Pangya_GameServer.Game.System
                 _session.m_pi.m_cap = cmd_mi.getCap();
 
                 // Passa o Online ID para a estrutura MemberInfo, para não da erro depois 
+                _session.m_pi.mi.oid = _session.m_oid;
                 _session.m_pi.mi.state_flag.visible = true;
                 _session.m_pi.mi.state_flag.whisper = _session.m_pi.whisper.IsTrue();
                 _session.m_pi.mi.state_flag.channel = !_session.m_pi.whisper.IsTrue();//passar true?

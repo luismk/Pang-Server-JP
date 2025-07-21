@@ -2377,8 +2377,7 @@ namespace Pangya_GameServer.GameType
             capability = new uCapability();
             state_flag = new uStateFlag();
             guild_mark_img = "";// [12];
-            nickNT_bytes = new byte[18];// [18];                // Acho
-            ucUnknown106 = new byte[106];// [109];
+            nickNT_bytes = new byte[128];// [18];                // Acho
             nickname_bytes = new byte[22];
         }
 
@@ -2400,8 +2399,7 @@ namespace Pangya_GameServer.GameType
                 p.WriteStr(guild_mark_img, 12);
                 p.WriteInt16(flag_visible_gm);
                 p.WriteUInt32(l_unknown);
-                p.WriteStr(nickNT, 22);             // S4 TH
-                p.WriteBytes(ucUnknown106, 106);                // S4 TH      
+                p.WriteStr(nickNT, 128);             // S4 TH
                 return p.GetBytes;
             }
         }
@@ -2425,11 +2423,9 @@ namespace Pangya_GameServer.GameType
         public string guild_mark_img;// [12];
         public short flag_visible_gm;//th é vip                         
         public uint l_unknown;// [6];
-        [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 18)]
+        [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 128)]
         private byte[] nickNT_bytes;// [22];      
-        public string nickNT { get => nickNT_bytes.GetString(); set => nickNT_bytes.SetString(value); }            // Acho
-        [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 106)]
-        public byte[] ucUnknown106;// [109];
+        public string nickNT { get => nickNT_bytes.GetString(); set => nickNT_bytes.SetString(value); }            // Acho 
 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         public class uStateFlag
@@ -2520,7 +2516,6 @@ namespace Pangya_GameServer.GameType
             shop = new PersonShop();
             flag_item_boost = new uItemBoost();
             nickNT = "";
-            ucUnknown106 = new byte[106];
             guild_mark_img = "";
             nickname = "";
             guild_name = "";
@@ -2860,10 +2855,8 @@ namespace Pangya_GameServer.GameType
         [field: MarshalAs(UnmanagedType.Struct)]
         public uItemBoost flag_item_boost;// Boost EXP, Pang e etc(2 bytes)
         public uint ulUnknown_flg;// Pode ser a flag de teasure do player, ou de drop item
-        [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 22)]
-        public string nickNT;//[22] Acho que seja o ID na ntreev do player, a empresa que mantêm as contas, no JP era o gamepot
-        [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 106)]
-        public byte[] ucUnknown106;// Unknown 106 bytes que sempre fica com valor 0
+        [field: MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
+        public string nickNT; 
         public byte convidado;   // Flag Convidado, [Não sei bem por que os que entra na sala normal tem valor igual aqui, já que é flag de convidado waiting]
         public float avg_score;// Media score "media de holes feito pelo player"
         [field: MarshalAs(UnmanagedType.ByValArray, SizeConst = 3)]
@@ -2901,8 +2894,7 @@ namespace Pangya_GameServer.GameType
                 p.WriteUInt32(mascot_typeid);
                 p.Write(flag_item_boost.ulItemBoost);
                 p.WriteUInt32(ulUnknown_flg);// Pode ser a flag de teasure do player, ou de drop item
-                p.WriteStr(nickNT, 22);//[22] Acho que seja o ID na ntreev do player, a empresa que mantêm as contas, no JP era o gamepot
-                p.WriteBytes(ucUnknown106);// Unknown 106 bytes que sempre fica com valor 0
+                p.WriteStr(nickNT, 128);//[22] Acho que seja o ID na ntreev do player, a empresa que mantêm as contas, no JP era o gamepot
                 p.WriteByte(convidado);   // Flag Convidado, [Não sei bem por que os que entra na sala normal tem valor igual aqui, já que é flag de convidado waiting]
                 p.WriteSingle(avg_score);// Media score "media de holes feito pelo player"
                 p.WriteBytes(ucUnknown3);// Não sei mas sempre é 0 depois do media score(66 no th)
