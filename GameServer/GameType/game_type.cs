@@ -1,20 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
-using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography;
 using Pangya_GameServer.Game;
 using Pangya_GameServer.Game.Utils;
 using Pangya_GameServer.Session;
+using PangyaAPI.Network.PangyaPacket;
+using PangyaAPI.Utilities;
 using PangyaAPI.Utilities.BinaryModels;
-using static Pangya_GameServer.Game.PersonalShop;
-using static PangyaAPI.IFF.JP.Models.Data.Mascot;
 
 namespace Pangya_GameServer.GameType
 {
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-     public class uSpecialShot
+    public class uSpecialShot
     {
         public uSpecialShot()
         {
@@ -24,7 +23,7 @@ namespace Pangya_GameServer.GameType
         {
             ulSpecialShot = 0;
         }
-      public  uint ulSpecialShot;
+        public uint ulSpecialShot;
         public uint spin_front { get => (ulSpecialShot & (1 << 0)) != 0 ? 1U : 0U; set { if (value != 0) ulSpecialShot |= (1 << 0); else ulSpecialShot &= ~(1U << 0); } }
         public uint spin_back { get => (ulSpecialShot & (1 << 1)) != 0 ? 1U : 0U; set { if (value != 0) ulSpecialShot |= (1 << 1); else ulSpecialShot &= ~(1U << 1); } }
         public uint curve_left { get => (ulSpecialShot & (1 << 2)) != 0 ? 1U : 0U; set { if (value != 0) ulSpecialShot |= (1 << 2); else ulSpecialShot &= ~(1U << 2); } }
@@ -33,9 +32,9 @@ namespace Pangya_GameServer.GameType
         public uint cobra { get => (ulSpecialShot & (1 << 5)) != 0 ? 1U : 0U; set { if (value != 0) ulSpecialShot |= (1 << 5); else ulSpecialShot &= ~(1U << 5); } }
         public uint spike { get => (ulSpecialShot & (1 << 6)) != 0 ? 1U : 0U; set { if (value != 0) ulSpecialShot |= (1 << 6); else ulSpecialShot &= ~(1U << 6); } }
         public uint _unused = 25; // Não usa 
-        public string toString()
+         public override string ToString()
         {
-            return "Spin Front: " + (spin_front) + " Spin Back: " + (spin_back) + " Curve Left: " + (curve_left) + " Curve Right: " + (curve_right) + " Tomahwak: " + (tomahawk) + " Cobra: " + (cobra) + " Spike: " + (spike) + " Unused: " + (_unused);
+            return "Special Shot: " + Environment.NewLine + (ulSpecialShot) + " Spin Front: " + Environment.NewLine + (spin_front) + Environment.NewLine + " Spin Back: " + Environment.NewLine + (spin_back) + Environment.NewLine + " Curve Left: " + Environment.NewLine + (curve_left) + Environment.NewLine + " Curve Right: " + Environment.NewLine + (curve_right) + Environment.NewLine + " Tomahwak: " + Environment.NewLine + (tomahawk) + Environment.NewLine + " Cobra: " + Environment.NewLine + (cobra) + Environment.NewLine + " Spike: " + Environment.NewLine + (spike) + Environment.NewLine + " Unused: " + Environment.NewLine + (_unused);
         }
     }
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
@@ -109,7 +108,7 @@ namespace Pangya_GameServer.GameType
         public byte[] ToArray()
         {
             using (var p = new PangyaBinaryWriter())
-            {
+            { 
                 p.WriteFloat(bar_point);
                 p.WriteFloat(ball_effect);
                 p.Write(acerto_pangya_flag);
@@ -136,11 +135,21 @@ namespace Pangya_GameServer.GameType
         {
             clear();
         }
-        public string toString()
+         public override string ToString()
         {
             return base.ToString() + "Spend Time Game: " + Convert.ToString(spend_time_game) + Environment.NewLine;
         }
         public float spend_time_game; // O Acumolo de tempo gasto no jogo, é o tempo decorrido geral
+
+        public byte[] ToArrayEx()
+        {
+            using (var p = new PangyaBinaryWriter())
+            {
+                p.WriteBytes(ToArray()); //no versus tem 62,
+                p.WriteFloat(spend_time_game);
+                return p.GetBytes;
+            }
+        }
     }
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public class ShotDataEx : ShotData
@@ -148,7 +157,7 @@ namespace Pangya_GameServer.GameType
         public ShotDataEx()
         {
             clear();
-        } 
+        }
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         public class PowerShot
         {
@@ -156,7 +165,7 @@ namespace Pangya_GameServer.GameType
             {
                 clear();
             }
-            public string toString()
+             public override string ToString()
             {
                 return "Option: " + Convert.ToString((ushort)option) + Environment.NewLine + "Decrease Power Shot: " + Convert.ToString(decrease_power_shot) + Environment.NewLine + "Increase Power Shot: " + Convert.ToString(increase_power_shot) + Environment.NewLine;
             }
@@ -166,10 +175,34 @@ namespace Pangya_GameServer.GameType
             public int decrease_power_shot = 0;
             public int increase_power_shot = 0;
         }
-        public new string toString()
+        public override string ToString()
         {
-            return (option != 0) ? (power_shot.toString() + base.toString()) : base.toString();
+            return option != 0 ? power_shot.ToString() + base.ToString(): base.ToString();
         }
+
+        public void setShot(ShotData value)
+        {
+            if (value == null) return;
+             
+            // Campos de ShotData (herda ShotDataBase)
+            this.spend_time_game = value.spend_time_game;
+
+            // Campos de ShotDataBase
+            Array.Copy(value.bar_point, this.bar_point, 2);
+            Array.Copy(value.ball_effect, this.ball_effect, 2);
+            this.acerto_pangya_flag = value.acerto_pangya_flag;
+            this.special_shot.ulSpecialShot = value.special_shot.ulSpecialShot;
+            this.time_hole_sync = value.time_hole_sync;
+            this.mira = value.mira;
+            this.time_shot = value.time_shot;
+            this.bar_point1 = value.bar_point1;
+            this.club = value.club;
+            Array.Copy(value.fUnknown, this.fUnknown, 2);
+            this.impact_zone_pixel = value.impact_zone_pixel;
+            Array.Copy(value.natural_wind, this.natural_wind, 2);
+        }
+
+
         public ushort option;
         [field: MarshalAs(UnmanagedType.Struct)]
         public PowerShot power_shot = new PowerShot();
@@ -185,7 +218,7 @@ namespace Pangya_GameServer.GameType
         {
             public void clear()
             { }
-            public string toString()
+             public override string ToString()
             {
                 return "X: " + Convert.ToString(x) + " Y: " + Convert.ToString(y) + " Z: " + Convert.ToString(z);
             }
@@ -195,213 +228,374 @@ namespace Pangya_GameServer.GameType
         }
         public enum SHOT_STATE : byte
         {
-            PLAYABLE_AREA = 2,
-            OUT_OF_BOUNDS,
-            INTO_HOLE,
-            UNPLAYABLE_AREA
+            PLAYABLE_AREA = 2,//PODE TACAR
+            OUT_OF_BOUNDS,//OB
+            INTO_HOLE,//PROXIMO AO HOLE
+            UNPLAYABLE_AREA//AREA DESCONHECIDA ou nao permitida
         }
-        public string toString()
+        public override string ToString()
         {
-            return "OID: " + Convert.ToString(oid) + Environment.NewLine + "Location: " + location.toString() + Environment.NewLine + "STATE: " + Convert.ToString((ushort)state) + Environment.NewLine + "Bunker Flag: " + Convert.ToString((ushort)bunker_flag) + Environment.NewLine + "ucUnknown: " + Convert.ToString((ushort)ucUnknown) + Environment.NewLine + "Pang: " + Convert.ToString(pang) + Environment.NewLine + "Pang Bonus: " + Convert.ToString(bonus_pang) + Environment.NewLine + "State Shot: " + state_shot.toString() + Environment.NewLine + "Tempo Shot: " + Convert.ToString(tempo_shot) + Environment.NewLine + "Grand Prix Penalidade: " + Convert.ToString((ushort)grand_prix_penalidade) + Environment.NewLine;
+            return "OID: " + Convert.ToString(oid) + Environment.NewLine + "Location: " + location.ToString() + Environment.NewLine + "STATE: " + Convert.ToString((ushort)state) + Environment.NewLine + "Bunker Flag: " + Convert.ToString((ushort)bunker_flag) + Environment.NewLine + "ucUnknown: " + Convert.ToString((ushort)ucUnknown) + Environment.NewLine + "Pang: " + Convert.ToString(pang) + Environment.NewLine + "Pang Bonus: " + Convert.ToString(bonus_pang) + Environment.NewLine + "State Shot: " + state_shot.ToString() + Environment.NewLine + "Tempo Shot: " + Convert.ToString(tempo_shot) + Environment.NewLine + "Grand Prix Penalidade: " + Convert.ToString((ushort)grand_prix_penalidade) + Environment.NewLine;
         }
-        public uint oid = 0;
+        public int oid = -1;
         [field: MarshalAs(UnmanagedType.Struct)]
-        public Location location = new Location();
-        //nao sei se e bit ou 
-        [field: MarshalAs(UnmanagedType.U1)] 
-        public SHOT_STATE state = new SHOT_STATE();
+        public Location location = new Location(); 
+        public SHOT_STATE state;
         public byte bunker_flag;
         public byte ucUnknown; // Deve ser relacionando ao bunker esses negocios
-        public uint pang = 0;
-        public uint bonus_pang = 0;
-        public bool isMakeHole()
-        {
-            return state_shot.display.acerto_hole == 1u;
-        }
+        public uint pang;
+        public uint bonus_pang; 
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         public class stStateShot
         {
+            public stStateShot() => clear();
             public void clear()
             {
+                shot = new uShotState();
+                display = new uDisplayState();
             }
+
             [StructLayout(LayoutKind.Sequential, Pack = 1)]
             public class uDisplayState
             {
-                public void clear()
-                {
-                    ulState = 0;
-                }
                 public uint ulState;
-                public uint over_drive
+                public void clear()
+                { ulState = 0; }
+                public bool over_drive
                 {
-                    get { return (byte)((ulState >> 0) & 1); }
-                    set { ulState = (ulState & ~(1U << 0)) | ((uint)value << 0); }
+                    get => (ulState & (1u << 0)) != 0;
+                    set
+                    {
+                        if (value)
+                            ulState |= (1u << 0);
+                        else
+                            ulState &= ~(1u << 0);
+                    }
                 }
 
-                public uint _bit2_unknown
+                public bool _bit2_unknown
                 {
-                    get { return (byte)((ulState >> 2) & 1); }
-                    set { ulState = (ulState & ~(1U << 2)) | ((uint)value << 2); }
+                    get => (ulState & (1u << 1)) != 0;
+                    set
+                    {
+                        if (value)
+                            ulState |= (1u << 1);
+                        else
+                            ulState &= ~(1u << 1);
+                    }
                 }
 
-                public uint super_pangya
+                public bool super_pangya
                 {
-                    get { return (byte)((ulState >> 3) & 1); }
-                    set { ulState = (ulState & ~(1U << 3)) | ((uint)value << 3); }
+                    get => (ulState & (1u << 2)) != 0;
+                    set
+                    {
+                        if (value)
+                            ulState |= (1u << 2);
+                        else
+                            ulState &= ~(1u << 2);
+                    }
                 }
 
-                public uint special_shot
+                public bool special_shot
                 {
-                    get { return (byte)((ulState >> 4) & 1); }
-                    set { ulState = (ulState & ~(1U << 4)) | ((uint)value << 4); }
+                    get => (ulState & (1u << 3)) != 0;
+                    set
+                    {
+                        if (value)
+                            ulState |= (1u << 3);
+                        else
+                            ulState &= ~(1u << 3);
+                    }
                 }
 
-                public uint beam_impact
+                public bool beam_impact
                 {
-                    get { return (byte)((ulState >> 5) & 1); }
-                    set { ulState = (ulState & ~(1U << 5)) | ((uint)value << 5); }
+                    get => (ulState & (1u << 4)) != 0;
+                    set
+                    {
+                        if (value)
+                            ulState |= (1u << 4);
+                        else
+                            ulState &= ~(1u << 4);
+                    }
                 }
 
-                public uint chip_in_17_a_199
+                public bool chip_in_17_a_199
                 {
-                    get { return (byte)((ulState >> 6) & 1); }
-                    set { ulState = (ulState & ~(1U << 6)) | ((uint)value << 6); }
+                    get => (ulState & (1u << 5)) != 0;
+                    set
+                    {
+                        if (value)
+                            ulState |= (1u << 5);
+                        else
+                            ulState &= ~(1u << 5);
+                    }
                 }
 
-                public uint chip_in_200_plus
+                public bool chip_in_200_plus
                 {
-                    get { return (byte)((ulState >> 7) & 1); }
-                    set { ulState = (ulState & ~(1U << 7)) | ((uint)value << 7); }
+                    get => (ulState & (1u << 6)) != 0;
+                    set
+                    {
+                        if (value)
+                            ulState |= (1u << 6);
+                        else
+                            ulState &= ~(1u << 6);
+                    }
                 }
 
-                public uint long_putt
+                public bool long_putt
                 {
-                    get { return (byte)((ulState >> 8) & 1); }
-                    set { ulState = (ulState & ~(1U << 8)) | ((uint)value << 8); }
+                    get => (ulState & (1u << 7)) != 0;
+                    set
+                    {
+                        if (value)
+                            ulState |= (1u << 7);
+                        else
+                            ulState &= ~(1u << 7);
+                    }
                 }
 
-                public uint acerto_hole
+                public bool acerto_hole
                 {
-                    get { return (byte)((ulState >> 9) & 1); }
-                    set { ulState = (ulState & ~(1U << 9)) | ((uint)value << 9); }
+                    get => (ulState & (1u << 8)) != 0;
+                    set
+                    {
+                        if (value)
+                            ulState |= (1u << 8);
+                        else
+                            ulState &= ~(1u << 8);
+                    }
                 }
 
-                public uint approach_shot
+                public bool approach_shot
                 {
-                    get { return (byte)((ulState >> 10) & 1); }
-                    set { ulState = (ulState & ~(1U << 10)) | ((uint)value << 10); }
+                    get => (ulState & (1u << 9)) != 0;
+                    set
+                    {
+                        if (value)
+                            ulState |= (1u << 9);
+                        else
+                            ulState &= ~(1u << 9);
+                    }
                 }
 
-                public uint chip_in_with_special_shot
+                public bool chip_in_with_special_shot
                 {
-                    get { return (byte)((ulState >> 11) & 1); }
-                    set { ulState = (ulState & ~(1U << 11)) | ((uint)value << 11); }
+                    get => (ulState & (1u << 10)) != 0;
+                    set
+                    {
+                        if (value)
+                            ulState |= (1u << 10);
+                        else
+                            ulState &= ~(1u << 10);
+                    }
                 }
 
-                public uint _bit12_unknown
+                public bool _bit12_unknown
                 {
-                    get { return (byte)((ulState >> 12) & 1); }
-                    set { ulState = (ulState & ~(1U << 12)) | ((uint)value << 12); }
+                    get => (ulState & (1u << 11)) != 0;
+                    set
+                    {
+                        if (value)
+                            ulState |= (1u << 11);
+                        else
+                            ulState &= ~(1u << 11);
+                    }
                 }
 
-                public uint happy_bonus
+                public bool happy_bonus
                 {
-                    get { return (byte)((ulState >> 13) & 1); }
-                    set { ulState = (ulState & ~(1U << 13)) | ((uint)value << 13); }
+                    get => (ulState & (1u << 12)) != 0;
+                    set
+                    {
+                        if (value)
+                            ulState |= (1u << 12);
+                        else
+                            ulState &= ~(1u << 12);
+                    }
                 }
 
-                public uint clear_bonus
+                public bool clear_bonus
                 {
-                    get { return (byte)((ulState >> 14) & 1); }
-                    set { ulState = (ulState & ~(1U << 14)) | ((uint)value << 14); }
+                    get => (ulState & (1u << 13)) != 0;
+                    set
+                    {
+                        if (value)
+                            ulState |= (1u << 13);
+                        else
+                            ulState &= ~(1u << 13);
+                    }
                 }
 
-                public uint aztec_bonus
+                public bool aztec_bonus
                 {
-                    get { return (byte)((ulState >> 15) & 1); }
-                    set { ulState = (ulState & ~(1U << 15)) | ((uint)value << 15); }
+                    get => (ulState & (1u << 14)) != 0;
+                    set
+                    {
+                        if (value)
+                            ulState |= (1u << 14);
+                        else
+                            ulState &= ~(1u << 14);
+                    }
                 }
 
-                public uint recovery_bonus
+                public bool recovery_bonus
                 {
-                    get { return (byte)((ulState >> 16) & 1); }
-                    set { ulState = (ulState & ~(1U << 16)) | ((uint)value << 16); }
+                    get => (ulState & (1u << 15)) != 0;
+                    set
+                    {
+                        if (value)
+                            ulState |= (1u << 15);
+                        else
+                            ulState &= ~(1u << 15);
+                    }
                 }
 
-                public uint chip_in_without_special_shot
+                public bool chip_in_without_special_shot
                 {
-                    get { return (byte)((ulState >> 17) & 1); }
-                    set { ulState = (ulState & ~(1U << 17)) | ((uint)value << 17); }
+                    get => (ulState & (1u << 16)) != 0;
+                    set
+                    {
+                        if (value)
+                            ulState |= (1u << 16);
+                        else
+                            ulState &= ~(1u << 16);
+                    }
                 }
 
-                public uint bound_bonus
+                public bool bound_bonus
                 {
-                    get { return (byte)((ulState >> 18) & 1); }
-                    set { ulState = (ulState & ~(1U << 18)) | ((uint)value << 18); }
+                    get => (ulState & (1u << 17)) != 0;
+                    set
+                    {
+                        if (value)
+                            ulState |= (1u << 17);
+                        else
+                            ulState &= ~(1u << 17);
+                    }
                 }
 
-                public uint _bit19_unknown
+                public bool _bit19_unknown
                 {
-                    get { return (byte)((ulState >> 19) & 1); }
-                    set { ulState = (ulState & ~(1U << 19)) | ((uint)value << 19); }
+                    get => (ulState & (1u << 18)) != 0;
+                    set
+                    {
+                        if (value)
+                            ulState |= (1u << 18);
+                        else
+                            ulState &= ~(1u << 18);
+                    }
                 }
 
-                public uint _bit20_unknown
+                public bool _bit20_unknown
                 {
-                    get { return (byte)((ulState >> 20) & 1); }
-                    set { ulState = (ulState & ~(1U << 20)) | ((uint)value << 20); }
+                    get => (ulState & (1u << 19)) != 0;
+                    set
+                    {
+                        if (value)
+                            ulState |= (1u << 19);
+                        else
+                            ulState &= ~(1u << 19);
+                    }
                 }
 
-                public uint mascot_bonus_with_pangya
+                public bool mascot_bonus_with_pangya
                 {
-                    get { return (byte)((ulState >> 21) & 1); }
-                    set { ulState = (ulState & ~(1U << 21)) | ((uint)value << 21); }
+                    get => (ulState & (1u << 20)) != 0;
+                    set
+                    {
+                        if (value)
+                            ulState |= (1u << 20);
+                        else
+                            ulState &= ~(1u << 20);
+                    }
                 }
 
-                public uint mascot_bonus_without_pangya
+                public bool mascot_bonus_without_pangya
                 {
-                    get { return (byte)((ulState >> 22) & 1); }
-                    set { ulState = (ulState & ~(1U << 22)) | ((uint)value << 22); }
+                    get => (ulState & (1u << 21)) != 0;
+                    set
+                    {
+                        if (value)
+                            ulState |= (1u << 21);
+                        else
+                            ulState &= ~(1u << 21);
+                    }
                 }
 
-                public uint special_bonus_with_pangya
+                public bool special_bonus_with_pangya
                 {
-                    get { return (byte)((ulState >> 23) & 1); }
-                    set { ulState = (ulState & ~(1U << 23)) | ((uint)value << 23); }
+                    get => (ulState & (1u << 22)) != 0;
+                    set
+                    {
+                        if (value)
+                            ulState |= (1u << 22);
+                        else
+                            ulState &= ~(1u << 22);
+                    }
                 }
 
-                public uint special_bonus_without_pangya
+                public bool special_bonus_without_pangya
                 {
-                    get { return (byte)((ulState >> 24) & 1); }
-                    set { ulState = (ulState & ~(1U << 24)) | ((uint)value << 24); }
+                    get => (ulState & (1u << 23)) != 0;
+                    set
+                    {
+                        if (value)
+                            ulState |= (1u << 23);
+                        else
+                            ulState &= ~(1u << 23);
+                    }
                 }
 
-                public uint _bit25_unknown
+                public bool _bit25_unknown
                 {
-                    get { return (byte)((ulState >> 25) & 1); }
-                    set { ulState = (ulState & ~(1U << 25)) | ((uint)value << 25); }
+                    get => (ulState & (1u << 24)) != 0;
+                    set
+                    {
+                        if (value)
+                            ulState |= (1u << 24);
+                        else
+                            ulState &= ~(1u << 24);
+                    }
                 }
 
-                public uint _bit26_unknown
+                public bool _bit26_unknown
                 {
-                    get { return (byte)((ulState >> 26) & 1); }
-                    set { ulState = (ulState & ~(1U << 26)) | ((uint)value << 26); }
+                    get => (ulState & (1u << 25)) != 0;
+                    set
+                    {
+                        if (value)
+                            ulState |= (1u << 25);
+                        else
+                            ulState &= ~(1u << 25);
+                    }
                 }
 
-                public uint devil_bonus
+                public bool devil_bonus
                 {
-                    get { return (byte)((ulState >> 27) & 1); }
-                    set { ulState = (ulState & ~(1U << 27)) | ((uint)value << 27); }
+                    get => (ulState & (1u << 26)) != 0;
+                    set
+                    {
+                        if (value)
+                            ulState |= (1u << 26);
+                        else
+                            ulState &= ~(1u << 26);
+                    }
                 }
 
-                public uint _bit28_a_32_unknown
+                public byte _bit28_a_32_unknown
                 {
-                    get { return (byte)((ulState >> 28) & 0x1F); }
-                    set { ulState = (ulState & ~(0x1F << 28)) | ((uint)value << 28); }
+                    get => (byte)((ulState >> 27) & 0x1F); // 5 bits: 27 a 31
+                    set
+                    {
+                        ulState = (ulState & ~(0x1F << 27)) | ((uint)(value & 0x1F) << 27);
+                    }
                 }
-
-                public void Clear() => ulState = 0;
             }
+
+
             [StructLayout(LayoutKind.Sequential, Pack = 1)]
             public class uShotState
             {
@@ -435,55 +629,56 @@ namespace Pangya_GameServer.GameType
 
                 public void Clear() => ulState = 0;
             }
+          
             [field: MarshalAs(UnmanagedType.Struct)]
             public uDisplayState display = new uDisplayState();
             [field: MarshalAs(UnmanagedType.Struct)]
             public uShotState shot = new uShotState();
-            public string toString()
+             public override string ToString()
             {
 
                 string s = "Display State.\n\r";
 
-                s += "OverDrive: " + Convert.ToString((ushort)display.over_drive) + " SuperPangya: " + Convert.ToString((ushort)display.super_pangya);
-                s += " SpecialShot: " + Convert.ToString((ushort)display.special_shot) + " BeamImpact: " + Convert.ToString((ushort)display.beam_impact);
-                s += " ChipIn17a199: " + Convert.ToString((ushort)display.chip_in_17_a_199) + " ChipIn200+: " + Convert.ToString((ushort)display.chip_in_200_plus);
-                s += " LongPutt: " + Convert.ToString((ushort)display.long_putt) + " AcertoHole: " + Convert.ToString((ushort)display.acerto_hole);
-                s += " ApproachShot: " + Convert.ToString((ushort)display.approach_shot) + " ChipInWithSpecialShot(BS,FS): " + Convert.ToString((ushort)display.chip_in_with_special_shot);
-                s += " HappyBonus: " + Convert.ToString((ushort)display.happy_bonus) + " ClearBonus: " + Convert.ToString((ushort)display.clear_bonus) + " AztecBonus: " + Convert.ToString((ushort)display.aztec_bonus);
-                s += " RecoveryBonus: " + Convert.ToString((ushort)display.recovery_bonus) + " ChipInWithoutSpecialShot: " + Convert.ToString((ushort)display.chip_in_without_special_shot);
-                s += " BoundBonus: " + Convert.ToString((ushort)display.bound_bonus);
-                s += " MascotBonusWithPangya: " + Convert.ToString((ushort)display.mascot_bonus_with_pangya) + " MascotBonusWithoutPangya: " + Convert.ToString((ushort)display.mascot_bonus_without_pangya);
-                s += " SpecialBonusWithPangya: " + Convert.ToString((ushort)display.special_bonus_with_pangya);
-                s += " SpecialBonusWithouPangya: " + Convert.ToString((ushort)display.special_bonus_without_pangya);
-                s += " DevilBonus: " + Convert.ToString((ushort)display.devil_bonus) + Environment.NewLine;
+                s += "OverDrive: " + Convert.ToString(display.over_drive) + " SuperPangya: " + Convert.ToString(display.super_pangya);
+                s += " SpecialShot: " + Convert.ToString(display.special_shot) + " BeamImpact: " + Convert.ToString(display.beam_impact);
+                s += " ChipIn17a199: " + Convert.ToString(display.chip_in_17_a_199) + " ChipIn200+: " + Convert.ToString(display.chip_in_200_plus);
+                s += " LongPutt: " + Convert.ToString(display.long_putt) + " AcertoHole: " + Convert.ToString(display.acerto_hole);
+                s += " ApproachShot: " + Convert.ToString(display.approach_shot) + " ChipInWithSpecialShot(BS,FS): " + Convert.ToString(display.chip_in_with_special_shot);
+                s += " HappyBonus: " + Convert.ToString(display.happy_bonus) + " ClearBonus: " + Convert.ToString(display.clear_bonus) + " AztecBonus: " + Convert.ToString(display.aztec_bonus);
+                s += " RecoveryBonus: " + Convert.ToString(display.recovery_bonus) + " ChipInWithoutSpecialShot: " + Convert.ToString(display.chip_in_without_special_shot);
+                s += " BoundBonus: " + Convert.ToString(display.bound_bonus);
+                s += " MascotBonusWithPangya: " + Convert.ToString(display.mascot_bonus_with_pangya) + " MascotBonusWithoutPangya: " + Convert.ToString(display.mascot_bonus_without_pangya);
+                s += " SpecialBonusWithPangya: " + Convert.ToString(display.special_bonus_with_pangya);
+                s += " SpecialBonusWithouPangya: " + Convert.ToString(display.special_bonus_without_pangya);
+                s += " DevilBonus: " + Convert.ToString(display.devil_bonus) + Environment.NewLine;
 
                 s += "Shot State.\n\r";
 
-                s += "Tomahawk: " + Convert.ToString((ushort)shot.tomahawk) + " Spike: " + Convert.ToString((ushort)shot.spike);
-                s += " Cobra: " + Convert.ToString((ushort)shot.cobra) + " SpinFront: " + Convert.ToString((ushort)shot.spin_front);
-                s += " SpinBack: " + Convert.ToString((ushort)shot.spin_back) + " CurveLeft: " + Convert.ToString((ushort)shot.curve_left);
-                s += " CurveRight: " + Convert.ToString((ushort)shot.curve_right) + " SemSetas: " + Convert.ToString((ushort)shot.sem_setas);
-                s += " PowerShot: " + Convert.ToString((ushort)shot.power_shot) + " DoublePowerShot: " + Convert.ToString((ushort)shot.double_power_shot);
-                s += " ClubWood: " + Convert.ToString((ushort)shot.club_wood) + " ClubIron: " + Convert.ToString((ushort)shot.club_iron);
-                s += " ClubPWeSW: " + Convert.ToString((ushort)shot.club_pw_sw) + " ClubPutt: " + Convert.ToString((ushort)shot.club_putt);
+                s += "Tomahawk: " + Convert.ToString(shot.tomahawk) + " Spike: " + Convert.ToString(shot.spike);
+                s += " Cobra: " + Convert.ToString(shot.cobra) + " SpinFront: " + Convert.ToString(shot.spin_front);
+                s += " SpinBack: " + Convert.ToString(shot.spin_back) + " CurveLeft: " + Convert.ToString(shot.curve_left);
+                s += " CurveRight: " + Convert.ToString(shot.curve_right) + " SemSetas: " + Convert.ToString(shot.sem_setas);
+                s += " PowerShot: " + Convert.ToString(shot.power_shot) + " DoublePowerShot: " + Convert.ToString(shot.double_power_shot);
+                s += " ClubWood: " + Convert.ToString(shot.club_wood) + " ClubIron: " + Convert.ToString(shot.club_iron);
+                s += " ClubPWeSW: " + Convert.ToString(shot.club_pw_sw) + " ClubPutt: " + Convert.ToString(shot.club_putt);
 
                 return s;
             }
         }
         [field: MarshalAs(UnmanagedType.Struct)]
         public stStateShot state_shot = new stStateShot();
-        public ushort tempo_shot; // Acho que seja o tempo da tacada
+        public short tempo_shot; // Acho que seja o tempo da tacada
         public byte grand_prix_penalidade; // Flag(valor) de penalidade do Grand Prix quando tem regras com penalidades
- 
-    public byte[] ToArray()
+
+        public byte[] ToArray()
         {
             using (var p = new PangyaBinaryWriter())
             {
-                p.Write(oid);
+                p.Write(oid); 
                 p.Write(location.x);
                 p.Write(location.y);
                 p.Write(location.z);
-                p.Write((byte)state);
+                p.Write((byte)state);//tinha mexido antes
                 p.Write(bunker_flag);
                 p.Write(ucUnknown);
                 p.Write(pang);
@@ -496,22 +691,85 @@ namespace Pangya_GameServer.GameType
             }
         }
     }
+
     [StructLayout(LayoutKind.Sequential, Pack = 1)]//348
     public class ShotEndLocationData
     {
+        public ShotEndLocationData()
+        { }
+
+        public ShotEndLocationData(packet r)
+        {
+            porcentagem = r.ReadSingle();
+
+            ball_velocity.x = r.ReadSingle();
+            ball_velocity.y = r.ReadSingle();
+            ball_velocity.z = r.ReadSingle();
+
+            option = r.ReadByte();
+
+            location.x = r.ReadSingle();
+            location.y = r.ReadSingle();
+            location.z = r.ReadSingle();
+
+            wind_influence.x = r.ReadSingle();
+            wind_influence.y = r.ReadSingle();
+            wind_influence.z = r.ReadSingle();
+
+            ball_point.x = r.ReadSingle();
+            ball_point.y = r.ReadSingle();
+
+            special_shot.ulSpecialShot = r.ReadUInt32();
+
+            ball_rotation_spin = r.ReadSingle();
+            ball_rotation_curve = r.ReadSingle();
+
+            stUnknown = r.ReadByte();
+            taco = r.ReadByte();
+
+            power_factor = r.ReadSingle();
+            power_club = r.ReadSingle();
+            rotation_spin_factor = r.ReadSingle();
+            rotation_curve_factor = r.ReadSingle();
+            power_factor_shot = r.ReadSingle();
+
+            time_hole_sync = r.ReadUInt32(); 
+        }
         public void clear()
         {
+            porcentagem = 0.0f;
+
+            ball_velocity.clear();
+            option = 0;
+            location.clear();
+            wind_influence.clear();
+            ball_point.clear();
+            special_shot.ulSpecialShot = 0;
+            ball_rotation_spin = 0.0f;
+            ball_rotation_curve = 0.0f;
+            stUnknown = 0;
+            taco = 0;
+            power_factor = 0.0f;
+            power_club = 0.0f;
+            rotation_spin_factor = 0.0f;
+            rotation_curve_factor = 0.0f;
+            power_factor_shot = 0.0f;
+            time_hole_sync = 0;
         }
+
         [StructLayout(LayoutKind.Sequential, Pack = 1)]//348
         public class stLocation
         {
             public void clear()
             {
+                x = 0.0f;
+                y = 0.0f;
+                z = 0.0f;
             }
             public float x;
             public float y;
             public float z;
-            public string toString()
+             public override string ToString()
             {
                 return "X: " + Convert.ToString(x) + " Y: " + Convert.ToString(y) + " Z: " + Convert.ToString(z);
             }
@@ -531,8 +789,10 @@ namespace Pangya_GameServer.GameType
         {
             public void clear()
             {
+                x = 0.0f;
+                y = 0.0f;
             }
-            public string toString()
+             public override string ToString()
             {
                 return "X: " + Convert.ToString(x) + " Y: " + Convert.ToString(y);
             }
@@ -545,7 +805,8 @@ namespace Pangya_GameServer.GameType
                     p.WriteFloat(x);
                     p.WriteFloat(y);
                     return p.GetBytes;
-                } }
+                }
+            }
         }
         public float porcentagem;
         [field: MarshalAs(UnmanagedType.Struct)]
@@ -561,17 +822,17 @@ namespace Pangya_GameServer.GameType
         public uSpecialShot special_shot = new uSpecialShot(); // Tipo da tacada
         public float ball_rotation_spin;
         public float ball_rotation_curve; // Esse é a quantidade do efeito final depois de todos os algorithmos do pangya
-        public byte ucUnknown;
-        public byte taco; // Club
+        public byte stUnknown;
+        public byte taco; // esta em baixo=> Club(possivelmente, esse de cima é o debaixo)
         public float power_factor;
         public float power_club;
         public float rotation_spin_factor;
         public float rotation_curve_factor;
         public float power_factor_shot;
         public uint time_hole_sync = 0;
-        public string toString()
-        {
-            return "Porcentagem: " + Convert.ToString(porcentagem) + Environment.NewLine + "Option: " + Convert.ToString((ushort)option) + Environment.NewLine + "Ball Velocity (Initial): " + ball_velocity.toString() + Environment.NewLine + "Location (Begin Shot): " + location.toString() + Environment.NewLine + "Wind Influence: " + wind_influence.toString() + Environment.NewLine + "Ball Point: " + ball_point.toString() + Environment.NewLine + "Special Shot(Tipo da tacada): " + special_shot.toString() + Environment.NewLine + "Ball Rotation (Spin): " + Convert.ToString(ball_rotation_spin) + Environment.NewLine + "Ball Rotation (Curva): " + Convert.ToString(ball_rotation_curve) + Environment.NewLine + "ucUnknown: " + Convert.ToString((ushort)ucUnknown) + Environment.NewLine + "Taco: " + Convert.ToString((ushort)taco) + Environment.NewLine + "Power Factor (Full): " + Convert.ToString(power_factor) + Environment.NewLine + "Power Club(Range): " + Convert.ToString(power_club) + Environment.NewLine + "Rotation Spin Factor: " + Convert.ToString(rotation_spin_factor) + Environment.NewLine + "Rotation Curve Factor: " + Convert.ToString(rotation_curve_factor) + Environment.NewLine + "Power Factor (Shot): " + Convert.ToString(power_factor_shot) + Environment.NewLine + "Time Hole SYNC: " + Convert.ToString(time_hole_sync) + Environment.NewLine;
+         public override string ToString()
+        { 
+            return "Porcentagem: " + Convert.ToString(porcentagem) + Environment.NewLine + "Option: " + Convert.ToString((ushort)option) + Environment.NewLine + "Ball Velocity (Initial): " + ball_velocity.ToString() + Environment.NewLine + "Location (Begin Shot): " + location.ToString() + Environment.NewLine + "Wind Influence: " + wind_influence.ToString() + Environment.NewLine + "Ball Point: " + ball_point.ToString() + Environment.NewLine + "Special Shot(Tipo da tacada): " + special_shot.ToString() + Environment.NewLine + "Ball Rotation (Spin): " + Convert.ToString(ball_rotation_spin) + Environment.NewLine + "Ball Rotation (Curva): " + Convert.ToString(ball_rotation_curve) + Environment.NewLine + "ucUnknown: " + Convert.ToString(stUnknown) + Environment.NewLine + "Taco: " + Convert.ToString((ushort)taco) + Environment.NewLine + "Power Factor (Full): " + Convert.ToString(power_factor) + Environment.NewLine + "Power Club(Range): " + Convert.ToString(power_club) + Environment.NewLine + "Rotation Spin Factor: " + Convert.ToString(rotation_spin_factor) + Environment.NewLine + "Rotation Curve Factor: " + Convert.ToString(rotation_curve_factor) + Environment.NewLine + "Power Factor (Shot): " + Convert.ToString(power_factor_shot) + Environment.NewLine + "Time Hole SYNC: " + Convert.ToString(time_hole_sync) + Environment.NewLine;
         }
 
         internal byte[] ToArray()
@@ -587,14 +848,14 @@ namespace Pangya_GameServer.GameType
                 p.WriteUInt32(special_shot.ulSpecialShot);
                 p.Write(ball_rotation_spin);
                 p.Write(ball_rotation_curve);
-                p.Write(ucUnknown);
+                p.Write(stUnknown);
                 p.Write(taco);
                 p.Write(power_factor);
                 p.Write(power_club);
                 p.Write(rotation_spin_factor);
                 p.Write(rotation_curve_factor);
                 p.Write(power_factor_shot);
-                p.Write(time_hole_sync); 
+                p.Write(time_hole_sync);
                 return p.GetBytes;
             }
         }
@@ -613,7 +874,7 @@ namespace Pangya_GameServer.GameType
         }
         public void clear()
         {
-        } 
+        }
 
         public uint _typeid = 0;
         public byte course;
@@ -636,8 +897,8 @@ namespace Pangya_GameServer.GameType
         public byte[] ToArray()
         {
             using (var p = new PangyaBinaryWriter())
-            { 
-        p.WriteUInt32(_typeid);
+            {
+                p.WriteUInt32(_typeid);
                 p.WriteByte(course);
                 p.WriteByte(numero_hole);
                 p.WriteInt16(qntd);
@@ -653,7 +914,7 @@ namespace Pangya_GameServer.GameType
         {
             clear();
         }
-        
+
         public void clear()
         {
 
@@ -667,13 +928,27 @@ namespace Pangya_GameServer.GameType
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public class GameData
     {
+        public GameData() => clear();
+
         public void clear()
         {
+            tacada_num = 0;
+            total_tacada_num = 0;
+            score = 0;
+            giveup = 0;
+        bad_condute = 0; // Má conduta, 3 give ups o jogo kika o player
+penalidade = 0; // Penalidade do Grand Prix Rule
+pang = 0;
+bonus_pang = 0;
+pang_pang_battle = 0; // Pang do Pang Battle que o player ganhou ou perdeu
+pang_battle_run_hole = 0; // Player saiu do pang battle(-1) ou alguém saiu(+1)
+time_out = 0; // Count de time outs do player, 3 time outs o jogo kika o player
+exp = 0; // Exp que o player, ganhou no jogo
         }
         public uint tacada_num = 0;
         public uint total_tacada_num = 0;
         public int score = 0;
-        public byte giveup = 1;
+        public byte giveup = 0;
         public uint bad_condute = 0; // Má conduta, 3 give ups o jogo kika o player
         public uint penalidade = 0; // Penalidade do Grand Prix Rule
         public ulong pang = 0;
@@ -735,7 +1010,7 @@ namespace Pangya_GameServer.GameType
         {
             return point;
         }
-        public string toString()
+         public override string ToString()
         {
             return "Point. Start: " + Convert.ToString(point[0]) + " Impact Zone: " + Convert.ToString(point[1]) + " Forca: " + Convert.ToString(point[2]) + " Hit PangYa: " + Convert.ToString(point[3]);
         }
@@ -923,7 +1198,7 @@ namespace Pangya_GameServer.GameType
         public PlayerGameInfo()
         {
             clear();
-        }       
+        }
         public virtual void clear()
         {
 
@@ -1030,7 +1305,7 @@ namespace Pangya_GameServer.GameType
             public float best_long_puttin;
             public float best_drive;
             [field: MarshalAs(UnmanagedType.ByValArray)]
-            public byte[] finish_hole = new byte[18]; // Flag para verificar se o player terminou o hole
+            public sbyte[] finish_hole = new sbyte[18]; // Flag para verificar se o player terminou o hole
             [field: MarshalAs(UnmanagedType.ByValArray)]
             public sbyte[] par_hole = new sbyte[18]; // Par do hole, [18 Holes o máximo de um jogo]negativo
             [field: MarshalAs(UnmanagedType.ByValArray)] public uint[] tacada = new uint[18]; // Tacadas do hole, [18 Holes o máximo de um jogo](negativo)
@@ -1113,16 +1388,45 @@ namespace Pangya_GameServer.GameType
             {
                 clear();
             }
+
             public void clear()
             {
+                count = 0;
+                active = 0;
+                tick = 0;
             }
+
             public byte count;
+            public byte active;
+            public ulong tick;
 
-            public byte active = 1;
-            public ulong tick = 0;
+            // ⛔ remove o DateTime — não é confiável para tempo de execução
+            // public DateTime time;
 
-            public DateTime time;
+            private double TicksPerSecond = Stopwatch.Frequency;
+
+            public void Start()
+            {
+                tick = (ulong)Stopwatch.GetTimestamp();
+                active = 1;
+                count = 0;
+            }
+
+            public void Stop()
+            {
+                active = 0;
+            }
+
+            public double ElapsedSeconds
+            {
+                get
+                {
+                    if (tick == 0) return double.MaxValue;
+                    return (Stopwatch.GetTimestamp() - (long)tick) / TicksPerSecond;
+                }
+            }
         }
+
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         public class uBoostItemFlag
         {
@@ -1143,37 +1447,37 @@ namespace Pangya_GameServer.GameType
 
         public bool init_first_hole = true; // Flag que guarda quando o player inicializou o primeiro hole do jogo
 
-        public byte finish_load_hole = 1;
+        public byte finish_load_hole = 0;
 
-        public byte finish_char_intro = 1;
+        public byte finish_char_intro = 0;
 
-        public byte init_shot = 1;
+        public byte init_shot = 0;
 
-        public byte finish_shot = 1;
+        public byte finish_shot = 0;
 
-        public byte finish_shot2 = 1;
+        public byte finish_shot2 = 0;
 
-        public byte finish_hole = 1; // Usa no Grand Prix, flag de sincronização de hole conluído para trocar para o prox
+        public byte finish_hole = 0; // Usa no Grand Prix, flag de sincronização de hole conluído para trocar para o prox
 
-        public byte finish_hole2 = 1; // Usa no Grand Prix, flag de sincronização do tempo do hole do player, para não dá time out depois que ele concluiu o hole
+        public byte finish_hole2 = 0; // Usa no Grand Prix, flag de sincronização do tempo do hole do player, para não dá time out depois que ele concluiu o hole
 
-        public byte finish_hole3 = 1; // Usa no Grand Prix, flag de sincronização se o player já enviou o pacote de finalizar o hole antes
+        public byte finish_hole3 = 0; // Usa no Grand Prix, flag de sincronização se o player já enviou o pacote de finalizar o hole antes
 
-        public byte sync_shot_flag = 1;
+        public byte sync_shot_flag = 0;
 
-        public byte sync_shot_flag2 = 1;
+        public byte sync_shot_flag2 = 0;
 
-        public byte finish_game = 1; // Terminou o jogo
+        public byte finish_game = 0; // Terminou o jogo
 
-        public byte assist_flag = 1; // 0 não está com assist ligado, 1 está com assist ligado
+        public byte assist_flag = 0; // 0 não está com assist ligado, 1 está com assist ligado
 
-        public byte char_motion_item = 1; // Está com intro de character Equipado
+        public byte char_motion_item = 0; // Está com intro de character Equipado
 
-        public byte premium_flag = 1; // 1 Player é um usuário premium, 0 player normal
+        public byte premium_flag = 0; // 1 Player é um usuário premium, 0 player normal
 
-        public byte enter_after_started = 1; // Entrou no Jogo depois de ele ter começado
+        public byte enter_after_started = 0; // Entrou no Jogo depois de ele ter começado
 
-        public byte finish_item_used = 1; // 1 Player já finalizou os itens usados no jogo, não finalizar de novo se ele já estiver finalizado
+        public byte finish_item_used = 0; // 1 Player já finalizou os itens usados no jogo, não finalizar de novo se ele já estiver finalizado
         public byte trofel; // Trofel que ele ganhou, 1 ouro, 2 prate, 3 bronze
         public ushort progress_bar;
         public uint tempo = 0;
@@ -1203,7 +1507,7 @@ namespace Pangya_GameServer.GameType
         public DropItemRet drop_list = new DropItemRet(); // Drop List do player
         public UsedItem used_item = new UsedItem(); // Item usado no jogo
         public stProgress progress = new stProgress(); // Progresso do jogo, tacadas e score
-        public PangyaTime time_finish = new PangyaTime(); // Tempo que acabou o game
+        public SYSTEMTIME time_finish = new SYSTEMTIME(); // Tempo que acabou o game
         public uMedalWin medal_win = new uMedalWin(); // Medal que Ganhou no Jogo
         public SysAchievement sys_achieve = new SysAchievement(); // System of Achievement of Player
     }
@@ -1215,10 +1519,8 @@ namespace Pangya_GameServer.GameType
         public TicketReportInfo()
         {
             clear();
-        }
-        public void Dispose()
-        {
-        }
+        } 
+
         public void clear()
         {
             id = -1;
@@ -1243,7 +1545,7 @@ namespace Pangya_GameServer.GameType
             public uint premium = 0;
             public uint state = 0;
             [field: MarshalAs(UnmanagedType.Struct)]
-            public PangyaTime finish_time = new PangyaTime();
+            public SYSTEMTIME finish_time = new SYSTEMTIME();
         }
         public int id = 0;
         public List<stTicketReportDados> v_dados = new List<stTicketReportDados>();
@@ -1256,7 +1558,7 @@ namespace Pangya_GameServer.GameType
         public void clear()
         {
         }
-         
+
 
         [field: MarshalAs(UnmanagedType.ByValArray)]
         public byte[] tacada = new byte[18]; // 18 Holes
@@ -1264,7 +1566,7 @@ namespace Pangya_GameServer.GameType
         public int[] score = new int[18]; // 18 Holes
         [field: MarshalAs(UnmanagedType.ByValArray)]
         public ulong[] pang = new ulong[18]; // 18 Holes
-        public uint request_oid = 0;
+        public int request_oid = -1;
         public uint owner_oid = 0;
 
         public byte[] ToArray()
@@ -1274,7 +1576,7 @@ namespace Pangya_GameServer.GameType
                 p.WriteBytes(tacada);
                 p.WriteInt32(score);
                 p.WriteUInt64(pang);
-                p.WriteUInt32(request_oid);
+                p.WriteInt32(request_oid);
                 p.WriteUInt32(owner_oid);
                 return p.GetBytes;
             }
@@ -1288,7 +1590,7 @@ namespace Pangya_GameServer.GameType
         {
             clear();
         }
-        public PlayerOrderTurnCtx(PlayerGameInfo _pgi, Hole _hole)//@ver depois@@@@@
+        public PlayerOrderTurnCtx(PlayerGameInfo _pgi, Hole _hole)
         {
             this.pgi = _pgi;
             this.hole = _hole;
@@ -1325,7 +1627,7 @@ namespace Pangya_GameServer.GameType
             this.name = _name;
             this.type = _type;
             randomTable();
-        } 
+        }
 
         public void clear()
         {
@@ -1334,16 +1636,15 @@ namespace Pangya_GameServer.GameType
         }
         public void randomTable()
         {
-            var rnd = new Random();
             ushort min_value = 0;
 
             if (type == eTYPE.VOICE_CLUB)
-            {
                 min_value = 1;
-            }
+
+            var rnd = new Random();
             for (var i = 0; i < 100; ++i)
             {
-                var randValue = rnd.Next((int)DateTime.Now.Ticks * 2);
+                var randValue = rnd.Next();
                 table[i] = (byte)(min_value + (randValue % (4 - min_value)));
             }
         }
@@ -1431,7 +1732,7 @@ namespace Pangya_GameServer.GameType
             public TreasureHunterItem thi = new TreasureHunterItem();
         }
         public uint treasure_point = 0; // Treasure Hunter point do player no game
-        public Dictionary<uint,_stTreasureHunterItem> v_item = new Dictionary<uint, _stTreasureHunterItem>(); // Treasure Hunter Item
+        public Dictionary<uint, _stTreasureHunterItem> v_item = new Dictionary<uint, _stTreasureHunterItem>(); // Treasure Hunter Item
         public byte all_score;
         public byte par_score;
         public byte birdie_score;
@@ -1447,7 +1748,7 @@ namespace Pangya_GameServer.GameType
         }
         public void clear()
         {
-           // p = new Player();
+            // p = new Player();
         }
         public int ret;
         public Player p;

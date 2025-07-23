@@ -214,7 +214,7 @@ namespace Pangya_GameServer.Session
         }
         public static void checkCardSpecial(Player _session)
         { // Card Equipped Special
-            var cards = _session.m_pi.v_cei.Values.ToList();
+            var cards = _session.m_pi.v_cei.ToList();
             foreach (var it in cards /*Incrementa em baixo*/)
             {
 
@@ -229,7 +229,7 @@ namespace Pangya_GameServer.Session
                             + (it.end_date.ConvertTime()) + "] excluindo ele do vector."));
 
                     // Delete Item Buff from player vector
-                    _session.m_pi.v_cei.Remove(it.id);
+                    _session.m_pi.v_cei.Remove(it);
 
                 }
             }

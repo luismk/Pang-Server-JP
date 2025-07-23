@@ -239,6 +239,7 @@
     <Compile Include="GameType\coin_cube_type.cs" />
     <Compile Include="GameType\comet_refill_type.cs" />
     <Compile Include="GameType\extra_power_interface.cs" />
+    <Compile Include="GameType\grand_zodiac_type.cs" />
     <Compile Include="GameType\guild_type.cs" />
     <Compile Include="GameType\game_type.cs" />
     <Compile Include="GameType\hole_type.cs" />
@@ -250,7 +251,9 @@
     <Compile Include="GameType\tourney_base_type.cs" />
     <Compile Include="GameType\versus_base_type.cs" />
     <Compile Include="GameType\_3d_type.cs" />
+    <Compile Include="Game\Base\GrandZodiacBase.cs" />
     <Compile Include="Game\Base\TourneyBase.cs" />
+    <Compile Include="Game\ChipInPractice.cs" />
     <Compile Include="Game\Course.cs" />
     <Compile Include="Game\Dupla.cs" />
     <Compile Include="Game\Hole.cs" />
@@ -282,7 +285,7 @@
     <Compile Include="Game\Manager\MascotManager.cs" />
     <Compile Include="Game\Manager\PlayerMailBox.cs" />
     <Compile Include="Game\Manager\WarehouseManager.cs" />
-    <Compile Include="Game\Game.cs" />
+    <Compile Include="Game\GameBase.cs" />
     <Compile Include="Game\Room.cs" />
     <Compile Include="Game\System\MapSystem.cs" />
     <Compile Include="Game\System\MemorialSystem.cs" />

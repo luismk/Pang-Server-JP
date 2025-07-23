@@ -58,7 +58,7 @@ namespace Pangya_GameServer.Cmd
             cei.tipo = IFNULL(_result.data[11]);
             cei.use_yn = (byte)IFNULL(_result.data[12]);
 
-            v_cei.Add((uint)cei.index, cei);//tem que ser list@@@@@
+            v_cei.Add( cei);//tem que ser list@@@@@
         }
 
         protected override Response prepareConsulta()

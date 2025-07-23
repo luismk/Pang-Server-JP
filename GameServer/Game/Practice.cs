@@ -112,7 +112,7 @@ namespace Pangya_GameServer.Game
             // Hole Repeat ganha 1/6 dos pang(s) feito
             // Course Practice ganha 1/3 dos pang(s) feito
 
-            if (m_ri.modo == (int)RoomInfo.MODO.M_REPEAT)
+            if (m_ri.modo == (int)RoomInfo.eMODO.M_REPEAT)
             { // Hole Repeat
 
                 pgi.data.pang = (ulong)(pgi.data.pang * (1.0f / 6.0f));
@@ -166,7 +166,7 @@ namespace Pangya_GameServer.Game
                 //pgi->flag = (_option == 0) ? PlayerGameInfo::eFLAG_GAME::FINISH : PlayerGameInfo::eFLAG_GAME::END_GAME;
                 setGameFlag(pgi, (_option == 0) ? PlayerGameInfo.eFLAG_GAME.FINISH : PlayerGameInfo.eFLAG_GAME.END_GAME);
 
-                pgi.time_finish.CreateTime();
+                //pgi.time_finish.CreateTime();
 
                 if (AllCompleteGameAndClear() && m_game_init_state == 1)
                 {
@@ -328,7 +328,7 @@ namespace Pangya_GameServer.Game
                     hole_seq = (int)m_course.findHoleSeq(pgi.hole);
 
                     // Ele est  no primeiro hole e n o acertou ele, s  da experi ncia se ele tiver acertado o hole
-                    if (hole_seq == 1 && !(pgi.shot_sync.state_shot.display.acerto_hole == 1))
+                    if (hole_seq == 1 && !(pgi.shot_sync.state_shot.display.acerto_hole))
                     {
                         hole_seq = 0;
                     }
@@ -393,7 +393,7 @@ namespace Pangya_GameServer.Game
                 "tentou verificar a ultima tacada do hole no jogo",
                 _session, out PlayerGameInfo pgi);
 
-            if (pgi.shot_sync.state_shot.display.acerto_hole == 1 || pgi.data.giveup == 1)
+            if (pgi.shot_sync.state_shot.display.acerto_hole || pgi.data.giveup == 1)
             {
 
                 // Verifica se o player terminou jogo, fez o ultimo hole
@@ -407,7 +407,7 @@ namespace Pangya_GameServer.Game
                         _session, 1);
 
                     // Fez o Ultimo Hole, Calcula Clear Bonus para o player
-                    if (pgi.shot_sync.state_shot.display.clear_bonus == 1)
+                    if (pgi.shot_sync.state_shot.display.clear_bonus)
                     {
 
                         if (!sMap.getInstance().isLoad())

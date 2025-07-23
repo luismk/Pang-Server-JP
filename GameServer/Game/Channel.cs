@@ -1185,7 +1185,7 @@ namespace Pangya_GameServer.Game
                     ri.qntd_hole = 18; // 18 Holes
                     ri.course = RoomInfo.eCOURSE.RANDOM;
                     ri.max_player = 250;
-                    ri.modo = (byte)RoomInfo.MODO.M_SHUFFLE;
+                    ri.modo = (byte)RoomInfo.eMODO.M_SHUFFLE;
                     ri.nome = BOT_GM_EVENT_NAME; 
 
                     try
@@ -1423,7 +1423,7 @@ namespace Pangya_GameServer.Game
                 ri.course = (RoomInfo.eCOURSE)(_packet.ReadUInt8());
                 ri.modo = _packet.ReadUInt8();
 
-                if (ri.modo == (byte)RoomInfo.MODO.M_REPEAT)
+                if (ri.modo == (byte)RoomInfo.eMODO.M_REPEAT)
                 {
                     ri.hole_repeat = _packet.ReadUInt8();
                     ri.fixed_hole = _packet.ReadUInt32();
@@ -5573,7 +5573,7 @@ namespace Pangya_GameServer.Game
 
                                 pCe = ci;
                                 _session.m_pi.ei.char_info = ci;
-                                _session.m_pi.mp_ce[ci.j] = ci;
+                                _session.m_pi.mp_ce[ci.id] = ci;
                                 NormalManagerDB.add(0,
                                     new CmdUpdateCharacterAllPartEquiped(_session.m_pi.uid, ci),
                                     SQLDBResponse, this);

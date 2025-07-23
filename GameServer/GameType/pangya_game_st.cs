@@ -3141,7 +3141,7 @@ namespace Pangya_GameServer.GameType
             PRACTICE,
             GRAND_PRIX,
         }
-        public enum MODO : uint
+        public enum eMODO : uint
         {
             M_FRONT,
             M_BACK,
@@ -3426,9 +3426,9 @@ namespace Pangya_GameServer.GameType
         {
             return (TIPO)tipo;
         }
-        public MODO getModo()
+        public eMODO getModo()
         {
-            return (MODO)modo;
+            return (eMODO)modo;
         }
         public byte getMap()
         {

@@ -57,7 +57,7 @@ namespace Pangya_GameServer.Game
         private int m_lock_spin_state;
         protected bool m_destroying;
 
-        protected Game m_pGame;
+        protected GameBase m_pGame;
         // Room Tipo Lounge
         protected byte m_weather_lounge;
         public room(byte _channel_owner, RoomInfoEx _ri)

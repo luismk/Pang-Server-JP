@@ -37,7 +37,7 @@ namespace Pangya_GameServer.Session
         public PlayerInfo m_pi { get; set; }
         public GMInfo m_gi { get; set; }
 
-        public Game.Game m_pGame { get; set; }
+        public Game.GameBase m_pGame { get; set; }
         public Channel m_channel { get; set; }
         public Player()
         {

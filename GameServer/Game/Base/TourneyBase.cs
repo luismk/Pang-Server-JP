@@ -1,46 +1,35 @@
 ﻿using System;
-using System.CodeDom;
 using System.Collections.Generic;
-using System.Diagnostics.Tracing;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Timers;
-using Pangya_GameServer.Cmd;
 using Pangya_GameServer.Game.Manager;
 using Pangya_GameServer.Game.System;
-using Pangya_GameServer.Game.Utils;
 using Pangya_GameServer.GameType;
 using Pangya_GameServer.PacketFunc;
-using Pangya_GameServer.PangyaEnums;
 using Pangya_GameServer.Session;
 using Pangya_GameServer.UTIL;
 using PangyaAPI.IFF.JP.Extensions;
 using PangyaAPI.IFF.JP.Models.Data;
 using PangyaAPI.IFF.JP.Models.Flags;
-using PangyaAPI.IFF.JP.Models.General;
-using PangyaAPI.Network.Pangya_St;
 using PangyaAPI.Network.PangyaPacket;
-using PangyaAPI.Network.PangyaSession;
-using PangyaAPI.SQL;
-using PangyaAPI.SQL.Manager;
 using PangyaAPI.Utilities;
 using PangyaAPI.Utilities.BinaryModels;
 using PangyaAPI.Utilities.Log;
-using static Pangya_GameServer.GameType._Define; 
+using static Pangya_GameServer.GameType._Define;
+using static Pangya_GameServer.GameType.RoomInfo;
 namespace Pangya_GameServer.Game.Base
 {
-
-    public abstract class TourneyBase : Game
+    public abstract class TourneyBase : GameBase
     {
         public uint m_max_player = 255u;
-      public  int m_entra_depois_flag;
+        public int m_entra_depois_flag;
 
-      public  TicketReportInfo m_tri = new TicketReportInfo();
+        public TicketReportInfo m_tri = new TicketReportInfo();
 
-      public  Medal[] m_medal = new Medal[12];
+        public Medal[] m_medal = new Medal[12];
         public TourneyBase(List<Player> _players, RoomInfoEx _ri, RateValue _rv, bool _channel_rookie) : base(_players, _ri, _rv, _channel_rookie)
         {
             this.m_tri = new TicketReportInfo();
@@ -49,20 +38,18 @@ namespace Pangya_GameServer.Game.Base
             m_medal = new Medal[12];
 
             for (var i = 0u; i < 12; ++i)
-            {
                 m_medal[i] = new Medal();
-            }
-         }
+        }
 
         ~TourneyBase()
         {
-            message_pool.push(new message("[TourneyBase::~TourneyBase][Log] TourneyBase destroyed on Room[Number=" + (m_ri.numero) + "]"));
+            //_smp.message_pool.getInstance().push(new message("[TourneyBase::~TourneyBase][Log] TourneyBase destroyed on Room[Number=" + (m_ri.numero) + "]", type_msg.CL_FILE_LOG_AND_CONSOLE));
         }
 
         public abstract void changeHole(Player _session);
         public abstract void finishHole(Player _session);
         public abstract void timeIsOver();
-        
+
         public override void sendInitialData(Player _session)
         {
             try
@@ -72,10 +59,11 @@ namespace Pangya_GameServer.Game.Base
                 {
                     // Zera a variável atômica
                     Interlocked.Exchange(ref m_sync_send_init_data, 0);
+
                     var p = new PangyaBinaryWriter();
 
                     // Game Data Init
-                    p.init_plain((ushort)0x76);
+                    p.init_plain(0x76);
 
                     p.WriteByte(m_ri.tipo_show);
                     p.WriteUInt32(1);
@@ -95,7 +83,7 @@ namespace Pangya_GameServer.Game.Base
             }
             catch (exception e)
             {
-                message_pool.push(new message("[TourneyBase::sendInitialData][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                //_smp.message_pool.getInstance().push(new message("[TourneyBase::sendInitialData][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
         }
         public override void sendInitialDataAfter(Player _session)
@@ -107,7 +95,7 @@ namespace Pangya_GameServer.Game.Base
             {
 
                 // Send Initial Data of Game
-                p.init_plain((ushort)0x113);
+                p.init_plain(0x113);
 
                 p.WriteByte(4);
                 p.WriteUInt32(3);
@@ -118,7 +106,7 @@ namespace Pangya_GameServer.Game.Base
                     _session, 1);
 
                 // Course
-                p.init_plain((ushort)0x113);
+                p.init_plain(0x113);
 
                 p.WriteByte(4);
                 p.WriteByte(4);
@@ -132,7 +120,8 @@ namespace Pangya_GameServer.Game.Base
                 p.WriteUInt32(m_ri.time_30s);
 
                 // Hole Info, Hole Spinning Cube, end Seed Random Course
-                m_course.makePacketHoleInfo(p, 1); 
+                m_course.makePacketHoleInfo(p, 1);
+
                 packet_func.session_send(p,
                     _session, 1);
 
@@ -140,7 +129,7 @@ namespace Pangya_GameServer.Game.Base
             catch (exception e)
             {
 
-                message_pool.push(new message("[TourneyBase::sendInitialDataBefore][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                //_smp.message_pool.getInstance().push(new message("[TourneyBase::sendInitialDataBefore][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
         }
 
@@ -149,22 +138,17 @@ namespace Pangya_GameServer.Game.Base
             //REQUEST_BEGIN("InitHole");
 
             var p = new PangyaBinaryWriter();
-             
+
             try
             {
 
                 stInitHole ctx_hole = _packet.Read<stInitHole>();
 
-#if _DEBUG
-        			message_pool.push(new message("[TourneyBase::requestInitHole][Log] Player[UID=" + Convert.ToString(_session.m_pi.uid) + "] Hole[NUMERO=" + Convert.ToString((ushort)ctx_hole.numero) + ", PAR=" + Convert.ToString((ushort)ctx_hole.par) + " OPT=" + Convert.ToString(ctx_hole.option) + ", UNKNOWN=" + Convert.ToString(ctx_hole.ulUnknown) + "] Tee[X=" + Convert.ToString(ctx_hole.tee.x) + ", Z=" + Convert.ToString(ctx_hole.tee.z) + "] Pin[X=" + Convert.ToString(ctx_hole.pin.x) + ", Z=" + Convert.ToString(ctx_hole.pin.z) + "]", type_msg.CL_FILE_LOG_AND_CONSOLE));
-#endif // _DEBUG
-
-
                 var hole = m_course.findHole(ctx_hole.numero);
 
                 if (hole == null)
                 {
-                    throw new exception("[TourneyBase::requestInitHole][Error] course->findHole nao encontrou o hole retonou nullptr, o server esta com erro no init course do tourney_base.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.TOURNEY_BASE,
+                    throw new exception("[TourneyBase::requestInitHole][Error] course->findHole nao encontrou o hole retonou null, o server esta com erro no init course do tourney_base.", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.TOURNEY_BASE,
                         2555, 0));
                 }
 
@@ -188,10 +172,10 @@ namespace Pangya_GameServer.Game.Base
                 }
 
                 // Gera degree para o player ou pega o degree sem gerar que é do modo do hole repeat
-                pgi.degree = (m_ri.modo == (byte)Hole.eMODO.M_REPEAT) ? hole.getWind().degree.getDegree() : hole.getWind().degree.getShuffleDegree();
+                pgi.degree = (m_ri.getModo() == RoomInfo.eMODO.M_REPEAT) ? hole.getWind().degree.getDegree() : hole.getWind().degree.getShuffleDegree();
 
                 // Resposta de tempo do hole
-                p.init_plain((ushort)0x9E);
+                p.init_plain(0x9E);
 
                 p.WriteUInt16(hole.getWeather());
                 p.WriteByte(0); // Option do tempo, sempre peguei zero aqui dos pacotes que vi
@@ -202,7 +186,7 @@ namespace Pangya_GameServer.Game.Base
                 var wind_flag = initCardWindPlayer(pgi, hole.getWind().wind);
 
                 // Resposta do vento do hole
-                p.init_plain((ushort)0x5B);
+                p.init_plain(0x5B);
 
                 p.WriteByte(hole.getWind().wind + wind_flag);
                 p.WriteByte((wind_flag < 0) ? 1 : 0); // Flag de card de vento, aqui é a qnd diminui o vento, 1 Vento azul
@@ -219,10 +203,7 @@ namespace Pangya_GameServer.Game.Base
             }
             catch (exception e)
             {
-
-                message_pool.push(new message("[TourneyBase::requestInitHole][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
-
-
+                //_smp.message_pool.getInstance().push(new message("[TourneyBase::requestInitHole][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
         }
 
@@ -248,7 +229,7 @@ namespace Pangya_GameServer.Game.Base
                 if (pgi.enter_after_started == 1)
                 {
                     // Add Player Score
-                    p.init_plain((ushort)0x113);
+                    p.init_plain(0x113);
 
                     p.WriteByte(9);
                     p.WriteByte(0);
@@ -261,7 +242,7 @@ namespace Pangya_GameServer.Game.Base
                 }
 
                 // Resposta passa o oid do player que vai começa o Hole
-                p.init_plain((ushort)0x53);
+                p.init_plain(0x53);
 
                 p.WriteInt32(_session.m_oid);
 
@@ -272,7 +253,7 @@ namespace Pangya_GameServer.Game.Base
             catch (exception e)
             {
 
-                message_pool.push(new message("[TourneyBase::requestFinishLoadHole][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                //_smp.message_pool.getInstance().push(new message("[TourneyBase::requestFinishLoadHole][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
 
             return ret;
@@ -318,7 +299,6 @@ namespace Pangya_GameServer.Game.Base
                             pgi.data.tacada_num = 0;
                             break;
                     }
-
                 }
                 else
                 {
@@ -332,7 +312,7 @@ namespace Pangya_GameServer.Game.Base
             catch (exception e)
             {
 
-                message_pool.push(new message("[TourneyBase::requestFinishCharIntro][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                //_smp.message_pool.getInstance().push(new message("[TourneyBase::requestFinishCharIntro][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
         }
 
@@ -355,7 +335,7 @@ namespace Pangya_GameServer.Game.Base
 
                 pgi.ui = ui;
 
-                if (!(pgi.shot_sync.state_shot.display.acerto_hole == 1))
+                if (!(pgi.shot_sync.state_shot.display.acerto_hole))
                 { // Terminou o Hole sem acerta ele, Give Up
 
                     // Ainda não colocara o give up, o outro pacote, coloca nesse(muito difícil, n o colocar só se estiver com bug)
@@ -377,51 +357,68 @@ namespace Pangya_GameServer.Game.Base
             }
             catch (exception e)
             {
-
-                message_pool.push(new message("[TourneyBase::requestFinishHoleData][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                //_smp.message_pool.getInstance().push(new message("[TourneyBase::requestFinishHoleData][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
         }
 
         public override void requestInitShot(Player _session, packet _packet)
         {
-            //REQUEST_BEGIN("InitShot");
-
-            //packet p;
-
             try
             {
 
                 ShotDataEx sd = new ShotDataEx();
 
+                // Power Shot
+                #region Read Shot Sync Data
                 sd.option = _packet.ReadUInt16();
 
-                // Power Shot
                 if (sd.option == 1)
                 {
-                    sd.power_shot = _packet.Read<ShotDataEx.PowerShot>();
+                    sd.power_shot.option = _packet.ReadByte();
+                    sd.power_shot.decrease_power_shot = _packet.ReadInt32();
+                    sd.power_shot.increase_power_shot = _packet.ReadInt32();
                 }
 
-                //verificacoes importantes@@@@@
-                if (_packet.GetRemainingData.Length == 66)
-                    _packet.ReadBuffer(ref sd, Marshal.SizeOf(new ShotData()));
-                else if (_packet.GetRemainingData.Length == 62) 
-                    _packet.ReadBuffer(ref sd, Marshal.SizeOf(new ShotDataBase()));
+                //READ SHOTDataBase primeiro, primeiro se lê a classe base, e depois a classe que herda.
 
+                sd.bar_point[0] = _packet.ReadSingle();
+                sd.bar_point[1] = _packet.ReadSingle();
+
+                sd.ball_effect[0] = _packet.ReadSingle();
+                sd.ball_effect[1] = _packet.ReadSingle();
+
+                sd.acerto_pangya_flag = _packet.ReadByte();
+                sd.special_shot.ulSpecialShot = _packet.ReadUInt32();
+                sd.time_hole_sync = _packet.ReadUInt32();
+                sd.mira = _packet.ReadSingle();
+
+                sd.time_shot = _packet.ReadUInt32();
+                sd.bar_point1 = _packet.ReadSingle();
+                sd.club = _packet.ReadByte();
+
+                sd.fUnknown[0] = _packet.ReadSingle();
+                sd.fUnknown[1] = _packet.ReadSingle();
+
+                sd.impact_zone_pixel = _packet.ReadSingle();
+
+                sd.natural_wind[0] = _packet.ReadInt32();
+                sd.natural_wind[1] = _packet.ReadInt32();
+
+                //READ SHOTDATA
+                sd.spend_time_game = _packet.ReadSingle();
+
+                #endregion
                 INIT_PLAYER_INFO("requestInitShot",
                     "tentou iniciar tacada no jogo",
                     _session, out PlayerGameInfo pgi);
 
                 pgi.shot_data = sd;
 
-                message_pool.push(new message("Log Shot Data Ex:\n\r" + sd.toString(), type_msg.CL_FILE_LOG_AND_CONSOLE));
-
-                // Aqui não manda resposta no TourneyBase ou Practice, mas outro modos(VS, MATCH) manda e outros também não(TOURNEY)
-
             }
             catch (exception e)
             {
 
-                message_pool.push(new message("[TourneyBase::requestInitShot][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                //_smp.message_pool.getInstance().push(new message("[TourneyBase::requestInitShot][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
         }
 
@@ -454,7 +451,7 @@ namespace Pangya_GameServer.Game.Base
             catch (exception e)
             {
 
-                message_pool.push(new message("[TourneyBase::requestSyncShot][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                //_smp.message_pool.getInstance().push(new message("[TourneyBase::requestSyncShot][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
         }
 
@@ -486,7 +483,7 @@ namespace Pangya_GameServer.Game.Base
             catch (exception e)
             {
 
-                message_pool.push(new message("[TourneyBase::requestInitShotArrowSeq][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                //_smp.message_pool.getInstance().push(new message("[TourneyBase::requestInitShotArrowSeq][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
         }
 
@@ -502,14 +499,9 @@ namespace Pangya_GameServer.Game.Base
                 // ----------------- LEMBRETE --------------
                 // Aqui vou usar para as tacadas do spinning cube que gera no course
                 // --- Já estou usando o pacote no sync, por que preciso verificar uns valores lá ---
+                var arrays = _packet.GetRemainingData;
 
-                ShotEndLocationData seld = new ShotEndLocationData();
-
-                seld = _packet.Read<ShotEndLocationData>();
-
-#if _DEBUG
-        			message_pool.push(new message("Log Shot End Location Data:\n\r" + seld.toString(), type_msg.CL_FILE_LOG_AND_CONSOLE));
-#endif // _DEBUG
+                ShotEndLocationData seld = new ShotEndLocationData(_packet);
 
                 INIT_PLAYER_INFO("requestShotEndData",
                     "tentou finalizar local da tacada no jogo",
@@ -518,24 +510,23 @@ namespace Pangya_GameServer.Game.Base
                 pgi.shot_data_for_cube = seld;
 
                 // Resposta para Shot End Data
-                p.init_plain((ushort)0x1F7);
+                p.init_plain(0x1F7);
 
                 p.WriteUInt32(pgi.oid);
                 p.WriteByte(pgi.hole);
 
-                p.WriteBytes(seld.ToArray());
+                p.WriteBytes(arrays);
 
                 packet_func.game_broadcast(this,
                     p, 1);
-
             }
             catch (exception e)
             {
 
-                message_pool.push(new message("[TourneyBase::requestShotEndData][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                //_smp.message_pool.getInstance().push(new message("[TourneyBase::requestShotEndData][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
         }
-       
+
         public override RetFinishShot requestFinishShot(Player _session, packet _packet)
         {
             //REQUEST_BEGIN("FinishShot");
@@ -544,7 +535,7 @@ namespace Pangya_GameServer.Game.Base
 
             try
             {
-                  
+
                 // Request Init Cube Coin
                 var cube = requestInitCubeCoin(_session, _packet);
 
@@ -554,9 +545,7 @@ namespace Pangya_GameServer.Game.Base
                 ret.ret = checkEndShotOfHole(_session);
 
                 if (ret.ret == 2)
-                {
                     ret.p = _session;
-                }
 
                 INIT_PLAYER_INFO("requestFinishShot",
                     "tentou finalizar a tacada",
@@ -570,7 +559,7 @@ namespace Pangya_GameServer.Game.Base
             catch (exception e)
             {
 
-                message_pool.push(new message("[TourneyBase::requestFinishShot][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                //_smp.message_pool.getInstance().push(new message("[TourneyBase::requestFinishShot][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
 
             return (ret);
@@ -594,7 +583,7 @@ namespace Pangya_GameServer.Game.Base
                 pgi.location.r = mira;
 
                 // Resposta para o Change mira
-                p.init_plain((ushort)0x56);
+                p.init_plain(0x56);
 
                 p.WriteUInt32(pgi.oid);
                 p.WriteFloat(pgi.location.r);
@@ -606,7 +595,7 @@ namespace Pangya_GameServer.Game.Base
             catch (exception e)
             {
 
-                message_pool.push(new message("[TourneyBase::requestChangeMira][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                //_smp.message_pool.getInstance().push(new message("[TourneyBase::requestChangeMira][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
         }
 
@@ -643,7 +632,7 @@ namespace Pangya_GameServer.Game.Base
             catch (exception e)
             {
 
-                message_pool.push(new message("[TourneyBase::requestChangeStateBarSpace][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                //_smp.message_pool.getInstance().push(new message("[TourneyBase::requestChangeStateBarSpace][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
         }
 
@@ -663,22 +652,22 @@ namespace Pangya_GameServer.Game.Base
                    _session, out PlayerGameInfo pgi);
 
                 pgi.power_shot = ps;
-                
+
                 if (ps == 1)//ps1
                 {
-                    Console.WriteLine($"[TourneyBase::requestActivePowerShot] [Log]: ativou 1x power shot gauge");
+                    Debug.WriteLine($"[TourneyBase::requestActivePowerShot] [Log]: ativou 1x power shot gauge");
                 }
-                else if(ps == 2)//ps2
+                else if (ps == 2)//ps2
                 {
-                    Console.WriteLine($"[TourneyBase::requestActivePowerShot] [Log]: ativou 2x power shot gauge");
+                    Debug.WriteLine($"[TourneyBase::requestActivePowerShot] [Log]: ativou 2x power shot gauge");
                 }
                 else
                  if (ps == 0)//desativado
                 {
-                    Console.WriteLine($"[TourneyBase::requestActivePowerShot] [Log]: desativou power shot gauge");
+                    Debug.WriteLine($"[TourneyBase::requestActivePowerShot] [Log]: desativou power shot gauge");
                 }
                 // Resposta para Active Power Shot
-                p.init_plain((ushort)0x58);
+                p.init_plain(0x58);
 
                 p.WriteInt32(_session.m_oid);
                 p.WriteByte(pgi.power_shot);
@@ -690,10 +679,10 @@ namespace Pangya_GameServer.Game.Base
             catch (exception e)
             {
 
-                message_pool.push(new message("[TourneyBase::requestActivePowerShot][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                //_smp.message_pool.getInstance().push(new message("[TourneyBase::requestActivePowerShot][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
         }
-         
+
         public override void requestChangeClub(Player _session, packet _packet)
         {
             //REQUEST_BEGIN("ChangeClub");
@@ -712,7 +701,7 @@ namespace Pangya_GameServer.Game.Base
                 pgi.club = club;
 
                 // Resposta para Change Club
-                p.init_plain((ushort)0x59);
+                p.init_plain(0x59);
 
                 p.WriteInt32(_session.m_oid);
                 p.WriteByte(pgi.club);
@@ -724,10 +713,10 @@ namespace Pangya_GameServer.Game.Base
             catch (exception e)
             {
 
-                message_pool.push(new message("[TourneyBase::requestChangeClub][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                //_smp.message_pool.getInstance().push(new message("[TourneyBase::requestChangeClub][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
         }
-         
+
         public override void requestUseActiveItem(Player _session, packet _packet)
         {
             //REQUEST_BEGIN("UseActiveItem");
@@ -770,15 +759,15 @@ namespace Pangya_GameServer.Game.Base
                     // Card Special - Efeito mulligan rose == 32
                     if (_session.m_pi.v_cei.Count(_el =>
                     {
-                        return (_el.Value.parts_typeid == 0 && _el.Value.parts_typeid == 0 && sIff.getInstance().getItemSubGroupIdentify22(_el.Value._typeid) == 2 && _el.Value.efeito == 32);
+                        return (_el.parts_typeid == 0 && _el.parts_typeid == 0 && sIff.getInstance().getItemSubGroupIdentify22(_el._typeid) == 2 && _el.efeito == 32);
                     }) > 0)
                     {
-                        var rand = new Random((int)m_ri.time_30s);
+                        var rand = new Random();
                         // Resposta para o Use Active Item
-                        p.init_plain((ushort)0x5A);
+                        p.init_plain(0x5A);
 
                         p.WriteUInt32(item_typeid);
-                        p.WriteUInt32((uint)rand.Next(1, ushort.MaxValue)); // Seed Rand Failure Active Item
+                        p.WriteInt32(rand.Next()); // Seed Rand Failure Active Item
                         p.WriteInt32(_session.m_oid);
 
                         packet_func.game_broadcast(this,
@@ -802,7 +791,7 @@ namespace Pangya_GameServer.Game.Base
 
                 var it = pgi.used_item.v_active.find(pWi._typeid);
 
-                if (it.Value == null)
+                if (it.Key == 0)
                 {
                     throw new exception("[TourneyBase::requestActiveItem][Error] player[UID=" + Convert.ToString(_session.m_pi.uid) + "] tentou usar active item[TYPEID=" + Convert.ToString(item_typeid) + "] no jogo, mas ele nao equipou esse item. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.TOURNEY_BASE,
                         9, 0));
@@ -821,10 +810,10 @@ namespace Pangya_GameServer.Game.Base
                 pgi.item_active_used_shot = pWi._typeid;
 
                 // Resposta para o Use Active Item
-                p.init_plain((ushort)0x5A);
+                p.init_plain(0x5A);
 
                 p.WriteUInt32(pWi._typeid);
-                p.WriteUInt32((uint)sRandomGen.getInstance().rIbeMt19937_64_chrono()); // Seed Rand Failure Active Item
+                p.WriteInt32(new Random().Next()); // Seed Rand Failure Active Item
                 p.WriteInt32(_session.m_oid);
 
                 packet_func.game_broadcast(this,
@@ -834,7 +823,7 @@ namespace Pangya_GameServer.Game.Base
             catch (exception e)
             {
 
-                message_pool.push(new message("[TourneyBase::requestUseActiveItem][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                //_smp.message_pool.getInstance().push(new message("[TourneyBase::requestUseActiveItem][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
         }
 
@@ -856,7 +845,7 @@ namespace Pangya_GameServer.Game.Base
                 pgi.typeing = typeing;
 
                 // Resposta para Change State Typeing 
-                p.init_plain((ushort)0x5D);
+                p.init_plain(0x5D);
 
                 p.WriteInt32(_session.m_oid);
                 p.WriteInt16(pgi.typeing);
@@ -868,7 +857,7 @@ namespace Pangya_GameServer.Game.Base
             catch (exception e)
             {
 
-                message_pool.push(new message("[TourneyBase::requestChangeStateTypeing][Error] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                //_smp.message_pool.getInstance().push(new message("[TourneyBase::requestChangeStateTypeing][Error] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
         }
 
@@ -897,7 +886,7 @@ namespace Pangya_GameServer.Game.Base
                 pgi.data.tacada_num++;
 
                 // Resposta para Move Ball
-                p.init_plain((ushort)0x60);
+                p.init_plain(0x60);
 
                 p.WriteFloat(pgi.location.x);
                 p.WriteFloat(pgi.location.y);
@@ -910,7 +899,7 @@ namespace Pangya_GameServer.Game.Base
             catch (exception e)
             {
 
-                message_pool.push(new message("[TourneyBase::requestMoveBall][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                //_smp.message_pool.getInstance().push(new message("[TourneyBase::requestMoveBall][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
         }
 
@@ -932,7 +921,7 @@ namespace Pangya_GameServer.Game.Base
                 pgi.chat_block = chat_block;
 
                 // Resposta para Chat Block
-                p.init_plain((ushort)0xAC);
+                p.init_plain(0xAC);
 
                 p.WriteInt32(_session.m_oid);
                 p.WriteByte(pgi.chat_block);
@@ -944,7 +933,7 @@ namespace Pangya_GameServer.Game.Base
             catch (exception e)
             {
 
-                message_pool.push(new message("[TourneyBase::requestChangeStateChatBlock][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                //_smp.message_pool.getInstance().push(new message("[TourneyBase::requestChangeStateChatBlock][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
         }
 
@@ -982,7 +971,7 @@ namespace Pangya_GameServer.Game.Base
 
                     var it = pgi.used_item.v_passive.find(pWi._typeid);
 
-                    if (it.Key == pgi.used_item.v_passive.end().Key)
+                    if (it.Key == 0)
                     {
                         throw new exception("[TourneyBase::requestActiveBooster][Error] player[UID = " + Convert.ToString(_session.m_pi.uid) + "] tentou ativar time booster, mas ele nao tem ele no item passive usados do server. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.TOURNEY_BASE,
                             13, 0));
@@ -1001,13 +990,13 @@ namespace Pangya_GameServer.Game.Base
                 else
                 { // Soma +1 no contador de counter item do booster do player e passive item
 
-                    //pgi.sys_achieve.incrementCounter(0x6C400075u);
+                    pgi.sys_achieve.incrementCounter(0x6C400075u);
 
-                    //pgi.sys_achieve.incrementCounter(0x6C400050u);
+                    pgi.sys_achieve.incrementCounter(0x6C400050u);
                 }
 
                 // Resposta para Active Booster
-                p.init_plain((ushort)0xC7);
+                p.init_plain(0xC7);
 
                 p.WriteFloat(velocidade);
                 p.WriteInt32(_session.m_oid);
@@ -1018,8 +1007,7 @@ namespace Pangya_GameServer.Game.Base
             }
             catch (exception e)
             {
-
-                message_pool.push(new message("[TourneyBase::requestActiveBooster][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                //_smp.message_pool.getInstance().push(new message("[TourneyBase::requestActiveBooster][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
         }
 
@@ -1069,13 +1057,13 @@ namespace Pangya_GameServer.Game.Base
                         203, 0));
                 }
 
-#if _DEBUG
-        			message_pool.push(new message("[TourneyBase::requestActiveReplay][Log] player[UID=" + Convert.ToString(_session.m_pi.uid) + "] ativou replay e ficou com " + Convert.ToString(item.stat.qntd_dep) + " + fita(s)", type_msg.CL_FILE_LOG_AND_CONSOLE));
-#endif // _DEBUG
+#if DEBUG
+                //_smp.message_pool.getInstance().push(new message("[TourneyBase::requestActiveReplay][Log] player[UID=" + Convert.ToString(_session.m_pi.uid) + "] ativou replay e ficou com " + Convert.ToString(item.stat.qntd_dep) + " + fita(s)", type_msg.CL_FILE_LOG_AND_CONSOLE));
+#endif // DEBUG
 
                 // UPDATE ON GAME
                 // Resposta para o Active Replay
-                p.init_plain((ushort)0xA4);
+                p.init_plain(0xA4);
 
                 p.WriteUInt16((ushort)item.stat.qntd_dep);
 
@@ -1086,7 +1074,7 @@ namespace Pangya_GameServer.Game.Base
             catch (exception e)
             {
 
-                message_pool.push(new message("[TourneyBase::requestActiveReplay][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                //_smp.message_pool.getInstance().push(new message("[TourneyBase::requestActiveReplay][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
         }
 
@@ -1095,7 +1083,7 @@ namespace Pangya_GameServer.Game.Base
             //REQUEST_BEGIN("ActiveCutin");
 
             var p = new PangyaBinaryWriter();
-              
+
             try
             {
 
@@ -1118,7 +1106,7 @@ namespace Pangya_GameServer.Game.Base
                 CutinInformation pCutin = null;
 
                 // Cutin Padrão que o player equipa, quando o cliente envia o cutin type é que é efeito por roupas equipadas
-                if (sIff.getInstance().getItemGroupIdentify(ac.char_typeid) == sIff.getInstance().CHARACTER && ac.active ==1)
+                if (sIff.getInstance().getItemGroupIdentify(ac.char_typeid) == sIff.getInstance().CHARACTER && ac.active == 1)
                 {
 
                     if (s.m_pi.ei.char_info._typeid != ac.char_typeid)
@@ -1129,7 +1117,7 @@ namespace Pangya_GameServer.Game.Base
 
                     WarehouseItemEx pWi = null;
 
-                      var end = (s.m_pi.ei.char_info.cut_in.Length);
+                    var end = (s.m_pi.ei.char_info.cut_in.Length);
 
                     for (var i = 0u; i < end; ++i)
                     {
@@ -1182,7 +1170,7 @@ namespace Pangya_GameServer.Game.Base
                 }
 
                 // Resposta para Active Cutin
-                p.init_plain((ushort)0x18D);
+                p.init_plain(0x18D);
 
                 p.WriteByte(1); // OK
 
@@ -1211,9 +1199,9 @@ namespace Pangya_GameServer.Game.Base
             catch (exception e)
             {
 
-                message_pool.push(new message("[TourneyBase::requestActiveCutin][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                //_smp.message_pool.getInstance().push(new message("[TourneyBase::requestActiveCutin][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
 
-                p.init_plain((ushort)0x18D);
+                p.init_plain(0x18D);
 
                 p.WriteByte(0); // OPT
 
@@ -1229,7 +1217,7 @@ namespace Pangya_GameServer.Game.Base
             //REQUEST_BEGIN("ActiveRing");
 
             var p = new PangyaBinaryWriter();
-             
+
             try
             {
 
@@ -1255,7 +1243,7 @@ namespace Pangya_GameServer.Game.Base
                         32, 0x330003));
                 }
 
-                if (!_session.m_pi.ei.char_info.auxparts.Any(c=> c == r._typeid))
+                if (!_session.m_pi.ei.char_info.auxparts.Any(c => c == r._typeid))
                 {
                     throw new exception("[TourneyBase::requestActiveRing][Error] player[UID=" + Convert.ToString(_session.m_pi.uid) + "] tentou ativar Anel[TYPEID=" + Convert.ToString(r._typeid) + "], mas ele nao esta equipado com o anel. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.TOURNEY_BASE,
                         33, 0x330004));
@@ -1265,7 +1253,7 @@ namespace Pangya_GameServer.Game.Base
                 checkEffectItemAndSet(_session, r._typeid);
 
                 // Resposta para o cliente
-                p.init_plain((ushort)0x237);
+                p.init_plain(0x237);
 
                 p.WriteUInt32(0); // OK
 
@@ -1281,10 +1269,10 @@ namespace Pangya_GameServer.Game.Base
             catch (exception e)
             {
 
-                message_pool.push(new message("[TourneyBase::requestActiveRing][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                //_smp.message_pool.getInstance().push(new message("[TourneyBase::requestActiveRing][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
 
                 // Resposta Error
-                p.init_plain((ushort)0x237);
+                p.init_plain(0x237);
 
                 p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) == STDA_ERROR_TYPE.TOURNEY_BASE) ? ExceptionError.STDA_SYSTEM_ERROR_DECODE(e.getCodeError()) : 0x330000);
 
@@ -1298,16 +1286,16 @@ namespace Pangya_GameServer.Game.Base
             //REQUEST_BEGIN("ActiveRingGround");
 
             var p = new PangyaBinaryWriter();
-             
+
             try
             {
 
-                stRingGround rg =  _packet.Read<stRingGround>();
+                stRingGround rg = _packet.Read<stRingGround>();
 
                 // Log para saber qual é o efeito 31(0x1F)
                 if ((AbilityEffect)(rg.efeito) == AbilityEffect.UNKNOWN_31)
                 {
-                    message_pool.push(new message("[TourneyBase::requestActiveRingGround][Log] Player[UID=" + Convert.ToString(_session.m_pi.uid) + "] ativou o efeito 0x1F(31) com os itens[TYPEID_1=" + Convert.ToString(rg.ring[0]) + ", TYPEID_2=" + Convert.ToString(rg.ring[1]) + "] e OPTION=" + Convert.ToString(rg.option), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                    //_smp.message_pool.getInstance().push(new message("[TourneyBase::requestActiveRingGround][Log] Player[UID=" + Convert.ToString(_session.m_pi.uid) + "] ativou o efeito 0x1F(31) com os itens[TYPEID_1=" + Convert.ToString(rg.ring[0]) + ", TYPEID_2=" + Convert.ToString(rg.ring[1]) + "] e OPTION=" + Convert.ToString(rg.option), type_msg.CL_FILE_LOG_AND_CONSOLE));
                 }
 
                 if (!rg.isValid())
@@ -1333,7 +1321,7 @@ namespace Pangya_GameServer.Game.Base
                             52, 0x340002));
                     }
 
-                    if (!_session.m_pi.ei.char_info.auxparts.Any(c=> c == rg.ring[0]))
+                    if (!_session.m_pi.ei.char_info.auxparts.Any(c => c == rg.ring[0]))
                     {
                         throw new exception("[TourneyBase::requestActiveRingGround][Error] player[UID=" + Convert.ToString(_session.m_pi.uid) + "] tentou ativar Anel de Terreno[TYPE=" + Convert.ToString(rg.efeito) + ", RING[0]=" + Convert.ToString(rg.ring[0]) + ", RING[1]=" + Convert.ToString(rg.ring[1]) + ", OPTION=" + Convert.ToString(rg.option) + "], mas ele nao esta com o Anel[0] equipado", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.TOURNEY_BASE,
                             53, 0x340003));
@@ -1369,7 +1357,7 @@ namespace Pangya_GameServer.Game.Base
                             52, 0x340002));
                     }
 
-                    if (!_session.m_pi.ei.char_info.auxparts.Any(c=> c == rg.ring[0]))
+                    if (!_session.m_pi.ei.char_info.auxparts.Any(c => c == rg.ring[0]))
                     {
                         throw new exception("[TourneyBase::requestActiveRingGround][Error] player[UID=" + Convert.ToString(_session.m_pi.uid) + "] tentou ativar Anel de Terreno[TYPE=" + Convert.ToString(rg.efeito) + ", RING[0]=" + Convert.ToString(rg.ring[0]) + ", RING[1]=" + Convert.ToString(rg.ring[1]) + ", OPTION=" + Convert.ToString(rg.option) + "], mas ele nao esta com o Part[0] equipado", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.TOURNEY_BASE,
                             53, 0x340003));
@@ -1429,7 +1417,7 @@ namespace Pangya_GameServer.Game.Base
                 setEffectActiveInShot(_session, enumToBitValue((AbilityEffect)rg.efeito));
 
                 // Resposta para o Active Ring Terreno
-                p.init_plain((ushort)0x266);
+                p.init_plain(0x266);
 
                 p.WriteUInt32(0); // OK
 
@@ -1444,10 +1432,10 @@ namespace Pangya_GameServer.Game.Base
             catch (exception e)
             {
 
-                message_pool.push(new message("[TourneyBase::requestActiveRingGround][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                //_smp.message_pool.getInstance().push(new message("[TourneyBase::requestActiveRingGround][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
 
                 // Resposta Error
-                p.init_plain((ushort)0x266);
+                p.init_plain(0x266);
 
                 p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) == STDA_ERROR_TYPE.TOURNEY_BASE) ? ExceptionError.STDA_SOURCE_ERROR_DECODE(e.getCodeError()) : 0x340000);
 
@@ -1469,7 +1457,7 @@ namespace Pangya_GameServer.Game.Base
                 setEffectActiveInShot(_session, enumToBitValue(AbilityEffect.PAWS_ACCUMULATE));
 
                 // Resposta para o Active Ring Paws Rainbow JP
-                p.init_plain((ushort)0x27E);
+                p.init_plain(0x27E);
 
                 p.WriteUInt32(_session.m_pi.uid);
 
@@ -1480,7 +1468,7 @@ namespace Pangya_GameServer.Game.Base
             catch (exception e)
             {
 
-                message_pool.push(new message("[TourneyBase::requestActiveRingPawsRainbowJP][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                //_smp.message_pool.getInstance().push(new message("[TourneyBase::requestActiveRingPawsRainbowJP][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
         }
 
@@ -1497,7 +1485,7 @@ namespace Pangya_GameServer.Game.Base
                 setEffectActiveInShot(_session, enumToBitValue(AbilityEffect.PAWS_NOT_ACCUMULATE));
 
                 // Resposta para o Active Ring Paws Ring Set JP
-                p.init_plain((ushort)0x281);
+                p.init_plain(0x281);
 
                 p.WriteUInt32(_session.m_pi.uid);
 
@@ -1508,7 +1496,7 @@ namespace Pangya_GameServer.Game.Base
             catch (exception e)
             {
 
-                message_pool.push(new message("[TourneyBase::requestActiveRingPawsRingSetJP][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                //_smp.message_pool.getInstance().push(new message("[TourneyBase::requestActiveRingPawsRingSetJP][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
         }
 
@@ -1517,7 +1505,7 @@ namespace Pangya_GameServer.Game.Base
             //REQUEST_BEGIN("ActiveRingPowerGagueJP");
 
             var p = new PangyaBinaryWriter();
-             
+
             try
             {
 
@@ -1571,7 +1559,7 @@ namespace Pangya_GameServer.Game.Base
                 setEffectActiveInShot(_session, enumToBitValue(AbilityEffect.POWER_GAUGE_FREE));
 
                 // Resposta para o Active Ring Power Gague JP
-                p.init_plain((ushort)0x27F);
+                p.init_plain(0x27F);
 
                 p.WriteUInt32(_session.m_pi.uid);
 
@@ -1582,7 +1570,7 @@ namespace Pangya_GameServer.Game.Base
             catch (exception e)
             {
 
-                message_pool.push(new message("[TourneyBase::requestActiveRingPowerGagueJP][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                //_smp.message_pool.getInstance().push(new message("[TourneyBase::requestActiveRingPowerGagueJP][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
         }
 
@@ -1630,7 +1618,7 @@ namespace Pangya_GameServer.Game.Base
                 else if (sIff.getInstance().getItemGroupIdentify(_typeid) == sIff.getInstance().PART)
                 { // Part
 
-                    if (_session.m_pi.ei.char_info.parts_typeid.Any(c=> c == _typeid))
+                    if (_session.m_pi.ei.char_info.parts_typeid.Any(c => c == _typeid))
                     {
                         throw new exception("[TourneyBase::requestActiveRingMiracleSignJP][Error] player[UID=" + Convert.ToString(_session.m_pi.uid) + "] tentou ativar 'Anel'[TYPEID=" + Convert.ToString(_typeid) + "] Olho Magico JP, mas ele nao esta com a Part equipado. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.TOURNEY_BASE,
                             74, 0x350005));
@@ -1642,7 +1630,7 @@ namespace Pangya_GameServer.Game.Base
                 setEffectActiveInShot(_session, enumToBitValue(AbilityEffect.MIRACLE_SIGN_RANDOM));
 
                 // Resposta para o Active Ring Miracle Sign JP
-                p.init_plain((ushort)0x280);
+                p.init_plain(0x280);
 
                 p.WriteUInt32(0); // OK;
 
@@ -1656,10 +1644,10 @@ namespace Pangya_GameServer.Game.Base
             catch (exception e)
             {
 
-                message_pool.push(new message("[TourneyBase::requestActiveRingMiracleSign][ErroSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                //_smp.message_pool.getInstance().push(new message("[TourneyBase::requestActiveRingMiracleSign][ErroSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
 
                 // Resposta Error
-                p.init_plain((ushort)0x280);
+                p.init_plain(0x280);
 
                 p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) == STDA_ERROR_TYPE.TOURNEY_BASE) ? ExceptionError.STDA_SOURCE_ERROR_DECODE(e.getCodeError()) : 0x350000);
 
@@ -1699,7 +1687,7 @@ namespace Pangya_GameServer.Game.Base
                         92, 0x360003));
                 }
 
-                if (_session.m_pi.ei.char_info.parts_typeid.Any(c=> c == _typeid))
+                if (_session.m_pi.ei.char_info.parts_typeid.Any(c => c == _typeid))
                 {
                     throw new exception("[TourneyBase::ActiveWing][Error] player[UID=" + Convert.ToString(_session.m_pi.uid) + "] tentou ativar Asa[TYPEID=" + Convert.ToString(_typeid) + "], mas ele nao esta com o item 'Asa' equipado. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.TOURNEY_BASE,
                         93, 0x360004));
@@ -1709,7 +1697,7 @@ namespace Pangya_GameServer.Game.Base
                 checkEffectItemAndSet(_session, _typeid);
 
                 // Resposta para o Active Wing
-                p.init_plain((ushort)0x203);
+                p.init_plain(0x203);
 
                 p.WriteUInt32(_session.m_pi.uid);
 
@@ -1722,7 +1710,7 @@ namespace Pangya_GameServer.Game.Base
             catch (exception e)
             {
 
-                message_pool.push(new message("[TourneyBase::ActiveWing][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                //_smp.message_pool.getInstance().push(new message("[TourneyBase::ActiveWing][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
         }
 
@@ -1739,7 +1727,7 @@ namespace Pangya_GameServer.Game.Base
                 setEffectActiveInShot(_session, enumToBitValue(AbilityEffect.PAWS_NOT_ACCUMULATE));
 
                 // Resposta para o Active Paws
-                p.init_plain((ushort)0x236);
+                p.init_plain(0x236);
 
                 p.WriteUInt32(_session.m_pi.uid);
 
@@ -1750,7 +1738,7 @@ namespace Pangya_GameServer.Game.Base
             catch (exception e)
             {
 
-                message_pool.push(new message("[TourneyBase::requestActivePaws][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                //_smp.message_pool.getInstance().push(new message("[TourneyBase::requestActivePaws][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
         }
 
@@ -1788,7 +1776,7 @@ namespace Pangya_GameServer.Game.Base
                 if (sIff.getInstance().getItemGroupIdentify(_typeid) == sIff.getInstance().PART)
                 { // Luva
 
-                    if (!_session.m_pi.ei.char_info.parts_typeid.Any(c=> c == _typeid))
+                    if (!_session.m_pi.ei.char_info.parts_typeid.Any(c => c == _typeid))
                     {
                         throw new exception("[TourneyBase::requestActiveGlove][Error] player[UID=" + Convert.ToString(_session.m_pi.uid) + "] tentou ativar Luva[TYPEID=" + Convert.ToString(_typeid) + "], mas ele nao tem a Luva equipada. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.TOURNEY_BASE,
                             113, 0x370004));
@@ -1797,7 +1785,7 @@ namespace Pangya_GameServer.Game.Base
                 }
                 else if (sIff.getInstance().getItemGroupIdentify(_typeid) == sIff.getInstance().AUX_PART)
                 { // Anel
-                    if (!_session.m_pi.ei.char_info.auxparts.Any(c => c == _typeid)) 
+                    if (!_session.m_pi.ei.char_info.auxparts.Any(c => c == _typeid))
                     {
                         throw new exception("[TourneyBase::requestActiveGlove][Error] player[UID=" + Convert.ToString(_session.m_pi.uid) + "] tentou ativar Luva[TYPEID=" + Convert.ToString(_typeid) + "], mas ele nao tem o Anel equipado. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.TOURNEY_BASE,
                             114, 0x370005));
@@ -1808,7 +1796,7 @@ namespace Pangya_GameServer.Game.Base
                 checkEffectItemAndSet(_session, _typeid);
 
                 // Resposta para o Active Glove
-                p.init_plain((ushort)0x265);
+                p.init_plain(0x265);
 
                 p.WriteUInt32(0); // OK
 
@@ -1823,10 +1811,10 @@ namespace Pangya_GameServer.Game.Base
             catch (exception e)
             {
 
-                message_pool.push(new message("[TourneyBase::requestActiveGlove][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                //_smp.message_pool.getInstance().push(new message("[TourneyBase::requestActiveGlove][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
 
                 // Resposta Error
-                p.init_plain((ushort)0x265);
+                p.init_plain(0x265);
 
                 p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) == STDA_ERROR_TYPE.TOURNEY_BASE) ? ExceptionError.STDA_SOURCE_ERROR_DECODE(e.getCodeError()) : 0x370000);
 
@@ -1840,7 +1828,7 @@ namespace Pangya_GameServer.Game.Base
             //REQUEST_BEGIN("ActiveEarcuff");
 
             var p = new PangyaBinaryWriter();
-             
+
             try
             {
 
@@ -1868,7 +1856,7 @@ namespace Pangya_GameServer.Game.Base
                         throw new exception("[TourneyBase::ActiveEarcuff][Error] player[UID=" + Convert.ToString(_session.m_pi.uid) + "] tentou ativar Earcuff[TYPEID=" + Convert.ToString(ec._typeid) + ", ANGLE_SENTIDO=" + Convert.ToString((ushort)ec.angle) + ", X_ANGLE=" + Convert.ToString(ec.x_point_angle) + "], mas ele nao tem o Part. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.TOURNEY_BASE,
                             132, 0x380003));
                     }
-                    if (!_session.m_pi.ei.char_info.parts_typeid.Any(c => c == ec._typeid)) 
+                    if (!_session.m_pi.ei.char_info.parts_typeid.Any(c => c == ec._typeid))
                     {
                         throw new exception("[TourneyBase::ActiveEarcuff][Error] player[UID=" + Convert.ToString(_session.m_pi.uid) + "] tentou ativar Earcuff[TYPEID=" + Convert.ToString(ec._typeid) + ", ANGLE_SENTIDO=" + Convert.ToString((ushort)ec.angle) + ", X_ANGLE=" + Convert.ToString(ec.x_point_angle) + "], mas ele nao esta com o Part equipado. Hacker ou Bug", ExceptionError.STDA_MAKE_ERROR_TYPE(STDA_ERROR_TYPE.TOURNEY_BASE,
                             133, 0x380004));
@@ -1893,9 +1881,9 @@ namespace Pangya_GameServer.Game.Base
                     }
                 }
 
-#if _DEBUG
-        			message_pool.push(new message("[TourneyBase::requestActiveEarcuff][Log] Player[UID=" + Convert.ToString(_session.m_pi.uid) + "] Typeid=" + Convert.ToString(ec._typeid) + ", ANG_DIRECTION=" + Convert.ToString((ushort)ec.angle) + ", ANG=" + Convert.ToString(ec.x_point_angle), type_msg.CL_FILE_LOG_AND_CONSOLE));
-#endif // _DEBUG
+#if DEBUG
+                //_smp.message_pool.getInstance().push(new message("[TourneyBase::requestActiveEarcuff][Log] Player[UID=" + Convert.ToString(_session.m_pi.uid) + "] Typeid=" + Convert.ToString(ec._typeid) + ", ANG_DIRECTION=" + Convert.ToString((ushort)ec.angle) + ", ANG=" + Convert.ToString(ec.x_point_angle), type_msg.CL_FILE_LOG_AND_CONSOLE));
+#endif // DEBUG
 
                 INIT_PLAYER_INFO("requestActiveEarcuff",
                     "tentou ativar o efeito earcuff de direcao de vento",
@@ -1906,7 +1894,7 @@ namespace Pangya_GameServer.Game.Base
 
 
                 // Resposta para o Active Earcuff
-                p.init_plain((ushort)0x24C);
+                p.init_plain(0x24C);
 
                 p.WriteUInt32(0); // OK
 
@@ -1925,10 +1913,10 @@ namespace Pangya_GameServer.Game.Base
             catch (exception e)
             {
 
-                message_pool.push(new message("[TourneyBase::requestActiveEarcuff][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                //_smp.message_pool.getInstance().push(new message("[TourneyBase::requestActiveEarcuff][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
 
                 // Resposta Error
-                p.init_plain((ushort)0x24C);
+                p.init_plain(0x24C);
 
                 p.WriteUInt32((ExceptionError.STDA_SOURCE_ERROR_DECODE_TYPE(e.getCodeError()) == STDA_ERROR_TYPE.TOURNEY_BASE) ? ExceptionError.STDA_SOURCE_ERROR_DECODE(e.getCodeError()) : 0x380000);
 
@@ -2005,10 +1993,10 @@ namespace Pangya_GameServer.Game.Base
             catch (exception e)
             {
 
-                message_pool.push(new message("[TourneyBase::requestSendTimeGame][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                //_smp.message_pool.getInstance().push(new message("[TourneyBase::requestSendTimeGame][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
 
                 // Resposta erro
-                p.init_plain((ushort)0x113);
+                p.init_plain(0x113);
 
                 p.WriteByte(6); // Option Error
 
@@ -2068,10 +2056,10 @@ namespace Pangya_GameServer.Game.Base
             catch (exception e)
             {
 
-                message_pool.push(new message("[TourneyBase::requestUpdateEnterAfterStartedInfo][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                //_smp.message_pool.getInstance().push(new message("[TourneyBase::requestUpdateEnterAfterStartedInfo][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
 
                 // Resposta erro
-                p.init_plain((ushort)0x113);
+                p.init_plain(0x113);
 
                 p.WriteByte(6); // Option Error
 
@@ -2104,13 +2092,12 @@ namespace Pangya_GameServer.Game.Base
                 pgi.ui = ui;
 
                 // Packet06
-                ret = finish_game(_session, 6);
-
+                ret = finish_game(_session, 6); 
             }
             catch (exception e)
             {
 
-                message_pool.push(new message("[TourneyBase::requestFinishGame][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                //_smp.message_pool.getInstance().push(new message("[TourneyBase::requestFinishGame][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
 
             return ret;
@@ -2118,20 +2105,26 @@ namespace Pangya_GameServer.Game.Base
 
         public void startTime()
         {
+            try
+            {
+                if (m_timer != null)
+                    stopTime();
 
-            // Para Tempo se já estiver 1 timer
-            if (m_timer != null)
-                stopTime();
+                m_timer = new PangyaTimer(m_ri.time_30s); // tempo em ms
+                //m_timer.OnTimeFinish = () => end_time(this, null);
+                //m_timer.Start();
 
-
-            m_timer = new PangyaTimer(m_ri.time_30s); // já está em minutos milliseconds
-
-            m_timer.start();
-
-            Task.Delay((int)m_ri.time_30s).ContinueWith(_ => end_time(this, null));
-
-
-            message_pool.push(new message("[TourneyBase::startTime][Log] Criou o Timer[Tempo=" + Convert.ToString((m_ri.time_30s > 0) ? m_ri.time_30s / 60000 : 0) + "min, STATE=" + Convert.ToString(m_timer.getState()) + "]", type_msg.CL_FILE_LOG_AND_CONSOLE));
+                var minutos = m_ri.time_30s > 0 ? m_ri.time_30s / 60000 : 0;
+                //_smp.message_pool.getInstance().push(new message(
+                    //$"[TourneyBase::startTime][Log] Criou o Timer [Tempo={minutos}min, STATE={m_timer.getState()}]",
+                    //type_msg.CL_FILE_LOG_AND_CONSOLE));
+            }
+            catch (Exception e)
+            {
+                //_smp.message_pool.getInstance().push(new message(
+                    //$"[TourneyBase::startTime][ErrorSystem] {e.Message}",
+                    //type_msg.CL_FILE_LOG_AND_CONSOLE));
+            }
         }
 
         protected override void requestTranslateSyncShotData(Player _session, ShotSyncData _ssd)
@@ -2187,7 +2180,7 @@ namespace Pangya_GameServer.Game.Base
                     }
 
                     // Conta já a próxima tacada, no give up
-                    if (!(_ssd.state_shot.display.acerto_hole == 1) && hole.getPar().total_shot <= (pgi.data.tacada_num + 1))
+                    if (!(_ssd.state_shot.display.acerto_hole) && hole.getPar().total_shot <= (pgi.data.tacada_num + 1))
                     {
 
                         // +1 que é giveup, só add se n o passou o número de tacadas
@@ -2210,7 +2203,7 @@ namespace Pangya_GameServer.Game.Base
             catch (exception e)
             {
 
-                message_pool.push(new message("[TourneyBase::requestTranslateSyncShotData][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                //_smp.message_pool.getInstance().push(new message("[TourneyBase::requestTranslateSyncShotData][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
         }
 
@@ -2230,10 +2223,11 @@ namespace Pangya_GameServer.Game.Base
             catch (exception e)
             {
 
-                message_pool.push(new message("[TourneyBase::requestReplySyncShotData][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                //_smp.message_pool.getInstance().push(new message("[TourneyBase::requestReplySyncShotData][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
         }
-        public void sendRemainTime(Player _session)
+
+        public virtual void sendRemainTime(Player _session)
         {
 
             var remain_time = UtilTime.GetLocalDateDiff(m_start_time);
@@ -2251,16 +2245,12 @@ namespace Pangya_GameServer.Game.Base
             packet_func.session_send(p,
                 _session, 1);
         }
-        public void updateFinishHole(Player _session, int _option)
+        public virtual void updateFinishHole(Player _session, int _option)
         {
 
             INIT_PLAYER_INFO("updateFinishHole",
                 "tentou terminar o hole no jogo",
                _session, out PlayerGameInfo pgi);
-
-#if _DEBUG
-        		message_pool.push(new message("[TourneyBase::updateFinishHole][Log] player[UID=" + Convert.ToString(_session.m_pi.uid) + "] Terminou o hole[NUMERO=" + Convert.ToString(pgi.hole) + "].", type_msg.CL_FILE_LOG_AND_CONSOLE));
-#endif // _DEBUG
 
             var p = new PangyaBinaryWriter((ushort)0x6D);
 
@@ -2303,7 +2293,7 @@ namespace Pangya_GameServer.Game.Base
                 pgi.thi.treasure_point += sTreasureHunterSystem.getInstance().calcPointSSC(pgi.data.tacada_num, hole.getPar().par) + pgi.thi.getPoint(pgi.data.tacada_num, hole.getPar().par);
             }
             else
-            { 
+            {
                 pgi.thi.treasure_point += sTreasureHunterSystem.getInstance().calcPointNormal(pgi.data.tacada_num, hole.getPar().par) + pgi.thi.getPoint(pgi.data.tacada_num, hole.getPar().par);
             }
 
@@ -2317,7 +2307,8 @@ namespace Pangya_GameServer.Game.Base
             packet_func.session_send(p,
                 _session, 1);
         }
-        public void requestDrawTreasureHunterItem(Player _session)
+
+        public virtual void requestDrawTreasureHunterItem(Player _session)
         {
 
             // Sorteia os itens ganho do Treasure ponto do player
@@ -2337,9 +2328,10 @@ namespace Pangya_GameServer.Game.Base
 
             if (pgi.thi.v_item.empty())
             {
-                message_pool.push(new message("[TourneyBase::requestDrawTreasureHunterItem][WARNING] player[UID=" + Convert.ToString(_session.m_pi.uid) + "] tentou sortear os item(ns) do Treasure Hunter do jogo," + "mas o Treasure Hunter Item nao conseguiu sortear nenhum item", type_msg.CL_FILE_LOG_AND_CONSOLE));
+                //_smp.message_pool.getInstance().push(new message("[TourneyBase::requestDrawTreasureHunterItem][WARNING] player[UID=" + Convert.ToString(_session.m_pi.uid) + "] tentou sortear os item(ns) do Treasure Hunter do jogo," + "mas o Treasure Hunter Item nao conseguiu sortear nenhum item", type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
         }
+
         public void sendSyncShot(Player _session)
         {
 
@@ -2347,9 +2339,9 @@ namespace Pangya_GameServer.Game.Base
                 "tentou sincronizar a tacada do jogador no jogo",
                _session, out PlayerGameInfo pgi);
 
-           var p = new PangyaBinaryWriter((ushort)0x6E);
+            var p = new PangyaBinaryWriter((ushort)0x6E);
 
-            p.WriteUInt32(pgi.shot_sync.oid);
+            p.WriteInt32(pgi.shot_sync.oid);
 
             p.WriteByte(pgi.hole);
 
@@ -2368,14 +2360,14 @@ namespace Pangya_GameServer.Game.Base
         public void sendEndShot(Player _session, DropItemRet _cube)
         {
 
-           var p = new PangyaBinaryWriter((ushort)0xCC);
+            var p = new PangyaBinaryWriter((ushort)0xCC);
 
             p.WriteInt32(_session.m_oid);
 
             // Count, Coin/Cube "Drop"
             p.WriteByte(_cube.v_drop.Count());
 
-            if (!_cube.v_drop.empty())//fiz @@@@@
+            if (!_cube.v_drop.empty())
             {
                 foreach (var el in _cube.v_drop)
                 {
@@ -2396,7 +2388,7 @@ namespace Pangya_GameServer.Game.Base
         public void sendUpdateState(Player _session, int _option)
         {
 
-           var p = new PangyaBinaryWriter((ushort)0x6C);
+            var p = new PangyaBinaryWriter((ushort)0x6C);
 
             p.WriteInt32(_session.m_oid);
 
@@ -2412,7 +2404,7 @@ namespace Pangya_GameServer.Game.Base
                 "tentou enviar os itens dropado do player no jogo",
                _session, out PlayerGameInfo pgi);
 
-           var p = new PangyaBinaryWriter((ushort)0xCE);
+            var p = new PangyaBinaryWriter((ushort)0xCE);
 
             p.WriteByte(0); // OK
 
@@ -2426,14 +2418,14 @@ namespace Pangya_GameServer.Game.Base
             packet_func.session_send(p,
                 _session, 1);
         }
-        public void sendPlacar(Player _session)
+        public virtual void sendPlacar(Player _session)
         {
 
             INIT_PLAYER_INFO("sendPlacar",
                 "tentou enviar o placar do jogo",
                _session, out PlayerGameInfo pgi);
 
-           var p = new PangyaBinaryWriter((ushort)0x79);
+            var p = new PangyaBinaryWriter((ushort)0x79);
 
             p.WriteUInt32(pgi.data.exp);
 
@@ -2441,7 +2433,7 @@ namespace Pangya_GameServer.Game.Base
 
             p.WriteByte(pgi.trofel); // Trofel Que o Player Ganhou
             p.WriteByte((byte)pgi.team); // Team Win, 0 - vermelho, 1 - Azul, 2 nenhum
-            
+
             // Medalhas 
             for (var i = 0u; i < (m_medal.Length); ++i)
             {
@@ -2461,7 +2453,7 @@ namespace Pangya_GameServer.Game.Base
                 "tentou enviar os itens ganho no Treasure Hunter(so o Visual) do jogo",
                _session, out PlayerGameInfo pgi);
 
-           var p = new PangyaBinaryWriter((ushort)0x133);
+            var p = new PangyaBinaryWriter((ushort)0x133);
 
             p.WriteByte((byte)pgi.thi.v_item.Count());
 
@@ -2480,7 +2472,7 @@ namespace Pangya_GameServer.Game.Base
         public void sendTimeIsOver(Player _session)
         {
 
-           var p = new PangyaBinaryWriter((ushort)0x8C);
+            var p = new PangyaBinaryWriter((ushort)0x8C);
 
             packet_func.session_send(p,
                 _session, 1);
@@ -2494,7 +2486,7 @@ namespace Pangya_GameServer.Game.Base
                 "tentou verificar a ultima tacada do hole no jogo",
                _session, out PlayerGameInfo pgi);
 
-            if (pgi.shot_sync.state_shot.display.acerto_hole == 1 || pgi.data.giveup == 1)
+            if (pgi.shot_sync.state_shot.display.acerto_hole || pgi.data.giveup == 1)
             {
 
                 if (pgi.data.bad_condute >= 3)
@@ -2510,13 +2502,13 @@ namespace Pangya_GameServer.Game.Base
                 {
 
                     // Resposta para o player que terminou o ultimo hole do Game
-                   var p = new PangyaBinaryWriter((ushort)0x199);
+                    var p = new PangyaBinaryWriter((ushort)0x199);
 
                     packet_func.session_send(p,
                         _session, 1);
 
                     // Fez o Ultimo Hole, Calcula Clear Bonus para o player
-                    if (pgi.shot_sync.state_shot.display.clear_bonus == 1)
+                    if (pgi.shot_sync.state_shot.display.clear_bonus)
                     {
 
                         if (!sMap.getInstance().isLoad())
@@ -2528,7 +2520,7 @@ namespace Pangya_GameServer.Game.Base
 
                         if (map == null)
                         {
-                            message_pool.push(new message("[TourneyBase::checkEndShotOfHole][Error][WARNING] tentou pegar o Map dados estaticos do course[COURSE=" + Convert.ToString((ushort)((int)m_ri.course & 0x7F)) + "], mas nao conseguiu encontra na classe do Server.", type_msg.CL_FILE_LOG_AND_CONSOLE));
+                            //_smp.message_pool.getInstance().push(new message("[TourneyBase::checkEndShotOfHole][Error][WARNING] tentou pegar o Map dados estaticos do course[COURSE=" + Convert.ToString((ushort)((int)m_ri.course & 0x7F)) + "], mas nao conseguiu encontra na classe do Server.", type_msg.CL_FILE_LOG_AND_CONSOLE));
                         }
                         else
                         {
@@ -2545,20 +2537,21 @@ namespace Pangya_GameServer.Game.Base
 
             return 0;
         }
-        public void drawDropItem(Player _session)
+
+        public virtual void drawDropItem(Player _session)
         {
 
             INIT_PLAYER_INFO("drawDropItem",
                 "tentou sortear item drop para o jogador no jogo",
                _session, out PlayerGameInfo pgi);
 
-            if (pgi.shot_sync.state_shot.display.acerto_hole == 1)
+            if (pgi.shot_sync.state_shot.display.acerto_hole)
             {
                 var drop = requestInitDrop(_session);
 
                 if (!drop.v_drop.empty())
                 {
-                   var p = new PangyaBinaryWriter((ushort)0xCC);
+                    var p = new PangyaBinaryWriter((ushort)0xCC);
 
                     p.WriteInt32(_session.m_oid);
 
@@ -2600,15 +2593,16 @@ namespace Pangya_GameServer.Game.Base
                         "tentou atualizar achievement contador de top 3 rank do player no jogo",
                        _session, out PlayerGameInfo pgi);
 
-                    //pgi.sys_achieve.incrementCounter(0x6C4000B6u);
+                    pgi.sys_achieve.incrementCounter(0x6C4000B6u);
 
-                    //if (rank == 0u)
-                    //{
-                    //    pgi.sys_achieve.incrementCounter(0x6C4000AFu);
-                    //}
+                    if (rank == 0u)
+                    {
+                        pgi.sys_achieve.incrementCounter(0x6C4000AFu);
+                    }
                 }
             }
         }
+
         public void calcule_shot_to_spinning_cube(Player _session, ShotSyncData _ssd)
         {
             //CHECK_SESSION_BEGIN("calcule_shot_to_spinning_cube");
@@ -2641,12 +2635,12 @@ namespace Pangya_GameServer.Game.Base
                 }
 
                 // Calcule Shot Cube
-                sCoinCubeLocationUpdateSystem.getInstance().pushOrderToCalcule(new CalculeCoinCubeUpdateOrder(CalculeCoinCubeUpdateOrder.eTYPE.CUBE, _session.m_pi.uid, pgi.location, hole.getPinLocation(), pgi.shot_data_for_cube, (byte)(m_ri.getMap()), (byte)(m_ri.modo == (byte)RoomInfo.MODO.M_REPEAT ? hole.getHoleRepeat() : hole.getNumero())));
+                sCoinCubeLocationUpdateSystem.getInstance().pushOrderToCalcule(new CalculeCoinCubeUpdateOrder(CalculeCoinCubeUpdateOrder.eTYPE.CUBE, _session.m_pi.uid, pgi.location, hole.getPinLocation(), pgi.shot_data_for_cube, (byte)(m_ri.getMap()), (byte)(m_ri.modo == (byte)RoomInfo.eMODO.M_REPEAT ? hole.getHoleRepeat() : hole.getNumero())));
             }
             catch (exception e)
             {
 
-                message_pool.push(new message("[TourneyBase::calcule_shot_to_spinning_cube][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                //_smp.message_pool.getInstance().push(new message("[TourneyBase::calcule_shot_to_spinning_cube][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
         }
         public void calcule_shot_to_coin(Player _session, ShotSyncData _ssd)
@@ -2688,13 +2682,13 @@ namespace Pangya_GameServer.Game.Base
                 }
 
                 // Calcule Shot Coin
-                sCoinCubeLocationUpdateSystem.getInstance().pushOrderToCalcule(new CalculeCoinCubeUpdateOrder(CalculeCoinCubeUpdateOrder.eTYPE.COIN, _session.m_pi.uid, _ssd.location, hole.getPinLocation(), pgi.shot_data_for_cube, (byte)(m_ri.getMap()), (byte)(m_ri.modo ==(byte) RoomInfo.MODO.M_REPEAT ? hole.getHoleRepeat() : hole.getNumero())));
+                sCoinCubeLocationUpdateSystem.getInstance().pushOrderToCalcule(new CalculeCoinCubeUpdateOrder(CalculeCoinCubeUpdateOrder.eTYPE.COIN, _session.m_pi.uid, _ssd.location, hole.getPinLocation(), pgi.shot_data_for_cube, m_ri.getMap(), (byte)(m_ri.getModo() == RoomInfo.eMODO.M_REPEAT ? hole.getHoleRepeat() : hole.getNumero())));
 
             }
             catch (exception e)
             {
 
-                message_pool.push(new message("[TourneyBase::calcule_shot_to_coin][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                //_smp.message_pool.getInstance().push(new message("[TourneyBase::calcule_shot_to_coin][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
         }
         public virtual void requestCalculeShotSpinningCube(Player _session, ShotSyncData _ssd)
@@ -2721,9 +2715,9 @@ namespace Pangya_GameServer.Game.Base
                 var weather = _packet.ReadByte();
 
                 // Log
-                message_pool.push(new message("[VersusBase::requestExecCCGChangeWeather][Log] [GM] player[UID=" + (_session.m_pi.uid) + "] trocou o tempo(weather) da sala[NUMERO="
-                         + (m_ri.numero) + ", WEATHER=" + (weather) + "]", type_msg.CL_FILE_LOG_AND_CONSOLE));
-                 
+                //_smp.message_pool.getInstance().push(new message("[VersusBase::requestExecCCGChangeWeather][Log] [GM] player[UID=" + (_session.m_pi.uid) + "] trocou o tempo(weather) da sala[NUMERO="
+                        // + (m_ri.numero) + ", WEATHER=" + (weather) + "]", type_msg.CL_FILE_LOG_AND_CONSOLE));
+
                 // UPDATE ON GAME
                 PangyaBinaryWriter p = new PangyaBinaryWriter((ushort)0x9E);
 
@@ -2737,27 +2731,26 @@ namespace Pangya_GameServer.Game.Base
             catch (exception e)
             {
 
-                message_pool.push(new message("[VersusBase::requestExecCCGChangeWeather][ErrorSystem] " + e.getFullMessageError()));
+                //_smp.message_pool.getInstance().push(new message("[VersusBase::requestExecCCGChangeWeather][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
 
                 throw;
             }
         }
-        public  static int end_time(object _arg1, object _arg2)
-        { 
+        public static int end_time(object _arg1, object _arg2)
+        {
             var game = Tools.reinterpret_cast<TourneyBase>(_arg1);
 
             try
             {
 
-                // Tempo Acabou
-                if(game.m_timer.getState() == PangyaTimer.STATE_TIME.FINISH)
+                // Tempo Acabou 
                     game.timeIsOver();
 
             }
             catch (exception e)
             {
 
-                message_pool.push(new message("[TourneyBase::end_time][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
+                //_smp.message_pool.getInstance().push(new message("[TourneyBase::end_time][ErrorSystem] " + e.getFullMessageError(), type_msg.CL_FILE_LOG_AND_CONSOLE));
             }
 
             return 0;

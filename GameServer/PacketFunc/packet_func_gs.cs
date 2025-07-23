@@ -6354,7 +6354,7 @@ namespace Pangya_GameServer.PacketFunc
                 p.init_plain(0x137);
 
                 p.WriteUInt16((short)v_element.Count());
-                foreach (var CardEquip in v_element.Values)
+                foreach (var CardEquip in v_element)
                 {
                     var array = CardEquip.ToArray();
                     p.WriteBytes(array);
@@ -7547,7 +7547,7 @@ int option = 0)
             p.WriteByte((byte)_ri.course);
             p.WriteByte(_ri.qntd_hole);
             p.WriteByte(_ri.modo); 
-            if (_ri.getModo() == RoomInfo.MODO.M_REPEAT)
+            if (_ri.getModo() == RoomInfo.eMODO.M_REPEAT)
             {
                 p.WriteByte(_ri.hole_repeat);
                 p.WriteUInt32(_ri.fixed_hole);
@@ -7868,7 +7868,7 @@ int option = 0)
             }
         }
 
-        public static void game_broadcast(Game.Game _game, byte[] p, int _debug = 1)
+        public static void game_broadcast(Game.GameBase _game, byte[] p, int _debug = 1)
         {
             try
             {
@@ -7883,7 +7883,7 @@ int option = 0)
         }
 
 
-        public static void game_broadcast(Game.Game _game, PangyaBinaryWriter p, int _debug = 1)
+        public static void game_broadcast(Game.GameBase _game, PangyaBinaryWriter p, int _debug = 1)
         {
             try
             {
@@ -7897,7 +7897,7 @@ int option = 0)
             }
         }
 
-        public static void game_broadcast(Game.Game _game, List<PangyaBinaryWriter> v_p, int _debug = 1)
+        public static void game_broadcast(Game.GameBase _game, List<PangyaBinaryWriter> v_p, int _debug = 1)
         {
             try
             {
