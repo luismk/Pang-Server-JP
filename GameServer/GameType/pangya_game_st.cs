@@ -3385,15 +3385,17 @@ namespace Pangya_GameServer.GameType
         }
 
         public uint ulNaturalAndShortGame { get; set; }
+		
         public uint natural
         {
-            get => (ulNaturalAndShortGame >> 0) & 0xFFFF;
-            set => ulNaturalAndShortGame = (ulNaturalAndShortGame & 0xFFFF0000) | (value & 0xFFFF);
-        }          // Natural Modo
+           get => (ulNaturalAndShortGame & 0x1); 
+		   set => ulNaturalAndShortGame = (ulNaturalAndShortGame & ~0x1u) | (value & 0x1);
+        }// Natural Modo
+		
         public uint short_game
         {
-            get => (ulNaturalAndShortGame >> 16) & 0xFFFF;
-            set => ulNaturalAndShortGame = (ulNaturalAndShortGame & 0x0000FFFF) | ((value & 0xFFFF) << 16);
+            get => (ulNaturalAndShortGame >> 1) & 0x1; 
+			set => ulNaturalAndShortGame = (ulNaturalAndShortGame & ~0x2u) | ((value & 0x1) << 1);
         }    // Short Game Modo
     }
 
